@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { 
   Monitor
 } from 'lucide-react';
@@ -20,6 +20,13 @@ export const TestLeftPanel = ({
   chatConfigs,
   onSelectModel
 }: TestLeftPanelProps) => {
+  // Transform model options for dropdown
+  const modelOptions = Array(numModels).fill(null).map((_, index) => ({
+    value: index.toString(),
+    label: `Model ${index + 1}`,
+    description: getModelDisplay(chatConfigs[index]?.model || 'gpt-3.5-turbo')
+  }));
+
   return (
     <div className="h-full bg-white dark:bg-gray-900 flex flex-col">
       {/* Header */}
@@ -42,24 +49,24 @@ export const TestLeftPanel = ({
             <CardTitle className="text-sm">Active Model</CardTitle>
           </CardHeader>
           <CardContent>
-            <Select 
-              value={selectedModelIndex.toString()} 
+            <ModernDropdown
+              value={selectedModelIndex.toString()}
               onValueChange={(value) => onSelectModel(parseInt(value))}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Array(numModels).fill(null).map((_, index) => (
-                  <SelectItem key={index} value={index.toString()}>
-                    <div className="flex items-center gap-2">
-                      <Monitor className="h-4 w-4" />
-                      Model {index + 1} - {getModelDisplay(chatConfigs[index]?.model || 'gpt-3.5-turbo')}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={modelOptions}
+              placeholder="Select a model"
+              className="w-full"
+              renderOption={(option) => (
+                <div className="flex items-center gap-2">
+                  <Monitor className="h-4 w-4" />
+                  <div className="flex flex-col">
+                    <span className="font-medium">{option.label}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {option.description}
+                    </span>
+                  </div>
+                </div>
+              )}
+            />
           </CardContent>
         </Card>
       </div>

@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, Trash2, Download, RotateCcw, Database } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 
@@ -36,6 +37,13 @@ export const TestPageToolbar = ({
     setShowExportDialog(true);
   };
 
+  // Transform agents data for dropdown
+  const agentOptions = agents.map(agent => ({
+    value: agent.id,
+    label: agent.name,
+    description: `Model: ${agent.model || 'Not set'}`
+  }));
+
   return (
     <div className="h-14 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 shadow-sm">
       {/* Left Section */}
@@ -65,21 +73,14 @@ export const TestPageToolbar = ({
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600 dark:text-gray-400">Testing:</span>
-          <Select value={selectedAgentId} onValueChange={onAgentChange} disabled={isLoading}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder={isLoading ? "Loading..." : "Select an agent"} />
-            </SelectTrigger>
-            <SelectContent>
-              {agents.map((agent) => (
-                <SelectItem key={agent.id} value={agent.id}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-gradient-to-br from-blue-500 to-purple-600" />
-                    {agent.name}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ModernDropdown
+            value={selectedAgentId}
+            onValueChange={onAgentChange}
+            options={agentOptions}
+            placeholder={isLoading ? "Loading..." : "Select an agent"}
+            className="w-48"
+            disabled={isLoading}
+          />
         </div>
 
         {agent && (

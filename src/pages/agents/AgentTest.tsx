@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -32,6 +33,7 @@ export default function AgentTest() {
     isSaving,
     isModalOpen,
     isSystemPromptOpen,
+    allAgents,
     handleAgentChange,
     handleUpdateChatConfig,
     handleSystemPromptEdit,
@@ -82,9 +84,10 @@ export default function AgentTest() {
           onAgentChange={handleAgentChange}
           onClearChat={handleClearChat}
           onViewKnowledgeSources={handleViewKnowledgeSources}
-          knowledgeSourceCount={0}
-          agents={[agent]}
-          isLoading={false}
+          knowledgeSourceCount={agent?.knowledgeSources?.length || 0}
+          agents={allAgents}
+          isLoading={isLoadingAgents}
+          agent={agent}
         />
 
         {/* Main Content */}

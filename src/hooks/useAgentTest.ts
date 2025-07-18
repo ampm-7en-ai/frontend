@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -6,6 +7,7 @@ import { Agent, Message, ChatConfig } from '@/components/agents/modelComparison/
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import { fetchAgentDetails, API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 import { ModelWebSocketService } from '@/services/ModelWebSocketService';
+import { useAIModels } from './useAIModels';
 
 // Mock data for fallback
 const mockAgents = [
@@ -108,16 +110,31 @@ const mockAgents = [
 export const useAgentTest = (initialAgentId: string) => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { allModelOptions } = useAIModels();
   
   const [selectedAgentId, setSelectedAgentId] = useState<string>(initialAgentId || "1");
   const [agent, setAgent] = useState<Agent | null>(null);
   const [numModels, setNumModels] = useState(3);
   const [selectedModelIndex, setSelectedModelIndex] = useState(0);
-  const [chatConfigs, setChatConfigs] = useState<ChatConfig[]>([
-    { model: "gpt-4-turbo", temperature: 0.6, systemPrompt: "", maxLength: 512 },
-    { model: "gpt-3.5-turbo", temperature: 0.7, systemPrompt: "", maxLength: 512 },
-    { model: "mistral-large-latest", temperature: 0.7, systemPrompt: "", maxLength: 512 }
-  ]);
+  
+  // Initialize chat configs with real model data
+  const [chatConfigs, setChatConfigs] = useState<ChatConfig[]>(() => {
+    const defaultModels = allModelOptions.length > 0 
+      ? [
+          allModelOptions[0]?.value || "gpt-4-turbo",
+          allModelOptions[1]?.value || "gpt-3.5-turbo", 
+          allModelOptions[2]?.value || "mistral-large-latest"
+        ]
+      : ["gpt-4-turbo", "gpt-3.5-turbo", "mistral-large-latest"];
+    
+    return defaultModels.map(model => ({
+      model,
+      temperature: 0.7,
+      systemPrompt: "",
+      maxLength: 512
+    }));
+  });
+
   const [messages, setMessages] = useState<Message[][]>([[], [], []]);
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -133,6 +150,16 @@ export const useAgentTest = (initialAgentId: string) => {
   const webSocketsInitialized = useRef<boolean>(false);
   const systemMessageProcessing = useRef<boolean>(false); // Track system message processing state
 
+  // Update chat configs when model options are available
+  useEffect(() => {
+    if (allModelOptions.length > 0) {
+      setChatConfigs(prev => prev.map((config, index) => ({
+        ...config,
+        model: allModelOptions[index]?.value || config.model
+      })));
+    }
+  }, [allModelOptions]);
+
   // Fetch all agents
   const { data: allAgents = [], isLoading: isLoadingAgents } = useQuery({
     queryKey: ['agents'],
@@ -141,7 +168,7 @@ export const useAgentTest = (initialAgentId: string) => {
       const token = getAccessToken();
       if (!token) {
         console.error("No access token available");
-        return [];
+        return mockAgents; // Return mock data as fallback
       }
       
       try {
@@ -153,7 +180,7 @@ export const useAgentTest = (initialAgentId: string) => {
         
         if (!response.ok) {
           console.error("Failed to fetch agents list:", response.status);
-          throw new Error(`Failed to fetch agents: ${response.status}`);
+          return mockAgents; // Return mock data as fallback
         }
 
         const data = await response.json();
@@ -165,10 +192,10 @@ export const useAgentTest = (initialAgentId: string) => {
           name: agent.name,
           model: agent.model?.selectedModel || agent.model?.name || 'gpt-3.5',
           avatarSrc: agent.appearance?.avatar?.src || '',
-        })) || [];
+        })) || mockAgents;
       } catch (error) {
         console.error("Error in fetchAllAgents:", error);
-        return [];
+        return mockAgents; // Return mock data as fallback
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
