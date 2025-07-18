@@ -1,4 +1,25 @@
 
+export interface ModelConfig {
+  model: string;
+  temperature: number;
+  maxLength: number;
+  systemPrompt: string;
+}
+
+export interface QueryData {
+  id: string;
+  content: string;
+  timestamp: string;
+  config: ModelConfig;
+}
+
+export interface ResponseData {
+  id: string;
+  queryId: string;
+  content: string;
+  timestamp: string;
+}
+
 export interface SocketHistory {
   socketIndex: number;
   chatEndpoint: string; // "chat1", "chat2", "chat3"

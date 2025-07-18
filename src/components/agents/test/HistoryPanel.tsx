@@ -1,17 +1,11 @@
+
 import React from 'react';
 import { History, Clock, MessageSquare } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-
-interface HistoryItem {
-  id: string;
-  query: string;
-  timestamp: Date;
-  responses: any[];
-  configs: any[];
-}
+import { HistoryItem } from '@/types/history';
 
 interface HistoryPanelProps {
   isOpen: boolean;

@@ -100,8 +100,8 @@ export class ModelWebSocketService extends ChatWebSocketService {
     }
   }
 
-  // Override the message handler to track responses
-  protected handleIncomingMessage(message: any) {
+  // Handle incoming messages and track responses
+  private handleIncomingMessage(message: any) {
     // Track response if we have a current query and response callback
     if (this.currentQueryId && this.onResponseReceived && message.content && message.type !== "system_message") {
       this.onResponseReceived({
@@ -112,8 +112,26 @@ export class ModelWebSocketService extends ChatWebSocketService {
       });
     }
     
-    // Call parent handler for normal processing
-    super.handleIncomingMessage(message);
+    // Pass through to parent handler
+    this.emit('message', message);
+  }
+
+  // Override the on method to intercept messages
+  override on(handlers: any) {
+    const originalOnMessage = handlers.onMessage;
+    
+    super.on({
+      ...handlers,
+      onMessage: (message: any) => {
+        // Process through our handler first
+        this.handleIncomingMessage(message);
+        
+        // Then call the original handler
+        if (originalOnMessage) {
+          originalOnMessage(message);
+        }
+      }
+    });
   }
 
   updateConfig(newConfig: ModelConfig) {

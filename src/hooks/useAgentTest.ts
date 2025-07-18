@@ -617,7 +617,6 @@ export const useAgentTest = (initialAgentId: string) => {
 
   const handleClearChat = () => {
     setMessages(Array(numModels).fill(null).map(() => []));
-    setHistoryData(null);
     toast({
       title: "Chat cleared",
       description: "All messages have been cleared.",
