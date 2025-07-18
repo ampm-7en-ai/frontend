@@ -83,10 +83,10 @@ export const ModelComparisonGrid = ({
       <Card 
         key={cell.id} 
         className={`
-          transition-all duration-200 cursor-pointer h-full
+          transition-all duration-200 cursor-pointer h-full rounded-none border-border
           ${isSelected 
-            ? 'ring-2 ring-primary ring-offset-2 shadow-lg' 
-            : 'hover:shadow-md border-border'
+            ? 'bg-muted/50 dark:bg-muted/20' 
+            : 'bg-card hover:bg-muted/30 dark:hover:bg-muted/10'
           }
           ${isExpanded ? 'col-span-full row-span-full' : ''}
           ${expandedCellId && expandedCellId !== cell.id ? 'hidden' : ''}

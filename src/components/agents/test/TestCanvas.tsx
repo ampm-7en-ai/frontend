@@ -329,9 +329,9 @@ export const TestCanvas = ({
               onSendMessage={handleSendMessage}
               primaryColor={primaryColors[0] || '#9b87f5'}
               isDisabled={isProcessing || modelConnections.some(status => !status)}
-              placeholder={isHistoryMode ? "Enter new query to exit history mode..." : "Type your query to compare responses across all models..."}
+              placeholder={isHistoryMode ? "Viewing historical query..." : "Type your query to compare responses across all models..."}
               value={isHistoryMode ? currentQuery : undefined}
-              readonly={isHistoryMode}
+              readonly={false}
             />
           </div>
         </div>

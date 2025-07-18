@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -68,11 +69,11 @@ export const TestRightPanel = ({
   );
 
   return (
-    <div className={`w-80 border-l border-border bg-background/50 backdrop-blur-sm transition-all duration-300 ${
+    <div className={`w-80 border-l border-border bg-background transition-all duration-300 ${
       isOpen ? 'translate-x-0' : 'translate-x-full'
     } flex flex-col overflow-hidden`}>
       {/* Panel Header */}
-      <div className="h-14 px-4 bg-background/80 backdrop-blur-sm border-b border-border flex items-center justify-between">
+      <div className="h-14 px-4 bg-background border-b border-border flex items-center justify-between">
         <h3 className="text-lg font-semibold text-foreground">
           {isHistoryMode ? 'Historical Configuration' : 'Request Configuration'}
         </h3>
@@ -88,7 +89,7 @@ export const TestRightPanel = ({
 
       {/* Panel Content */}
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-6">
           {isLoadingConfig ? (
             <ConfigSkeleton />
           ) : isHistoryMode ? (
@@ -98,76 +99,107 @@ export const TestRightPanel = ({
             />
           ) : (
             <>
-              {/* Model Configuration */}
-              <div className="flex items-center gap-2 mb-3">
-                <Settings2 className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-foreground">Model Configuration</span>
-                {selectedCellId && (
-                  <Badge variant="secondary" className="text-xs ml-auto">
-                    {selectedCellId}
-                  </Badge>
-                )}
-              </div>
-
-              {/* Model Badge */}
-              <div className="mb-4">
-                <Badge variant="default" className="text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-primary-foreground" />
-                    {currentConfig?.model || 'No model selected'}
+              {/* Model Configuration Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 pb-2 border-b border-border">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Settings2 className="h-4 w-4 text-primary" />
                   </div>
-                </Badge>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-foreground">Model Configuration</h3>
+                    <p className="text-xs text-muted-foreground">Configure model parameters</p>
+                  </div>
+                  {selectedCellId && (
+                    <Badge variant="secondary" className="text-xs">
+                      {selectedCellId}
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Model Badge */}
+                <div className="px-3 py-2 bg-muted/50 rounded-lg">
+                  <Badge variant="default" className="text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                      {currentConfig?.model || 'No model selected'}
+                    </div>
+                  </Badge>
+                </div>
               </div>
 
-              {/* Temperature */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Thermometer className="h-4 w-4 text-muted-foreground" />
-                  <Label className="text-sm font-medium text-foreground">Temperature</Label>
-                  <span className="text-xs text-muted-foreground ml-auto">
+              {/* Temperature Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 pb-2 border-b border-border">
+                  <div className="p-2 bg-orange-500/10 rounded-lg">
+                    <Thermometer className="h-4 w-4 text-orange-500" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-foreground">Temperature</h3>
+                    <p className="text-xs text-muted-foreground">Control response creativity</p>
+                  </div>
+                  <span className="text-sm font-medium text-foreground">
                     {(currentConfig.temperature || 0.7).toFixed(1)}
                   </span>
                 </div>
-                <Slider
-                  min={0}
-                  max={1}
-                  step={0.1}
-                  value={[currentConfig.temperature || 0.7]}
-                  onValueChange={([value]) => handleConfigUpdate('temperature', value)}
-                  className="w-full"
-                />
+                
+                <div className="px-3">
+                  <Slider
+                    min={0}
+                    max={1}
+                    step={0.1}
+                    value={[currentConfig.temperature || 0.7]}
+                    onValueChange={([value]) => handleConfigUpdate('temperature', value)}
+                    className="w-full"
+                  />
+                </div>
               </div>
 
-              {/* Token Length */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Hash className="h-4 w-4 text-muted-foreground" />
-                  <Label className="text-sm font-medium text-foreground">Token Length</Label>
-                  <span className="text-xs text-muted-foreground ml-auto">
+              {/* Token Length Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 pb-2 border-b border-border">
+                  <div className="p-2 bg-blue-500/10 rounded-lg">
+                    <Hash className="h-4 w-4 text-blue-500" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-foreground">Token Length</h3>
+                    <p className="text-xs text-muted-foreground">Maximum response length</p>
+                  </div>
+                  <span className="text-sm font-medium text-foreground">
                     {currentConfig.maxLength || 8000}
                   </span>
                 </div>
-                <ExponentialSlider
-                  minValue={4000}
-                  maxValue={32000}
-                  value={currentConfig.maxLength || 8000}
-                  onChange={(value) => handleConfigUpdate('maxLength', value)}
-                  className="w-full"
-                />
+                
+                <div className="px-3">
+                  <ExponentialSlider
+                    minValue={4000}
+                    maxValue={32000}
+                    value={currentConfig.maxLength || 8000}
+                    onChange={(value) => handleConfigUpdate('maxLength', value)}
+                    className="w-full"
+                  />
+                </div>
               </div>
 
-              {/* System Prompt */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <Label className="text-sm font-medium text-foreground">System Prompt</Label>
+              {/* System Prompt Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 pb-2 border-b border-border">
+                  <div className="p-2 bg-green-500/10 rounded-lg">
+                    <FileText className="h-4 w-4 text-green-500" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-foreground">System Prompt</h3>
+                    <p className="text-xs text-muted-foreground">Define agent behavior</p>
+                  </div>
                 </div>
-                <SystemPromptSection
-                  agentType={currentConfig.agentType || 'general-assistant'}
-                  systemPrompt={currentConfig.systemPrompt || ''}
-                  onAgentTypeChange={(agentType) => handleConfigUpdate('agentType', agentType)}
-                  onSystemPromptChange={(prompt) => handleConfigUpdate('systemPrompt', prompt)}
-                />
+                
+                <div className="px-3">
+                  <SystemPromptSection
+                    agentType={currentConfig.agentType || 'general-assistant'}
+                    systemPrompt={currentConfig.systemPrompt || ''}
+                    onAgentTypeChange={(agentType) => handleConfigUpdate('agentType', agentType)}
+                    onSystemPromptChange={(prompt) => handleConfigUpdate('systemPrompt', prompt)}
+                  />
+                </div>
               </div>
             </>
           )}
