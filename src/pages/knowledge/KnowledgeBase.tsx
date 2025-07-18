@@ -65,7 +65,7 @@ const KnowledgeBase = () => {
     }
   }, [folderData]);
 
-  const filteredFolders = (folders as any)?.data?.filter((folder: any) => 
+  const filteredFolders = folders?.data?.filter((folder: any) => 
     folder.name.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 

@@ -454,12 +454,12 @@ export const knowledgeApi = {
   folders: {
     getAll: async () => {
       const response = await apiGet(getApiUrl(API_ENDPOINTS.KNOWLEDGE_FOLDERS));
-      return response;
+      return response.json();
     },
 
     getSourcesForAgent: async (agentId: string) => {
       const response = await apiGet(getApiUrl(`${API_ENDPOINTS.AGENTS}${agentId}/knowledge-folder/`));
-      return response;
+      return response.json();
     }
   }
 };

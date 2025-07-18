@@ -40,8 +40,8 @@ const FolderSources = () => {
     refetchOnWindowFocus: false,
   });
 
-  const sources = (folderData as any)?.data?.knowledge_sources || [];
-  const folderName = (folderData as any)?.data?.folder_name || 'Unknown Folder';
+  const sources = folderData?.data?.knowledge_sources || [];
+  const folderName = folderData?.data?.folder_name || 'Unknown Folder';
 
   const filteredSources = sources.filter(source => 
     source.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
