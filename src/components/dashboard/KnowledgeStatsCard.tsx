@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { StatCard } from '@/components/dashboard/StatCard';
 import { Layers, BookOpen, FileSpreadsheet, Globe, FileText } from 'lucide-react';
 
 interface KnowledgeStatsCardProps {
@@ -36,55 +36,39 @@ const KnowledgeStatsCard = ({ sources = [] }: KnowledgeStatsCardProps) => {
     {
       title: 'Total Sources',
       value: stats.totalSources,
-      icon: Layers,
-      bgColor: 'bg-gradient-to-br from-gray-500 to-gray-600'
+      icon: <Layers className="h-5 w-5" />
     },
     {
       title: 'Document Files',
       value: stats.documentFiles,
-      icon: BookOpen,
-      bgColor: 'bg-gradient-to-br from-blue-500 to-blue-600'
+      icon: <BookOpen className="h-5 w-5" />
     },
     {
       title: 'Websites',
       value: stats.websites,
-      icon: Globe,
-      bgColor: 'bg-gradient-to-br from-green-500 to-green-600'
+      icon: <Globe className="h-5 w-5" />
     },
     {
       title: 'Spreadsheet Files',
       value: stats.spreadsheetFiles,
-      icon: FileSpreadsheet,
-      bgColor: 'bg-gradient-to-br from-purple-500 to-purple-600'
+      icon: <FileSpreadsheet className="h-5 w-5" />
     },
     {
       title: 'Plain Text',
       value: stats.plainText,
-      icon: FileText,
-      bgColor: 'bg-gradient-to-br from-orange-500 to-orange-600'
+      icon: <FileText className="h-5 w-5" />
     }
   ];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       {statItems.map((stat, index) => (
-        <Card key={index} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden relative">
-          <CardContent className="p-6">
-            <div className="flex flex-col">
-              <div className="mb-4">
-                <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-slate-500 dark:text-slate-400">
-                  {stat.title}
-                </div>
-              </div>
-            </div>
-            <div className={`absolute top-4 right-4 p-2 rounded-xl ${stat.bgColor}`}>
-              <stat.icon className="h-5 w-5 text-white" />
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          key={index}
+          title={stat.title}
+          value={stat.value}
+          icon={stat.icon}
+        />
       ))}
     </div>
   );
