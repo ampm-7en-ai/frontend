@@ -210,14 +210,13 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
         {/* Right Section */}
         <div className="flex items-center gap-2">
           <ModernButton
-            variant="secondary"
+            variant="primary"
             size="sm"
             icon={Brain}
             onClick={handleTrainKnowledge}
             disabled={agentData.knowledgeSources.length === 0 || isTraining}
-            className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:hover:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700"
           >
-            {isTraining ? 'Training...' : 'Train Knowledge'}
+            {isTraining ? 'Training...' : 'Train Agent'}
           </ModernButton>
           
           <ModernButton

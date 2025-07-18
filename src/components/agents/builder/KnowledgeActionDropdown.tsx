@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Plus, Upload, Download } from 'lucide-react';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
-import { Button } from '@/components/ui/button';
+import ModernButton from '@/components/dashboard/ModernButton';
 import { ImportSourcesDialog } from '@/components/agents/knowledge/ImportSourcesDialog';
 import AddSourcesModal from '@/components/agents/knowledge/AddSourcesModal';
 import { useBuilder } from './BuilderContext';
@@ -73,14 +73,15 @@ export const KnowledgeActionDropdown = () => {
         value=""
         onValueChange={handleSelect}
         options={dropdownOptions}
+        showSearch={false}
         trigger={
-          <Button
+          <ModernButton
             variant="outline"
             size="sm"
-            className="h-9 w-9 p-0 bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-600"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+            icon={Plus}
+            iconOnly
+            className="h-9 w-9"
+          />
         }
         renderOption={(option) => (
           <div className="flex items-center gap-3 w-full">
@@ -89,13 +90,11 @@ export const KnowledgeActionDropdown = () => {
             ) : (
               <Upload className="h-4 w-4" />
             )}
-            <div className="flex flex-col">
-              <span>{option.label}</span>
-              {option.description && (
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {option.description}
-                </span>
-              )}
+            <div className="flex flex-col gap-1">
+              <span className="font-medium">{option.label}</span>
+              <span className="text-xs text-muted-foreground">
+                {option.description}
+              </span>
             </div>
           </div>
         )}
