@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { ModernCard, ModernCardContent, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
+import { ModernInput } from '@/components/ui/modern-input';
+import ModernButton from '@/components/dashboard/ModernButton';
 import { Book, ChevronRight, Search, Bot, FolderOpen, FileText } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -110,7 +111,8 @@ const KnowledgeBase = () => {
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
+          <ModernInput
+            variant="modern"
             placeholder="Search folders..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -125,18 +127,18 @@ const KnowledgeBase = () => {
           // Modern Loading State
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i} className="border border-border/50 bg-card/30 backdrop-blur-sm">
-                <CardContent className="p-4">
+              <ModernCard key={i} variant="glass" className="animate-pulse">
+                <ModernCardContent className="p-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-muted/50 animate-pulse"></div>
+                    <div className="w-10 h-10 rounded-lg bg-muted/50"></div>
                     <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-muted/50 rounded animate-pulse w-1/3"></div>
-                      <div className="h-3 bg-muted/30 rounded animate-pulse w-1/4"></div>
+                      <div className="h-4 bg-muted/50 rounded w-1/3"></div>
+                      <div className="h-3 bg-muted/30 rounded w-1/4"></div>
                     </div>
-                    <div className="w-6 h-6 bg-muted/30 rounded animate-pulse"></div>
+                    <div className="w-6 h-6 bg-muted/30 rounded"></div>
                   </div>
-                </CardContent>
-              </Card>
+                </ModernCardContent>
+              </ModernCard>
             ))}
           </div>
         ) : filteredFolders.length === 0 ? (
@@ -151,13 +153,14 @@ const KnowledgeBase = () => {
           </div>
         ) : (
           filteredFolders.map((folder, index) => (
-            <Card 
+            <ModernCard 
               key={folder.id} 
-              className="group cursor-pointer border border-border/50 bg-card/30 backdrop-blur-sm hover:bg-card/50 hover:border-border transition-all duration-200 animate-fade-in"
+              variant="glass"
+              className="group cursor-pointer hover:bg-card/70 transition-all duration-200 animate-fade-in"
               style={{ animationDelay: `${index * 50}ms` }}
               onClick={() => handleFolderClick(folder)}
             >
-              <CardContent className="p-4">
+              <ModernCardContent className="p-4">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
                     <FolderOpen className="h-5 w-5 text-white" />
@@ -176,8 +179,8 @@ const KnowledgeBase = () => {
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-200 flex-shrink-0" />
                 </div>
-              </CardContent>
-            </Card>
+              </ModernCardContent>
+            </ModernCard>
           ))
         )}
       </div>
