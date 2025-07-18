@@ -1,121 +1,92 @@
 
 import React, { useMemo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Layers, BookOpen, FileSpreadsheet, Globe, FileText } from 'lucide-react';
-import { StatCard } from '@/components/dashboard/StatCard';
-import { useQuery } from '@tanstack/react-query';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 
-const KnowledgeStatsCard = () => {
-  const fetchKnowledgeBases = async () => {
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
+interface KnowledgeStatsCardProps {
+  sources?: any[];
+}
 
-      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}?status=active`, {
-        headers: getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch knowledge bases');
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error fetching knowledge bases:', error);
-      throw error;
-    }
-  };
-
-  const { data: knowledgeBases, isLoading } = useQuery({
-    queryKey: ['knowledgeBases'],
-    queryFn: fetchKnowledgeBases,
-    staleTime: 5 * 60 * 1000,
-  });
-
+const KnowledgeStatsCard = ({ sources = [] }: KnowledgeStatsCardProps) => {
   const stats = useMemo(() => {
-    if (!knowledgeBases || isLoading) {
-      return {
-        totalSources: 0,
-        documentSources: 0,
-        documentFiles: 0,
-        websiteSources: 0,
-        spreadsheetSources: 0,
-        spreadsheetFiles: 0,
-        plainTextSources: 0,
-        plainTextChars: 0
-      };
-    }
-
     const result = {
-      totalSources: knowledgeBases.length || 0,
-      documentSources: 0,
+      totalSources: sources.length || 0,
       documentFiles: 0,
-      websiteSources: 0,
-      spreadsheetSources: 0,
+      websites: 0,
       spreadsheetFiles: 0,
-      plainTextSources: 0,
-      plainTextChars: 0
+      plainText: 0
     };
 
-    knowledgeBases.forEach(source => {
-      if (source.type === 'docs') {
-        result.documentSources++;
-        if (source.knowledge_sources) {
-          result.documentFiles += source.knowledge_sources.length;
-        }
-      } else if (source.type === 'website') {
-        result.websiteSources++;
-      } else if (source.type === 'csv') {
-        result.spreadsheetSources++;
-        if (source.knowledge_sources) {
-          result.spreadsheetFiles += source.knowledge_sources.length;
-        }
-      } else if (source.type === 'plain_text') {
-        result.plainTextSources++;
-        if (source.knowledge_sources && source.knowledge_sources[0]?.metadata?.no_of_chars) {
-          result.plainTextChars += parseInt(source.knowledge_sources[0].metadata.no_of_chars) || 0;
-        }
+    sources.forEach(source => {
+      if (source.type === 'document' || source.file) {
+        result.documentFiles++;
+      } else if (source.type === 'website' || source.url) {
+        result.websites++;
+      } else if (source.type === 'spreadsheet' || source.type === 'csv') {
+        result.spreadsheetFiles++;
+      } else if (source.type === 'plain_text' || source.plain_text) {
+        result.plainText++;
       }
     });
 
     return result;
-  }, [knowledgeBases, isLoading]);
+  }, [sources]);
+
+  const statItems = [
+    {
+      title: 'Total Sources',
+      value: stats.totalSources,
+      icon: Layers,
+      bgColor: 'bg-slate-100 dark:bg-slate-800',
+      iconColor: 'text-slate-600 dark:text-slate-400'
+    },
+    {
+      title: 'Document Files',
+      value: stats.documentFiles,
+      icon: BookOpen,
+      bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+      iconColor: 'text-blue-600 dark:text-blue-400'
+    },
+    {
+      title: 'Websites',
+      value: stats.websites,
+      icon: Globe,
+      bgColor: 'bg-green-100 dark:bg-green-900/20',
+      iconColor: 'text-green-600 dark:text-green-400'
+    },
+    {
+      title: 'Spreadsheet Files',
+      value: stats.spreadsheetFiles,
+      icon: FileSpreadsheet,
+      bgColor: 'bg-emerald-100 dark:bg-emerald-900/20',
+      iconColor: 'text-emerald-600 dark:text-emerald-400'
+    },
+    {
+      title: 'Plain Text',
+      value: stats.plainText,
+      icon: FileText,
+      bgColor: 'bg-purple-100 dark:bg-purple-900/20',
+      iconColor: 'text-purple-600 dark:text-purple-400'
+    }
+  ];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Knowledge Management</CardTitle>
-        <CardDescription>Overview of knowledge sources and content</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            title="Total Knowledge Sources"
-            value={isLoading ? "..." : stats.totalSources}
-            icon={<Layers className="h-4 w-4" />}
-          />
-          <StatCard
-            title="Document Files"
-            value={isLoading ? "..." : `${stats.documentFiles}`}
-            icon={<BookOpen className="h-4 w-4" />}
-            className="bg-blue-50"
-          />
-          <StatCard
-            title="Website Sources"
-            value={isLoading ? "..." : stats.websiteSources}
-            icon={<Globe className="h-4 w-4" />}
-            className="bg-green-50"
-          />
-          <StatCard
-            title="Spreadsheet Files"
-            value={isLoading ? "..." : `${stats.spreadsheetFiles}`}
-            icon={<FileSpreadsheet className="h-4 w-4" />}
-            className="bg-emerald-50"
-          />
+    <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+      <CardContent className="p-6">
+        <div className="grid grid-cols-5 gap-6">
+          {statItems.map((stat, index) => (
+            <div key={index} className="text-center">
+              <div className={`inline-flex items-center justify-center w-10 h-10 rounded-full ${stat.bgColor} mb-3`}>
+                <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
+              </div>
+              <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-1">
+                {stat.value}
+              </div>
+              <div className="text-sm text-slate-500 dark:text-slate-400">
+                {stat.title}
+              </div>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>

@@ -292,7 +292,7 @@ const FolderSources = () => {
 
         {/* Knowledge Stats Card */}
         <div className="mb-6">
-          <KnowledgeStatsCard />
+          <KnowledgeStatsCard sources={sources} />
         </div>
 
         {/* Search and Filter */}
