@@ -31,8 +31,91 @@ const FolderSources = () => {
   } = useQuery({
     queryKey: ['folderSources', agentId],
     queryFn: async () => {
-      const response = await knowledgeApi.folders.getSourcesForAgent(agentId);
-      return response;
+      // Dummy data for testing UI
+      return {
+        message: "Knowledge folder retrieved successfully",
+        data: {
+          folder_id: parseInt(agentId || '1'),
+          folder_name: `Agent ${agentId} Knowledge Folder`,
+          knowledge_sources: [
+            {
+              id: 5,
+              url: "https://docs.company.com/api-guide",
+              file: null,
+              plain_text: null,
+              google_drive_file_id: null,
+              title: "API Documentation Guide",
+              status: "active",
+              agent_knowledge_folder: parseInt(agentId || '1'),
+              parent_knowledge_source: null,
+              metadata: {},
+              owner: 1,
+              is_selected: true,
+              training_status: "Active",
+              sub_urls: null
+            },
+            {
+              id: 6,
+              url: null,
+              file: "http://localhost:8000/media/knowledge_sources/6_Company_Handbook.pdf",
+              plain_text: null,
+              google_drive_file_id: null,
+              title: "Company Employee Handbook",
+              status: "active",
+              agent_knowledge_folder: parseInt(agentId || '1'),
+              parent_knowledge_source: null,
+              metadata: {
+                format: "pdf",
+                file_size: "2456789B",
+                no_of_rows: null,
+                no_of_chars: 125000,
+                no_of_pages: 45,
+                upload_date: "2025-07-18T04:59:02.449302+00:00"
+              },
+              owner: 1,
+              is_selected: true,
+              training_status: "Active",
+              sub_urls: null
+            },
+            {
+              id: 7,
+              url: "https://support.company.com/faq",
+              file: null,
+              plain_text: null,
+              google_drive_file_id: null,
+              title: "Customer Support FAQ",
+              status: "training",
+              agent_knowledge_folder: parseInt(agentId || '1'),
+              parent_knowledge_source: null,
+              metadata: {},
+              owner: 1,
+              is_selected: false,
+              training_status: "Training in progress",
+              sub_urls: null
+            },
+            {
+              id: 8,
+              url: null,
+              file: null,
+              plain_text: "This is sample plain text content that was directly entered into the knowledge base system for testing purposes.",
+              google_drive_file_id: null,
+              title: "Sample Plain Text Entry",
+              status: "failed",
+              agent_knowledge_folder: parseInt(agentId || '1'),
+              parent_knowledge_source: null,
+              metadata: {
+                no_of_chars: 115,
+                upload_date: "2025-07-17T12:30:15.123456+00:00"
+              },
+              owner: 1,
+              is_selected: false,
+              training_status: "Training failed",
+              sub_urls: null
+            }
+          ]
+        },
+        status: "success"
+      };
     },
     enabled: !!agentId,
     staleTime: 5 * 60 * 1000,

@@ -37,8 +37,45 @@ const KnowledgeBase = () => {
   } = useQuery({
     queryKey: ['knowledgeFolders'],
     queryFn: async () => {
-      const response = await knowledgeApi.folders.getAll();
-      return response;
+      // Dummy data for testing UI
+      return {
+        message: "List of AgentKnowledgeFolders for your team owner",
+        data: [
+          {
+            id: 1,
+            name: "Marketing Agent Knowledge",
+            agent: 1,
+            owner: 1,
+            created_at: "2025-07-17T11:14:41.680411Z",
+            updated_at: "2025-07-17T11:14:41.680411Z"
+          },
+          {
+            id: 2,
+            name: "Customer Support Bot",
+            agent: 2,
+            owner: 1,
+            created_at: "2025-07-16T09:30:15.123456Z",
+            updated_at: "2025-07-18T14:22:33.987654Z"
+          },
+          {
+            id: 3,
+            name: "Sales Assistant AI",
+            agent: 3,
+            owner: 1,
+            created_at: "2025-07-15T16:45:22.555777Z",
+            updated_at: "2025-07-18T10:15:44.111222Z"
+          },
+          {
+            id: 4,
+            name: "Product Documentation Helper",
+            agent: 4,
+            owner: 1,
+            created_at: "2025-07-14T08:20:11.333444Z",
+            updated_at: "2025-07-17T13:55:28.666888Z"
+          }
+        ],
+        status: "success"
+      };
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
