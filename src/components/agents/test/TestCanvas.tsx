@@ -197,28 +197,11 @@ export const TestCanvas = ({
         <div className="h-14 px-4 bg-background/80 backdrop-blur-sm border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-primary" />
               <h2 className="text-lg font-semibold text-foreground">
                 Model Comparison
               </h2>
             </div>
             
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">
-                {numModels} {numModels === 1 ? 'Cell' : 'Cells'}
-              </Badge>
-              <Badge 
-                variant={modelConnections.every(Boolean) ? "default" : "destructive"} 
-                className="text-xs"
-              >
-                {modelConnections.filter(Boolean).length}/{numModels} Connected
-              </Badge>
-              {selectedCellId && (
-                <Badge variant="secondary" className="text-xs">
-                  Active: {selectedCellId}
-                </Badge>
-              )}
-            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -274,24 +257,6 @@ export const TestCanvas = ({
               </TooltipContent>
             </Tooltip>
 
-            <div className="h-4 w-px bg-border" />
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleBatchTest}
-                  className="h-8"
-                  disabled={!modelConnections.every(Boolean)}
-                >
-                  <Zap className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Send test to all models</p>
-              </TooltipContent>
-            </Tooltip>
           </div>
         </div>
 

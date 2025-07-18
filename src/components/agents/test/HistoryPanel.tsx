@@ -78,7 +78,7 @@ export const HistoryPanel = ({
             history.map((item) => (
               <Card
                 key={item.id}
-                className={`cursor-pointer transition-all hover:bg-muted/50 ${
+                className={`cursor-pointer transition-all dark:bg-slate-900 hover:bg-muted/50 dark:hover:bg-slate-900/50 ${
                   selectedHistoryId === item.id ? 'ring-2 ring-primary' : ''
                 }`}
                 onClick={() => onSelectHistory(item)}
@@ -89,9 +89,6 @@ export const HistoryPanel = ({
                       <Clock className="h-3 w-3" />
                       {formatTime(item.timestamp)}
                     </div>
-                    <Badge variant="secondary" className="text-xs px-1">
-                      {item.responses.length} models
-                    </Badge>
                   </div>
                   <p className="text-sm font-medium text-foreground line-clamp-2 leading-relaxed">
                     {item.query}

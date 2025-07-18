@@ -13,6 +13,7 @@ import {
   Minimize2,
   Loader2
 } from 'lucide-react';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface ModelCell {
   id: string;
@@ -83,10 +84,10 @@ export const ModelComparisonGrid = ({
       <Card 
         key={cell.id} 
         className={`
-          transition-all duration-200 cursor-pointer h-full rounded-none border-border
+          transition-all duration-200 cursor-pointer h-full rounded-none border-border dark:border-gray-700
           ${isSelected 
-            ? 'bg-muted/50 dark:bg-muted/20' 
-            : 'bg-card hover:bg-muted/30 dark:hover:bg-muted/10'
+            ? 'bg-muted/50 dark:bg-slate-900/30' 
+            : 'bg-card dark:bg-muted/10 hover:bg-muted/30 dark:hover:bg-slate-900/30'
           }
           ${isExpanded ? 'col-span-full row-span-full' : ''}
           ${expandedCellId && expandedCellId !== cell.id ? 'hidden' : ''}
@@ -104,16 +105,16 @@ export const ModelComparisonGrid = ({
                 className="h-8 text-xs bg-muted/50 border-0 flex-1"
                 showSearch={false}
                 trigger={
-                  <Button
-                    variant="outline"
-                    className="h-8 text-xs bg-muted/50 border-0 flex-1 justify-start px-2"
+                  <ModernButton
+                    variant="secondary"
+                    className="h-8 text-xs bg-muted/50 dark:bg-slate-500 border-0 flex-1 justify-start px-2"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex items-center gap-2 w-full">
                       <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
                       <span className="truncate">{getModelDisplay(cell.model)}</span>
                     </div>
-                  </Button>
+                  </ModernButton>
                 }
               />
             </div>
@@ -121,17 +122,18 @@ export const ModelComparisonGrid = ({
             <div className="flex items-center gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
+                  <ModernButton
                     variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
+                    size="sm"
+                    className="h-8 w-8 dark:hover:bg-gray-500"
+                    iconOnly
                     onClick={(e) => {
                       e.stopPropagation();
                       onConfigClick(cell.id);
                     }}
                   >
-                    <Settings className="h-3 w-3" />
-                  </Button>
+                    <Settings className="h-4 w-4" />
+                  </ModernButton>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Configure parameters</p>
@@ -140,21 +142,22 @@ export const ModelComparisonGrid = ({
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
+                  <ModernButton
                     variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
+                    size="sm"
+                    className="h-8 w-8 dark:hover:bg-gray-500"
+                    iconOnly
                     onClick={(e) => {
                       e.stopPropagation();
                       onToggleExpand(cell.id);
                     }}
                   >
                     {isExpanded ? (
-                      <Minimize2 className="h-3 w-3" />
+                      <Minimize2 className="h-4 w-4" />
                     ) : (
-                      <Maximize2 className="h-3 w-3" />
+                      <Maximize2 className="h-4 w-4" />
                     )}
-                  </Button>
+                  </ModernButton>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{isExpanded ? 'Minimize' : 'Expand'} view</p>
@@ -193,6 +196,7 @@ export const ModelComparisonGrid = ({
                   
                   return latestAiMessage ? (
                     <div className="space-y-2">
+                      <p className="text-sm dark:text-gray-500">AI Assistant</p>
                       <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
                         {latestAiMessage.content}
                       </div>

@@ -64,7 +64,7 @@ export const TestPageToolbar = ({
             <span className="text-white text-sm font-bold">T</span>
           </div>
           <span className="font-medium text-gray-900 dark:text-gray-100">
-            Agent Test Playground
+            Agent Playground
           </span>
         </div>
       </div>
@@ -132,9 +132,9 @@ export const TestPageToolbar = ({
           variant="gradient"
           size="sm"
           icon={Play}
-          onClick={() => navigate(`/agents/${selectedAgentId}/edit`)}
+          onClick={() => navigate(`/agents/builder/${selectedAgentId}`)}
         >
-          Edit Agent
+          Builder
         </ModernButton>
       </div>
     </div>

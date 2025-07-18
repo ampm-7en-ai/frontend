@@ -45,7 +45,7 @@ export const ChatInput = ({
         placeholder={isDisabled ? "Waiting for all models to connect..." : placeholder}
         value={inputValue}
         onChange={(e) => !readonly && setInputValue(e.target.value)}
-        className={`min-h-20 resize-none pr-12 border rounded-lg ${
+        className={`min-h-16 resize-none pr-12 border rounded-lg mb-4 ${
           readonly ? 'text-muted-foreground cursor-default' : ''
         }`}
         expandable={true}

@@ -51,7 +51,7 @@ export const TestRightPanel = ({
     setIsLoadingConfig(true);
     const timer = setTimeout(() => {
       setIsLoadingConfig(false);
-    }, 2000);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [selectedModelIndex]);
