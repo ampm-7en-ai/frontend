@@ -149,6 +149,7 @@ export const useAgentTest = (initialAgentId: string) => {
   const webSocketRefs = useRef<ModelWebSocketService[]>([]);
   const webSocketsInitialized = useRef<boolean>(false);
   const systemMessageProcessing = useRef<boolean>(false);
+  const connectionRetryCount = useRef<number[]>(Array(3).fill(0)); // Track retry counts per model
 
   // Initialize socket history hook
   const {
@@ -298,7 +299,7 @@ export const useAgentTest = (initialAgentId: string) => {
     }
   }, [agentData, selectedAgentId, numModels]);
 
-  // Initialize WebSocket connections with history tracking
+  // Initialize WebSocket connections with better error handling and retry logic
   useEffect(() => {
     if (!agent || !selectedAgentId) return;
     
@@ -309,107 +310,132 @@ export const useAgentTest = (initialAgentId: string) => {
       if (ws) ws.disconnect();
     });
     
-    // Initialize new connections
+    // Reset retry counters
+    connectionRetryCount.current = Array(numModels).fill(0);
+    
+    // Initialize new connections with staggered timing to prevent resource exhaustion
     const newConnections: ModelWebSocketService[] = [];
     const connectionStatus: boolean[] = Array(numModels).fill(false);
     
-    for (let i = 0; i < numModels; i++) {
-      const ws = new ModelWebSocketService(selectedAgentId, chatConfigs[i], i);
-      
-      // Set up history tracking
-      ws.setHistoryCallbacks(
-        (queryData) => handleQuerySent(i, queryData),
-        (responseData) => handleResponseReceived(i, responseData)
-      );
-      
-      ws.on({
-        onMessage: (message) => {
-          console.log(`Received message for model ${i}:`, message);
+    const initializeConnection = (i: number) => {
+      setTimeout(() => {
+        const ws = new ModelWebSocketService(selectedAgentId, chatConfigs[i], i);
+        
+        // Set up history tracking
+        ws.setHistoryCallbacks(
+          (queryData) => handleQuerySent(i, queryData),
+          (responseData) => handleResponseReceived(i, responseData)
+        );
+        
+        ws.on({
+          onMessage: (message) => {
+            console.log(`Received message for model ${i}:`, message);
 
-          if (message.type === "system_message") {
-            systemMessageProcessing.current = true;
-            setIsProcessing(true);
-            console.log("System message detected, keeping processing state true");
-          }
-          
-          setMessages(prev => {
-            const newMessages = [...prev];
-            if (!newMessages[i] || !Array.isArray(newMessages[i])) {
-              newMessages[i] = [];
+            if (message.type === "system_message") {
+              systemMessageProcessing.current = true;
+              setIsProcessing(true);
+              console.log("System message detected, keeping processing state true");
             }
-            newMessages[i] = [...newMessages[i], {
-              ...message,
-              id: Date.now() + i + 1,
-              sender: `agent${i+1}` as 'agent1' | 'agent2' | 'agent3',
-              model: message.model || chatConfigs[i].model,
-              timestamp: new Date(),
-              avatarSrc: agent?.avatarSrc
-            }];
-            return newMessages;
-          });
+            
+            setMessages(prev => {
+              const newMessages = [...prev];
+              if (!newMessages[i] || !Array.isArray(newMessages[i])) {
+                newMessages[i] = [];
+              }
+              newMessages[i] = [...newMessages[i], {
+                ...message,
+                id: Date.now() + i + 1,
+                sender: `agent${i+1}` as 'agent1' | 'agent2' | 'agent3',
+                model: message.model || chatConfigs[i].model,
+                timestamp: new Date(),
+                avatarSrc: agent?.avatarSrc
+              }];
+              return newMessages;
+            });
 
-          setCellLoadingStates(prev => {
-            const newStates = [...prev];
-            newStates[i] = false;
-            return newStates;
-          });
-          
-          if (message.type !== "system_message" && i === numModels - 1) {
-            systemMessageProcessing.current = false;
-            setIsProcessing(false);
+            setCellLoadingStates(prev => {
+              const newStates = [...prev];
+              newStates[i] = false;
+              return newStates;
+            });
+            
+            if (message.type !== "system_message" && i === numModels - 1) {
+              systemMessageProcessing.current = false;
+              setIsProcessing(false);
+            }
+          },
+          onTypingStart: () => {
+            console.log(`Typing indicator started for model ${i}`);
+            setCellLoadingStates(prev => {
+              const newStates = [...prev];
+              newStates[i] = true;
+              return newStates;
+            });
+          },
+          onTypingEnd: () => {
+            console.log(`Typing indicator ended for model ${i}`);
+            
+            setCellLoadingStates(prev => {
+              const newStates = [...prev];
+              newStates[i] = false;
+              return newStates;
+            });
+            
+            if (systemMessageProcessing.current) {
+              systemMessageProcessing.current = false;
+              setIsProcessing(false);
+            }
+          },
+          onError: (error) => {
+            console.error(`Chat error for model ${i}:`, error);
+            connectionRetryCount.current[i]++;
+            
+            // Only show toast for first few errors to avoid spam
+            if (connectionRetryCount.current[i] <= 2) {
+              toast({
+                title: "Connection Issue",
+                description: `Model ${chatConfigs[i].model} connection failed. Retrying...`,
+                variant: "destructive",
+              });
+            }
+            
+            setModelConnections(prev => {
+              const newStatus = [...prev];
+              newStatus[i] = false;
+              return newStatus;
+            });
+          },
+          onConnectionChange: (status) => {
+            console.log(`Connection status changed for model ${i}:`, status);
+            
+            if (status) {
+              connectionRetryCount.current[i] = 0; // Reset retry count on successful connection
+            }
+            
+            setModelConnections(prev => {
+              const newStatus = [...prev];
+              newStatus[i] = status;
+              return newStatus;
+            });
           }
-        },
-        onTypingStart: () => {
-          console.log(`Typing indicator started for model ${i}`);
-          setCellLoadingStates(prev => {
-            const newStates = [...prev];
-            newStates[i] = true;
-            return newStates;
-          });
-        },
-        onTypingEnd: () => {
-          console.log(`Typing indicator ended for model ${i}`);
-          
-          setCellLoadingStates(prev => {
-            const newStates = [...prev];
-            newStates[i] = false;
-            return newStates;
-          });
-          
-          if (systemMessageProcessing.current) {
-            systemMessageProcessing.current = false;
-            setIsProcessing(false);
-          }
-        },
-        onError: (error) => {
-          console.error(`Chat error for model ${i}:`, error);
-          toast({
-            title: "Connection Error",
-            description: `Failed to connect model ${chatConfigs[i].model}. Please try again.`,
-            variant: "destructive",
-          });
-          setModelConnections(prev => {
-            const newStatus = [...prev];
-            newStatus[i] = false;
-            return newStatus;
-          });
-        },
-        onConnectionChange: (status) => {
-          console.log(`Connection status changed for model ${i}:`, status);
-          setModelConnections(prev => {
-            const newStatus = [...prev];
-            newStatus[i] = status;
-            return newStatus;
-          });
+        });
+        
+        ws.connect();
+        newConnections[i] = ws;
+        
+        // If this is the last connection, update refs
+        if (newConnections.filter(Boolean).length === numModels) {
+          webSocketRefs.current = newConnections;
+          webSocketsInitialized.current = true;
         }
-      });
-      
-      ws.connect();
-      newConnections.push(ws);
+      }, i * 500); // Stagger connections by 500ms each
+    };
+    
+    // Initialize connections with staggered timing
+    for (let i = 0; i < numModels; i++) {
+      initializeConnection(i);
     }
     
-    webSocketRefs.current = newConnections;
-    webSocketsInitialized.current = true;
     setModelConnections(connectionStatus);
     
     return () => {
@@ -422,7 +448,7 @@ export const useAgentTest = (initialAgentId: string) => {
     };
   }, [selectedAgentId, agent, numModels, handleQuerySent, handleResponseReceived]);
 
-  // Update WebSocket configs when chat configs change,
+  // Update chat configs when model options change,
   // but don't recreate the connections
   useEffect(() => {
     if (webSocketsInitialized.current) {
@@ -524,13 +550,23 @@ export const useAgentTest = (initialAgentId: string) => {
   };
 
   const handleSendMessage = (messageText: string) => {
-    if (modelConnections.some(status => !status)) {
+    const connectedModels = modelConnections.filter(status => status).length;
+    
+    if (connectedModels === 0) {
       toast({
-        title: "Not connected",
-        description: "One or more models are not connected. Please wait.",
+        title: "No connections",
+        description: "No models are currently connected. Please wait for connections to establish.",
         variant: "destructive",
       });
       return;
+    }
+    
+    if (connectedModels < numModels) {
+      toast({
+        title: "Partial connectivity",
+        description: `Only ${connectedModels} out of ${numModels} models are connected. Proceeding with available connections.`,
+        variant: "default",
+      });
     }
     
     // Exit history mode when sending new message
@@ -544,11 +580,17 @@ export const useAgentTest = (initialAgentId: string) => {
     };
     
     setMessages(Array(numModels).fill(null).map(() => [userMessage]));
-    setCellLoadingStates(Array(numModels).fill(true));
+    setCellLoadingStates(Array(numModels).fill(false));
     
     webSocketRefs.current.forEach((ws, i) => {
-      if (ws) {
+      if (ws && modelConnections[i]) {
         try {
+          setCellLoadingStates(prev => {
+            const newStates = [...prev];
+            newStates[i] = true;
+            return newStates;
+          });
+          
           ws.sendMessage(messageText);
           console.log(`Message sent to model ${i}:`, messageText);
         } catch (error) {
@@ -560,7 +602,7 @@ export const useAgentTest = (initialAgentId: string) => {
           });
           toast({
             title: "Send Error",
-            description: `Failed to send message to ${chatConfigs[i].model}. Please try again.`,
+            description: `Failed to send message to ${chatConfigs[i].model}. Connection may be unstable.`,
             variant: "destructive",
           });
         }

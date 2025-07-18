@@ -1,3 +1,4 @@
+
 import { WS_BASE_URL } from '@/config/env';
 
 interface WebSocketMessage {
@@ -11,10 +12,12 @@ export class WebSocketService {
   private socket: WebSocket | null = null;
   private listeners: Map<string, Function[]> = new Map();
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
+  private maxReconnectAttempts = 3; // Reduced to prevent resource exhaustion
   private processedMessages: Set<string> = new Set();
   private url: string;
   private authHeaders: Record<string, string> = {};
+  private isConnecting = false;
+  private reconnectTimeout: NodeJS.Timeout | null = null;
 
   constructor(url: string) {
     this.url = url;
@@ -26,77 +29,109 @@ export class WebSocketService {
   }
 
   connect() {
-    if (this.socket?.readyState === WebSocket.OPEN) return;
+    // Prevent multiple simultaneous connection attempts
+    if (this.isConnecting || this.socket?.readyState === WebSocket.OPEN) {
+      console.log('WebSocketService: Already connecting or connected');
+      return;
+    }
     
+    this.isConnecting = true;
     console.log(`WebSocketService: Connecting to ${this.url}`);
-    this.socket = new WebSocket(this.url);
     
-    this.socket.onopen = () => {
-      console.log('WebSocket connection established');
-      this.reconnectAttempts = 0;
-      this.emit('connection', { status: 'connected' });
-    };
-    
-    this.socket.onmessage = (event) => {
-      console.log('WebSocket raw message received:', event.data);
+    try {
+      this.socket = new WebSocket(this.url);
       
-      try {
-        const data = JSON.parse(event.data);
-        console.log('WebSocket parsed message:', data);
+      this.socket.onopen = () => {
+        console.log('WebSocket connection established');
+        this.isConnecting = false;
+        this.reconnectAttempts = 0;
+        this.emit('connection', { status: 'connected' });
+      };
+      
+      this.socket.onmessage = (event) => {
+        console.log('WebSocket raw message received:', event.data);
         
-        // Generate a message ID for deduplication
-        const messageId = data.id || 
-                         `${data.type}-${JSON.stringify(data.data || {})}-${new Date().getTime()}`;
-        
-        // Skip duplicate processing within a short time window
-        if (this.processedMessages.has(messageId)) {
-          console.log('Skipping duplicate WebSocket message:', messageId);
-          return;
-        }
-        
-        // Add to processed messages
-        this.processedMessages.add(messageId);
-        
-        // Clean up old entries periodically
-        if (this.processedMessages.size > 100) {
-          this.processedMessages = new Set(
-            Array.from(this.processedMessages).slice(-50)
-          );
-        }
-        
-        if (data.type) {
-          // Emit the specific event type
-          this.emit(data.type, data);
+        try {
+          const data = JSON.parse(event.data);
+          console.log('WebSocket parsed message:', data);
           
-          // Also emit a generic 'message' event for all messages
-          this.emit('message', data);
+          // Generate a message ID for deduplication
+          const messageId = data.id || 
+                           `${data.type}-${JSON.stringify(data.data || {})}-${new Date().getTime()}`;
+          
+          // Skip duplicate processing within a short time window
+          if (this.processedMessages.has(messageId)) {
+            console.log('Skipping duplicate WebSocket message:', messageId);
+            return;
+          }
+          
+          // Add to processed messages
+          this.processedMessages.add(messageId);
+          
+          // Clean up old entries periodically
+          if (this.processedMessages.size > 50) { // Reduced size
+            this.processedMessages = new Set(
+              Array.from(this.processedMessages).slice(-25)
+            );
+          }
+          
+          if (data.type) {
+            // Emit the specific event type
+            this.emit(data.type, data);
+            
+            // Also emit a generic 'message' event for all messages
+            this.emit('message', data);
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
         }
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
-    };
-    
-    this.socket.onclose = (event) => {
-      console.log('WebSocket connection closed:', event.code, event.reason);
-      this.emit('connection', { status: 'disconnected' });
-      this.handleReconnect();
-    };
-    
-    this.socket.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      this.emit('error', 'Connection error');
-      this.socket?.close();
-    };
+      };
+      
+      this.socket.onclose = (event) => {
+        console.log('WebSocket connection closed:', event.code, event.reason);
+        this.isConnecting = false;
+        this.emit('connection', { status: 'disconnected' });
+        
+        // Only attempt reconnect for certain close codes
+        if (event.code !== 1000 && event.code !== 1001) {
+          this.handleReconnect();
+        }
+      };
+      
+      this.socket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        this.isConnecting = false;
+        this.emit('error', 'Connection error');
+        
+        // Don't immediately close on error, let onclose handle it
+        if (this.socket?.readyState === WebSocket.OPEN) {
+          this.socket?.close();
+        }
+      };
+    } catch (error) {
+      console.error('Failed to create WebSocket connection:', error);
+      this.isConnecting = false;
+      this.emit('error', 'Failed to create connection');
+    }
   }
   
   private handleReconnect() {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+    if (this.reconnectAttempts < this.maxReconnectAttempts && !this.isConnecting) {
       this.reconnectAttempts++;
-      const timeout = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+      const timeout = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 10000); // Reduced max timeout
       
-      console.log(`Attempting to reconnect in ${timeout}ms...`);
-      setTimeout(() => this.connect(), timeout);
+      console.log(`Attempting to reconnect in ${timeout}ms... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+      
+      // Clear any existing timeout
+      if (this.reconnectTimeout) {
+        clearTimeout(this.reconnectTimeout);
+      }
+      
+      this.reconnectTimeout = setTimeout(() => {
+        this.connect();
+      }, timeout);
     } else {
+      console.log('Max reconnect attempts reached or already connecting');
       this.emit('connection', { status: 'disconnected', error: 'Max reconnect attempts reached' });
     }
   }
@@ -120,7 +155,9 @@ export class WebSocketService {
 
   send(message: any): void {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      throw new Error('WebSocket is not connected');
+      console.error('WebSocket is not connected, cannot send message');
+      this.emit('error', 'WebSocket not connected');
+      return;
     }
       
     try {
@@ -139,14 +176,28 @@ export class WebSocketService {
   private emit(event: string, data: any) {
     console.log(`WebSocketService emitting '${event}' event:`, data);
     const callbacks = this.listeners.get(event) || [];
-    callbacks.forEach(callback => callback(data));
+    callbacks.forEach(callback => {
+      try {
+        callback(data);
+      } catch (error) {
+        console.error(`Error in WebSocket event callback for '${event}':`, error);
+      }
+    });
   }
   
   disconnect() {
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+    
     if (this.socket) {
       console.log('WebSocketService: Disconnecting');
-      this.socket.close();
+      this.socket.close(1000, 'Normal closure');
       this.socket = null;
     }
+    
+    this.isConnecting = false;
+    this.reconnectAttempts = 0;
   }
 }
