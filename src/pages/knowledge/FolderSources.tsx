@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ModernInput } from '@/components/ui/modern-input';
@@ -150,12 +151,12 @@ const FolderSources = () => {
   });
 
   const typeFilterOptions = [
-    { value: 'all', label: 'All Sources', description: 'Show all source types' },
-    { value: 'documents', label: 'Documents', description: 'PDFs, Word docs, etc.' },
-    { value: 'websites', label: 'Websites', description: 'Web pages and URLs' },
-    { value: 'spreadsheets', label: 'Spreadsheets', description: 'Excel, CSV files' },
-    { value: 'plain_text', label: 'Plain Text', description: 'Text content' },
-    { value: 'third_party', label: 'Third Party', description: 'External integrations' },
+    { value: 'all', label: 'All Sources' },
+    { value: 'documents', label: 'Documents' },
+    { value: 'websites', label: 'Websites' },
+    { value: 'spreadsheets', label: 'Spreadsheets' },
+    { value: 'plain_text', label: 'Plain Text' },
+    { value: 'third_party', label: 'Third Party' },
   ];
 
   const formatDate = (dateString) => {
@@ -296,7 +297,7 @@ const FolderSources = () => {
               placeholder="Search sources..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl h-11 flex w-full px-4 py-3 text-sm transition-all duration-200 border ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-blue-500/50 dark:focus-visible:ring-blue-400/50 focus-visible:border-transparent hover:border-slate-300/80 dark:hover:border-slate-500/80 pl-10"
+              className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl h-10 flex w-full px-4 py-3 text-sm transition-all duration-200 border ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-blue-500/50 dark:focus-visible:ring-blue-400/50 focus-visible:border-transparent hover:border-slate-300/80 dark:hover:border-slate-500/80 pl-10"
             />
           </div>
           <div className="w-full sm:w-48">
@@ -305,8 +306,9 @@ const FolderSources = () => {
               onValueChange={setTypeFilter}
               options={typeFilterOptions}
               placeholder="All Sources"
-              className="w-full"
+              className="w-full h-10"
               searchable={false}
+              showSearch={false}
             />
           </div>
         </div>
