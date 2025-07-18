@@ -37,59 +37,56 @@ const KnowledgeStatsCard = ({ sources = [] }: KnowledgeStatsCardProps) => {
       title: 'Total Sources',
       value: stats.totalSources,
       icon: Layers,
-      bgColor: 'bg-slate-100 dark:bg-slate-800',
-      iconColor: 'text-slate-600 dark:text-slate-400'
+      bgColor: 'bg-gradient-to-br from-gray-500 to-gray-600'
     },
     {
       title: 'Document Files',
       value: stats.documentFiles,
       icon: BookOpen,
-      bgColor: 'bg-blue-100 dark:bg-blue-900/20',
-      iconColor: 'text-blue-600 dark:text-blue-400'
+      bgColor: 'bg-gradient-to-br from-blue-500 to-blue-600'
     },
     {
       title: 'Websites',
       value: stats.websites,
       icon: Globe,
-      bgColor: 'bg-green-100 dark:bg-green-900/20',
-      iconColor: 'text-green-600 dark:text-green-400'
+      bgColor: 'bg-gradient-to-br from-green-500 to-green-600'
     },
     {
       title: 'Spreadsheet Files',
       value: stats.spreadsheetFiles,
       icon: FileSpreadsheet,
-      bgColor: 'bg-emerald-100 dark:bg-emerald-900/20',
-      iconColor: 'text-emerald-600 dark:text-emerald-400'
+      bgColor: 'bg-gradient-to-br from-purple-500 to-purple-600'
     },
     {
       title: 'Plain Text',
       value: stats.plainText,
       icon: FileText,
-      bgColor: 'bg-purple-100 dark:bg-purple-900/20',
-      iconColor: 'text-purple-600 dark:text-purple-400'
+      bgColor: 'bg-gradient-to-br from-orange-500 to-orange-600'
     }
   ];
 
   return (
-    <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
-      <CardContent className="p-6">
-        <div className="grid grid-cols-5 gap-6">
-          {statItems.map((stat, index) => (
-            <div key={index} className="text-center">
-              <div className={`inline-flex items-center justify-center w-10 h-10 rounded-full ${stat.bgColor} mb-3`}>
-                <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
-              </div>
-              <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-1">
-                {stat.value}
-              </div>
-              <div className="text-sm text-slate-500 dark:text-slate-400">
-                {stat.title}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {statItems.map((stat, index) => (
+        <Card key={index} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden relative">
+          <CardContent className="p-6">
+            <div className="flex flex-col">
+              <div className="mb-4">
+                <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">
+                  {stat.value}
+                </div>
+                <div className="text-sm text-slate-500 dark:text-slate-400">
+                  {stat.title}
+                </div>
               </div>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            <div className={`absolute top-4 right-4 p-2 rounded-xl ${stat.bgColor}`}>
+              <stat.icon className="h-5 w-5 text-white" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 };
 
