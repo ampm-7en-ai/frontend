@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Bot, MessageSquare, Book, Users, TrendingUp, TrendingDown } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Bot, MessageSquare, Book, Users } from 'lucide-react';
+import { ModernStatCard } from '@/components/ui/modern-stat-card';
 
 interface DashboardStatCardsProps {
   myAgents: number;
@@ -21,32 +21,24 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({
       title: 'My Agents',
       value: myAgents,
       icon: Bot,
-      change: '+12%',
-      trend: 'up',
       gradient: 'bg-gradient-to-br from-blue-500 to-blue-600'
     },
     {
       title: 'Conversations',
       value: conversations,
       icon: MessageSquare,
-      change: '+8%',
-      trend: 'up',
       gradient: 'bg-gradient-to-br from-green-500 to-green-600'
     },
     {
       title: 'Knowledge Base',
       value: knowledgeBase,
       icon: Book,
-      change: '+15%',
-      trend: 'up',
       gradient: 'bg-gradient-to-br from-purple-500 to-purple-600'
     },
     {
       title: 'Team Members',
       value: teamMembers,
       icon: Users,
-      change: '+3%',
-      trend: 'up',
       gradient: 'bg-gradient-to-br from-orange-500 to-orange-600'
     }
   ];
@@ -54,23 +46,13 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((stat, index) => (
-        <Card key={index} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
-          <CardContent className="p-6 relative pb-2">
-            {/* Icon positioned at top right */}
-            <div className={`absolute top-4 right-4 p-2 rounded-xl ${stat.gradient}`}>
-              <stat.icon className="h-4 w-4 text-white" />
-            </div>
-            
-            <div className="pr-12">
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
-                {stat.title}
-              </p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
-                {stat.value.toLocaleString()}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <ModernStatCard
+          key={index}
+          title={stat.title}
+          value={stat.value}
+          icon={stat.icon}
+          gradient={stat.gradient}
+        />
       ))}
     </div>
   );
