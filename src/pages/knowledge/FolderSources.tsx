@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ModernInput } from '@/components/ui/modern-input';
@@ -9,13 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { knowledgeApi } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 import AddSourcesModal from '@/components/agents/knowledge/AddSourcesModal';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -162,6 +155,15 @@ const FolderSources = () => {
     return matchesSearch && matchesType;
   });
 
+  const typeFilterOptions = [
+    { value: 'all', label: 'All Sources', description: 'Show all source types' },
+    { value: 'documents', label: 'Documents', description: 'PDFs, Word docs, etc.' },
+    { value: 'websites', label: 'Websites', description: 'Web pages and URLs' },
+    { value: 'spreadsheets', label: 'Spreadsheets', description: 'Excel, CSV files' },
+    { value: 'plain_text', label: 'Plain Text', description: 'Text content' },
+    { value: 'third_party', label: 'Third Party', description: 'External integrations' },
+  ];
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -300,19 +302,14 @@ const FolderSources = () => {
             />
           </div>
           <div className="w-full sm:w-48">
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger variant="modern" className="w-full">
-                <SelectValue placeholder="All Sources" />
-              </SelectTrigger>
-              <SelectContent variant="modern">
-                <SelectItem variant="modern" value="all">All Sources</SelectItem>
-                <SelectItem variant="modern" value="documents">Documents</SelectItem>
-                <SelectItem variant="modern" value="websites">Websites</SelectItem>
-                <SelectItem variant="modern" value="spreadsheets">Spreadsheets</SelectItem>
-                <SelectItem variant="modern" value="plain_text">Plain Text</SelectItem>
-                <SelectItem variant="modern" value="third_party">Third Party</SelectItem>
-              </SelectContent>
-            </Select>
+            <ModernDropdown
+              value={typeFilter}
+              onValueChange={setTypeFilter}
+              options={typeFilterOptions}
+              placeholder="All Sources"
+              className="w-full"
+              searchable={false}
+            />
           </div>
         </div>
 
