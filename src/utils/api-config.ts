@@ -23,6 +23,7 @@ export const API_ENDPOINTS = {
   // Agent and knowledge base endpoints
   AGENTS: "agents/",
   KNOWLEDGEBASE: "knowledgebase/",
+  KNOWLEDGE_FOLDERS: "knowledge-folders/",
   
   // User management endpoints
   INVITE_REGISTER: "users/register_with_invite/",
@@ -447,6 +448,19 @@ export const knowledgeApi = {
       body: formData
     });
     return response;
+  },
+
+  // Knowledge Folder API functions
+  folders: {
+    getAll: async () => {
+      const response = await apiGet(getApiUrl(API_ENDPOINTS.KNOWLEDGE_FOLDERS));
+      return response;
+    },
+
+    getSourcesForAgent: async (agentId: string) => {
+      const response = await apiGet(getApiUrl(`${API_ENDPOINTS.AGENTS}${agentId}/knowledge-folder/`));
+      return response;
+    }
   }
 };
 

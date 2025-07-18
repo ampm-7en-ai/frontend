@@ -1,1352 +1,280 @@
-
-// ... keep existing code (imports and initial component setup) the same until the filteredDocuments definition
-
-import React, { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Book, ChevronRight, FileSpreadsheet, FileText, Globe, MoreHorizontal, Plus, Search, Trash, Upload, File, Download, Layers, ArrowLeft, AlertTriangle, CheckCircle, Info, Eye, Import, X, Presentation } from 'lucide-react';
+import { Book, ChevronRight, Search, Bot, FolderOpen, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
-import { BASE_URL, API_ENDPOINTS, getAuthHeaders, getAccessToken, formatFileSizeToMB, getSourceMetadataInfo, deleteKnowledgeSource, deleteKnowledgeBase, addFileToKnowledgeBase, fetchGoogleDriveFiles } from '@/utils/api-config';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { knowledgeApi } from '@/utils/api-config';
+import { useQuery } from '@tanstack/react-query';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
-  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { getNewKnowledgeBase, clearNewKnowledgeBase, hasNewKnowledgeBase } from '@/utils/knowledgeStorage';
-import ModernButton from '@/components/dashboard/ModernButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
 const KnowledgeBase = () => {
-  console.log('KnowledgeBase component rendering...');
-  
   const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { theme } = useAppTheme();
   
-  console.log('Theme:', theme, 'User:', user?.name);
-  
   const [searchQuery, setSearchQuery] = useState('');
-  const [sourceTypeFilter, setSourceTypeFilter] = useState('all');
-  const [sortOrder, setSortOrder] = useState('name-asc');
-  const [knowledgeBases, setKnowledgeBases] = useState([]);
-  const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState(null);
   const [viewMode, setViewMode] = useState('main'); // 'main' or 'detail'
-  const [hasProcessedLocalStorage, setHasProcessedLocalStorage] = useState(false);
-  
-  // Import modal state
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [googleDriveFiles, setGoogleDriveFiles] = useState([]);
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
+  const [selectedFolder, setSelectedFolder] = useState(null);
+  const [folderSources, setFolderSources] = useState([]);
 
-  const sortOptions = [
-    { value: 'name-asc', label: 'Name A-Z', description: 'Sort by name ascending' },
-    { value: 'name-desc', label: 'Name Z-A', description: 'Sort by name descending' },
-    { value: 'date-asc', label: 'Date (Oldest)', description: 'Sort by date ascending' },
-    { value: 'date-desc', label: 'Date (Newest)', description: 'Sort by date descending' },
-  ];
-
-  const sourceTypeOptions = [
-    { value: 'all', label: 'All Sources' },
-    { value: 'docs', label: 'Documents' },
-    { value: 'website', label: 'Websites' },
-    { value: 'csv', label: 'Spreadsheets' },
-    { value: 'plain_text', label: 'Plain Text' },
-    { value: 'third_party', label: 'Third Party' },
-  ];
-
-  // ... keep existing code (fetchKnowledgeBases, useQuery, useEffects, and helper functions) the same until the renderMainView function
-
-  const fetchKnowledgeBases = async () => {
-    console.log('Fetching knowledge bases...');
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      console.log('Fetching knowledge bases from API');
-      const response = await fetch(`${BASE_URL}${API_ENDPOINTS.KNOWLEDGEBASE}?status=active&status=issues`, {
-        headers: getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch knowledge bases');
-      }
-
-      const data = await response.json();
-      console.log('Knowledge bases fetched:', data.data);
-      return data.data;
-    } catch (error) {
-      console.error('Error fetching knowledge bases:', error);
-      throw error;
-    }
-  };
-
+  // Fetch all knowledge folders
   const { 
-    data, 
-    isLoading, 
-    error, 
-    refetch 
+    data: folders, 
+    isLoading: foldersLoading, 
+    error: foldersError 
   } = useQuery({
-    queryKey: ['knowledgeBases'],
-    queryFn: fetchKnowledgeBases,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    queryKey: ['knowledgeFolders'],
+    queryFn: async () => {
+      const response = await knowledgeApi.folders.getAll();
+      return response;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchOnMount: true
   });
 
-  console.log('Query state - isLoading:', isLoading, 'data:', data, 'error:', error);
+  // Fetch sources for selected folder
+  const { 
+    data: folderData, 
+    isLoading: sourcesLoading,
+    refetch: refetchSources
+  } = useQuery({
+    queryKey: ['folderSources', selectedFolder?.agent],
+    queryFn: () => knowledgeApi.folders.getSourcesForAgent(selectedFolder?.agent?.toString()),
+    enabled: !!selectedFolder?.agent,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
-  useEffect(() => {
-    if (data && !hasProcessedLocalStorage) {
-      // Check if there's a newly added knowledge base in localStorage
-      const newKnowledgeBase = getNewKnowledgeBase();
-      
-      if (newKnowledgeBase) {
-        console.log('Found new knowledge base in localStorage:', newKnowledgeBase.id);
-        
-        // Check if this knowledge base already exists in our data
-        const exists = data.some(kb => kb.id === newKnowledgeBase.id);
-        
-        if (!exists) {
-          // Add the new knowledge base to our existing data
-          const updatedData = [newKnowledgeBase, ...data];
-          setKnowledgeBases(updatedData);
-          console.log('Added new knowledge base from localStorage');
-          
-          // Update the React Query cache with the new data
-          queryClient.setQueryData(['knowledgeBases'], updatedData);
-        }
-        
-        // Clear the storage to prevent adding it multiple times
-        clearNewKnowledgeBase();
-      } else {
-        setKnowledgeBases(data);
-      }
-      
-      setHasProcessedLocalStorage(true);
+  React.useEffect(() => {
+    if (folderData?.data?.knowledge_sources) {
+      setFolderSources(folderData.data.knowledge_sources);
     }
-  }, [data, hasProcessedLocalStorage, queryClient]);
+  }, [folderData]);
 
-  useEffect(() => {
-    if (data && hasProcessedLocalStorage) {
-      // Only update if we've already processed localStorage data
-      // This prevents overwriting our merged data on subsequent renders
-      setKnowledgeBases(data);
-      
-      if (selectedKnowledgeBase) {
-        const updatedKnowledgeBase = data.find(kb => kb.id === selectedKnowledgeBase.id);
-        if (updatedKnowledgeBase) {
-          setSelectedKnowledgeBase(updatedKnowledgeBase);
-        }
-      }
-    }
-  }, [data, selectedKnowledgeBase, hasProcessedLocalStorage]);
-
-  useEffect(() => {
-    if (error) {
-      console.error('Knowledge base query error:', error);
-      toast({
-        title: "Error loading knowledge bases",
-        description: "There was a problem loading your knowledge bases. Please try again later.",
-        variant: "destructive",
-      });
-    }
-  }, [error, toast]);
+  const filteredFolders = (folders as any)?.data?.filter((folder: any) => 
+    folder.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB'); // DD/MM/YYYY format
-  };
-
-  const formatKnowledgeBaseData = (apiData) => {
-    if (!apiData || apiData.length === 0) return [];
-
-    return apiData.map(kb => {
-      const firstSource = kb.knowledge_sources && kb.knowledge_sources.length > 0 
-        ? kb.knowledge_sources[0] 
-        : null;
-
-      const metadataInfo = firstSource ? getSourceMetadataInfo({
-        type: kb.type,
-        metadata: firstSource.metadata
-      }) : { count: '', size: 'N/A' };
-      
-      const uploadDate = firstSource && firstSource.metadata && firstSource.metadata.upload_date 
-        ? formatDate(firstSource.metadata.upload_date) 
-        : formatDate(kb.last_updated);
-
-      const fileFormat = firstSource && firstSource.metadata && firstSource.metadata.format 
-        ? firstSource.metadata.format 
-        : 'N/A';
-
-      const agentNames = kb.agents && kb.agents.length > 0
-        ? kb.agents.map(agent => agent.name)
-        : [];
-
-      return {
-        id: kb.id,
-        title: kb.name,
-        type: kb.type,
-        sourceType: kb.type,
-        fileFormat: fileFormat,
-        size: metadataInfo.size,
-        pages: metadataInfo.count,
-        agents: agentNames,
-        uploadedAt: uploadDate,
-        uploadedAtDate: firstSource && firstSource.metadata && firstSource.metadata.upload_date 
-          ? new Date(firstSource.metadata.upload_date) 
-          : new Date(kb.last_updated || 0),
-        provider: null,
-        status: kb.status,
-        trainingStatus: kb.training_status,
-        knowledge_sources: kb.knowledge_sources || [],
-        fileCount: kb.knowledge_sources ? kb.knowledge_sources.length : 0,
-        metadata: firstSource?.metadata || {}
-      };
-    });
-  };
-
-  const documents = isLoading ? [] : formatKnowledgeBaseData(knowledgeBases);
-
-  const filteredDocuments = isLoading ? [] : documents.filter(doc => {
-    const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      doc.type.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesType = sourceTypeFilter === 'all' || doc.sourceType === sourceTypeFilter;
-    
-    return matchesSearch && matchesType;
-  }).sort((a, b) => {
-    switch (sortOrder) {
-      case 'name-asc':
-        return a.title.localeCompare(b.title);
-      case 'name-desc':
-        return b.title.localeCompare(a.title);
-      case 'date-asc':
-        return a.uploadedAtDate.getTime() - b.uploadedAtDate.getTime();
-      case 'date-desc':
-        return b.uploadedAtDate.getTime() - a.uploadedAtDate.getTime();
-      default:
-        return 0;
-    }
-  });
-
-  const knowledgeStats = useMemo(() => {
-    if (isLoading || !documents.length) {
-      return {
-        totalSources: 0,
-        documentSources: 0,
-        documentFiles: 0,
-        websiteSources: 0,
-        spreadsheetSources: 0,
-        spreadsheetFiles: 0,
-        plainTextSources: 0,
-        plainTextChars: 0
-      };
-    }
-
-    const stats = {
-      totalSources: documents.length || 0,
-      documentSources: 0,
-      documentFiles: 0,
-      websiteSources: 0,
-      spreadsheetSources: 0,
-      spreadsheetFiles: 0,
-      plainTextSources: 0,
-      plainTextChars: 0
-    };
-
-    documents.forEach(source => {
-      if (source.sourceType === 'docs') {
-        stats.documentSources++;
-        if (source.knowledge_sources) {
-          stats.documentFiles += source.knowledge_sources.length;
-        }
-      } else if (source.sourceType === 'website') {
-        stats.websiteSources++;
-      } else if (source.sourceType === 'csv') {
-        stats.spreadsheetSources++;
-        if (source.knowledge_sources) {
-          stats.spreadsheetFiles += source.knowledge_sources.length;
-        }
-      } else if (source.sourceType === 'plain_text') {
-        stats.plainTextSources++;
-        if (source.knowledge_sources && source.knowledge_sources[0]?.metadata?.no_of_chars) {
-          stats.plainTextChars += parseInt(source.knowledge_sources[0].metadata.no_of_chars) || 0;
-        }
-      }
-    });
-
-    return stats;
-  }, [documents, isLoading]);
-
-  // ... keep existing code (helper functions) the same until renderMainView
-
-  const canShowNestedView = (sourceType) => {
-    return sourceType !== 'website' && sourceType !== 'plain_text';
-  };
-
-  const renderSourceIcon = (doc) => {
-    switch (doc.sourceType) {
-      case 'docs':
-        return <FileText className="h-4 w-4 text-white" />;
-      case 'website':
-        return <Globe className="h-4 w-4 text-white" />;
-      case 'csv':
-        return <FileSpreadsheet className="h-4 w-4 text-white" />;
-      case 'plain_text':
-        return <File className="h-4 w-4 text-white" />;
-      case 'third_party':
-        // Use the Google logo for google_drive source
-        return <img src="https://img.logo.dev/google.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="Google Drive" className="h-4 w-4" />;
-      case 'thirdparty':
-        if (doc.provider === 'googleDrive') {
-          return (
-            <svg className="h-4 w-4" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
-              <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
-              <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
-              <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
-              <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
-              <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5h-27.502l5.852 11.5z" fill="#2684fc"/>
-              <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
-            </svg>
-          );
-        } else if (doc.provider === 'slack') {
-          return (
-            <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#E01E5A">
-              <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.521-2.52h2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
-            </svg>
-          );
-        }
-        return <FileText className="h-4 w-4 text-white" />;
-      default:
-        return <FileText className="h-4 w-4 text-white" />;
-    }
-  };
-
-  const getIconBackground = (doc) => {
-    switch (doc.sourceType) {
-      case 'docs':
-        return 'bg-gradient-to-br from-blue-500 to-blue-600';
-      case 'website':
-        return 'bg-gradient-to-br from-green-500 to-green-600';
-      case 'csv':
-        return 'bg-gradient-to-br from-emerald-500 to-emerald-600';
-      case 'plain_text':
-        return 'bg-gradient-to-br from-purple-500 to-purple-600';
-      case 'third_party':
-        return 'bg-white'; // White background for Google logo
-      default:
-        return 'bg-gradient-to-br from-gray-500 to-gray-600';
-    }
-  };
-
-  const getAgentColor = (agentName) => {
-    if (!agentName || typeof agentName !== 'string') return 'bg-blue-500';
-    const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-amber-500', 'bg-pink-500', 'bg-teal-500'];
-    const charCode = agentName.charCodeAt(0) || 0;
-    const index = Math.floor(charCode % colors.length);
-    return colors[index];
+    return date.toLocaleDateString('en-GB');
   };
 
   const getAgentInitials = (agentName) => {
-    if (!agentName || typeof agentName !== 'string') return '';
+    if (!agentName || typeof agentName !== 'string') return 'A';
     return agentName.split(' ').map(n => n[0] || '').join('').toUpperCase();
   };
 
-  const handleKnowledgeBaseClick = (doc) => {
-    if (!canShowNestedView(doc.sourceType)) {
-      toast({
-        title: "Info",
-        description: `${doc.sourceType === 'website' ? 'Website' : 'Plain text'} sources don't have nested files view.`,
-      });
-      return;
-    }
-    
-    setSelectedKnowledgeBase(doc);
+  const handleFolderClick = async (folder) => {
+    setSelectedFolder(folder);
     setViewMode('detail');
   };
 
   const handleBackToMainView = () => {
-    setSelectedKnowledgeBase(null);
+    setSelectedFolder(null);
+    setFolderSources([]);
     setViewMode('main');
   };
 
-  const getFileAcceptTypes = (sourceType) => {
-    switch (sourceType) {
-      case 'docs':
-        return '.pdf,.docx,.txt';
-      case 'csv':
-        return '.csv,.xlsx,.xls';
-      default:
-        return '*';
+  const renderSourceIcon = (source) => {
+    if (source.file) {
+      return <FileText className="h-4 w-4 text-white" />;
+    } else if (source.url) {
+      return <FolderOpen className="h-4 w-4 text-white" />;
     }
+    return <FileText className="h-4 w-4 text-white" />;
   };
 
-  const handleFileUpload = async (e) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    
-    const file = e.target.files[0];
-    if (!selectedKnowledgeBase || !selectedKnowledgeBase.id) {
-      toast({
-        title: "Error",
-        description: "Cannot upload file: No knowledge base selected",
-        variant: "destructive",
-      });
-      return;
+  const getIconBackground = (source) => {
+    if (source.file) {
+      return 'bg-gradient-to-br from-blue-500 to-blue-600';
+    } else if (source.url) {
+      return 'bg-gradient-to-br from-green-500 to-green-600';
     }
-    
-    try {
-      toast({
-        title: "Uploading file...",
-        description: "Please wait while the file is being uploaded.",
-      });
-      
-      await addFileToKnowledgeBase(selectedKnowledgeBase.id, file);
-      
-      toast({
-        title: "Success",
-        description: "File has been successfully uploaded.",
-        variant: "success",
-      });
-      
-      await refetch();
-      
-      if (data) {
-        const updatedKnowledgeBase = data.find(kb => kb.id === selectedKnowledgeBase.id);
-        if (updatedKnowledgeBase) {
-          setSelectedKnowledgeBase(updatedKnowledgeBase);
-        }
-      }
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      toast({
-        title: "Upload failed",
-        description: error.message || "There was an error uploading the file. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      e.target.value = '';
-    }
+    return 'bg-gradient-to-br from-gray-500 to-gray-600';
   };
 
-  const handleDeleteFile = async (sourceId) => {
-    if (!sourceId) {
-      toast({
-        title: "Error",
-        description: "Cannot delete file: Missing source ID",
-        variant: "destructive",
-      });
-      return;
-    }
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      'active': { label: 'Active', variant: 'success' },
+      'training': { label: 'Training', variant: 'warning' },
+      'failed': { label: 'Failed', variant: 'destructive' },
+    };
 
-    try {
-      toast({
-        title: "Deleting file...",
-        description: "Please wait while the file is being deleted.",
-      });
-
-      await deleteKnowledgeSource(sourceId);
-      
-      toast({
-        title: "Success",
-        description: "File has been successfully deleted.",
-        variant: "success",
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
-      
-      if (selectedKnowledgeBase && 
-          selectedKnowledgeBase.knowledge_sources && 
-          selectedKnowledgeBase.knowledge_sources.length === 1) {
-        handleBackToMainView();
-      }
-    } catch (error) {
-      console.error("Error deleting file:", error);
-      toast({
-        title: "Delete failed",
-        description: error.message || "There was an error deleting the file. Please try again.",
-        variant: "destructive",
-      });
-    }
+    const config = statusConfig[status?.toLowerCase()] || { label: 'Unknown', variant: 'secondary' };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const handleDeleteKnowledgeBase = async (knowledgeBaseId) => {
-    if (!knowledgeBaseId) {
-      toast({
-        title: "Error",
-        description: "Cannot delete knowledge base: Missing ID",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      toast({
-        title: "Deleting knowledge base...",
-        description: "Please wait while the knowledge base is being deleted.",
-      });
-
-      await deleteKnowledgeBase(knowledgeBaseId);
-      
-      toast({
-        title: "Success",
-        description: "Knowledge base has been successfully deleted.",
-        variant: "success",
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] });
-    } catch (error) {
-      console.error("Error deleting knowledge base:", error);
-      toast({
-        title: "Delete failed",
-        description: error.message || "There was an error deleting the knowledge base. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDownloadFile = (file) => {
-    if (!file || !file.file) {
-      toast({
-        title: "Download error",
-        description: "No file URL available for download.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    toast({
-      title: "Downloading file",
-      description: `Downloading file: ${file.title || 'Unnamed file'}`,
-    });
-    
-    try {
-      window.open(file.file, '_blank');
-    } catch (error) {
-      console.error('Error downloading file:', error);
-      toast({
-        title: "Download failed",
-        description: "There was an error downloading the file.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getMetadataDisplay = (doc) => {
-    const deletedFiles = doc.knowledge_sources.length > 0 ? doc.knowledge_sources.filter(source => source.status === "deleted").length : 0; 
-    if (doc.sourceType === 'website') {
-      const subUrls = doc.metadata?.sub_urls;
-      const pagesCount = subUrls ? 
-        (Array.isArray(subUrls?.children) ? subUrls.children.length : 0) : 
-        0;
-      const totalChars = subUrls ? subUrls.chars || 0 : 0;
-      
-      return (
-        <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
-          {pagesCount} pages • {totalChars.toLocaleString()} characters
+  const renderMainView = () => (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Knowledge Folders</h1>
+          <p className="text-muted-foreground">Manage your agent-specific knowledge folders</p>
         </div>
-      );
-    } else if (doc.sourceType === 'plain_text') {
-      const chars = doc.metadata?.no_of_chars || 0;
-      
-      return (
-        <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
-          {chars.toLocaleString()} characters
+      </div>
+
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Search folders..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
         </div>
-      );
-    } else {
-      return (
-        <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
-          {doc.fileCount > 0 ? 
-            `${doc.fileCount - deletedFiles} ${(doc.fileCount - deletedFiles) === 1 ? 'file' : 'files'}` : 
-            'No files'
-          }
-        </div>
-      );
-    }
-  };
+      </div>
 
-  const getContentMeasure = (source) => {
-    if (!source || !source.metadata) return "N/A";
-    
-    const format = source.metadata.format?.toLowerCase();
-    
-    if (format === 'csv' || format === 'xlsx' || format === 'xls') {
-      return source.metadata.no_of_rows ? `${source.metadata.no_of_rows} rows` : "N/A";
-    } else if (format === 'txt' || format === 'plain_text') {
-      return source.metadata.no_of_chars ? `${source.metadata.no_of_chars.toLocaleString()} chars` : "N/A";
-    } else if (format === 'pdf' || format === 'docx' || format === 'doc') {
-      return source.metadata.no_of_pages ? `${source.metadata.no_of_pages} pages` : "N/A";
-    }
-    
-    return source.metadata.no_of_pages || "N/A";
-  };
-
-  // Get icon for third-party files based on mimeType
-  const getFileIcon = (source, sourceType) => {
-    if (sourceType === 'third_party' && source.metadata?.mimeType) {
-      const mimeType = source.metadata.mimeType.toLowerCase();
-      
-      if (mimeType.includes('spreadsheet') || mimeType.includes('sheet')) {
-        return <FileSpreadsheet className="h-4 w-4 text-green-600" />;
-      } else if (mimeType.includes('document') || mimeType.includes('doc')) {
-        return <FileText className="h-4 w-4 text-blue-600" />;
-      } else if (mimeType.includes('presentation')) {
-        return <FileText className="h-4 w-4 text-orange-600" />;
-      } else if (mimeType.includes('pdf')) {
-        return <FileText className="h-4 w-4 text-red-600" />;
-      }
-      return <File className="h-4 w-4 text-gray-600" />;
-    }
-    
-    // Default file icon based on source type
-    return renderSourceIcon({sourceType: sourceType});
-  };
-
-  // Get background for file icons
-  const getFileIconBackground = (source, sourceType) => {
-    if (sourceType === 'third_party') {
-      return 'bg-white border border-gray-200'; // White background with border for third-party files
-    }
-    
-    return getIconBackground({sourceType: sourceType});
-  };
-
-  // Get file size from metadata for third-party files
-  const getFileSizeFromMetadata = (source) => {
-    if (source.metadata?.size) {
-      const sizeInBytes = parseInt(source.metadata.size, 10);
-      return formatFileSizeToMB(sizeInBytes);
-    }
-    
-    return formatFileSizeToMB(source.metadata?.file_size || source.metadata?.size || 0);
-  };
-
-  // Handle viewing third-party files
-  const handleViewFile = (source) => {
-    if (source.metadata?.webViewLink) {
-      window.open(source.metadata.webViewLink, '_blank');
-      toast({
-        title: "Opening file",
-        description: `Opening ${source.title || 'file'} in new tab`,
-      });
-    } else {
-      toast({
-        title: "Error",
-        description: "No preview link available for this file",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Google Drive file import functionality
-  const fetchGoogleDriveData = async () => {
-    setIsLoadingGoogleDriveFiles(true);
-    try {
-      const response = await fetchGoogleDriveFiles();
-      setGoogleDriveFiles(response.files || []);
-    } catch (error) {
-      console.error('Error fetching Google Drive files:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch Google Drive files. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoadingGoogleDriveFiles(false);
-    }
-  };
-
-  // Toggle file selection
-  const toggleFileSelection = (fileId) => {
-    setSelectedFiles(prev => 
-      prev.includes(fileId) 
-        ? prev.filter(id => id !== fileId)
-        : [...prev, fileId]
-    );
-  };
-
-  // Handle import from Google Drive
-  const handleImportFiles = async () => {
-    if (!selectedKnowledgeBase || selectedFiles.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please select files to import",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsImporting(true);
-    try {
-      const response = await fetch(`${BASE_URL}knowledgesource/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.accessToken}`
-        },
-        body: JSON.stringify({
-          knowledge_base: selectedKnowledgeBase.id,
-          google_drive_file_ids: selectedFiles
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to import files');
-      }
-
-      const result = await response.json();
-      
-      toast({
-        title: "Success",
-        description: `Successfully imported ${result.data?.length || selectedFiles.length} files`,
-        variant: "success"
-      });
-
-      // Reset state
-      setIsImportModalOpen(false);
-      setSelectedFiles([]);
-      setGoogleDriveFiles([]);
-      
-      // Refresh data
-      await refetch();
-      
-      if (data) {
-        const updatedKnowledgeBase = data.find(kb => kb.id === selectedKnowledgeBase.id);
-        if (updatedKnowledgeBase) {
-          setSelectedKnowledgeBase(updatedKnowledgeBase);
-        }
-      }
-    } catch (error) {
-      console.error("Error importing files:", error);
-      toast({
-        title: "Import failed",
-        description: error.message || "There was an error importing the files. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsImporting(false);
-    }
-  };
-
-  // Open import modal
-  const handleOpenImportModal = () => {
-    setIsImportModalOpen(true);
-    fetchGoogleDriveData();
-  };
-
-  // Get file icon for Google Drive files
-  const getGoogleDriveFileIcon = (mimeType) => {
-    if (mimeType.includes('spreadsheet') || mimeType.includes('sheet')) {
-      return <FileSpreadsheet className="h-4 w-4 text-green-600" />;
-    } else if (mimeType.includes('document') || mimeType.includes('doc')) {
-      return <FileText className="h-4 w-4 text-blue-600" />;
-    } else if (mimeType.includes('presentation')) {
-      return <Presentation className="h-4 w-4 text-orange-600" />;
-    } else if (mimeType.includes('pdf')) {
-      return <FileText className="h-4 w-4 text-red-600" />;
-    }
-    return <File className="h-4 w-4 text-gray-600" />;
-  };
-
-  // Check if file is already imported
-  const isFileAlreadyImported = (fileId) => {
-    if (!selectedKnowledgeBase?.knowledge_sources) return false;
-    return selectedKnowledgeBase.knowledge_sources.some(
-      source => source.metadata?.id === fileId
-    );
-  };
-
-  const renderMainView = () => {
-    console.log('Rendering main view, isLoading:', isLoading, 'filteredDocuments:', filteredDocuments.length);
-    
-    return (
-      <div className="space-y-6 p-8">
-        {/* Header Section */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">Knowledge Base</h1>
-            <p className="text-slate-600 dark:text-slate-400 text-base">Manage your AI knowledge sources and content</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link to="/knowledge/upload">
-              <ModernButton variant="gradient" icon={Plus}>
-                Add Source
-              </ModernButton>
-            </Link>
-          </div>
-        </div>
-        
-        {/* Stats Section - Dashboard Style */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden">
-            <CardContent className="p-3 relative pb-2">
-              <div className="absolute top-2 right-2 p-1.5 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600">
-                <Layers className="h-3 w-3 text-white" />
-              </div>
-              <div className="pr-10">
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                  Total Sources
-                </p>
-                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                  {isLoading ? "..." : knowledgeStats.totalSources}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden">
-            <CardContent className="p-3 relative pb-2">
-              <div className="absolute top-2 right-2 p-1.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-                <FileText className="h-3 w-3 text-white" />
-              </div>
-              <div className="pr-10">
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                  Document Files
-                </p>
-                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                  {isLoading ? "..." : knowledgeStats.documentFiles}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden">
-            <CardContent className="p-3 relative pb-2">
-              <div className="absolute top-2 right-2 p-1.5 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
-                <Globe className="h-3 w-3 text-white" />
-              </div>
-              <div className="pr-10">
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                  Websites
-                </p>
-                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                  {isLoading ? "..." : knowledgeStats.websiteSources}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden">
-            <CardContent className="p-3 relative pb-2">
-              <div className="absolute top-2 right-2 p-1.5 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600">
-                <FileSpreadsheet className="h-3 w-3 text-white" />
-              </div>
-              <div className="pr-10">
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                  Spreadsheet Files
-                </p>
-                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                  {isLoading ? "..." : knowledgeStats.spreadsheetFiles}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden">
-            <CardContent className="p-3 relative pb-2">
-              <div className="absolute top-2 right-2 p-1.5 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
-                <File className="h-3 w-3 text-white" />
-              </div>
-              <div className="pr-10">
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                  Plain Text
-                </p>
-                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                  {isLoading ? "..." : knowledgeStats.plainTextSources}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Search and Filter Section */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Input 
-              placeholder="Search knowledge sources..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
-          </div>
-          <div className="w-full sm:w-48">
-            <ModernDropdown
-              value={sourceTypeFilter}
-              onValueChange={setSourceTypeFilter}
-              options={sourceTypeOptions}
-              placeholder="Filter by type"
-            />
-          </div>
-          <div className="w-full sm:w-48">
-            <ModernDropdown
-              value={sortOrder}
-              onValueChange={setSortOrder}
-              options={sortOptions}
-              placeholder="Sort by..."
-            />
-          </div>
-        </div>
-        
-        {/* Knowledge Sources Cards Grid */}
-        {isLoading ? (
-          <div className="flex justify-center items-center py-16">
-            <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-200 border-t-blue-600"></div>
-            <span className="ml-4 text-slate-600 dark:text-slate-400 font-medium">Loading knowledge bases...</span>
-          </div>
-        ) : filteredDocuments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="p-4 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 rounded-full mb-6">
-              <FileText className="h-12 w-12 text-slate-400 dark:text-slate-500" />
-            </div>
-            <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">No knowledge sources found</h3>
-            <p className="text-slate-500 dark:text-slate-400 mb-6 text-center max-w-md">
-              {searchQuery || sourceTypeFilter !== 'all' ? 
-                "Try adjusting your search or filter criteria" : 
-                "Get started by adding your first knowledge source"}
+      {/* Folders Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {foldersLoading ? (
+          // Loading state
+          Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-muted rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))
+        ) : filteredFolders.length === 0 ? (
+          <div className="col-span-full text-center py-12">
+            <Book className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">No knowledge folders found</h3>
+            <p className="text-muted-foreground">
+              {searchQuery ? 'Try adjusting your search query.' : 'Create an agent to get started with knowledge folders.'}
             </p>
-            <Link to="/knowledge/upload">
-              <ModernButton variant="gradient" icon={Upload}>
-                Add Source
-              </ModernButton>
+          </div>
+        ) : (
+          filteredFolders.map((folder) => (
+            <Card 
+              key={folder.id} 
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => handleFolderClick(folder)}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center flex-shrink-0">
+                    <FolderOpen className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-foreground truncate">{folder.name}</h3>
+                    <p className="text-sm text-muted-foreground">Agent ID: {folder.agent}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs text-muted-foreground">
+                        Created: {formatDate(folder.created_at)}
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
+  const renderDetailView = () => (
+    <div className="space-y-6">
+      {/* Header with Back Button */}
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" onClick={handleBackToMainView} className="gap-2">
+          <ChevronRight className="h-4 w-4 rotate-180" />
+          Back to Folders
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">{selectedFolder?.name}</h1>
+          <p className="text-muted-foreground">Knowledge sources for this folder</p>
+        </div>
+      </div>
+
+      {/* Sources List */}
+      <div className="space-y-4">
+        {sourcesLoading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground mt-2">Loading sources...</p>
+          </div>
+        ) : folderSources.length === 0 ? (
+          <div className="text-center py-12">
+            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">No knowledge sources found</h3>
+            <p className="text-muted-foreground mb-4">
+              This folder doesn't have any knowledge sources yet.
+            </p>
+            <Link to={`/knowledge/sources/${selectedFolder?.agent}`}>
+              <Button>View Knowledge Sources</Button>
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3">
-            {filteredDocuments.map((doc, index) => (
-              <Card 
-                key={doc.id} 
-                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none px-2"
-              >
-                <CardContent className="p-2">
-                  <div className="flex items-center justify-between">
-                    {/* Left side - Source info */}
-                    <div 
-                      className={`flex items-center gap-3 flex-1 ${canShowNestedView(doc.sourceType) ? 'cursor-pointer' : ''}`}
-                      onClick={() => canShowNestedView(doc.sourceType) && handleKnowledgeBaseClick(doc)}
-                    >
-                      <div className={`p-1.5 rounded-xl ${getIconBackground(doc)}`}>
-                        {renderSourceIcon(doc)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className={`font-semibold text-slate-900 dark:text-slate-100 text-sm truncate ${canShowNestedView(doc.sourceType) ? 'group-hover:text-blue-600' : ''} transition-colors duration-200`}>
-                            {doc.title}
-                          </h3>
-                          {canShowNestedView(doc.sourceType) && (
-                            <ChevronRight className="h-3 w-3 text-slate-400 dark:text-slate-500 group-hover:text-blue-500 transition-colors duration-200 shrink-0" />
-                          )}
-                        </div>
-                        {getMetadataDisplay(doc)}
-                      </div>
-                    </div>
-
-                    {/* Middle - Agents */}
-                    <div className="flex items-center px-4 min-w-0">
-                      {doc.agents && doc.agents.length > 0 ? (
-                        <div className="flex items-center">
-                          <div className="flex -space-x-1">
-                            {doc.agents.slice(0, 3).map((agentName, idx) => (
-                              <TooltipProvider key={`${doc.id}-agent-${idx}`}>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Avatar className="h-6 w-6 border-2 border-white dark:border-slate-800">
-                                      <AvatarFallback className={`${getAgentColor(agentName)} text-white text-[8px] font-medium`}>
-                                        {getAgentInitials(agentName)}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="font-medium">{agentName}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            ))}
-                          </div>
-                          {doc.agents.length > 3 && (
-                            <Badge variant="secondary" className="ml-2 text-xs font-medium px-2 py-0.5 rounded-full">
-                              +{doc.agents.length - 3}
-                            </Badge>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">No agents</span>
-                      )}
-                    </div>
-
-                    {/* Right side - Upload date and actions */}
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <span className="text-slate-600 dark:text-slate-400 font-medium text-xs">{doc.uploadedAt}</span>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">
-                            <MoreHorizontal className="h-3 w-3 text-slate-500 dark:text-slate-400" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-44 shadow-lg border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 z-50">
-                          <DropdownMenuItem 
-                            className="flex items-center gap-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 cursor-pointer py-2 px-3 rounded-lg"
-                            onClick={() => handleDeleteKnowledgeBase(doc.id)}
-                          >
-                            <div className="p-1 rounded-lg bg-gradient-to-br from-red-500 to-red-600">
-                              <Trash className="h-3 w-3 text-white" />
-                            </div>
-                            Delete Source
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+          folderSources.map((source) => (
+            <Card key={source.id}>
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className={`w-10 h-10 rounded-lg ${getIconBackground(source)} flex items-center justify-center flex-shrink-0`}>
+                    {renderSourceIcon(source)}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderDetailView = () => {
-    if (!selectedKnowledgeBase) return null;
-
-    const knowledgeSources = selectedKnowledgeBase.knowledge_sources.filter(source => source.status !== "deleted") || [];
-    const sourceType = selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown";
-    
-    const formattedSourceType = sourceType.charAt(0).toUpperCase() + sourceType.slice(1);
-
-    return (
-      <div className="space-y-6">
-        {/* Breadcrumb Navigation */}
-        <div className="rounded-xl p-4 pl-0">
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <button 
-                    onClick={handleBackToMainView} 
-                    className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium flex items-center gap-2 transition-colors duration-150"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Knowledge Sources
-                  </button>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage className="text-slate-900 dark:text-slate-100 font-semibold">
-                  {selectedKnowledgeBase.title || selectedKnowledgeBase.name || "Untitled Knowledge Base"}
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
-
-        {/* Header Section */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-0 flex gap-2">
-                  {selectedKnowledgeBase.title || selectedKnowledgeBase.name || "Untitled Knowledge Base"}
-                  <Badge variant='outline'>{selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown"}</Badge>
-                </h2>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              {sourceType === 'third_party' ? (
-                <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
-                  <DialogTrigger asChild>
-                    <ModernButton 
-                      variant="gradient"
-                      icon={Import}
-                      onClick={handleOpenImportModal}
-                    >
-                      Import Files
-                    </ModernButton>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Import from Google Drive</DialogTitle>
-                      <DialogDescription>
-                        Select files from your Google Drive to import into this knowledge base.
-                      </DialogDescription>
-                    </DialogHeader>
-                    
-                    {isLoadingGoogleDriveFiles ? (
-                      <div className="flex flex-col items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 dark:border-blue-400 mb-4"></div>
-                        <p className="text-center font-medium text-slate-700 dark:text-slate-300">
-                          Loading files from Google Drive...
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                            Google Drive Files ({selectedFiles.length} selected)
-                          </Label>
-                          <ModernButton 
-                            variant="outline" 
-                            size="sm"
-                            onClick={fetchGoogleDriveData}
-                            type="button"
-                          >
-                            Refresh
-                          </ModernButton>
-                        </div>
-                        
-                        {googleDriveFiles.length > 0 ? (
-                          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl max-h-[400px] overflow-y-auto">
-                            {googleDriveFiles
-                              .filter(file => file.mimeType !== 'application/vnd.google-apps.folder')
-                              .map((file, index) => {
-                                const isAlreadyImported = isFileAlreadyImported(file.id);
-                                const isSelected = selectedFiles.includes(file.id);
-                                
-                                return (
-                                  <div key={file.id} className={`flex items-center justify-between p-4 ${index > 0 ? 'border-t border-slate-100 dark:border-slate-700' : ''} ${isAlreadyImported ? 'opacity-50' : ''}`}>
-                                    <div className="flex items-center gap-3 flex-1">
-                                      <Checkbox
-                                        id={`file-${file.id}`}
-                                        checked={isSelected}
-                                        disabled={isAlreadyImported}
-                                        onCheckedChange={() => !isAlreadyImported && toggleFileSelection(file.id)}
-                                      />
-                                      <div className="w-8 h-8 bg-white border border-gray-200 rounded-lg flex items-center justify-center">
-                                        {getGoogleDriveFileIcon(file.mimeType)}
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                                          {file.name}
-                                          {isAlreadyImported && (
-                                            <span className="ml-2 text-xs text-green-600 dark:text-green-400">(Already imported)</span>
-                                          )}
-                                        </p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                                          Modified: {new Date(file.modifiedTime).toLocaleDateString()}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <ModernButton
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => window.open(file.webViewLink, '_blank')}
-                                      type="button"
-                                      className="ml-2"
-                                    >
-                                      <Eye className="h-4 w-4" />
-                                    </ModernButton>
-                                  </div>
-                                );
-                              })}
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/20">
-                            <FileText className="h-8 w-8 text-slate-400 dark:text-slate-500 mb-3" />
-                            <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
-                              No files found
-                            </p>
-                            <ModernButton 
-                              variant="outline" 
-                              size="sm"
-                              onClick={fetchGoogleDriveData}
-                              type="button"
-                            >
-                              Refresh Files
-                            </ModernButton>
-                          </div>
-                        )}
-                        
-                        {googleDriveFiles.length > 0 && (
-                          <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-                            <ModernButton 
-                              variant="outline"
-                              onClick={() => setIsImportModalOpen(false)}
-                              disabled={isImporting}
-                            >
-                              Cancel
-                            </ModernButton>
-                            <ModernButton 
-                              variant="gradient"
-                              onClick={handleImportFiles}
-                              disabled={selectedFiles.length === 0 || isImporting}
-                              className="min-w-[120px]"
-                            >
-                              {isImporting ? 'Importing...' : `Import ${selectedFiles.length} files`}
-                            </ModernButton>
-                          </div>
-                        )}
-                      </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-foreground truncate">{source.title}</h3>
+                    {source.file && (
+                      <p className="text-sm text-muted-foreground">File: {source.file.split('/').pop()}</p>
                     )}
-                  </DialogContent>
-                </Dialog>
-              ) : (
-                <ModernButton 
-                  variant="gradient"
-                  icon={Upload}
-                  className="relative overflow-hidden"
-                >
-                  <input 
-                    type="file" 
-                    className="cursor-pointer absolute inset-0 opacity-0" 
-                    accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown")}
-                    onChange={handleFileUpload}
-                  />
-                  Upload File
-                </ModernButton>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Files Cards Grid */}
-        {!knowledgeSources || knowledgeSources.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="p-4 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 rounded-full mb-4">
-              <FileText className="h-10 w-10 text-slate-400 dark:text-slate-500" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">No files found</h3>
-            <p className="text-slate-500 dark:text-slate-400 mb-4 text-center">
-              Add some files to this knowledge source to get started
-            </p>
-            {sourceType === 'third_party' ? (
-              <ModernButton 
-                variant="gradient"
-                icon={Import}
-                onClick={handleOpenImportModal}
-              >
-                Import Files
-              </ModernButton>
-            ) : (
-              <ModernButton 
-                variant="gradient"
-                icon={Upload}
-                className="relative overflow-hidden"
-              >
-                <input 
-                  type="file" 
-                  className="cursor-pointer absolute inset-0 opacity-0" 
-                  accept={getFileAcceptTypes(selectedKnowledgeBase.sourceType || selectedKnowledgeBase.type || "unknown")}
-                  onChange={handleFileUpload}
-                />
-                Upload File
-              </ModernButton>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-3">
-            {knowledgeSources.map((source) => (
-              <Card 
-                key={source.id} 
-                className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border-0 shadow-none px-2"
-              >
-                <CardContent className="p-2">
-                  <div className="flex items-center justify-between">
-                    {/* Left side - File info */}
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className={`p-1.5 rounded-xl ${getFileIconBackground(source, sourceType)}`}>
-                        {getFileIcon(source, sourceType)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm truncate mb-1">
-                          {source.title || source.name || "Untitled"}
-                        </h3>
-                        <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                          <span className="font-medium">
-                            {getFileSizeFromMetadata(source)}
-                          </span>
-                          <span className="font-medium">
-                            {getContentMeasure(source)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Right side - Upload date and actions */}
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <span className="text-slate-600 dark:text-slate-400 font-medium text-xs">
-                          {formatDate(source.metadata?.upload_date)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {sourceType === 'third_party' ? (
-                          <ModernButton 
-                            iconOnly
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleViewFile(source)}
-                            className="w-8 h-8 hover:bg-slate-100 dark:hover:bg-slate-700"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </ModernButton>
-                        ) : (
-                          <ModernButton 
-                            iconOnly
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleDownloadFile(source)}
-                            className="w-8 h-8 hover:bg-slate-100 dark:hover:bg-slate-700"
-                          >
-                            <Download className="h-4 w-4" />
-                          </ModernButton>
-                        )}
-                        <ModernButton 
-                          iconOnly
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDeleteFile(source.id)}
-                          className="w-8 h-8 text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-400 dark:hover:border-red-600"
-                        >
-                          <Trash className="h-4 w-4" />
-                        </ModernButton>
-                      </div>
+                    {source.url && (
+                      <p className="text-sm text-muted-foreground">URL: {source.url}</p>
+                    )}
+                    <div className="flex items-center gap-2 mt-2">
+                      {getStatusBadge(source.status)}
+                      <span className="text-xs text-muted-foreground">
+                        Training: {source.training_status}
+                      </span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
         )}
       </div>
-    );
-  };
-
-  console.log('About to render, viewMode:', viewMode);
+    </div>
+  );
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
-        <div className="container mx-auto px-4 py-6">
-          {viewMode === 'main' ? renderMainView() : renderDetailView()}
-        </div>
-      </div>
+    <div className="container max-w-7xl mx-auto p-6">
+      {/* Breadcrumbs */}
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <BreadcrumbPage>
+              {viewMode === 'main' ? 'Knowledge Folders' : selectedFolder?.name}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      {viewMode === 'main' ? renderMainView() : renderDetailView()}
     </div>
   );
 };
