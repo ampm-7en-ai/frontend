@@ -127,6 +127,7 @@ export const useAgentTest = (initialAgentId: string) => {
   const [isSaving, setIsSaving] = useState<number | null>(null); // Track which model config is being saved
   const [isProcessing, setIsProcessing] = useState(false);
   const [cellLoadingStates, setCellLoadingStates] = useState<boolean[]>(Array(3).fill(false));
+  const [historyData, setHistoryData] = useState<{responses: any[][], configs: any[]} | null>(null);
 
   const webSocketRefs = useRef<ModelWebSocketService[]>([]);
   const webSocketsInitialized = useRef<boolean>(false);
@@ -494,6 +495,9 @@ export const useAgentTest = (initialAgentId: string) => {
       return;
     }
     
+    // Clear any history data as we're sending new query
+    setHistoryData(null);
+    
     const userMessage: Message = {
       id: Date.now(),
       content: messageText,
@@ -501,17 +505,8 @@ export const useAgentTest = (initialAgentId: string) => {
       timestamp: new Date(),
     };
     
-    // Add user message to all model conversations
-    setMessages(prev => {
-      const newMessages = [...prev];
-      // Ensure we only update existing message arrays
-      for (let i = 0; i < Math.min(newMessages.length, numModels); i++) {
-        if (Array.isArray(newMessages[i])) {
-          newMessages[i] = [...newMessages[i], userMessage];
-        }
-      }
-      return newMessages;
-    });
+    // Clear all previous messages and start fresh with new query
+    setMessages(Array(numModels).fill(null).map(() => [userMessage]));
 
     // Set all cells to loading state initially
     setCellLoadingStates(Array(numModels).fill(true));
@@ -541,10 +536,17 @@ export const useAgentTest = (initialAgentId: string) => {
 
   const handleClearChat = () => {
     setMessages(Array(numModels).fill(null).map(() => []));
+    setHistoryData(null);
     toast({
       title: "Chat cleared",
       description: "All messages have been cleared.",
     });
+  };
+
+  const handleLoadHistoryData = (historyResponses: any[][], historyConfigs: any[]) => {
+    setHistoryData({ responses: historyResponses, configs: historyConfigs });
+    setMessages(historyResponses);
+    setChatConfigs(historyConfigs);
   };
 
   const handleViewKnowledgeSources = () => {
@@ -743,6 +745,7 @@ export const useAgentTest = (initialAgentId: string) => {
     handleAddModel,
     handleRemoveModel,
     handleCloneConfig,
+    handleLoadHistoryData,
     setSelectedModelIndex,
     
     // Utilities

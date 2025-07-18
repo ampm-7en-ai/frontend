@@ -44,7 +44,8 @@ export default function AgentTest() {
     handleSaveConfig,
     handleAddModel,
     handleRemoveModel,
-    handleCloneConfig
+    handleCloneConfig,
+    handleLoadHistoryData
   } = useAgentTest(agentId || "1");
 
   if (isLoadingAgent || isLoadingAgents) {
@@ -107,6 +108,7 @@ export default function AgentTest() {
               onSelectModel={setSelectedModelIndex}
               onSelectCellConfig={setSelectedCellId}
               onToggleRightPanel={setShowRightPanel}
+              onLoadHistoryData={handleLoadHistoryData}
             />
           </div>
 

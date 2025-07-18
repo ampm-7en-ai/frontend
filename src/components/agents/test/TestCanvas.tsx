@@ -65,6 +65,7 @@ interface TestCanvasProps {
   onSelectModel: (index: number) => void;
   onSelectCellConfig: (cellId: string) => void;
   onToggleRightPanel: (show: boolean) => void;
+  onLoadHistoryData?: (responses: any[][], configs: any[]) => void;
 }
 
 export const TestCanvas = ({
@@ -84,7 +85,8 @@ export const TestCanvas = ({
   onRemoveModel,
   onSelectModel,
   onSelectCellConfig,
-  onToggleRightPanel
+  onToggleRightPanel,
+  onLoadHistoryData
 }: TestCanvasProps) => {
   const [expandedCellId, setExpandedCellId] = useState<string | null>(null);
   const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
@@ -138,32 +140,36 @@ export const TestCanvas = ({
   };
 
   const handleSendMessage = (message: string) => {
-    if (!isHistoryMode) {
-      // Save current state to history before sending new message
-      const newHistoryItem: HistoryItem = {
-        id: `history-${Date.now()}`,
-        query: message,
-        timestamp: new Date(),
-        responses: [...messages],
-        configs: [...chatConfigs]
-      };
-      setHistory(prev => [newHistoryItem, ...prev]);
-      setCurrentQuery(message);
-    } else {
-      // Exit history mode and send new message
-      setIsHistoryMode(false);
-      setSelectedHistoryId(null);
-      setCurrentQuery(message);
-    }
+    // Always send the message first
     onSendMessage(message);
+    
+    // Add to history after sending (newest on top)
+    const newHistoryItem: HistoryItem = {
+      id: `history-${Date.now()}`,
+      query: message,
+      timestamp: new Date(),
+      responses: [...messages], // Current responses will be updated by WebSocket
+      configs: [...chatConfigs]
+    };
+    setHistory(prev => [newHistoryItem, ...prev]);
+    setCurrentQuery(message);
+    
+    // Exit history mode if we were in it
+    setIsHistoryMode(false);
+    setSelectedHistoryId(null);
   };
 
   const handleSelectHistory = (item: HistoryItem) => {
     setSelectedHistoryId(item.id);
     setCurrentQuery(item.query);
     setIsHistoryMode(true);
+    
     // Load historical responses and configs
+    if (onLoadHistoryData) {
+      onLoadHistoryData(item.responses, item.configs);
+    }
     onSelectModel(0); // Select first model for config display
+    onToggleRightPanel(true); // Show right panel with historical configs
   };
 
   const handleToggleHistory = () => {
@@ -317,7 +323,7 @@ export const TestCanvas = ({
               isDisabled={isProcessing || modelConnections.some(status => !status)}
               placeholder={isHistoryMode ? "Enter new query to exit history mode..." : "Type your query to compare responses across all models..."}
               value={isHistoryMode ? currentQuery : undefined}
-              readonly={false}
+              readonly={isHistoryMode}
             />
           </div>
         </div>
