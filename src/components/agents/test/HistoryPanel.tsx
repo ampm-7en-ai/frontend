@@ -1,12 +1,9 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { History, Clock, MessageSquare } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import ModernButton from '@/components/dashboard/ModernButton';
 
 interface HistoryItem {
   id: string;
@@ -31,9 +28,6 @@ export const HistoryPanel = ({
   onSelectHistory,
   selectedHistoryId
 }: HistoryPanelProps) => {
-  const [showAddQuery, setShowAddQuery] = useState(false);
-  const [newQuery, setNewQuery] = useState('');
-
   if (!isOpen) return null;
 
   const formatTime = (date: Date) => {
@@ -44,33 +38,6 @@ export const HistoryPanel = ({
     }).format(date);
   };
 
-  const handleAddQuery = () => {
-    if (newQuery.trim()) {
-      // Create a new history item for the manually added query
-      const newHistoryItem: HistoryItem = {
-        id: `manual-${Date.now()}`,
-        query: newQuery.trim(),
-        timestamp: new Date(),
-        responses: [],
-        configs: []
-      };
-      
-      // Add to history and select it
-      onSelectHistory(newHistoryItem);
-      setNewQuery('');
-      setShowAddQuery(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleAddQuery();
-    } else if (e.key === 'Escape') {
-      setShowAddQuery(false);
-      setNewQuery('');
-    }
-  };
-
   return (
     <div className="w-80 h-full bg-background border-r border-border flex flex-col">
       {/* Header */}
@@ -78,50 +45,20 @@ export const HistoryPanel = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <History className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold text-foreground">Queries</h3>
+            <h3 className="font-semibold text-foreground">Query History</h3>
           </div>
-          <ModernButton
+          <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowAddQuery(!showAddQuery)}
+            onClick={onClose}
+            className="h-8 w-8 p-0"
           >
-            Add Query
-          </ModernButton>
+            ×
+          </Button>
         </div>
-        
-        {/* Add Query Input */}
-        {showAddQuery && (
-          <div className="mt-3 space-y-2">
-            <Input
-              value={newQuery}
-              onChange={(e) => setNewQuery(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder="Enter your query..."
-              className="text-sm"
-              autoFocus
-            />
-            <div className="flex gap-2 justify-end">
-              <ModernButton
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowAddQuery(false);
-                  setNewQuery('');
-                }}
-              >
-                Cancel
-              </ModernButton>
-              <ModernButton
-                variant="primary"
-                size="sm"
-                onClick={handleAddQuery}
-                disabled={!newQuery.trim()}
-              >
-                Add
-              </ModernButton>
-            </div>
-          </div>
-        )}
+        <p className="text-xs text-muted-foreground mt-1">
+          View previous queries and responses
+        </p>
       </div>
 
       {/* History List */}
