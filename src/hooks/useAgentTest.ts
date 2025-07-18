@@ -579,9 +579,13 @@ export const useAgentTest = (initialAgentId: string) => {
       const socketIndex = socketHistory.socketIndex;
       
       if (socketIndex < numModels) {
+        // Generate unique numeric IDs
+        const userMessageId = Date.now() + socketIndex * 1000;
+        const responseMessageId = Date.now() + socketIndex * 1000 + 1;
+        
         // Add user message
         const userMessage: Message = {
-          id: `user-${socketHistory.queries[0]?.id || Date.now().toString()}`,
+          id: userMessageId,
           content: historyItem.query,
           sender: 'user',
           timestamp: new Date(socketHistory.queries[0]?.timestamp || Date.now()),
@@ -589,7 +593,7 @@ export const useAgentTest = (initialAgentId: string) => {
         
         // Add response message
         const responseMessage: Message = {
-          id: `response-${socketHistory.responses[0]?.id || Date.now().toString()}`,
+          id: responseMessageId,
           content: socketHistory.responses[0]?.content || '',
           sender: `agent${socketIndex + 1}` as 'agent1' | 'agent2' | 'agent3',
           timestamp: new Date(socketHistory.responses[0]?.timestamp || Date.now()),
