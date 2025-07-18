@@ -251,19 +251,34 @@ const FolderSources = () => {
         </div>
 
         {/* Sources List */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {isLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-muted-foreground mt-2">Loading sources...</p>
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Card key={i} className="border border-border/50 bg-card/30 backdrop-blur-sm">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-lg bg-muted/50 animate-pulse"></div>
+                      <div className="flex-1 space-y-3">
+                        <div className="h-4 bg-muted/50 rounded animate-pulse w-1/3"></div>
+                        <div className="h-3 bg-muted/30 rounded animate-pulse w-1/2"></div>
+                        <div className="h-3 bg-muted/30 rounded animate-pulse w-1/4"></div>
+                      </div>
+                      <div className="w-16 h-6 bg-muted/30 rounded animate-pulse"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           ) : filteredSources.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <div className="text-center py-16">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/30 flex items-center justify-center">
+                <FileText className="h-8 w-8 text-muted-foreground" />
+              </div>
               <h3 className="text-lg font-medium text-foreground mb-2">
                 {sources.length === 0 ? 'No knowledge sources found' : 'No sources match your search'}
               </h3>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 {sources.length === 0 
                   ? 'This folder doesn\'t have any knowledge sources yet.'
                   : 'Try adjusting your search query.'
@@ -271,30 +286,39 @@ const FolderSources = () => {
               </p>
               {sources.length === 0 && (
                 <Link to={`/agents/${agentId}/edit?tab=knowledge`}>
-                  <Button>Add Knowledge Sources</Button>
+                  <Button className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Knowledge Sources
+                  </Button>
                 </Link>
               )}
             </div>
           ) : (
-            filteredSources.map((source) => (
-              <Card key={source.id} className="hover:shadow-md transition-shadow">
+            filteredSources.map((source, index) => (
+              <Card 
+                key={source.id} 
+                className="group border border-border/50 bg-card/30 backdrop-blur-sm hover:bg-card/50 hover:border-border transition-all duration-200 animate-fade-in"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 rounded-lg ${getIconBackground(source)} flex items-center justify-center flex-shrink-0`}>
+                    <div className={`w-12 h-12 rounded-lg ${getIconBackground(source)} flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200`}>
                       {renderSourceIcon(source)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-foreground truncate">{source.title}</h3>
+                          <h3 className="font-medium text-foreground group-hover:text-primary transition-colors duration-200 truncate">
+                            {source.title}
+                          </h3>
                           {source.file && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              File: {source.file.split('/').pop()}
+                            <p className="text-sm text-muted-foreground mt-1 truncate">
+                              {source.file.split('/').pop()}
                             </p>
                           )}
                           {source.url && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              URL: {source.url}
+                            <p className="text-sm text-muted-foreground mt-1 truncate">
+                              {source.url}
                             </p>
                           )}
                           {source.plain_text && (
@@ -303,26 +327,27 @@ const FolderSources = () => {
                             </p>
                           )}
                           {getFileInfo(source) && (
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <p className="text-xs text-muted-foreground/80 mt-2">
                               {getFileInfo(source)}
                             </p>
                           )}
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           {getStatusBadge(source.status)}
-                          <span className="text-xs text-muted-foreground">
-                            {source.training_status}
-                          </span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between mt-3">
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-border/30">
+                        <div className="flex items-center gap-4">
                           <span className="text-xs text-muted-foreground">
                             Selected: {source.is_selected ? 'Yes' : 'No'}
                           </span>
+                          <span className="w-1 h-1 rounded-full bg-muted-foreground/30"></span>
+                          <span className="text-xs text-muted-foreground">
+                            ID: {source.id}
+                          </span>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          ID: {source.id}
+                          {source.training_status}
                         </span>
                       </div>
                     </div>

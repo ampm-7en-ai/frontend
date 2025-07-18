@@ -167,9 +167,9 @@ const KnowledgeBase = () => {
         </div>
       </div>
 
-      {/* Search and Filters */}
+      {/* Search */}
       <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
+        <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             placeholder="Search folders..."
@@ -180,48 +180,62 @@ const KnowledgeBase = () => {
         </div>
       </div>
 
-      {/* Folders Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {/* Folders List */}
+      <div className="space-y-3">
         {foldersLoading ? (
-          // Loading state
-          Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-muted rounded w-1/2"></div>
-              </CardContent>
-            </Card>
-          ))
+          // Modern Loading State
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="border border-border/50 bg-card/30 backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-muted/50 animate-pulse"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-muted/50 rounded animate-pulse w-1/3"></div>
+                      <div className="h-3 bg-muted/30 rounded animate-pulse w-1/4"></div>
+                    </div>
+                    <div className="w-6 h-6 bg-muted/30 rounded animate-pulse"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         ) : filteredFolders.length === 0 ? (
-          <div className="col-span-full text-center py-12">
-            <Book className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <div className="text-center py-16">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/30 flex items-center justify-center">
+              <FolderOpen className="h-8 w-8 text-muted-foreground" />
+            </div>
             <h3 className="text-lg font-medium text-foreground mb-2">No knowledge folders found</h3>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground max-w-md mx-auto">
               {searchQuery ? 'Try adjusting your search query.' : 'Create an agent to get started with knowledge folders.'}
             </p>
           </div>
         ) : (
-          filteredFolders.map((folder) => (
+          filteredFolders.map((folder, index) => (
             <Card 
               key={folder.id} 
-              className="cursor-pointer hover:shadow-md transition-shadow"
+              className="group cursor-pointer border border-border/50 bg-card/30 backdrop-blur-sm hover:bg-card/50 hover:border-border transition-all duration-200 animate-fade-in"
+              style={{ animationDelay: `${index * 50}ms` }}
               onClick={() => handleFolderClick(folder)}
             >
-              <CardContent className="p-6">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center flex-shrink-0">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
                     <FolderOpen className="h-5 w-5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-foreground truncate">{folder.name}</h3>
-                    <p className="text-sm text-muted-foreground">Agent ID: {folder.agent}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-xs text-muted-foreground">
-                        Created: {formatDate(folder.created_at)}
+                    <h3 className="font-medium text-foreground group-hover:text-primary transition-colors duration-200 truncate">
+                      {folder.name}
+                    </h3>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-sm text-muted-foreground">Agent {folder.agent}</span>
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground/30"></span>
+                      <span className="text-sm text-muted-foreground">
+                        {formatDate(folder.created_at)}
                       </span>
                     </div>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-200 flex-shrink-0" />
                 </div>
               </CardContent>
             </Card>
@@ -235,7 +249,7 @@ const KnowledgeBase = () => {
     <div className="space-y-6">
       {/* Header with Back Button */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={handleBackToMainView} className="gap-2">
+        <Button variant="ghost" onClick={handleBackToMainView} className="gap-2 hover:bg-muted/50">
           <ChevronRight className="h-4 w-4 rotate-180" />
           Back to Folders
         </Button>
@@ -246,45 +260,71 @@ const KnowledgeBase = () => {
       </div>
 
       {/* Sources List */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {sourcesLoading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="text-muted-foreground mt-2">Loading sources...</p>
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i} className="border border-border/50 bg-card/30 backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-muted/50 animate-pulse"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-muted/50 rounded animate-pulse w-1/3"></div>
+                      <div className="h-3 bg-muted/30 rounded animate-pulse w-1/2"></div>
+                    </div>
+                    <div className="w-16 h-6 bg-muted/30 rounded animate-pulse"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         ) : folderSources.length === 0 ? (
-          <div className="text-center py-12">
-            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <div className="text-center py-16">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/30 flex items-center justify-center">
+              <FileText className="h-8 w-8 text-muted-foreground" />
+            </div>
             <h3 className="text-lg font-medium text-foreground mb-2">No knowledge sources found</h3>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               This folder doesn't have any knowledge sources yet.
             </p>
             <Link to={`/knowledge/sources/${selectedFolder?.agent}`}>
-              <Button>View Knowledge Sources</Button>
+              <Button className="gap-2">
+                <FileText className="h-4 w-4" />
+                View Knowledge Sources
+              </Button>
             </Link>
           </div>
         ) : (
-          folderSources.map((source) => (
-            <Card key={source.id}>
+          folderSources.map((source, index) => (
+            <Card 
+              key={source.id} 
+              className="group border border-border/50 bg-card/30 backdrop-blur-sm hover:bg-card/50 hover:border-border transition-all duration-200 animate-fade-in"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
               <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className={`w-10 h-10 rounded-lg ${getIconBackground(source)} flex items-center justify-center flex-shrink-0`}>
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-lg ${getIconBackground(source)} flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200`}>
                     {renderSourceIcon(source)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-foreground truncate">{source.title}</h3>
-                    {source.file && (
-                      <p className="text-sm text-muted-foreground">File: {source.file.split('/').pop()}</p>
-                    )}
-                    {source.url && (
-                      <p className="text-sm text-muted-foreground">URL: {source.url}</p>
-                    )}
-                    <div className="flex items-center gap-2 mt-2">
-                      {getStatusBadge(source.status)}
-                      <span className="text-xs text-muted-foreground">
-                        Training: {source.training_status}
-                      </span>
+                    <h3 className="font-medium text-foreground group-hover:text-primary transition-colors duration-200 truncate">
+                      {source.title}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      {source.file && (
+                        <span className="text-sm text-muted-foreground truncate">
+                          {source.file.split('/').pop()}
+                        </span>
+                      )}
+                      {source.url && (
+                        <span className="text-sm text-muted-foreground truncate">
+                          {source.url}
+                        </span>
+                      )}
                     </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {getStatusBadge(source.status)}
                   </div>
                 </div>
               </CardContent>
