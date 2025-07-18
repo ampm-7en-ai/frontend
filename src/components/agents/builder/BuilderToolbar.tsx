@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBuilder } from './BuilderContext';
-import { ArrowLeft, Rocket, Play, Trash2, Save } from 'lucide-react';
+import { ArrowLeft, Rocket, Play, Trash2, Save, Brain } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import {
@@ -16,17 +16,58 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import DeploymentDialog from '@/components/agents/DeploymentDialog';
+import { useToast } from '@/hooks/use-toast';
+import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 
 export const BuilderToolbar = () => {
   const navigate = useNavigate();
-  const { state, saveAgent, deleteAgent, setCanvasMode } = useBuilder();
+  const { state, saveAgent, deleteAgent, setCanvasMode, updateAgentData } = useBuilder();
   const { agentData, canvasMode, isLoading } = state;
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showDeployDialog, setShowDeployDialog] = useState(false);
+  const { toast } = useToast();
 
   const handleDeleteAgent = async () => {
     await deleteAgent();
     setShowDeleteDialog(false);
+  };
+
+  const handleTrainKnowledge = async () => {
+    if (!agentData.id) return;
+    
+    try {
+      const token = getAccessToken();
+      if (!token) throw new Error('No authentication token');
+
+      const response = await fetch(`${BASE_URL}agents/${agentData.id}/train/`, {
+        method: 'POST',
+        headers: getAuthHeaders(token)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to start training');
+      }
+
+      toast({
+        title: "Training started",
+        description: "Your agent's knowledge base is being trained.",
+      });
+
+      // Update training status for knowledge sources
+      const updatedSources = agentData.knowledgeSources.map(source => ({
+        ...source,
+        trainingStatus: 'Training' as const
+      }));
+      
+      updateAgentData({ knowledgeSources: updatedSources });
+    } catch (error) {
+      console.error('Error training knowledge:', error);
+      toast({
+        title: "Training failed",
+        description: "There was an error starting the training process.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -69,6 +110,17 @@ export const BuilderToolbar = () => {
 
         {/* Right Section */}
         <div className="flex items-center gap-2">
+          <ModernButton
+            variant="secondary"
+            size="sm"
+            icon={Brain}
+            onClick={handleTrainKnowledge}
+            disabled={agentData.knowledgeSources.length === 0}
+            className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:hover:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700"
+          >
+            Train Knowledge
+          </ModernButton>
+          
           <ModernButton
             variant="ghost"
             size="sm"

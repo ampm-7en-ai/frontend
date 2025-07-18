@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File } from 'lucide-react';
@@ -11,6 +10,7 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { useToast } from '@/hooks/use-toast';
 import CompactKnowledgeSourceCard from '@/components/agents/knowledge/CompactKnowledgeSourceCard';
 import KnowledgeSourceModal from '@/components/agents/knowledge/KnowledgeSourceModal';
+import { KnowledgeActionDropdown } from './KnowledgeActionDropdown';
 
 const getIconForType = (type: string) => {
   switch (type.toLowerCase()) {
@@ -68,7 +68,6 @@ export const KnowledgePanel = ({ leftPanelCollapsed = false, rightPanelCollapsed
   const { agentData } = state;
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -90,7 +89,7 @@ export const KnowledgePanel = ({ leftPanelCollapsed = false, rightPanelCollapsed
       const result = await response.json();
       return result.data || [];
     },
-    enabled: isImportDialogOpen
+    enabled: false
   });
 
   const handleImport = async (sourceIds: number[], selectedSubUrls?: Record<number, Set<string>>, selectedFiles?: Record<number, Set<string>>) => {
@@ -276,55 +275,27 @@ export const KnowledgePanel = ({ leftPanelCollapsed = false, rightPanelCollapsed
           </div>
           
           <div className="flex gap-2">
-            <ModernButton
-              variant="outline"
-              size="sm"
-              className="bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-600"
-              onClick={() => setIsImportDialogOpen(true)}
-            >
-              Import
-            </ModernButton>
-            <ModernButton
-              variant="secondary"
-              size="sm"
-              className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:hover:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700"
-              onClick={handleTrainKnowledge}
-              disabled={agentData.knowledgeSources.length === 0}
-            >
-              Train Knowledge
-            </ModernButton>
+            <KnowledgeActionDropdown />
           </div>
         </div>
       </div>
       
-      <div className="flex-1">
-        <div className="p-6 h-full w-full">
-          {agentData.knowledgeSources.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Brain className="h-8 w-8 text-white" />
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-6">
+            {agentData.knowledgeSources.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Brain className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-white dark:text-white mb-2">No knowledge sources yet</h3>
+                <p className="text-sm text-slate-400 dark:text-slate-400 max-w-sm mx-auto mb-4">
+                  Import knowledge sources to improve your agent's responses and make it more knowledgeable.
+                </p>
+                <KnowledgeActionDropdown />
               </div>
-              <h3 className="text-lg font-semibold text-white dark:text-white mb-2">No knowledge sources yet</h3>
-              <p className="text-sm text-slate-400 dark:text-slate-400 max-w-sm mx-auto mb-4">
-                Import knowledge sources to improve your agent's responses and make it more knowledgeable.
-              </p>
-              <ModernButton
-                variant="primary"
-                size="sm"
-                icon={Plus}
-                onClick={() => setIsImportDialogOpen(true)}
-              >
-                Add Knowledge Source
-              </ModernButton>
-            </div>
-          ) : (
-            <div className="w-full h-full" id="sources-card">
-              <ScrollArea 
-                className="w-full h-full" 
-                style={{ 
-                  maxWidth: getScrollAreaWidth()
-                }}
-              >
+            ) : (
+              <div className="w-full h-full">
                 <div className="flex gap-3 pb-4">
                   {agentData.knowledgeSources.map((knowledgeSource) => (
                     <div key={knowledgeSource.id} className="flex-shrink-0 w-72">
@@ -335,24 +306,15 @@ export const KnowledgePanel = ({ leftPanelCollapsed = false, rightPanelCollapsed
                     </div>
                   ))}
                   
-                  <div className="flex-shrink-0 w-72">
+                  {/* <div className="flex-shrink-0 w-72">
                     <AddKnowledgeCard onClick={() => setIsImportDialogOpen(true)} />
-                  </div>
+                  </div> */}
                 </div>
-              </ScrollArea>
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
       </div>
-
-      <ImportSourcesDialog
-        isOpen={isImportDialogOpen}
-        onOpenChange={setIsImportDialogOpen}
-        externalSources={externalSources}
-        currentSources={agentData.knowledgeSources}
-        onImport={handleImport}
-        agentId={agentData.id?.toString()}
-      />
 
       <KnowledgeSourceModal
         open={isModalOpen}
