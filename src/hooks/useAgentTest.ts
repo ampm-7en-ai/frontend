@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -149,7 +149,10 @@ export const useAgentTest = (initialAgentId: string) => {
   const webSocketRefs = useRef<ModelWebSocketService[]>([]);
   const webSocketsInitialized = useRef<boolean>(false);
   const systemMessageProcessing = useRef<boolean>(false);
-  const connectionRetryCount = useRef<number[]>(Array(3).fill(0)); // Track retry counts per model
+  const connectionRetryCount = useRef<number[]>(Array(3).fill(0));
+  
+  // Add ref for current agent to avoid stale closures
+  const agentRef = useRef<Agent | null>(null);
 
   // Initialize socket history hook
   const {
@@ -166,6 +169,20 @@ export const useAgentTest = (initialAgentId: string) => {
     setIsHistoryMode,
     setSelectedHistoryId
   } = useSocketHistory(numModels);
+
+  // Memoize the callback functions to prevent unnecessary re-renders
+  const memoizedHandleQuerySent = useCallback((socketIndex: number, queryData: any) => {
+    handleQuerySent(socketIndex, queryData);
+  }, [handleQuerySent]);
+
+  const memoizedHandleResponseReceived = useCallback((socketIndex: number, responseData: any) => {
+    handleResponseReceived(socketIndex, responseData);
+  }, [handleResponseReceived]);
+
+  // Update agent ref when agent changes
+  useEffect(() => {
+    agentRef.current = agent;
+  }, [agent]);
 
   // Update chat configs when model options are available
   useEffect(() => {
@@ -185,7 +202,7 @@ export const useAgentTest = (initialAgentId: string) => {
       const token = getAccessToken();
       if (!token) {
         console.error("No access token available");
-        return mockAgents; // Return mock data as fallback
+        return mockAgents;
       }
       
       try {
@@ -197,13 +214,12 @@ export const useAgentTest = (initialAgentId: string) => {
         
         if (!response.ok) {
           console.error("Failed to fetch agents list:", response.status);
-          return mockAgents; // Return mock data as fallback
+          return mockAgents;
         }
 
         const data = await response.json();
         console.log('All agents data received:', data);
         
-        // Transform the API response to match our UI needs
         return data.data?.map((agent: any) => ({
           id: agent.id.toString(),
           name: agent.name,
@@ -212,10 +228,10 @@ export const useAgentTest = (initialAgentId: string) => {
         })) || mockAgents;
       } catch (error) {
         console.error("Error in fetchAllAgents:", error);
-        return mockAgents; // Return mock data as fallback
+        return mockAgents;
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     retry: 1,
   });
 
@@ -242,7 +258,6 @@ export const useAgentTest = (initialAgentId: string) => {
     if (agentData) {
       console.log('Agent details data received successfully:', agentData);
       
-      // Create properly typed knowledge sources
       const knowledgeSources: KnowledgeSource[] = agentData.knowledge_bases?.map((kb: any, index: number) => ({
         id: kb.id || index,
         name: kb.name || `Source ${index + 1}`,
@@ -255,7 +270,6 @@ export const useAgentTest = (initialAgentId: string) => {
         content: kb.content || ""
       })) || [];
       
-      // Extract avatar source from the agent's appearance if available
       const avatarSrc = agentData.appearance?.avatar?.src || '';
       
       const transformedAgent: Agent = {
@@ -274,10 +288,8 @@ export const useAgentTest = (initialAgentId: string) => {
       
       setAgent(transformedAgent);
       
-      // Extract primary color from appearance if available, or use defaults
       const primaryColor = agentData.appearance?.primaryColor || '#9b87f5';
       
-      // Create color variations for each model
       const newPrimaryColors = [
         primaryColor,
         adjustColor(primaryColor, 30),
@@ -286,7 +298,6 @@ export const useAgentTest = (initialAgentId: string) => {
       
       setPrimaryColors(newPrimaryColors);
       
-      // Update the config but don't recreate WebSockets
       setChatConfigs(prev => prev.map((config, index) => ({
         ...config,
         systemPrompt: transformedAgent.systemPrompt || "",
@@ -299,9 +310,9 @@ export const useAgentTest = (initialAgentId: string) => {
     }
   }, [agentData, selectedAgentId, numModels]);
 
-  // Initialize WebSocket connections with better error handling and retry logic
+  // Initialize WebSocket connections with minimal dependencies
   useEffect(() => {
-    if (!agent || !selectedAgentId) return;
+    if (!selectedAgentId) return;
     
     console.log("Initializing WebSocket connections for agent", selectedAgentId);
     
@@ -310,10 +321,8 @@ export const useAgentTest = (initialAgentId: string) => {
       if (ws) ws.disconnect();
     });
     
-    // Reset retry counters
     connectionRetryCount.current = Array(numModels).fill(0);
     
-    // Initialize new connections with staggered timing to prevent resource exhaustion
     const newConnections: ModelWebSocketService[] = [];
     const connectionStatus: boolean[] = Array(numModels).fill(false);
     
@@ -321,10 +330,10 @@ export const useAgentTest = (initialAgentId: string) => {
       setTimeout(() => {
         const ws = new ModelWebSocketService(selectedAgentId, chatConfigs[i], i);
         
-        // Set up history tracking
+        // Set up history tracking with memoized callbacks
         ws.setHistoryCallbacks(
-          (queryData) => handleQuerySent(i, queryData),
-          (responseData) => handleResponseReceived(i, responseData)
+          (queryData) => memoizedHandleQuerySent(i, queryData),
+          (responseData) => memoizedHandleResponseReceived(i, responseData)
         );
         
         ws.on({
@@ -348,7 +357,7 @@ export const useAgentTest = (initialAgentId: string) => {
                 sender: `agent${i+1}` as 'agent1' | 'agent2' | 'agent3',
                 model: message.model || chatConfigs[i].model,
                 timestamp: new Date(),
-                avatarSrc: agent?.avatarSrc
+                avatarSrc: agentRef.current?.avatarSrc
               }];
               return newMessages;
             });
@@ -390,7 +399,6 @@ export const useAgentTest = (initialAgentId: string) => {
             console.error(`Chat error for model ${i}:`, error);
             connectionRetryCount.current[i]++;
             
-            // Only show toast for first few errors to avoid spam
             if (connectionRetryCount.current[i] <= 2) {
               toast({
                 title: "Connection Issue",
@@ -409,7 +417,7 @@ export const useAgentTest = (initialAgentId: string) => {
             console.log(`Connection status changed for model ${i}:`, status);
             
             if (status) {
-              connectionRetryCount.current[i] = 0; // Reset retry count on successful connection
+              connectionRetryCount.current[i] = 0;
             }
             
             setModelConnections(prev => {
@@ -423,15 +431,13 @@ export const useAgentTest = (initialAgentId: string) => {
         ws.connect();
         newConnections[i] = ws;
         
-        // If this is the last connection, update refs
         if (newConnections.filter(Boolean).length === numModels) {
           webSocketRefs.current = newConnections;
           webSocketsInitialized.current = true;
         }
-      }, i * 500); // Stagger connections by 500ms each
+      }, i * 500);
     };
     
-    // Initialize connections with staggered timing
     for (let i = 0; i < numModels; i++) {
       initializeConnection(i);
     }
@@ -446,7 +452,7 @@ export const useAgentTest = (initialAgentId: string) => {
       webSocketRefs.current = [];
       webSocketsInitialized.current = false;
     };
-  }, [selectedAgentId, agent, numModels, handleQuerySent, handleResponseReceived]);
+  }, [selectedAgentId, numModels, memoizedHandleQuerySent, memoizedHandleResponseReceived]);
 
   // Update chat configs when model options change,
   // but don't recreate the connections
@@ -463,23 +469,19 @@ export const useAgentTest = (initialAgentId: string) => {
   // Helper function to adjust colors
   const adjustColor = (color: string, amount: number): string => {
     try {
-      // Default color if input is invalid
       if (!color || !color.startsWith('#') || color.length !== 7) {
         return amount > 0 ? '#33C3F0' : '#6E59A5';
       }
 
-      // Convert hex color to RGB
       const hex = color.replace('#', '');
       const r = parseInt(hex.substring(0, 2), 16);
       const g = parseInt(hex.substring(2, 4), 16);
       const b = parseInt(hex.substring(4, 6), 16);
 
-      // Adjust the color
       const newR = Math.max(0, Math.min(255, r + amount));
       const newG = Math.max(0, Math.min(255, g + amount));
       const newB = Math.max(0, Math.min(255, b + amount));
 
-      // Convert back to hex
       return `#${Math.round(newR).toString(16).padStart(2, '0')}${Math.round(newG).toString(16).padStart(2, '0')}${Math.round(newB).toString(16).padStart(2, '0')}`;
     } catch (error) {
       console.error("Error adjusting color:", error);
@@ -499,7 +501,6 @@ export const useAgentTest = (initialAgentId: string) => {
       
       const mockAgent = mockAgents.find(a => a.id === selectedAgentId);
       if (mockAgent) {
-        // Create properly typed knowledge sources for the mock agent
         const knowledgeSources: KnowledgeSource[] = mockAgent.knowledgeSources || [];
         
         setAgent({
@@ -569,7 +570,6 @@ export const useAgentTest = (initialAgentId: string) => {
       });
     }
     
-    // Exit history mode when sending new message
     exitHistoryMode();
     
     const userMessage: Message = {
@@ -613,7 +613,6 @@ export const useAgentTest = (initialAgentId: string) => {
   const handleLoadHistoryData = (historyItem: HistoryItem) => {
     console.log('Loading historical data:', historyItem);
     
-    // Create messages from socket histories
     const historicalMessages: Message[][] = Array(numModels).fill(null).map(() => []);
     const historicalConfigs: ChatConfig[] = [...chatConfigs];
     
@@ -621,11 +620,9 @@ export const useAgentTest = (initialAgentId: string) => {
       const socketIndex = socketHistory.socketIndex;
       
       if (socketIndex < numModels) {
-        // Generate unique numeric IDs
         const userMessageId = Date.now() + socketIndex * 1000;
         const responseMessageId = Date.now() + socketIndex * 1000 + 1;
         
-        // Add user message
         const userMessage: Message = {
           id: userMessageId,
           content: historyItem.query,
@@ -633,7 +630,6 @@ export const useAgentTest = (initialAgentId: string) => {
           timestamp: new Date(socketHistory.queries[0]?.timestamp || Date.now()),
         };
         
-        // Add response message
         const responseMessage: Message = {
           id: responseMessageId,
           content: socketHistory.responses[0]?.content || '',
@@ -645,7 +641,6 @@ export const useAgentTest = (initialAgentId: string) => {
         
         historicalMessages[socketIndex] = [userMessage, responseMessage];
         
-        // Update config
         if (socketHistory.queries[0]?.config) {
           historicalConfigs[socketIndex] = {
             ...historicalConfigs[socketIndex],
@@ -674,7 +669,6 @@ export const useAgentTest = (initialAgentId: string) => {
   };
 
   const handleViewSource = (sourceId: string | number) => {
-    // Convert string to number if needed
     const numericSourceId = typeof sourceId === 'string' ? parseInt(sourceId, 10) : sourceId;
     setSelectedSourceId(numericSourceId);
     setIsModalOpen(true);
@@ -686,7 +680,6 @@ export const useAgentTest = (initialAgentId: string) => {
     const newNumModels = numModels + 1;
     setNumModels(newNumModels);
     
-    // Add new config
     setChatConfigs(prev => [...prev, {
       model: "gpt-3.5-turbo",
       temperature: 0.7,
@@ -694,16 +687,9 @@ export const useAgentTest = (initialAgentId: string) => {
       maxLength: 512
     }]);
     
-    // Add new message array
     setMessages(prev => [...prev, []]);
-    
-    // Add new connection status
     setModelConnections(prev => [...prev, false]);
-
-    // Add new cell loading state
     setCellLoadingStates(prev => [...prev, false]);
-    
-    // Add new primary color
     setPrimaryColors(prev => [...prev, adjustColor(prev[0], Math.random() * 60 - 30)]);
   };
 
@@ -713,29 +699,18 @@ export const useAgentTest = (initialAgentId: string) => {
     const newNumModels = numModels - 1;
     setNumModels(newNumModels);
     
-    // Remove last config
     setChatConfigs(prev => prev.slice(0, -1));
-    
-    // Remove last message array
     setMessages(prev => prev.slice(0, -1));
-    
-    // Remove last connection status
     setModelConnections(prev => prev.slice(0, -1));
-
-    // Remove last cell loading state
     setCellLoadingStates(prev => prev.slice(0, -1));
-    
-    // Remove last primary color
     setPrimaryColors(prev => prev.slice(0, -1));
     
-    // Disconnect and remove the last WebSocket connection
     const lastWs = webSocketRefs.current[webSocketRefs.current.length - 1];
     if (lastWs) {
       lastWs.disconnect();
     }
     webSocketRefs.current = webSocketRefs.current.slice(0, -1);
     
-    // Adjust selected model index if needed
     if (selectedModelIndex >= newNumModels) {
       setSelectedModelIndex(newNumModels - 1);
     }
@@ -745,7 +720,6 @@ export const useAgentTest = (initialAgentId: string) => {
     const configToClone = chatConfigs[index];
     handleAddModel();
     
-    // Update the new config with cloned values
     setTimeout(() => {
       setChatConfigs(prev => {
         const newConfigs = [...prev];
@@ -779,8 +753,6 @@ export const useAgentTest = (initialAgentId: string) => {
       
       const config = chatConfigs[index];
       
-      // Update the API endpoint to use the correct path
-      // API_ENDPOINTS.AGENT_DETAIL doesn't exist, so we construct the path directly
       const response = await fetch(getApiUrl(`${API_ENDPOINTS.AGENTS}${selectedAgentId}/`), {
         method: 'PATCH',
         headers: {
@@ -806,7 +778,6 @@ export const useAgentTest = (initialAgentId: string) => {
         description: `Agent settings have been updated with ${config.model} configuration.`,
       });
       
-      // Update the main agent model if we're saving the first model config
       if (index === 0 && agent) {
         setAgent(prev => prev ? {
           ...prev,
@@ -814,9 +785,6 @@ export const useAgentTest = (initialAgentId: string) => {
           systemPrompt: config.systemPrompt
         } : null);
       }
-      
-      // Refetch agent details to get updated data
-     // refetchAgent();
       
     } catch (error) {
       console.error("Error saving configuration:", error);
