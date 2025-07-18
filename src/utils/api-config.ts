@@ -23,6 +23,7 @@ export const API_ENDPOINTS = {
   // Agent and knowledge base endpoints
   AGENTS: "agents/",
   KNOWLEDGEBASE: "knowledgebase/",
+  KNOWLEDGESOURCE: "knowledgesource/",
   KNOWLEDGE_FOLDERS: "knowledge-folders/",
   
   // User management endpoints
@@ -425,6 +426,18 @@ export const knowledgeApi = {
       method: 'POST',
       body: formData
     });
+    return response;
+  },
+
+  // New knowledge source creation with the new endpoint
+  createSource: async (payload: {
+    agent_id: number;
+    title: string;
+    url?: string;
+    file?: File;
+    plain_text?: string;
+  }) => {
+    const response = await apiPost(getApiUrl(API_ENDPOINTS.KNOWLEDGESOURCE), payload);
     return response;
   },
 
