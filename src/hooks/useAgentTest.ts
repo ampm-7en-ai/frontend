@@ -571,7 +571,10 @@ export const useAgentTest = (initialAgentId: string) => {
   };
 
   const handleLoadHistoryData = (historyResponses: any[][], historyConfigs: any[]) => {
+    console.log('Loading historical data:', { historyResponses, historyConfigs });
     setHistoryData({ responses: historyResponses, configs: historyConfigs });
+    
+    // Set the historical messages and configs
     setMessages(historyResponses);
     setChatConfigs(historyConfigs);
   };

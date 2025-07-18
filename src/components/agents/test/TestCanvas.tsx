@@ -43,7 +43,7 @@ interface HistoryItem {
   id: string;
   query: string;
   timestamp: Date;
-  responses: any[];
+  responses: any[][];
   configs: any[];
 }
 
@@ -145,26 +145,39 @@ export const TestCanvas = ({
     // Always send the message first
     onSendMessage(message);
     
-    // Add to history after sending (newest on top)
-    const newHistoryItem: HistoryItem = {
-      id: `history-${Date.now()}`,
-      query: message,
-      timestamp: new Date(),
-      responses: [...messages], // Current responses will be updated by WebSocket
-      configs: [...chatConfigs]
-    };
-    setHistory(prev => [newHistoryItem, ...prev]);
-    setCurrentQuery(message);
-    
     // Exit history mode if we were in it
     if (isHistoryMode) {
       setIsHistoryMode(false);
       setSelectedHistoryId(null);
       onHistoryModeChange?.(false);
     }
+    
+    // Create history item with current state BEFORE sending (to capture pre-response state)
+    const newHistoryItem: HistoryItem = {
+      id: `history-${Date.now()}`,
+      query: message,
+      timestamp: new Date(),
+      responses: [...messages], // Current messages before new response
+      configs: [...chatConfigs] // Current configs
+    };
+    
+    // Add to history after a short delay to capture the complete responses
+    setTimeout(() => {
+      setHistory(prev => {
+        // Update the history item with complete responses
+        const updatedItem = {
+          ...newHistoryItem,
+          responses: [...messages] // This will have the new responses
+        };
+        return [updatedItem, ...prev];
+      });
+    }, 2000); // Give time for responses to complete
+    
+    setCurrentQuery(message);
   };
 
   const handleSelectHistory = (item: HistoryItem) => {
+    console.log('Loading history item:', item);
     setSelectedHistoryId(item.id);
     setCurrentQuery(item.query);
     setIsHistoryMode(true);
@@ -200,6 +213,11 @@ export const TestCanvas = ({
               <h2 className="text-lg font-semibold text-foreground">
                 Model Comparison
               </h2>
+              {isHistoryMode && (
+                <Badge variant="secondary" className="text-xs">
+                  History Mode
+                </Badge>
+              )}
             </div>
             
           </div>
@@ -294,8 +312,8 @@ export const TestCanvas = ({
               onSendMessage={handleSendMessage}
               primaryColor={primaryColors[0] || '#9b87f5'}
               isDisabled={isProcessing || modelConnections.some(status => !status)}
-              placeholder={isHistoryMode ? "Viewing historical query..." : "Type your query to compare responses across all models..."}
-              value={isHistoryMode ? currentQuery : undefined}
+              placeholder={isHistoryMode ? "You can send a new query or view history..." : "Type your query to compare responses across all models..."}
+              value={undefined}
               readonly={false}
             />
           </div>
