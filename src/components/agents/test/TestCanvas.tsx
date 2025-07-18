@@ -280,21 +280,21 @@ export const TestCanvas = ({
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* History Panel */}
-          {showHistory && (
-            <HistoryPanel
-              isOpen={showHistory}
-              onClose={() => setShowHistory(false)}
-              history={history}
-              onSelectHistory={handleSelectHistory}
-              selectedHistoryId={selectedHistoryId}
-            />
-          )}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex flex-1 min-h-0">
+            {/* History Panel */}
+            {showHistory && (
+              <HistoryPanel
+                isOpen={showHistory}
+                onClose={() => setShowHistory(false)}
+                history={history}
+                onSelectHistory={handleSelectHistory}
+                selectedHistoryId={selectedHistoryId}
+              />
+            )}
 
-          {/* Model Comparison Grid */}
-          <div className="flex-1 overflow-hidden pb-24">
-            <div className="h-full max-w-7xl mx-auto p-4 overflow-auto">
+            {/* Top Canvas - Model Comparison Grid */}
+            <div className="flex-1 min-h-0">
               <ModelComparisonGrid
                 cells={modelCells}
                 onCellClick={handleCellClick}
@@ -306,11 +306,9 @@ export const TestCanvas = ({
               />
             </div>
           </div>
-        </div>
 
-        {/* Floating Chat Input */}
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-4xl px-4">
-          <div className="bg-background/95 backdrop-blur-sm border border-border rounded-2xl shadow-lg p-4">
+          {/* Bottom Canvas - Chat Input */}
+          <div className="h-20 border-t bg-background/95 backdrop-blur-sm px-4 py-3">
             <ChatInput 
               onSendMessage={handleSendMessage}
               primaryColor={primaryColors[0] || '#9b87f5'}

@@ -52,10 +52,21 @@ export const ModelComparisonGrid = ({
 }: ModelComparisonGridProps) => {
   const getGridClass = () => {
     const numCells = cells.length;
-    if (expandedCellId) return 'grid-cols-1'; // Expanded view
-    if (numCells <= 2) return 'grid-cols-1 lg:grid-cols-2';
-    if (numCells <= 4) return 'grid-cols-1 lg:grid-cols-2';
-    return 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3';
+    
+    if (expandedCellId) {
+      return 'grid-cols-1 grid-rows-1';
+    }
+    
+    // Auto-adjust grid based on number of cells
+    if (numCells <= 2) {
+      return 'grid-cols-2 grid-rows-1'; // 2 cells side by side, full height
+    } else if (numCells <= 4) {
+      return 'grid-cols-2 grid-rows-2'; // 2x2 grid, each cell takes 1/2 height
+    } else if (numCells <= 6) {
+      return 'grid-cols-3 grid-rows-2'; // 3x2 grid, each cell takes 1/2 height
+    } else {
+      return 'grid-cols-3 grid-rows-3'; // 3x3 grid, each cell takes 1/3 height
+    }
   };
 
   const getModelDisplay = (modelValue: string) => {
@@ -71,12 +82,13 @@ export const ModelComparisonGrid = ({
       <Card 
         key={cell.id} 
         className={`
-          transition-all duration-200 cursor-pointer h-80
+          transition-all duration-200 cursor-pointer h-full
           ${isSelected 
             ? 'ring-2 ring-primary ring-offset-2 shadow-lg' 
             : 'hover:shadow-md border-border'
           }
-          ${isExpanded ? 'col-span-full row-span-full h-[calc(100vh-300px)]' : ''}
+          ${isExpanded ? 'col-span-full row-span-full' : ''}
+          ${expandedCellId && expandedCellId !== cell.id ? 'hidden' : ''}
         `}
         onClick={() => onCellClick(cell.id)}
       >
@@ -200,7 +212,7 @@ export const ModelComparisonGrid = ({
   };
 
   return (
-    <div className={`grid gap-4 ${getGridClass()}`}>
+    <div className={`grid h-full w-full ${getGridClass()}`}>
       {cells.map(renderCell)}
     </div>
   );
