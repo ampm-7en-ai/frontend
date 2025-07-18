@@ -395,26 +395,26 @@ const FolderSources = () => {
                         <ModernButton
                           variant="ghost"
                           size="sm"
-                          className="h-6 w-6 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
+                          icon={Download}
+                          iconOnly={true}
+                          className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDownload(source);
                           }}
-                        >
-                          <Download className="h-3 w-3 text-slate-500 dark:text-slate-400" />
-                        </ModernButton>
+                        />
                       )}
                       <ModernButton
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg hover:text-red-600"
+                        icon={Trash2}
+                        iconOnly={true}
+                        className="h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg hover:text-red-600"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDelete(source);
                         }}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </ModernButton>
+                      />
                     </div>
                   </div>
                 </div>
