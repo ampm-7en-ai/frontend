@@ -638,6 +638,8 @@ const KnowledgeUpload = () => {
               <Input 
                 id="url" 
                 type="url"
+                variant="modern"
+                size="lg"
                 placeholder={sourceConfigs.url.placeholder}
                 value={url}
                 onChange={(e) => {
@@ -646,7 +648,7 @@ const KnowledgeUpload = () => {
                     setValidationErrors(prev => ({ ...prev, url: undefined }));
                   }
                 }}
-                className={`h-11 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 border-slate-200 dark:border-slate-700 transition-colors duration-200 ${validationErrors.url ? 'border-red-500 dark:border-red-400' : ''}`}
+                className={`${validationErrors.url ? 'border-red-500 dark:border-red-400' : ''}`}
               />
               {validationErrors.url && (
                 <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.url}</p>
@@ -762,7 +764,7 @@ const KnowledgeUpload = () => {
                     setValidationErrors(prev => ({ ...prev, plainText: undefined }));
                   }
                 }}
-                className={`min-h-[200px] resize-none bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 border-slate-200 dark:border-slate-700 transition-colors duration-200 ${validationErrors.plainText ? 'border-red-500 dark:border-red-400' : ''}`}
+                className={`min-h-[200px] resize-none bg-white/80 dark:bg-slate-800/80 border-slate-200/60 dark:border-slate-600/60 backdrop-blur-sm rounded-xl focus-visible:ring-blue-500/50 dark:focus-visible:ring-blue-400/50 focus-visible:border-transparent hover:border-slate-300/80 dark:hover:border-slate-500/80 transition-all duration-200 ${validationErrors.plainText ? 'border-red-500 dark:border-red-400' : ''}`}
               />
               {validationErrors.plainText && (
                 <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.plainText}</p>
@@ -984,10 +986,11 @@ const KnowledgeUpload = () => {
                   <Label htmlFor="document-name" className="text-sm font-medium text-slate-700 dark:text-slate-300">Source Name</Label>
                   <Input 
                     id="document-name" 
+                    variant="modern"
+                    size="lg"
                     placeholder="Enter a descriptive name for this knowledge source"
                     value={documentName}
                     onChange={(e) => setDocumentName(e.target.value)}
-                    className="h-12 border-slate-200 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-800/50 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 transition-colors duration-200"
                   />
                 </div>
                 

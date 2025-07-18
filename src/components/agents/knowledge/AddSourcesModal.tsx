@@ -590,6 +590,8 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
               <Label htmlFor="url" className="text-sm font-medium text-foreground">Website URL</Label>
               <Input 
                 id="url" 
+                variant="modern"
+                size="lg"
                 placeholder={sourceConfigs.url.placeholder}
                 value={url}
                 onChange={(e) => {
@@ -598,7 +600,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
                     setValidationErrors(prev => ({ ...prev, url: undefined }));
                   }
                 }}
-                className={`h-12 ${validationErrors.url ? 'border-red-500' : ''}`}
+                className={`${validationErrors.url ? 'border-red-500' : ''}`}
               />
               {validationErrors.url && (
                 <p className="text-sm text-red-600">{validationErrors.url}</p>
@@ -703,7 +705,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
                     setValidationErrors(prev => ({ ...prev, plainText: undefined }));
                   }
                 }}
-                className={`min-h-[200px] resize-none ${validationErrors.plainText ? 'border-red-500' : ''}`}
+                className={`min-h-[200px] resize-none bg-white/80 dark:bg-slate-800/80 border-slate-200/60 dark:border-slate-600/60 backdrop-blur-sm rounded-xl focus-visible:ring-blue-500/50 dark:focus-visible:ring-blue-400/50 focus-visible:border-transparent hover:border-slate-300/80 dark:hover:border-slate-500/80 transition-all duration-200 ${validationErrors.plainText ? 'border-red-500' : ''}`}
               />
               {validationErrors.plainText && (
                 <p className="text-sm text-red-600">{validationErrors.plainText}</p>
@@ -932,6 +934,8 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
           <Label htmlFor="document-name" className="text-sm font-medium text-foreground">Source Name</Label>
           <Input 
             id="document-name" 
+            variant="modern"
+            size="lg"
             placeholder="Enter a descriptive name for this knowledge source"
             value={documentName}
             onChange={(e) => {
@@ -940,7 +944,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
                 setValidationErrors(prev => ({ ...prev, documentName: undefined }));
               }
             }}
-            className={`h-12 ${validationErrors.documentName ? 'border-red-500' : ''}`}
+            className={`${validationErrors.documentName ? 'border-red-500' : ''}`}
           />
           {validationErrors.documentName && (
             <p className="text-sm text-red-600">{validationErrors.documentName}</p>
