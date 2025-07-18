@@ -126,6 +126,7 @@ export const useAgentTest = (initialAgentId: string) => {
   const [modelConnections, setModelConnections] = useState<boolean[]>([false, false, false]);
   const [isSaving, setIsSaving] = useState<number | null>(null); // Track which model config is being saved
   const [isProcessing, setIsProcessing] = useState(false);
+  const [cellLoadingStates, setCellLoadingStates] = useState<boolean[]>(Array(3).fill(false));
 
   const webSocketRefs = useRef<ModelWebSocketService[]>([]);
   const webSocketsInitialized = useRef<boolean>(false);
@@ -249,6 +250,7 @@ export const useAgentTest = (initialAgentId: string) => {
       })));
       
       setMessages(Array(numModels).fill(null).map(() => []));
+      setCellLoadingStates(Array(numModels).fill(false));
     }
   }, [agentData, selectedAgentId, numModels]);
 
@@ -297,6 +299,13 @@ export const useAgentTest = (initialAgentId: string) => {
             }];
             return newMessages;
           });
+
+          // Set individual cell loading to false when it receives a response
+          setCellLoadingStates(prev => {
+            const newStates = [...prev];
+            newStates[i] = false;
+            return newStates;
+          });
           
           // Only set processing to false if this is not a system message
           // and this is the last model responding
@@ -307,9 +316,22 @@ export const useAgentTest = (initialAgentId: string) => {
         },
         onTypingStart: () => {
           console.log(`Typing indicator started for model ${i}`);
+          // Set individual cell loading to true when typing starts
+          setCellLoadingStates(prev => {
+            const newStates = [...prev];
+            newStates[i] = true;
+            return newStates;
+          });
         },
         onTypingEnd: () => {
           console.log(`Typing indicator ended for model ${i}`);
+          
+          // Set individual cell loading to false when typing ends
+          setCellLoadingStates(prev => {
+            const newStates = [...prev];
+            newStates[i] = false;
+            return newStates;
+          });
           
           // If we were processing a system message and typing has ended,
           // we can set processing to false
@@ -472,18 +494,6 @@ export const useAgentTest = (initialAgentId: string) => {
       return;
     }
     
-    // Skip if already processing
-    if (isProcessing) {
-      toast({
-        title: "Processing",
-        description: "Please wait for the current responses to complete.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsProcessing(true);
-    
     const userMessage: Message = {
       id: Date.now(),
       content: messageText,
@@ -502,6 +512,9 @@ export const useAgentTest = (initialAgentId: string) => {
       }
       return newMessages;
     });
+
+    // Set all cells to loading state initially
+    setCellLoadingStates(Array(numModels).fill(true));
     
     // Send message to all WebSocket connections
     webSocketRefs.current.forEach((ws, i) => {
@@ -511,6 +524,11 @@ export const useAgentTest = (initialAgentId: string) => {
           console.log(`Message sent to model ${i}:`, messageText);
         } catch (error) {
           console.error(`Error sending message to model ${i}:`, error);
+          setCellLoadingStates(prev => {
+            const newStates = [...prev];
+            newStates[i] = false;
+            return newStates;
+          });
           toast({
             title: "Send Error",
             description: `Failed to send message to ${chatConfigs[i].model}. Please try again.`,
@@ -557,6 +575,9 @@ export const useAgentTest = (initialAgentId: string) => {
     
     // Add new connection status
     setModelConnections(prev => [...prev, false]);
+
+    // Add new cell loading state
+    setCellLoadingStates(prev => [...prev, false]);
     
     // Add new primary color
     setPrimaryColors(prev => [...prev, adjustColor(prev[0], Math.random() * 60 - 30)]);
@@ -576,6 +597,9 @@ export const useAgentTest = (initialAgentId: string) => {
     
     // Remove last connection status
     setModelConnections(prev => prev.slice(0, -1));
+
+    // Remove last cell loading state
+    setCellLoadingStates(prev => prev.slice(0, -1));
     
     // Remove last primary color
     setPrimaryColors(prev => prev.slice(0, -1));
@@ -698,6 +722,7 @@ export const useAgentTest = (initialAgentId: string) => {
     modelConnections,
     isSaving,
     isProcessing,
+    cellLoadingStates,
     
     // Loading states
     isLoadingAgents,

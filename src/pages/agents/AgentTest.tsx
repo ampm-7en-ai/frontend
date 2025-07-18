@@ -27,6 +27,7 @@ export default function AgentTest() {
     primaryColors,
     modelConnections,
     isProcessing,
+    cellLoadingStates,
     isSaving,
     isModalOpen,
     isSystemPromptOpen,
@@ -95,6 +96,7 @@ export default function AgentTest() {
               primaryColors={primaryColors}
               modelConnections={modelConnections}
               isProcessing={isProcessing}
+              cellLoadingStates={cellLoadingStates}
               agent={agent}
               selectedModelIndex={selectedModelIndex}
               showRightPanel={showRightPanel}

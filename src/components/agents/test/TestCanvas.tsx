@@ -54,6 +54,7 @@ interface TestCanvasProps {
   primaryColors: string[];
   modelConnections: boolean[];
   isProcessing: boolean;
+  cellLoadingStates: boolean[];
   agent?: any;
   selectedModelIndex: number;
   showRightPanel: boolean;
@@ -73,6 +74,7 @@ export const TestCanvas = ({
   primaryColors,
   modelConnections,
   isProcessing,
+  cellLoadingStates,
   agent,
   selectedModelIndex,
   showRightPanel,
@@ -102,7 +104,7 @@ export const TestCanvas = ({
       systemPrompt: chatConfigs[index]?.systemPrompt || ''
     },
     messages: messages[index] || [],
-    isLoading: isProcessing
+    isLoading: cellLoadingStates[index] || false
   }));
 
   const handleBatchTest = () => {

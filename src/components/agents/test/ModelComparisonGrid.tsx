@@ -194,29 +194,24 @@ export const ModelComparisonGrid = ({
                   </p>
                 </div>
               ) : (
-                // Show all messages - both user and assistant
-                <div className="space-y-3">
-                  {cell.messages.map((message, index) => {
-                    const isUser = message.sender === 'user';
-                    const isAssistant = message.sender?.startsWith('agent') || message.type === 'assistant' || message.sender === 'assistant';
-                    
-                    return (
-                      <div key={message.id || message.timestamp || index} className="space-y-2">
-                        {isUser && (
-                          <div className="text-xs text-muted-foreground mb-1">User:</div>
-                        )}
-                        {isAssistant && (
-                          <div className="text-xs text-muted-foreground mb-1">Assistant:</div>
-                        )}
-                        <div className={`text-sm leading-relaxed whitespace-pre-wrap ${
-                          isUser ? 'text-muted-foreground bg-muted/30 p-2 rounded' : 'text-foreground'
-                        }`}>
-                          {message.content}
-                        </div>
+                // Show only the latest AI response
+                (() => {
+                  const latestAiMessage = cell.messages
+                    .filter(msg => msg.sender?.startsWith('agent') || msg.type === 'assistant' || msg.sender === 'assistant')
+                    .pop();
+                  
+                  return latestAiMessage ? (
+                    <div className="space-y-2">
+                      <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
+                        {latestAiMessage.content}
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-muted-foreground">No response yet</p>
+                    </div>
+                  );
+                })()
               )}
             </div>
           </ScrollArea>
