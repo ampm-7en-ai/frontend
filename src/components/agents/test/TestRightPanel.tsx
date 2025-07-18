@@ -6,6 +6,7 @@ import { Settings2, Thermometer, Hash, FileText, X } from 'lucide-react';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { ExponentialSlider } from '@/components/ui/ExponentialSlider';
 import { SystemPromptSection } from './SystemPromptSection';
+import { ConfigurationReadOnlyView } from './ConfigurationReadOnlyView';
 import React, { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Slider } from '@/components/ui/slider';
@@ -23,6 +24,7 @@ interface TestRightPanelProps {
   isProcessing: boolean;
   selectedCellId?: string | null;
   onClose: () => void;
+  isHistoryMode?: boolean;
 }
 
 export const TestRightPanel = ({
@@ -35,7 +37,8 @@ export const TestRightPanel = ({
   onCloneConfig,
   isProcessing,
   selectedCellId,
-  onClose
+  onClose,
+  isHistoryMode = false
 }: TestRightPanelProps) => {
   const { modelOptionsForDropdown, isLoading: isLoadingModels } = useAIModels();
   const [isLoadingConfig, setIsLoadingConfig] = useState(false);
@@ -70,7 +73,9 @@ export const TestRightPanel = ({
     } flex flex-col overflow-hidden`}>
       {/* Panel Header */}
       <div className="h-14 px-4 bg-background/80 backdrop-blur-sm border-b border-border flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-foreground">Request Configuration</h3>
+        <h3 className="text-lg font-semibold text-foreground">
+          {isHistoryMode ? 'Historical Configuration' : 'Request Configuration'}
+        </h3>
         <Button
           variant="ghost"
           size="icon"
@@ -86,6 +91,11 @@ export const TestRightPanel = ({
         <div className="p-4 space-y-4">
           {isLoadingConfig ? (
             <ConfigSkeleton />
+          ) : isHistoryMode ? (
+            <ConfigurationReadOnlyView 
+              config={currentConfig}
+              cellId={selectedCellId}
+            />
           ) : (
             <>
               {/* Model Configuration */}

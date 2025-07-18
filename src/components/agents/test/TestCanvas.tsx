@@ -66,6 +66,7 @@ interface TestCanvasProps {
   onSelectCellConfig: (cellId: string) => void;
   onToggleRightPanel: (show: boolean) => void;
   onLoadHistoryData?: (responses: any[][], configs: any[]) => void;
+  onHistoryModeChange?: (isHistoryMode: boolean) => void;
 }
 
 export const TestCanvas = ({
@@ -86,7 +87,8 @@ export const TestCanvas = ({
   onSelectModel,
   onSelectCellConfig,
   onToggleRightPanel,
-  onLoadHistoryData
+  onLoadHistoryData,
+  onHistoryModeChange
 }: TestCanvasProps) => {
   const [expandedCellId, setExpandedCellId] = useState<string | null>(null);
   const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
@@ -155,8 +157,11 @@ export const TestCanvas = ({
     setCurrentQuery(message);
     
     // Exit history mode if we were in it
-    setIsHistoryMode(false);
-    setSelectedHistoryId(null);
+    if (isHistoryMode) {
+      setIsHistoryMode(false);
+      setSelectedHistoryId(null);
+      onHistoryModeChange?.(false);
+    }
   };
 
   const handleSelectHistory = (item: HistoryItem) => {
@@ -167,6 +172,9 @@ export const TestCanvas = ({
     // Load historical responses and configs
     if (onLoadHistoryData) {
       onLoadHistoryData(item.responses, item.configs);
+    }
+    if (onHistoryModeChange) {
+      onHistoryModeChange(true);
     }
     onSelectModel(0); // Select first model for config display
     onToggleRightPanel(true); // Show right panel with historical configs

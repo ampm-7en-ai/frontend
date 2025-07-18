@@ -15,6 +15,7 @@ export default function AgentTest() {
   const [selectedModelIndex, setSelectedModelIndex] = useState(0);
   const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
   const [showRightPanel, setShowRightPanel] = useState(false);
+  const [isHistoryMode, setIsHistoryMode] = useState(false);
 
   const {
     agent,
@@ -109,6 +110,7 @@ export default function AgentTest() {
               onSelectCellConfig={setSelectedCellId}
               onToggleRightPanel={setShowRightPanel}
               onLoadHistoryData={handleLoadHistoryData}
+              onHistoryModeChange={setIsHistoryMode}
             />
           </div>
 
@@ -125,6 +127,7 @@ export default function AgentTest() {
               isProcessing={isProcessing}
               selectedCellId={selectedCellId}
               onClose={() => setShowRightPanel(false)}
+              isHistoryMode={isHistoryMode}
             />
           )}
         </div>
