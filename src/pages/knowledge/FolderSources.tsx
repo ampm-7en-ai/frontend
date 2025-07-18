@@ -255,10 +255,11 @@ const FolderSources = () => {
       {/* Back Button */}
       <div className="mb-6">
         <ModernButton
-          variant="ghost"
+          variant="outline"
           icon={ArrowLeft}
           onClick={handleBack}
           className="text-muted-foreground hover:text-foreground"
+          size='sm'
         >
           Back to Knowledge Folders
         </ModernButton>
@@ -384,7 +385,7 @@ const FolderSources = () => {
                         size="sm"
                         icon={Download}
                         iconOnly={true}
-                        className="h-7 w-7 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg"
+                        className="h-10 w-10 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDownload(source);
@@ -396,7 +397,7 @@ const FolderSources = () => {
                       size="sm"
                       icon={Trash2}
                       iconOnly={true}
-                      className="h-7 w-7 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg hover:text-red-600"
+                      className="h-10 w-10 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg hover:text-red-600"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDelete(source);
