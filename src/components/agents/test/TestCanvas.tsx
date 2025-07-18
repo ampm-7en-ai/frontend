@@ -56,12 +56,14 @@ interface TestCanvasProps {
   isProcessing: boolean;
   agent?: any;
   selectedModelIndex: number;
+  showRightPanel: boolean;
   onUpdateChatConfig: (index: number, field: string, value: any) => void;
   onSendMessage: (message: string) => void;
   onAddModel: () => void;
   onRemoveModel: () => void;
   onSelectModel: (index: number) => void;
   onSelectCellConfig: (cellId: string) => void;
+  onToggleRightPanel: (show: boolean) => void;
 }
 
 export const TestCanvas = ({
@@ -73,12 +75,14 @@ export const TestCanvas = ({
   isProcessing,
   agent,
   selectedModelIndex,
+  showRightPanel,
   onUpdateChatConfig,
   onSendMessage,
   onAddModel,
   onRemoveModel,
   onSelectModel,
-  onSelectCellConfig
+  onSelectCellConfig,
+  onToggleRightPanel
 }: TestCanvasProps) => {
   const [expandedCellId, setExpandedCellId] = useState<string | null>(null);
   const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
@@ -111,6 +115,7 @@ export const TestCanvas = ({
     const cellIndex = parseInt(cellId.split('-')[1]);
     onSelectModel(cellIndex);
     onSelectCellConfig(cellId);
+    onToggleRightPanel(true);
   };
 
   const handleModelChange = (cellId: string, model: string) => {
@@ -123,6 +128,7 @@ export const TestCanvas = ({
     const cellIndex = parseInt(cellId.split('-')[1]);
     onSelectModel(cellIndex);
     onSelectCellConfig(cellId);
+    onToggleRightPanel(true);
   };
 
   const handleToggleExpand = (cellId: string) => {
@@ -131,7 +137,7 @@ export const TestCanvas = ({
 
   const handleSendMessage = (message: string) => {
     if (!isHistoryMode) {
-      // Add to history
+      // Save current state to history before sending new message
       const newHistoryItem: HistoryItem = {
         id: `history-${Date.now()}`,
         query: message,
@@ -141,6 +147,11 @@ export const TestCanvas = ({
       };
       setHistory(prev => [newHistoryItem, ...prev]);
       setCurrentQuery(message);
+    } else {
+      // Exit history mode and send new message
+      setIsHistoryMode(false);
+      setSelectedHistoryId(null);
+      setCurrentQuery(message);
     }
     onSendMessage(message);
   };
@@ -149,11 +160,15 @@ export const TestCanvas = ({
     setSelectedHistoryId(item.id);
     setCurrentQuery(item.query);
     setIsHistoryMode(true);
-    // TODO: Load historical responses and configs
+    // Load historical responses and configs
+    onSelectModel(0); // Select first model for config display
   };
 
   const handleToggleHistory = () => {
     setShowHistory(!showHistory);
+    if (!showHistory) {
+      onToggleRightPanel(true);
+    }
   };
 
   return (
@@ -300,9 +315,9 @@ export const TestCanvas = ({
               onSendMessage={handleSendMessage}
               primaryColor={primaryColors[0] || '#9b87f5'}
               isDisabled={isProcessing || modelConnections.some(status => !status)}
-              placeholder="Type your query to compare responses across all models..."
+              placeholder={isHistoryMode ? "Enter new query to exit history mode..." : "Type your query to compare responses across all models..."}
               value={isHistoryMode ? currentQuery : undefined}
-              readonly={isHistoryMode}
+              readonly={false}
             />
           </div>
         </div>

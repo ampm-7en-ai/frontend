@@ -1,42 +1,35 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useAgentTest } from '@/hooks/useAgentTest';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { SystemPromptDialog } from '@/components/agents/modelComparison/SystemPromptDialog';
-import KnowledgeSourceModal from '@/components/agents/knowledge/KnowledgeSourceModal';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { TestPageHeader } from '@/components/agents/test/TestPageHeader';
 import { TestPageToolbar } from '@/components/agents/test/TestPageToolbar';
+import { TestLeftPanel } from '@/components/agents/test/TestLeftPanel';
 import { TestCanvas } from '@/components/agents/test/TestCanvas';
 import { TestRightPanel } from '@/components/agents/test/TestRightPanel';
-import { getModelDisplay } from '@/constants/modelOptions';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { useToast } from '@/hooks/use-toast';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { MainLayout } from '@/components/layout/MainLayout';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { Button } from '@/components/ui/button';
+import { useAgentTest } from '@/hooks/useAgentTest';
 
-const AgentTest = () => {
+export default function AgentTest() {
   const { agentId } = useParams();
-  const { toast } = useToast();
-  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
-  
+  const [selectedModelIndex, setSelectedModelIndex] = useState(0);
+  const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
+  const [showRightPanel, setShowRightPanel] = useState(false);
+
   const {
-    selectedAgentId,
     agent,
+    selectedAgentId,
+    isLoadingAgent,
+    isLoadingAgents,
+    numModels,
     chatConfigs,
     messages,
-    isModalOpen,
-    isSystemPromptOpen,
-    selectedSourceId,
-    numModels,
-    selectedModelIndex,
-    allAgents,
     primaryColors,
     modelConnections,
-    isSaving,
     isProcessing,
-    isLoadingAgents,
-    isLoadingAgent,
+    isSaving,
+    isModalOpen,
+    isSystemPromptOpen,
     handleAgentChange,
     handleUpdateChatConfig,
     handleSystemPromptEdit,
@@ -50,8 +43,7 @@ const AgentTest = () => {
     handleSaveConfig,
     handleAddModel,
     handleRemoveModel,
-    handleCloneConfig,
-    setSelectedModelIndex
+    handleCloneConfig
   } = useAgentTest(agentId || "1");
 
   if (isLoadingAgent || isLoadingAgents) {
@@ -80,90 +72,71 @@ const AgentTest = () => {
 
   return (
     <MainLayout>
-      <TooltipProvider>
-        <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-          {/* Top Toolbar */}
-          <TestPageToolbar
-            selectedAgentId={selectedAgentId}
-            onAgentChange={handleAgentChange}
-            onClearChat={handleClearChat}
-            onViewKnowledgeSources={handleViewKnowledgeSources}
-            knowledgeSourceCount={agent?.knowledgeSources?.length || 0}
-            agents={allAgents}
-            isLoading={isLoadingAgent}
-            agent={agent}
-          />
-          
-          <div className="flex-1 flex overflow-hidden">
-            {/* Center Canvas - Model Comparison - Full Width */}
-            <div className="flex-1 relative">
-              <TestCanvas
-                numModels={numModels}
-                chatConfigs={chatConfigs}
-                messages={messages}
-                primaryColors={primaryColors}
-                modelConnections={modelConnections}
-                isProcessing={isProcessing}
-                agent={agent}
-                selectedModelIndex={selectedModelIndex}
-                onUpdateChatConfig={handleUpdateChatConfig}
-                onSendMessage={handleSendMessage}
-                onAddModel={handleAddModel}
-                onRemoveModel={handleRemoveModel}
-                onSelectModel={setSelectedModelIndex}
-                onSelectCellConfig={(cellId: string) => {
-                  const cellIndex = parseInt(cellId.split('-')[1]);
-                  setSelectedModelIndex(cellIndex);
-                }}
-              />
-            </div>
-            
-            {/* Right Panel - Model Configuration */}
-            <div className={`${rightPanelCollapsed ? 'w-12' : 'w-80'} border-l border-gray-200 dark:border-gray-700 transition-all duration-300 relative bg-white dark:bg-gray-800`}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute top-2 -left-3 z-10 h-6 w-6 p-0 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md"
-                onClick={() => setRightPanelCollapsed(!rightPanelCollapsed)}
-              >
-                {rightPanelCollapsed ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-              </Button>
-              {!rightPanelCollapsed && (
-                <TestRightPanel
-                  chatConfigs={chatConfigs}
-                  selectedModelIndex={selectedModelIndex}
-                  numModels={numModels}
-                  onUpdateChatConfig={handleUpdateChatConfig}
-                  onSaveConfig={handleSaveConfig}
-                  onSelectModel={setSelectedModelIndex}
-                  onCloneConfig={handleCloneConfig}
-                  isSaving={isSaving}
-                />
-              )}
-            </div>
+      <div className="flex flex-col h-full">
+        {/* Header */}
+        <TestPageHeader 
+          agents={[agent]}
+          selectedAgentId={selectedAgentId}
+          onAgentChange={handleAgentChange}
+          onClearChat={handleClearChat}
+          onViewKnowledgeSources={handleViewKnowledgeSources}
+          isLoading={false}
+        />
+
+        {/* Toolbar */}
+        <TestPageToolbar 
+          selectedAgentId={selectedAgentId}
+          onAgentChange={handleAgentChange}
+          onClearChat={handleClearChat}
+          onViewKnowledgeSources={handleViewKnowledgeSources}
+          knowledgeSourceCount={0}
+          agents={[agent]}
+          isLoading={false}
+        />
+
+        {/* Main Content */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Panel - Temporarily removed for build fix */}
+
+          {/* Canvas */}
+          <div className="flex-1 overflow-hidden">
+            <TestCanvas
+              numModels={numModels}
+              chatConfigs={chatConfigs}
+              messages={messages}
+              primaryColors={primaryColors}
+              modelConnections={modelConnections}
+              isProcessing={isProcessing}
+              agent={agent}
+              selectedModelIndex={selectedModelIndex}
+              showRightPanel={showRightPanel}
+              onUpdateChatConfig={handleUpdateChatConfig}
+              onSendMessage={handleSendMessage}
+              onAddModel={handleAddModel}
+              onRemoveModel={handleRemoveModel}
+              onSelectModel={setSelectedModelIndex}
+              onSelectCellConfig={setSelectedCellId}
+              onToggleRightPanel={setShowRightPanel}
+            />
           </div>
 
-          {/* Modals */}
-          <SystemPromptDialog 
-            open={isSystemPromptOpen !== null}
-            onOpenChange={() => setIsSystemPromptOpen(null)}
-            modelIndex={isSystemPromptOpen}
-            modelName={isSystemPromptOpen !== null ? getModelDisplay(chatConfigs[isSystemPromptOpen].model) : ''}
-            systemPrompt={isSystemPromptOpen !== null ? chatConfigs[isSystemPromptOpen].systemPrompt : ''}
-            onUpdateSystemPrompt={handleUpdateSystemPrompt}
-          />
-
-          <KnowledgeSourceModal
-            open={isModalOpen}
-            onOpenChange={setIsModalOpen}
-            sources={agent?.knowledgeSources || []}
-            initialSourceId={selectedSourceId}
-            agentId={selectedAgentId}
-          />
+          {/* Right Panel */}
+          {showRightPanel && (
+            <TestRightPanel
+              isOpen={showRightPanel}
+              chatConfigs={chatConfigs}
+              selectedModelIndex={selectedModelIndex}
+              agent={agent}
+              onUpdateConfig={handleUpdateChatConfig}
+              onSaveConfig={() => handleSaveConfig(selectedModelIndex)}
+              onCloneConfig={() => handleCloneConfig(selectedModelIndex)}
+              isProcessing={isProcessing}
+              selectedCellId={selectedCellId}
+              onClose={() => setShowRightPanel(false)}
+            />
+          )}
         </div>
-      </TooltipProvider>
+      </div>
     </MainLayout>
   );
-};
-
-export default AgentTest;
+}

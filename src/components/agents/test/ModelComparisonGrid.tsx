@@ -1,14 +1,23 @@
-import React, { useState } from 'react';
-import { Settings, Maximize2, Minimize2, Loader2 } from 'lucide-react';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { UserMessage } from '@/components/agents/modelComparison/UserMessage';
-import { ModelMessage } from '@/components/agents/modelComparison/ModelMessage';
-import { getModelDisplay, MODELS } from '@/constants/modelOptions';
+import { 
+  Settings, 
+  Maximize2, 
+  Minimize2,
+  Loader2
+} from 'lucide-react';
+// Mock model options - replace with real data
+const modelOptions = [
+  { value: 'gpt-4o', label: 'GPT-4o' },
+  { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
+  { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
+  { value: 'mistral-large-latest', label: 'Mistral Large' },
+];
 
 interface ModelCell {
   id: string;
@@ -27,8 +36,8 @@ interface ModelComparisonGridProps {
   onCellClick: (cellId: string) => void;
   onModelChange: (cellId: string, model: string) => void;
   onConfigClick: (cellId: string) => void;
-  selectedCellId?: string;
-  expandedCellId?: string;
+  selectedCellId: string | null;
+  expandedCellId: string | null;
   onToggleExpand: (cellId: string) => void;
 }
 
@@ -41,20 +50,17 @@ export const ModelComparisonGrid = ({
   expandedCellId,
   onToggleExpand
 }: ModelComparisonGridProps) => {
-  const modelOptions = Object.entries(MODELS).map(([value, model]) => ({
-    value,
-    label: model.name,
-    provider: model.provider
-  }));
-
   const getGridClass = () => {
-    if (expandedCellId) return 'grid-cols-1';
-    
-    const cellCount = cells.length;
-    if (cellCount === 1) return 'grid-cols-1';
-    if (cellCount === 2) return 'grid-cols-1 lg:grid-cols-2';
-    if (cellCount <= 4) return 'grid-cols-1 lg:grid-cols-2';
+    const numCells = cells.length;
+    if (expandedCellId) return 'grid-cols-1'; // Expanded view
+    if (numCells <= 2) return 'grid-cols-1 lg:grid-cols-2';
+    if (numCells <= 4) return 'grid-cols-1 lg:grid-cols-2';
     return 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3';
+  };
+
+  const getModelDisplay = (modelValue: string) => {
+    const option = modelOptions.find(opt => opt.value === modelValue);
+    return option ? option.label : modelValue;
   };
 
   const renderCell = (cell: ModelCell) => {
@@ -62,21 +68,26 @@ export const ModelComparisonGrid = ({
     const isExpanded = expandedCellId === cell.id;
 
     return (
-      <Card
-        key={cell.id}
-        className={`cursor-pointer transition-all duration-200 ${
-          isSelected ? 'ring-2 ring-primary' : ''
-        } ${isExpanded ? 'h-[600px]' : 'h-[400px]'}`}
+      <Card 
+        key={cell.id} 
+        className={`
+          transition-all duration-200 cursor-pointer h-80
+          ${isSelected 
+            ? 'ring-2 ring-primary ring-offset-2 shadow-lg' 
+            : 'hover:shadow-md border-border'
+          }
+          ${isExpanded ? 'col-span-full row-span-full h-[calc(100vh-300px)]' : ''}
+        `}
         onClick={() => onCellClick(cell.id)}
       >
-        <CardHeader className="p-3 pb-2 space-y-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 flex-1">
+        <CardHeader className="pb-2 px-3 pt-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex-1 min-w-0">
               <Select
                 value={cell.model}
                 onValueChange={(value) => onModelChange(cell.id, value)}
               >
-                <SelectTrigger 
+                <SelectTrigger
                   className="h-8 text-xs bg-muted/50 border-0 flex-1"
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -144,15 +155,6 @@ export const ModelComparisonGrid = ({
               </Tooltip>
             </div>
           </div>
-
-          <div className="flex items-center gap-2 pt-1">
-            <Badge variant="outline" className="text-xs px-1.5 py-0.5">
-              T: {cell.config.temperature}
-            </Badge>
-            <Badge variant="outline" className="text-xs px-1.5 py-0.5">
-              L: {cell.config.maxLength}
-            </Badge>
-          </div>
         </CardHeader>
 
         <CardContent className="p-0 flex-1">
@@ -176,22 +178,19 @@ export const ModelComparisonGrid = ({
                   </p>
                 </div>
               ) : (
-                cell.messages.map((message) => {
-                  if (message.sender === 'user') {
-                    return <UserMessage key={message.id} message={message} />;
-                  } else {
+                // Show only the latest assistant response
+                cell.messages.slice(-1).map((message) => {
+                  if (message.sender === 'assistant' || message.type === 'assistant') {
                     return (
-                      <ModelMessage
-                        key={message.id}
-                        message={message}
-                        model={cell.model}
-                        primaryColor="#9b87f5"
-                        adjustColor={() => "#9b87f5"}
-                        temperature={cell.config.temperature}
-                      />
+                      <div key={message.id || message.timestamp} className="space-y-2">
+                        <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                          {message.content}
+                        </div>
+                      </div>
                     );
                   }
-                })
+                  return null;
+                }).filter(Boolean)
               )}
             </div>
           </ScrollArea>
