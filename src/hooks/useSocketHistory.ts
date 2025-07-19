@@ -122,15 +122,6 @@ export const useSocketHistory = (numModels: number) => {
     setIsPreparingNewMessage(false);
   };
 
-  const clearHistory = () => {
-    console.log('Clearing history');
-    setHistory([]);
-    activeQueries.current.clear();
-    setIsHistoryMode(false);
-    setSelectedHistoryId(null);
-    setIsPreparingNewMessage(false);
-  };
-
   const getSelectedHistoryItem = (): HistoryItem | null => {
     return history.find(item => item.id === selectedHistoryId) || null;
   };
@@ -147,7 +138,6 @@ export const useSocketHistory = (numModels: number) => {
     exitHistoryMode,
     getSelectedHistoryItem,
     setIsHistoryMode,
-    setSelectedHistoryId,
-    clearHistory
+    setSelectedHistoryId
   };
 };

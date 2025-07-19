@@ -166,8 +166,7 @@ export const useAgentTest = (initialAgentId: string) => {
     exitHistoryMode,
     getSelectedHistoryItem,
     setIsHistoryMode,
-    setSelectedHistoryId,
-    clearHistory
+    setSelectedHistoryId
   } = useSocketHistory(numModels);
 
   // Create stable callback functions using refs
@@ -505,13 +504,8 @@ export const useAgentTest = (initialAgentId: string) => {
     console.log("Component mounted or selectedAgentId changed, refetching");
     if (selectedAgentId) {
       refetchAgent();
-      // Clear history when switching agents
-      clearHistory();
-      // Reset chat messages
-      setMessages(Array(numModels).fill(null).map(() => []));
-      setCellLoadingStates(Array(numModels).fill(false));
     }
-  }, [selectedAgentId, refetchAgent, numModels, clearHistory]);
+  }, [selectedAgentId, refetchAgent]);
 
   const handleAgentChange = (newAgentId: string) => {
     navigate(`/agents/${newAgentId}/test`, { replace: true });

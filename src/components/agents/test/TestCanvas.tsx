@@ -1,11 +1,9 @@
-
 import React, { useState } from 'react';
 import { ChatInput } from '@/components/agents/modelComparison/ChatInput';
 import { ModelComparisonGrid } from './ModelComparisonGrid';
 import { HistoryPanel } from './HistoryPanel';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import ModernButton from '@/components/dashboard/ModernButton';
 import { 
   Plus, 
   Minus, 
@@ -282,18 +280,17 @@ export const TestCanvas = ({
 
           {/* Bottom Canvas - Chat Input */}
           <div className="border-t bg-background/95 backdrop-blur-sm px-4 py-4 flex-shrink-0">
-            {/* Send New Message Button in History Mode */}
+            {/* Configure New Message Button in History Mode */}
             {isHistoryMode && !isPreparingNewMessage && (
               <div className="mb-3 flex justify-center">
-                <ModernButton
+                <Button
                   onClick={onPrepareNewMessage}
-                  variant="gradient"
-                  size="sm"
-                  icon={Send}
-                  className="shadow-lg"
+                  className="gap-2"
+                  variant="outline"
                 >
-                  Send New Message
-                </ModernButton>
+                  <Settings className="h-4 w-4" />
+                  Configure New Message
+                </Button>
               </div>
             )}
             
