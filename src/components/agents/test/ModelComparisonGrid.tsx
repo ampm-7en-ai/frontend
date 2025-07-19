@@ -86,7 +86,7 @@ export const ModelComparisonGrid = ({
       <Card 
         key={cell.id} 
         className={`
-          transition-all duration-200 cursor-pointer h-full rounded-none border-border dark:border-gray-700
+          transition-all duration-200 cursor-pointer h-full rounded-none border-border dark:border-gray-700 flex flex-col
           ${isSelected 
             ? 'bg-muted/50 dark:bg-slate-900/30' 
             : 'bg-card dark:bg-muted/10 hover:bg-muted/30 dark:hover:bg-slate-900/30'
@@ -96,7 +96,7 @@ export const ModelComparisonGrid = ({
         `}
         onClick={() => onCellClick(cell.id)}
       >
-        <CardHeader className="pb-2 px-3 pt-3">
+        <CardHeader className="pb-2 px-3 pt-3 flex-shrink-0">
           <div className="flex items-center justify-between gap-2">
             <div className="flex-1 min-w-0">
               {isHistoryMode ? (
@@ -147,7 +147,7 @@ export const ModelComparisonGrid = ({
                     <Settings className="h-4 w-4" />
                   </ModernButton>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">
+                <TooltipContent side="top">
                   <p>Configure parameters</p>
                 </TooltipContent>
               </Tooltip>
@@ -171,7 +171,7 @@ export const ModelComparisonGrid = ({
                     )}
                   </ModernButton>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">
+                <TooltipContent side="top">
                   <p>{isExpanded ? 'Minimize' : 'Expand'} view</p>
                 </TooltipContent>
               </Tooltip>
@@ -179,7 +179,7 @@ export const ModelComparisonGrid = ({
           </div>
         </CardHeader>
 
-        <CardContent className="p-0 flex-1">
+        <CardContent className="p-0 flex-1 min-h-0">
           <ScrollArea className="h-full">
             <div className="p-3 space-y-3">
               {cell.isLoading ? (
