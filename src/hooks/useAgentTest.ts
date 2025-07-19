@@ -828,6 +828,7 @@ export const useAgentTest = (initialAgentId: string) => {
     prepareNewMessage,
     exitHistoryMode,
     getSelectedHistoryItem,
+    setIsHistoryMode,
     
     // Utilities
     refetchAgent
