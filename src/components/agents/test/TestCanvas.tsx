@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ChatInput } from '@/components/agents/modelComparison/ChatInput';
 import { ModelComparisonGrid } from './ModelComparisonGrid';
@@ -10,7 +9,8 @@ import {
   Minus, 
   Settings,
   Send,
-  History
+  History,
+  Download
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { HistoryItem } from '@/types/history';
@@ -165,6 +165,132 @@ export const TestCanvas = ({
     }
   };
 
+  const handleExportToPDF = async () => {
+    try {
+      // Get the current conversation data
+      const conversationData = {
+        query: messages[0]?.[0]?.content || '',
+        responses: modelCells.map((cell, index) => ({
+          model: cell.model,
+          response: cell.messages.find(msg => msg.sender?.startsWith('agent'))?.content || ''
+        })).filter(item => item.response)
+      };
+
+      if (!conversationData.query || conversationData.responses.length === 0) {
+        console.error('No data to export');
+        return;
+      }
+
+      // Create PDF content
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(16);
+      doc.text('Model Comparison Export', 20, 20);
+      
+      // Add query
+      doc.setFontSize(12);
+      doc.text('Query:', 20, 40);
+      doc.setFontSize(10);
+      const queryLines = doc.splitTextToSize(conversationData.query, 170);
+      doc.text(queryLines, 20, 50);
+      
+      let yPosition = 50 + (queryLines.length * 5) + 20;
+      
+      // Add responses
+      conversationData.responses.forEach((item, index) => {
+        doc.setFontSize(12);
+        doc.text(`${item.model}:`, 20, yPosition);
+        yPosition += 10;
+        
+        doc.setFontSize(10);
+        const responseLines = doc.splitTextToSize(item.response, 170);
+        doc.text(responseLines, 20, yPosition);
+        yPosition += (responseLines.length * 5) + 15;
+        
+        // Start new page if needed
+        if (yPosition > 250) {
+          doc.addPage();
+          yPosition = 20;
+        }
+      });
+      
+      // Save the PDF
+      doc.save(`model-comparison-${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
+    }
+  };
+
+  const handleExportToDocx = async () => {
+    try {
+      // Get the current conversation data
+      const conversationData = {
+        query: messages[0]?.[0]?.content || '',
+        responses: modelCells.map((cell, index) => ({
+          model: cell.model,
+          response: cell.messages.find(msg => msg.sender?.startsWith('agent'))?.content || ''
+        })).filter(item => item.response)
+      };
+
+      if (!conversationData.query || conversationData.responses.length === 0) {
+        console.error('No data to export');
+        return;
+      }
+
+      // Create DOCX content
+      const { Document, Packer, Paragraph, TextRun, HeadingLevel } = await import('docx');
+      
+      const children = [
+        new Paragraph({
+          text: "Model Comparison Export",
+          heading: HeadingLevel.TITLE,
+        }),
+        new Paragraph({
+          text: "Query:",
+          heading: HeadingLevel.HEADING_2,
+        }),
+        new Paragraph({
+          children: [new TextRun(conversationData.query)],
+        }),
+        new Paragraph({ text: "" }), // Empty line
+      ];
+
+      // Add responses
+      conversationData.responses.forEach((item) => {
+        children.push(
+          new Paragraph({
+            text: item.model,
+            heading: HeadingLevel.HEADING_2,
+          }),
+          new Paragraph({
+            children: [new TextRun(item.response)],
+          }),
+          new Paragraph({ text: "" }) // Empty line
+        );
+      });
+
+      const doc = new Document({
+        sections: [{
+          children: children,
+        }],
+      });
+
+      const blob = await Packer.toBlob(doc);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `model-comparison-${new Date().toISOString().split('T')[0]}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting to DOCX:', error);
+    }
+  };
+
   const getInputPlaceholder = () => {
     if (isHistoryMode) {
       return "Switch to Live Mode to send messages...";
@@ -197,6 +323,24 @@ export const TestCanvas = ({
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Export Options */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleExportToPDF}
+                  className="h-8"
+                  disabled={modelCells.every(cell => cell.messages.length === 0)}
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>Export to PDF</p>
+              </TooltipContent>
+            </Tooltip>
+
             {/* History Mode Toggle */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -209,7 +353,7 @@ export const TestCanvas = ({
                   <History className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent side="bottom">
                 <p>{isHistoryMode ? "Exit History Mode" : "Enter History Mode"}</p>
               </TooltipContent>
             </Tooltip>
@@ -228,7 +372,7 @@ export const TestCanvas = ({
                   <Plus className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent side="bottom">
                 <p>Add model cell</p>
               </TooltipContent>
             </Tooltip>
@@ -245,7 +389,7 @@ export const TestCanvas = ({
                   <Minus className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent side="bottom">
                 <p>Remove model cell</p>
               </TooltipContent>
             </Tooltip>
@@ -276,6 +420,7 @@ export const TestCanvas = ({
                 selectedCellId={selectedCellId}
                 expandedCellId={expandedCellId}
                 onToggleExpand={handleToggleExpand}
+                isHistoryMode={isHistoryMode}
               />
             </div>
           </div>

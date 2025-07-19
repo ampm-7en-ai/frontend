@@ -35,6 +35,7 @@ interface ModelComparisonGridProps {
   selectedCellId: string | null;
   expandedCellId: string | null;
   onToggleExpand: (cellId: string) => void;
+  isHistoryMode?: boolean;
 }
 
 export const ModelComparisonGrid = ({
@@ -44,7 +45,8 @@ export const ModelComparisonGrid = ({
   onConfigClick,
   selectedCellId,
   expandedCellId,
-  onToggleExpand
+  onToggleExpand,
+  isHistoryMode = false
 }: ModelComparisonGridProps) => {
   const { modelOptionsForDropdown } = useAIModels();
 
@@ -97,26 +99,36 @@ export const ModelComparisonGrid = ({
         <CardHeader className="pb-2 px-3 pt-3">
           <div className="flex items-center justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <ModernDropdown
-                value={cell.model}
-                onValueChange={(value) => onModelChange(cell.id, value)}
-                options={modelOptionsForDropdown}
-                placeholder="Select Model"
-                className="h-8 text-xs bg-muted/50 border-0 flex-1"
-                showSearch={false}
-                trigger={
-                  <ModernButton
-                    variant="secondary"
-                    className="h-8 text-xs bg-muted/50 dark:bg-slate-500 border-0 flex-1 justify-start px-2"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="flex items-center gap-2 w-full">
-                      <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
-                      <span className="truncate">{getModelDisplay(cell.model)}</span>
-                    </div>
-                  </ModernButton>
-                }
-              />
+              {isHistoryMode ? (
+                // Show model name as read-only in history mode
+                <div className="h-8 text-xs bg-muted/50 dark:bg-slate-500 border-0 flex-1 justify-start px-2 rounded flex items-center">
+                  <div className="flex items-center gap-2 w-full">
+                    <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                    <span className="truncate">{getModelDisplay(cell.model)}</span>
+                  </div>
+                </div>
+              ) : (
+                <ModernDropdown
+                  value={cell.model}
+                  onValueChange={(value) => onModelChange(cell.id, value)}
+                  options={modelOptionsForDropdown}
+                  placeholder="Select Model"
+                  className="h-8 text-xs bg-muted/50 border-0 flex-1"
+                  showSearch={false}
+                  trigger={
+                    <ModernButton
+                      variant="secondary"
+                      className="h-8 text-xs bg-muted/50 dark:bg-slate-500 border-0 flex-1 justify-start px-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex items-center gap-2 w-full">
+                        <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                        <span className="truncate">{getModelDisplay(cell.model)}</span>
+                      </div>
+                    </ModernButton>
+                  }
+                />
+              )}
             </div>
 
             <div className="flex items-center gap-1">
@@ -135,7 +147,7 @@ export const ModelComparisonGrid = ({
                     <Settings className="h-4 w-4" />
                   </ModernButton>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent side="bottom">
                   <p>Configure parameters</p>
                 </TooltipContent>
               </Tooltip>
@@ -159,7 +171,7 @@ export const ModelComparisonGrid = ({
                     )}
                   </ModernButton>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent side="bottom">
                   <p>{isExpanded ? 'Minimize' : 'Expand'} view</p>
                 </TooltipContent>
               </Tooltip>
