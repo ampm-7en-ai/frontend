@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ChatInput } from '@/components/agents/modelComparison/ChatInput';
 import { ModelComparisonGrid } from './ModelComparisonGrid';
@@ -7,11 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Plus, 
   Minus, 
-  History,
   Settings,
   Send
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { HistoryItem } from '@/types/history';
 
 // Dotted background pattern for the model comparison area
@@ -108,10 +110,6 @@ export const TestCanvas = ({
     isLoading: cellLoadingStates[index] || false
   }));
 
-  const handleBatchTest = () => {
-    console.log('Batch test clicked');
-  };
-
   const handleCellClick = (cellId: string) => {
     setSelectedCellId(cellId);
     const cellIndex = parseInt(cellId.split('-')[1]);
@@ -145,29 +143,35 @@ export const TestCanvas = ({
     onToggleRightPanel(true);
   };
 
-  const handleToggleHistory = () => {
-    setShowHistory(!showHistory);
-    if (!showHistory) {
+  const handleModeToggle = (checked: boolean) => {
+    if (checked) {
+      // Switch to history mode
+      setShowHistory(true);
       onToggleRightPanel(true);
+    } else {
+      // Switch to live mode
+      setShowHistory(false);
+      if (isHistoryMode) {
+        onPrepareNewMessage(); // Exit history mode
+      }
     }
   };
 
   const handleSendMessage = (message: string) => {
-    onSendMessage(message);
+    if (!isHistoryMode) {
+      onSendMessage(message);
+    }
   };
 
   const getInputPlaceholder = () => {
     if (isHistoryMode) {
-      return "You can configure parameters and send a new query...";
-    }
-    if (isPreparingNewMessage) {
-      return "Configure parameters above, then send your message...";
+      return "Switch to Live Mode to send messages...";
     }
     return "Type your query to compare responses across all models...";
   };
 
   const isInputDisabled = () => {
-    return isProcessing || modelConnections.some(status => !status);
+    return isProcessing || isHistoryMode || modelConnections.some(status => !status);
   };
 
   return (
@@ -187,30 +191,21 @@ export const TestCanvas = ({
                   History Mode
                 </Badge>
               )}
-              {isPreparingNewMessage && (
-                <Badge variant="outline" className="text-xs">
-                  Configuring New Message
-                </Badge>
-              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleToggleHistory}
-                  className={`h-8 ${showHistory ? 'bg-muted' : ''}`}
-                >
-                  <History className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Toggle query history</p>
-              </TooltipContent>
-            </Tooltip>
+          <div className="flex items-center gap-4">
+            {/* Live/History Mode Switcher */}
+            <div className="flex items-center gap-2">
+              <Label htmlFor="mode-toggle" className="text-sm">Live</Label>
+              <Switch
+                id="mode-toggle"
+                checked={showHistory}
+                onCheckedChange={handleModeToggle}
+                className="data-[state=checked]:bg-purple-600"
+              />
+              <Label htmlFor="mode-toggle" className="text-sm">History</Label>
+            </div>
 
             <div className="h-4 w-px bg-border" />
 
@@ -280,27 +275,13 @@ export const TestCanvas = ({
 
           {/* Bottom Canvas - Chat Input */}
           <div className="border-t bg-background/95 backdrop-blur-sm px-4 py-4 flex-shrink-0">
-            {/* Configure New Message Button in History Mode */}
-            {isHistoryMode && !isPreparingNewMessage && (
-              <div className="mb-3 flex justify-center">
-                <Button
-                  onClick={onPrepareNewMessage}
-                  className="gap-2"
-                  variant="outline"
-                >
-                  <Settings className="h-4 w-4" />
-                  Configure New Message
-                </Button>
-              </div>
-            )}
-            
             <ChatInput 
               onSendMessage={handleSendMessage}
               primaryColor={primaryColors[0] || '#9b87f5'}
               isDisabled={isInputDisabled()}
               placeholder={getInputPlaceholder()}
               value={undefined}
-              readonly={false}
+              readonly={isHistoryMode}
             />
           </div>
         </div>
