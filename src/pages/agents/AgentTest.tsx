@@ -53,8 +53,22 @@ export default function AgentTest() {
     handleLoadHistoryData,
     selectHistory,
     prepareNewMessage,
-    exitHistoryMode
+    exitHistoryMode,
+    setIsHistoryMode
   } = useAgentTest(agentId || "1");
+
+  const handleToggleHistoryMode = (enabled: boolean) => {
+    if (enabled) {
+      setIsHistoryMode(true);
+      // If there's history and no item is selected, select the latest one
+      if (history.length > 0 && !selectedHistoryId) {
+        selectHistory(history[0]);
+      }
+    } else {
+      // Exit history mode
+      exitHistoryMode();
+    }
+  };
 
   if (isLoadingAgent || isLoadingAgents) {
     return (
@@ -124,6 +138,7 @@ export default function AgentTest() {
               onSelectHistory={selectHistory}
               onPrepareNewMessage={prepareNewMessage}
               onLoadHistoryData={handleLoadHistoryData}
+              onToggleHistoryMode={handleToggleHistoryMode}
             />
           </div>
 

@@ -9,11 +9,10 @@ import {
   Plus, 
   Minus, 
   Settings,
-  Send
+  Send,
+  History
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { HistoryItem } from '@/types/history';
 
 // Dotted background pattern for the model comparison area
@@ -66,6 +65,7 @@ interface TestCanvasProps {
   onSelectHistory: (item: HistoryItem) => void;
   onPrepareNewMessage: () => void;
   onLoadHistoryData: (item: HistoryItem) => void;
+  onToggleHistoryMode: (enabled: boolean) => void;
 }
 
 export const TestCanvas = ({
@@ -92,11 +92,11 @@ export const TestCanvas = ({
   onToggleRightPanel,
   onSelectHistory,
   onPrepareNewMessage,
-  onLoadHistoryData
+  onLoadHistoryData,
+  onToggleHistoryMode
 }: TestCanvasProps) => {
   const [expandedCellId, setExpandedCellId] = useState<string | null>(null);
   const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
-  const [showHistory, setShowHistory] = useState(false);
 
   const modelCells: ModelCell[] = Array(numModels).fill(null).map((_, index) => ({
     id: `cell-${index}`,
@@ -143,17 +143,19 @@ export const TestCanvas = ({
     onToggleRightPanel(true);
   };
 
-  const handleModeToggle = (checked: boolean) => {
-    if (checked) {
-      // Switch to history mode
-      setShowHistory(true);
+  const handleHistoryToggle = () => {
+    const newHistoryMode = !isHistoryMode;
+    onToggleHistoryMode(newHistoryMode);
+    
+    if (newHistoryMode) {
+      // Entering history mode - show history panel and select latest if available
+      if (history.length > 0 && !selectedHistoryId) {
+        handleSelectHistory(history[0]);
+      }
       onToggleRightPanel(true);
     } else {
-      // Switch to live mode
-      setShowHistory(false);
-      if (isHistoryMode) {
-        onPrepareNewMessage(); // Exit history mode
-      }
+      // Exiting history mode - prepare for new message
+      onPrepareNewMessage();
     }
   };
 
@@ -195,17 +197,22 @@ export const TestCanvas = ({
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Live/History Mode Switcher */}
-            <div className="flex items-center gap-2">
-              <Label htmlFor="mode-toggle" className="text-sm">Live</Label>
-              <Switch
-                id="mode-toggle"
-                checked={showHistory}
-                onCheckedChange={handleModeToggle}
-                className="data-[state=checked]:bg-purple-600"
-              />
-              <Label htmlFor="mode-toggle" className="text-sm">History</Label>
-            </div>
+            {/* History Mode Toggle */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={isHistoryMode ? "default" : "ghost"}
+                  size="sm"
+                  onClick={handleHistoryToggle}
+                  className="h-8"
+                >
+                  <History className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{isHistoryMode ? "Exit History Mode" : "Enter History Mode"}</p>
+              </TooltipContent>
+            </Tooltip>
 
             <div className="h-4 w-px bg-border" />
 
@@ -248,11 +255,11 @@ export const TestCanvas = ({
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex flex-1 min-h-0">
-            {/* History Panel */}
-            {showHistory && (
+            {/* History Panel - only shown when in history mode */}
+            {isHistoryMode && (
               <HistoryPanel
-                isOpen={showHistory}
-                onClose={() => setShowHistory(false)}
+                isOpen={isHistoryMode}
+                onClose={() => onToggleHistoryMode(false)}
                 history={history}
                 onSelectHistory={handleSelectHistory}
                 selectedHistoryId={selectedHistoryId}
