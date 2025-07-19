@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -251,14 +252,17 @@ export const useAgentTest = (initialAgentId: string) => {
         newStatus[index] = status;
         return newStatus;
       });
-    },
-    onQuerySent: (index: number, queryData: any) => {
-      handleQuerySent(index, queryData);
-    },
-    onResponseReceived: (index: number, responseData: any) => {
-      handleResponseReceived(index, responseData);
     }
   });
+
+  // Create stable history callbacks using useCallback
+  const stableHandleQuerySent = useCallback((index: number, queryData: any) => {
+    handleQuerySent(index, queryData);
+  }, [handleQuerySent]);
+
+  const stableHandleResponseReceived = useCallback((index: number, responseData: any) => {
+    handleResponseReceived(index, responseData);
+  }, [handleResponseReceived]);
 
   // Update agent ref when agent changes
   useEffect(() => {
@@ -403,11 +407,17 @@ export const useAgentTest = (initialAgentId: string) => {
       initializationInProgress.current = true;
       
       try {
+        const callbacks = {
+          ...stableCallbacks.current,
+          onQuerySent: stableHandleQuerySent,
+          onResponseReceived: stableHandleResponseReceived
+        };
+
         await connectionManagerRef.current.initializeConnections(
           selectedAgentId,
           numModels,
           chatConfigs,
-          stableCallbacks.current
+          callbacks
         );
         
         console.log("WebSocket connections initialized successfully");
@@ -572,10 +582,7 @@ export const useAgentTest = (initialAgentId: string) => {
     setCellLoadingStates(prev => prev.slice(0, -1));
     setPrimaryColors(prev => prev.slice(0, -1));
     
-    const lastWs = connectionManagerRef.current;
-    if (lastWs) {
-      lastWs.cleanup();
-    }
+    connectionManagerRef.current.cleanup();
     
     if (selectedModelIndex >= newNumModels) {
       setSelectedModelIndex(newNumModels - 1);
@@ -768,28 +775,6 @@ export const useAgentTest = (initialAgentId: string) => {
     
     setMessages(historicalMessages);
     setChatConfigs(historicalConfigs);
-  };
-
-  const handleRemoveModel = () => {
-    if (numModels <= 1) return;
-    
-    const newNumModels = numModels - 1;
-    setNumModels(newNumModels);
-    
-    setChatConfigs(prev => prev.slice(0, -1));
-    setMessages(prev => prev.slice(0, -1));
-    setModelConnections(prev => prev.slice(0, -1));
-    setCellLoadingStates(prev => prev.slice(0, -1));
-    setPrimaryColors(prev => prev.slice(0, -1));
-    
-    const lastWs = connectionManagerRef.current;
-    if (lastWs) {
-      lastWs.cleanup();
-    }
-    
-    if (selectedModelIndex >= newNumModels) {
-      setSelectedModelIndex(newNumModels - 1);
-    }
   };
 
   return {

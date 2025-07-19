@@ -15,7 +15,6 @@ export class WebSocketConnectionManager {
   private maxFailures = 3;
   private connectionDelay = 2000; // 2 seconds between connections
   private isInitializing = false;
-  private cleanup: (() => void) | null = null;
 
   async initializeConnections(
     agentId: string,
