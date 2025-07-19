@@ -107,6 +107,9 @@ export default function AgentTest() {
           agents={allAgents}
           isLoading={isLoadingAgents}
           agent={agent}
+          history={history}
+          chatConfigs={chatConfigs}
+          messages={messages}
         />
 
         {/* Main Content */}
