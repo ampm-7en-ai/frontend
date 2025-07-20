@@ -43,12 +43,7 @@ interface ChatMessage {
   timestamp: string;
 }
 
-const fallbackSuggestions = [
-  'How do I listen to changes in a table?',
-  'How do I connect to my database?',
-  'How do I run migrations?',
-  'How do I set up authentication?'
-];
+const fallbackSuggestions = [];
 
 const thinkingMessages = [
   "Thinking...",

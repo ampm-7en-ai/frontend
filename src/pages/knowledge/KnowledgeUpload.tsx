@@ -690,7 +690,7 @@ const KnowledgeUpload = () => {
   const renderAgentOption = (option: any) => {
     const agent = agents.find(a => a.id.toString() === option.value);
     return (
-      <div className="flex items-center gap-3 w-full">
+      <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-sm flex-shrink-0">
           <span className="text-white text-xs font-medium">
             {agent?.name.charAt(0).toUpperCase()}
@@ -698,9 +698,7 @@ const KnowledgeUpload = () => {
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-medium text-slate-900 dark:text-slate-100">{option.label}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-            {option.description}
-          </p>
+          
         </div>
       </div>
     );
@@ -729,10 +727,8 @@ const KnowledgeUpload = () => {
           </span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-slate-900 dark:text-slate-100">{selectedAgent.name}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-            {selectedAgent.description || 'No description'}
-          </p>
+          <p className="font-medium text-slate-900 dark:text-slate-100 text-left">{selectedAgent.name}</p>
+         
         </div>
       </div>
     );
