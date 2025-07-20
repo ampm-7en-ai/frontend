@@ -319,6 +319,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
 
     try {
       let response;
+      let success = false;
       
       if (sourceType === 'thirdParty') {
         // For third-party integrations, use existing logic
@@ -364,6 +365,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
         }
 
         response = await apiResponse.json();
+        success = true;
       } else {
         // Use the new knowledgesource endpoint
         const payload: any = {
@@ -389,35 +391,60 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
                   title: `${documentName} - ${file.name}`,
                   file: file
                 };
-                const fileResponse = await knowledgeApi.createSource(filePayload);
-                responses.push(fileResponse);
+                try {
+                  const fileResponse = await knowledgeApi.createSource(filePayload);
+                  if (!fileResponse.ok) {
+                    const errorData = await fileResponse.json().catch(() => ({}));
+                    throw new Error(errorData.message || errorData.error || errorData.detail || `Failed to upload ${file.name}`);
+                  }
+                  responses.push(fileResponse);
+                } catch (error) {
+                  console.error(`Error uploading file ${file.name}:`, error);
+                  throw error;
+                }
               }
               response = responses[0]; // Use first response for success handling
+              success = responses.length > 0;
             }
             break;
         }
 
         if (sourceType !== 'document' && sourceType !== 'csv') {
           response = await knowledgeApi.createSource(payload);
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || errorData.error || errorData.detail || 'Failed to create knowledge source');
+          }
+          success = true;
         }
       }
 
-      if (response) {
-        const responseData = await response.json();
-        if (responseData.data) {
-          storeNewKnowledgeBase(responseData.data);
+      if (success && response) {
+        // Only try to parse response if it exists and the request was successful
+        try {
+          const responseData = response.json ? await response.json() : response;
+          if (responseData.data) {
+            storeNewKnowledgeBase(responseData.data);
+          }
+        } catch (parseError) {
+          console.warn('Could not parse response data:', parseError);
+          // Continue with success flow even if parsing fails
         }
       }
 
-      hideToast(loadingToastId);
-      showToast({
-        title: "Success!",
-        description: "Knowledge source added successfully",
-        variant: "success"
-      });
+      if (success) {
+        hideToast(loadingToastId);
+        showToast({
+          title: "Success!",
+          description: "Knowledge source added successfully",
+          variant: "success"
+        });
 
-      onSuccess?.();
-      onClose();
+        onSuccess?.();
+        onClose();
+      } else {
+        throw new Error('Failed to create knowledge source - no successful responses');
+      }
     } catch (error) {
       setIsUploading(false);
 
