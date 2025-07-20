@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { createKnowledgeBase, BASE_URL } from '@/utils/api-config';
+import { createKnowledgeBase, BASE_URL, knowledgeApi } from '@/utils/api-config';
 import { storeNewKnowledgeBase } from '@/utils/knowledgeStorage';
 import ModernButton from '@/components/dashboard/ModernButton';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
@@ -391,9 +391,10 @@ const KnowledgeUpload = () => {
 
     try {
       let response;
+      let success = false;
       
       if (sourceType === 'thirdParty') {
-        // For third-party integrations, use JSON payload structure
+        // For third-party integrations, use existing logic
         const payload = {
           name: documentName || `New ${selectedProvider || 'Integration'} Source`,
           type: "third_party",
@@ -403,7 +404,7 @@ const KnowledgeUpload = () => {
                 .filter(file => selectedFiles.includes(file.name))
                 .map(file => file.id)
             : selectedFiles,
-          agent_id: selectedAgentId // Add agent ID to payload
+          agent_id: selectedAgentId
         };
 
         const apiResponse = await fetch(`${BASE_URL}knowledgebase/`, {
@@ -436,86 +437,85 @@ const KnowledgeUpload = () => {
         }
 
         response = await apiResponse.json();
+        success = true;
       } else {
-        // For other source types, use FormData as before
-        const formData = new FormData();
-
-        const name = documentName || `New ${sourceType.charAt(0).toUpperCase() + sourceType.slice(1)} Source`;
-        formData.append('name', name);
-        formData.append('agent_id', selectedAgentId); // Add agent ID to form data
-
-        let metadataObj = {};
+        // Use the new knowledgesource endpoint like AddSourcesModal
+        const payload: any = {
+          agent_id: parseInt(selectedAgentId),
+          title: documentName
+        };
 
         switch (sourceType) {
           case 'url':
-            formData.append('type', 'website');
-            formData.append('store_links_only', 'true');
-            if (url) {
-              metadataObj = { website: url };
-              if (importAllPages) {
-                metadataObj = { ...metadataObj, crawl_more: "true" };
-              }
-            }
-            break;
-          case 'document':
-            formData.append('type', 'docs');
-            break;
-          case 'csv':
-            formData.append('type', 'csv');
+            payload.url = url;
             break;
           case 'plainText':
-            formData.append('type', 'plain_text');
-            if (plainText) {
-              metadataObj = { text_content: plainText };
+            payload.plain_text = plainText;
+            break;
+          case 'document':
+          case 'csv':
+            if (files.length > 0) {
+              // For files, we'll create sources one by one
+              const responses = [];
+              for (const file of files) {
+                const filePayload = {
+                  agent_id: parseInt(selectedAgentId),
+                  title: `${documentName} - ${file.name}`,
+                  file: file
+                };
+                try {
+                  const fileResponse = await knowledgeApi.createSource(filePayload);
+                  if (!fileResponse.ok) {
+                    const errorData = await fileResponse.json().catch(() => ({}));
+                    throw new Error(errorData.message || errorData.error || errorData.detail || `Failed to upload ${file.name}`);
+                  }
+                  responses.push(fileResponse);
+                } catch (error) {
+                  console.error(`Error uploading file ${file.name}:`, error);
+                  throw error;
+                }
+              }
+              response = responses[0]; // Use first response for success handling
+              success = responses.length > 0;
             }
             break;
         }
 
-        formData.append('metadata', JSON.stringify(metadataObj));
-
-        if (sourceType === 'document' || sourceType === 'csv') {
-          files.forEach(file => {
-            formData.append('files', file);
-          });
-        }
-
-        try {
-          response = await createKnowledgeBase(formData);
-        } catch (apiError: any) {
-          let errorMessage = 'Failed to add knowledge source';
-          
-          // Check if the error has response data
-          if (apiError.response && apiError.response.data) {
-            const errorData = apiError.response.data;
-            if (errorData.message) {
-              errorMessage = errorData.message;
-            } else if (errorData.error) {
-              errorMessage = errorData.error;
-            } else if (errorData.detail) {
-              errorMessage = errorData.detail;
-            } else if (typeof errorData === 'string') {
-              errorMessage = errorData;
-            }
-          } else if (apiError.message) {
-            errorMessage = apiError.message;
+        if (sourceType !== 'document' && sourceType !== 'csv') {
+          response = await knowledgeApi.createSource(payload);
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || errorData.error || errorData.detail || 'Failed to create knowledge source');
           }
-          
-          throw new Error(errorMessage);
+          success = true;
         }
       }
 
-      if (response) {
-        storeNewKnowledgeBase(response.data);
+      if (success && response) {
+        // Only try to parse response if it exists and the request was successful
+        try {
+          const responseData = response.json ? await response.json() : response;
+          if (responseData.data) {
+            storeNewKnowledgeBase(responseData.data);
+          }
+        } catch (parseError) {
+          console.warn('Could not parse response data:', parseError);
+          // Continue with success flow even if parsing fails
+        }
       }
 
-      hideToast(loadingToastId);
-      showToast({
-        title: "Success!",
-        description: "Knowledge source added successfully",
-        variant: "success"
-      });
+      if (success) {
+        hideToast(loadingToastId);
+        showToast({
+          title: "Success!",
+          description: "Knowledge source added successfully",
+          variant: "success"
+        });
 
-      navigate('/knowledge');
+        navigate('/knowledge');
+      } else {
+        throw new Error('Failed to create knowledge source - no successful responses');
+      }
     } catch (error) {
       setIsUploading(false);
 
