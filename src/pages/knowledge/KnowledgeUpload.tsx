@@ -72,6 +72,52 @@ const KnowledgeUpload = () => {
   const { showToast, hideToast, updateToast } = useFloatingToast();
   const { theme } = useAppTheme();
   const navigate = useNavigate();
+  
+  // Agent selection state
+  const [selectedAgentId, setSelectedAgentId] = useState<string>('');
+  const [agents, setAgents] = useState<any[]>([]);
+  const [isLoadingAgents, setIsLoadingAgents] = useState(false);
+
+  // Fetch agents for dropdown
+  const fetchAgents = async () => {
+    setIsLoadingAgents(true);
+    try {
+      const response = await fetch(`${BASE_URL}agents/`, {
+        headers: {
+          'Authorization': `Bearer ${user?.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch agents');
+      }
+
+      const data = await response.json();
+      setAgents(data.data || []);
+      
+      // Auto-select first agent if available
+      if (data.data && data.data.length > 0) {
+        setSelectedAgentId(data.data[0].id.toString());
+      }
+    } catch (error) {
+      console.error('Error fetching agents:', error);
+      showToast({
+        title: "Error",
+        description: "Failed to load agents. Please try again.",
+        variant: "error"
+      });
+    } finally {
+      setIsLoadingAgents(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.accessToken) {
+      fetchAgents();
+    }
+  }, [user?.accessToken]);
+
   const [files, setFiles] = useState<File[]>([]);
   const [documentName, setDocumentName] = useState('');
   const [sourceType, setSourceType] = useState<SourceType>('url');
@@ -308,6 +354,15 @@ const KnowledgeUpload = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!selectedAgentId) {
+      showToast({
+        title: "Agent Required",
+        description: "Please select an agent for this knowledge source.",
+        variant: "error"
+      });
+      return;
+    }
+
     if (!documentName.trim()) {
       showToast({
         title: "Source Name Required",
@@ -347,7 +402,8 @@ const KnowledgeUpload = () => {
             ? googleDriveFiles
                 .filter(file => selectedFiles.includes(file.name))
                 .map(file => file.id)
-            : selectedFiles
+            : selectedFiles,
+          agent_id: selectedAgentId // Add agent ID to payload
         };
 
         const apiResponse = await fetch(`${BASE_URL}knowledgebase/`, {
@@ -386,6 +442,7 @@ const KnowledgeUpload = () => {
 
         const name = documentName || `New ${sourceType.charAt(0).toUpperCase() + sourceType.slice(1)} Source`;
         formData.append('name', name);
+        formData.append('agent_id', selectedAgentId); // Add agent ID to form data
 
         let metadataObj = {};
 
@@ -981,6 +1038,40 @@ const KnowledgeUpload = () => {
           <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-0 rounded-3xl shadow-xl shadow-slate-200/20 dark:shadow-slate-800/20 transition-colors duration-200">
             <CardContent className="p-8">
               <form onSubmit={handleSubmit} className="space-y-8">
+                {/* Agent Selection */}
+                <div className="space-y-3">
+                  <Label htmlFor="agent-select" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Select Agent *
+                  </Label>
+                  <Select value={selectedAgentId} onValueChange={setSelectedAgentId} disabled={isLoadingAgents}>
+                    <SelectTrigger className="bg-white/80 dark:bg-slate-800/80 border-slate-200/60 dark:border-slate-600/60 backdrop-blur-sm rounded-xl">
+                      <SelectValue placeholder={isLoadingAgents ? "Loading agents..." : "Choose an agent"} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl shadow-lg">
+                      {agents.map((agent) => (
+                        <SelectItem key={agent.id} value={agent.id.toString()} className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-sm">
+                              <span className="text-white text-xs font-medium">
+                                {agent.name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="font-medium text-slate-900 dark:text-slate-100">{agent.name}</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[200px]">
+                                {agent.description || 'No description'}
+                              </p>
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Select the agent that will use this knowledge source
+                  </p>
+                </div>
+
                 {/* Source Name */}
                 <div className="space-y-3">
                   <Label htmlFor="document-name" className="text-sm font-medium text-slate-700 dark:text-slate-300">Source Name</Label>
@@ -1021,7 +1112,7 @@ const KnowledgeUpload = () => {
                   </ModernButton>
                   <Button 
                     type="submit"
-                    disabled={isUploading}
+                    disabled={isUploading || !selectedAgentId}
                     className="px-8 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 rounded-xl transition-colors duration-200"
                   >
                     {isUploading ? 'Processing...' : 'Add to Knowledge Base'}
