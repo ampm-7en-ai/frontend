@@ -17,13 +17,7 @@ import { createKnowledgeBase, BASE_URL, knowledgeApi } from '@/utils/api-config'
 import { storeNewKnowledgeBase } from '@/utils/knowledgeStorage';
 import ModernButton from '@/components/dashboard/ModernButton';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useIntegrations } from '@/hooks/useIntegrations';
@@ -685,6 +679,65 @@ const KnowledgeUpload = () => {
     });
   };
 
+  // Transform agents for dropdown options
+  const agentOptions = agents.map(agent => ({
+    value: agent.id.toString(),
+    label: agent.name,
+    description: agent.description || 'No description',
+    logo: undefined // We'll handle avatar in renderOption
+  }));
+
+  const renderAgentOption = (option: any) => {
+    const agent = agents.find(a => a.id.toString() === option.value);
+    return (
+      <div className="flex items-center gap-3 w-full">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-sm flex-shrink-0">
+          <span className="text-white text-xs font-medium">
+            {agent?.name.charAt(0).toUpperCase()}
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-medium text-slate-900 dark:text-slate-100">{option.label}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+            {option.description}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  const getSelectedAgent = () => {
+    return agents.find(agent => agent.id.toString() === selectedAgentId);
+  };
+
+  const renderAgentTrigger = () => {
+    const selectedAgent = getSelectedAgent();
+    
+    if (!selectedAgent) {
+      return (
+        <span className="text-slate-500 dark:text-slate-400">
+          {isLoadingAgents ? "Loading agents..." : "Choose an agent"}
+        </span>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-sm">
+          <span className="text-white text-xs font-medium">
+            {selectedAgent.name.charAt(0).toUpperCase()}
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-medium text-slate-900 dark:text-slate-100">{selectedAgent.name}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+            {selectedAgent.description || 'No description'}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   const renderSourceTypeContent = () => {
     switch (sourceType) {
       case 'url':
@@ -1043,30 +1096,24 @@ const KnowledgeUpload = () => {
                   <Label htmlFor="agent-select" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                     Select Agent *
                   </Label>
-                  <Select value={selectedAgentId} onValueChange={setSelectedAgentId} disabled={isLoadingAgents}>
-                    <SelectTrigger className="bg-white/80 dark:bg-slate-800/80 border-slate-200/60 dark:border-slate-600/60 backdrop-blur-sm rounded-xl">
-                      <SelectValue placeholder={isLoadingAgents ? "Loading agents..." : "Choose an agent"} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl shadow-lg">
-                      {agents.map((agent) => (
-                        <SelectItem key={agent.id} value={agent.id.toString()} className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-sm">
-                              <span className="text-white text-xs font-medium">
-                                {agent.name.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div>
-                              <p className="font-medium text-slate-900 dark:text-slate-100">{agent.name}</p>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[200px]">
-                                {agent.description || 'No description'}
-                              </p>
-                            </div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <ModernDropdown
+                    value={selectedAgentId}
+                    onValueChange={setSelectedAgentId}
+                    options={agentOptions}
+                    placeholder={isLoadingAgents ? "Loading agents..." : "Choose an agent"}
+                    disabled={isLoadingAgents}
+                    renderOption={renderAgentOption}
+                    trigger={
+                      <Button
+                        variant="outline"
+                        disabled={isLoadingAgents}
+                        className="w-full justify-start h-auto p-3 bg-white/80 dark:bg-slate-800/80 border-slate-200/60 dark:border-slate-600/60 backdrop-blur-sm rounded-xl hover:border-slate-300/80 dark:hover:border-slate-500/80 transition-all duration-200"
+                      >
+                        {renderAgentTrigger()}
+                      </Button>
+                    }
+                    className="w-full"
+                  />
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     Select the agent that will use this knowledge source
                   </p>
