@@ -16,7 +16,7 @@ import { ModernModal } from '@/components/ui/modern-modal';
 import { KnowledgeActionDropdown } from './KnowledgeActionDropdown';
 
 const getIconForType = (type: string) => {
-  switch (type.toLowerCase()) {
+  switch (type?.toLowerCase()) {
     case 'website':
       return Globe;
     case 'document':
@@ -72,12 +72,12 @@ const KnowledgeSourceTreeCard = ({ source, expanded, onToggle, onDelete }: {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-              {source.title}
+              {source.title || 'Untitled Source'}
             </h3>
             {getBadgeForStatus(source.status)}
           </div>
           <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
-            {source.type}
+            {source.type || 'Unknown Type'}
           </p>
         </div>
 
@@ -174,7 +174,7 @@ export const BuilderSidebar = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Handle different possible data structures
+  // Handle different possible data structures with better null safety
   const knowledgeSources = knowledgeSourcesData?.data?.knowledge_sources?.knowledge_sources || 
                            knowledgeSourcesData?.data?.knowledge_sources || 
                            knowledgeSourcesData?.knowledge_sources || 
@@ -298,7 +298,8 @@ export const BuilderSidebar = () => {
     );
   }
 
-  const displaySources = Array.isArray(knowledgeSources) ? knowledgeSources : [];
+  // Ensure we have an array and filter safely
+  const displaySources = Array.isArray(knowledgeSources) ? knowledgeSources.filter(source => source && typeof source === 'object') : [];
 
   return (
     <>
