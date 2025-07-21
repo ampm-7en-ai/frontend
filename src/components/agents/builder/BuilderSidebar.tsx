@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
-import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, X, ExternalLink } from 'lucide-react';
+import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, X, ExternalLink, FileSpreadsheet, Layers } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
@@ -15,15 +15,16 @@ import { KnowledgeActionDropdown } from './KnowledgeActionDropdown';
 
 const getIconForType = (type: string) => {
   switch (type?.toLowerCase()) {
+    case 'docs':
+      return FileText;
     case 'website':
       return Globe;
-    case 'document':
-    case 'pdf':
-      return FileText;
     case 'csv':
-      return Database;
+      return FileSpreadsheet;
     case 'plain_text':
       return File;
+    case 'third_party':
+      return Layers;
     default:
       return File;
   }
@@ -44,6 +45,23 @@ const getBadgeForStatus = (status: string) => {
   }
 };
 
+const getIconBackground = (type: string) => {
+  switch (type?.toLowerCase()) {
+    case 'docs':
+      return 'bg-gradient-to-br from-blue-500 to-blue-600';
+    case 'website':
+      return 'bg-gradient-to-br from-green-500 to-green-600';
+    case 'csv':
+      return 'bg-gradient-to-br from-purple-500 to-purple-600';
+    case 'plain_text':
+      return 'bg-gradient-to-br from-orange-500 to-orange-600';
+    case 'third_party':
+      return 'bg-gradient-to-br from-indigo-500 to-indigo-600';
+    default:
+      return 'bg-gradient-to-br from-gray-500 to-gray-600';
+  }
+};
+
 const KnowledgeSourceCard = ({ source, onDelete }: { 
   source: any, 
   onDelete: () => void
@@ -53,7 +71,7 @@ const KnowledgeSourceCard = ({ source, onDelete }: {
   return (
     <div className="group border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200">
       <div className="flex items-center gap-3 p-3">
-        <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-md flex-shrink-0">
+        <div className={`flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0 ${getIconBackground(source.type)}`}>
           <IconComponent className="h-4 w-4 text-white" />
         </div>
         
@@ -133,7 +151,9 @@ export const BuilderSidebar = () => {
   });
 
   // Extract knowledge sources from the API response
-  const knowledgeSources = knowledgeSourcesData?.knowledge_sources || [];
+  const knowledgeSources = knowledgeSourcesData?.knowledge_sources?.knowledge_sources || 
+                          knowledgeSourcesData?.knowledge_sources || 
+                          [];
 
   const handleDeleteConfirm = (sourceId: number) => {
     setSourceToDelete(sourceId);

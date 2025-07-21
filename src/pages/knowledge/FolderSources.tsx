@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ModernInput } from '@/components/ui/modern-input';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { Search, FileText, Globe, Plus, ArrowLeft, MoreHorizontal, Download, Trash2, Database, File } from 'lucide-react';
+import { Search, FileText, Globe, Plus, ArrowLeft, MoreHorizontal, Download, Trash2, Database, File, FileSpreadsheet, Layers } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
@@ -10,6 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import AddSourcesModal from '@/components/agents/knowledge/AddSourcesModal';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import KnowledgeStatsCard from '@/components/dashboard/KnowledgeStatsCard';
+import { ModernModal } from '@/components/ui/modern-modal';
 
 const FolderSources = () => {
   const { agentId } = useParams();
@@ -18,6 +20,8 @@ const FolderSources = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [sourceToDelete, setSourceToDelete] = useState<any>(null);
 
   // Fetch sources for the agent's folder
   const { 
@@ -63,9 +67,9 @@ const FolderSources = () => {
       source.url?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesType = typeFilter === 'all' || 
-      (typeFilter === 'documents' && source.type === 'document') ||
-      (typeFilter === 'websites' && source.type === 'website') ||
-      (typeFilter === 'spreadsheets' && source.type === 'spreadsheet') ||
+      (typeFilter === 'docs' && source.type === 'docs') ||
+      (typeFilter === 'website' && source.type === 'website') ||
+      (typeFilter === 'csv' && source.type === 'csv') ||
       (typeFilter === 'plain_text' && source.type === 'plain_text') ||
       (typeFilter === 'third_party' && source.type === 'third_party');
     
@@ -74,9 +78,9 @@ const FolderSources = () => {
 
   const typeFilterOptions = [
     { value: 'all', label: 'All Sources' },
-    { value: 'documents', label: 'Documents' },
-    { value: 'websites', label: 'Websites' },
-    { value: 'spreadsheets', label: 'Spreadsheets' },
+    { value: 'docs', label: 'Documents' },
+    { value: 'website', label: 'Websites' },
+    { value: 'csv', label: 'Spreadsheets' },
     { value: 'plain_text', label: 'Plain Text' },
     { value: 'third_party', label: 'Third Party' },
   ];
@@ -88,25 +92,37 @@ const FolderSources = () => {
   };
 
   const renderSourceIcon = (source) => {
-    if (source.file || source.type === 'document') {
-      return <FileText className="h-4 w-4 text-white" />;
-    } else if (source.url || source.type === 'website') {
-      return <Globe className="h-4 w-4 text-white" />;
-    } else if (source.type === 'spreadsheet') {
-      return <Database className="h-4 w-4 text-white" />;
+    switch (source.type) {
+      case 'docs':
+        return <FileText className="h-4 w-4 text-white" />;
+      case 'website':
+        return <Globe className="h-4 w-4 text-white" />;
+      case 'csv':
+        return <FileSpreadsheet className="h-4 w-4 text-white" />;
+      case 'plain_text':
+        return <File className="h-4 w-4 text-white" />;
+      case 'third_party':
+        return <Layers className="h-4 w-4 text-white" />;
+      default:
+        return <File className="h-4 w-4 text-white" />;
     }
-    return <File className="h-4 w-4 text-white" />;
   };
 
   const getIconBackground = (source) => {
-    if (source.file || source.type === 'document') {
-      return 'bg-gradient-to-br from-blue-500 to-blue-600';
-    } else if (source.url || source.type === 'website') {
-      return 'bg-gradient-to-br from-green-500 to-green-600';
-    } else if (source.type === 'spreadsheet') {
-      return 'bg-gradient-to-br from-purple-500 to-purple-600';
+    switch (source.type) {
+      case 'docs':
+        return 'bg-gradient-to-br from-blue-500 to-blue-600';
+      case 'website':
+        return 'bg-gradient-to-br from-green-500 to-green-600';
+      case 'csv':
+        return 'bg-gradient-to-br from-purple-500 to-purple-600';
+      case 'plain_text':
+        return 'bg-gradient-to-br from-orange-500 to-orange-600';
+      case 'third_party':
+        return 'bg-gradient-to-br from-indigo-500 to-indigo-600';
+      default:
+        return 'bg-gradient-to-br from-gray-500 to-gray-600';
     }
-    return 'bg-gradient-to-br from-gray-500 to-gray-600';
   };
 
   const getStatusBadge = (status) => {
@@ -149,11 +165,44 @@ const FolderSources = () => {
     }
   };
 
-  const handleDelete = (source) => {
-    toast({
-      title: "Delete confirmation",
-      description: `Are you sure you want to delete "${source.title}"?`,
-    });
+  const handleDeleteClick = (source) => {
+    setSourceToDelete(source);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!sourceToDelete) return;
+
+    try {
+      const token = getAccessToken();
+      if (!token) throw new Error('No authentication token');
+
+      const response = await fetch(`${BASE_URL}knowledgesource/${sourceToDelete.id}/`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(token)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete knowledge source');
+      }
+
+      toast({
+        title: "Knowledge source deleted",
+        description: `"${sourceToDelete.title}" has been successfully deleted.`,
+      });
+
+      refetch();
+    } catch (error) {
+      console.error('Error deleting knowledge source:', error);
+      toast({
+        title: "Delete failed",
+        description: "There was an error deleting the knowledge source.",
+        variant: "destructive"
+      });
+    } finally {
+      setDeleteConfirmOpen(false);
+      setSourceToDelete(null);
+    }
   };
 
   const handleBack = () => {
@@ -324,7 +373,7 @@ const FolderSources = () => {
                       className="h-10 w-10 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg hover:text-red-600"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDelete(source);
+                        handleDeleteClick(source);
                       }}
                     />
                   </div>
@@ -344,6 +393,35 @@ const FolderSources = () => {
           refetch(); // Refresh the sources list
         }}
       />
+
+      {/* Delete Confirmation Modal */}
+      <ModernModal
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Delete Knowledge Source"
+        description={`Are you sure you want to delete "${sourceToDelete?.title}"? This action cannot be undone.`}
+        size="md"
+        footer={
+          <div className="flex gap-3">
+            <ModernButton variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+              Cancel
+            </ModernButton>
+            <ModernButton 
+              variant="gradient" 
+              onClick={handleDeleteConfirm}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete
+            </ModernButton>
+          </div>
+        }
+      >
+        <div className="py-4">
+          <p className="text-slate-600 dark:text-slate-400">
+            This will permanently remove the knowledge source from your agent.
+          </p>
+        </div>
+      </ModernModal>
     </div>
   );
 };
