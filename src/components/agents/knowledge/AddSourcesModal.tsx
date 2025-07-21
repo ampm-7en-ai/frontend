@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { FileText, Upload, X, Globe, Table, AlignLeft, ExternalLink, Plus } from 'lucide-react';
+import { FileText, Upload, X, Globe, Table, AlignLeft, ExternalLink, Plus, Download } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +26,8 @@ import { useFloatingToast } from '@/context/FloatingToastContext';
 import { useIntegrations } from '@/hooks/useIntegrations';
 import { fetchGoogleDriveFiles } from '@/utils/api-config';
 import { knowledgeApi } from '@/utils/api-config';
+import { SitemapParser, ExtractedUrl } from '@/utils/sitemapParser';
+import { UrlListManager } from './UrlListManager';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 type ThirdPartyProvider = 'googleDrive' | 'slack' | 'notion' | 'dropbox' | 'github';
@@ -88,6 +90,12 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
   const [isDragOver, setIsDragOver] = useState(false);
   const [googleDriveFiles, setGoogleDriveFiles] = useState<GoogleDriveFile[]>([]);
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
+  
+  // New state for sitemap URL extraction
+  const [extractedUrls, setExtractedUrls] = useState<ExtractedUrl[]>([]);
+  const [isExtractingUrls, setIsExtractingUrls] = useState(false);
+  const [sitemapParser] = useState(() => new SitemapParser());
+  const [showUrlList, setShowUrlList] = useState(false);
 
   // Use centralized integration management
   const { getIntegrationsByType } = useIntegrations();
@@ -187,6 +195,8 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
     setSelectedProvider(null);
     setSelectedFiles([]);
     setValidationErrors({});
+    setExtractedUrls([]);
+    setShowUrlList(false);
   }, [sourceType]);
 
   // Reset form when modal opens/closes
@@ -201,8 +211,73 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
       setSelectedFiles([]);
       setValidationErrors({});
       setIsUploading(false);
+      setExtractedUrls([]);
+      setShowUrlList(false);
     }
   }, [isOpen]);
+
+  // Handle importAllPages checkbox change
+  useEffect(() => {
+    if (importAllPages && url && extractedUrls.length === 0) {
+      setShowUrlList(true);
+    } else if (!importAllPages) {
+      setShowUrlList(false);
+      setExtractedUrls([]);
+    }
+  }, [importAllPages, url, extractedUrls.length]);
+
+  const handleExtractUrls = async () => {
+    if (!url.trim()) {
+      showToast({
+        title: "URL Required",
+        description: "Please enter a website URL first.",
+        variant: "error"
+      });
+      return;
+    }
+
+    setIsExtractingUrls(true);
+    
+    try {
+      const urls = await sitemapParser.extractUrls(url);
+      setExtractedUrls(urls);
+      setShowUrlList(true);
+      
+      showToast({
+        title: "URLs Extracted",
+        description: `Found ${urls.length} URLs from sitemap`,
+        variant: "success"
+      });
+    } catch (error) {
+      console.error('Error extracting URLs:', error);
+      showToast({
+        title: "Extraction Failed",
+        description: error instanceof Error ? error.message : "Failed to extract URLs from sitemap",
+        variant: "error"
+      });
+      
+      // Show empty URL list for manual entry
+      setExtractedUrls([]);
+      setShowUrlList(true);
+    } finally {
+      setIsExtractingUrls(false);
+    }
+  };
+
+  const handleUrlsChange = (urls: ExtractedUrl[]) => {
+    setExtractedUrls(urls);
+  };
+
+  const handleAddManualUrl = (newUrl: string) => {
+    const urlId = `manual-${Date.now()}-${Math.random()}`;
+    const newUrlData: ExtractedUrl = {
+      id: urlId,
+      url: newUrl,
+      selected: true
+    };
+    
+    setExtractedUrls(prev => [...prev, newUrlData]);
+  };
 
   const validateForm = (): boolean => {
     const errors: ValidationErrors = {};
@@ -217,6 +292,14 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
           errors.url = 'Website URL is required';
         } else if (!isValidUrl(url)) {
           errors.url = 'Please enter a valid URL';
+        }
+        
+        // If importAllPages is checked and we have extracted URLs, check if any are selected
+        if (importAllPages && extractedUrls.length > 0) {
+          const selectedUrls = extractedUrls.filter(u => u.selected);
+          if (selectedUrls.length === 0) {
+            errors.url = 'Please select at least one URL to import';
+          }
         }
         break;
 
@@ -375,7 +458,43 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
 
         switch (sourceType) {
           case 'url':
-            payload.url = url;
+            if (importAllPages && extractedUrls.length > 0) {
+              // Create multiple sources for selected URLs
+              const selectedUrls = extractedUrls.filter(u => u.selected);
+              const responses = [];
+              
+              for (const urlData of selectedUrls) {
+                const urlPayload = {
+                  agent_id: parseInt(agentId),
+                  title: `${documentName} - ${urlData.url}`,
+                  url: urlData.url
+                };
+                
+                try {
+                  const urlResponse = await knowledgeApi.createSource(urlPayload);
+                  if (!urlResponse.ok) {
+                    const errorData = await urlResponse.json().catch(() => ({}));
+                    throw new Error(errorData.message || errorData.error || errorData.detail || `Failed to create source for ${urlData.url}`);
+                  }
+                  responses.push(urlResponse);
+                } catch (error) {
+                  console.error(`Error creating source for ${urlData.url}:`, error);
+                  throw error;
+                }
+              }
+              
+              response = responses[0];
+              success = responses.length > 0;
+            } else {
+              // Single URL
+              payload.url = url;
+              response = await knowledgeApi.createSource(payload);
+              if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || errorData.error || errorData.detail || 'Failed to create knowledge source');
+              }
+              success = true;
+            }
             break;
           case 'plainText':
             payload.plain_text = plainText;
@@ -599,6 +718,9 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
                   if (validationErrors.url) {
                     setValidationErrors(prev => ({ ...prev, url: undefined }));
                   }
+                  // Reset URL extraction when URL changes
+                  setExtractedUrls([]);
+                  setShowUrlList(false);
                 }}
                 className={`${validationErrors.url ? 'border-red-500' : ''}`}
               />
@@ -606,6 +728,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
                 <p className="text-sm text-red-600">{validationErrors.url}</p>
               )}
             </div>
+            
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="import-all-pages" 
@@ -616,6 +739,36 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
                 Import all pages from this domain
               </Label>
             </div>
+
+            {importAllPages && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <ModernButton
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExtractUrls}
+                    disabled={!url.trim() || isExtractingUrls}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    {isExtractingUrls ? 'Extracting URLs...' : 'Extract URLs from Sitemap'}
+                  </ModernButton>
+                  
+                  {extractedUrls.length > 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      {extractedUrls.filter(u => u.selected).length} of {extractedUrls.length} URLs selected
+                    </p>
+                  )}
+                </div>
+
+                {showUrlList && (
+                  <UrlListManager
+                    urls={extractedUrls}
+                    onUrlsChange={handleUrlsChange}
+                    onAddManualUrl={handleAddManualUrl}
+                  />
+                )}
+              </div>
+            )}
           </div>
         );
 
