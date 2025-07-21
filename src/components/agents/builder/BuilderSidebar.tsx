@@ -147,7 +147,7 @@ export const BuilderSidebar = () => {
 
   // Fetch knowledge sources for the agent
   const { 
-    data: knowledgeSources, 
+    data: knowledgeSourcesData, 
     isLoading: sourcesLoading, 
     error: sourcesError 
   } = useQuery({
@@ -156,7 +156,7 @@ export const BuilderSidebar = () => {
       const token = getAccessToken();
       if (!token) throw new Error('No authentication token');
 
-      const response = await fetch(`${BASE_URL}agents/${agentData.id}/knowledge-sources/`, {
+      const response = await fetch(`${BASE_URL}agents/${agentData.id}/knowledge-folder/`, {
         headers: getAuthHeaders(token)
       });
 
@@ -165,13 +165,20 @@ export const BuilderSidebar = () => {
       }
 
       const data = await response.json();
-      return data.data || [];
+      console.log('Agent knowledge sources:', data);
+      return data;
     },
     enabled: !!agentData.id,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+
+  // Handle different possible data structures
+  const knowledgeSources = knowledgeSourcesData?.data?.knowledge_sources?.knowledge_sources || 
+                           knowledgeSourcesData?.data?.knowledge_sources || 
+                           knowledgeSourcesData?.knowledge_sources || 
+                           [];
 
   const handleSourceClick = (sourceId: number) => {
     setSelectedSourceId(sourceId);
@@ -291,7 +298,7 @@ export const BuilderSidebar = () => {
     );
   }
 
-  const displaySources = knowledgeSources || [];
+  const displaySources = Array.isArray(knowledgeSources) ? knowledgeSources : [];
 
   return (
     <>

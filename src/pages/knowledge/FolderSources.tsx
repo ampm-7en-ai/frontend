@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ModernInput } from '@/components/ui/modern-input';
@@ -41,17 +40,9 @@ const FolderSources = () => {
       }
 
       const data = await response.json();
+      console.log('Folder API response:', data);
       
-      // Transform the data to match the expected format
-      return {
-        message: "Knowledge sources retrieved successfully",
-        data: {
-          folder_id: parseInt(agentId || '1'),
-          folder_name: `Agent ${agentId} Knowledge Sources`,
-          knowledge_sources: data.data || []
-        },
-        status: "success"
-      };
+      return data;
     },
     enabled: !!agentId,
     staleTime: 5 * 60 * 1000,
@@ -59,11 +50,15 @@ const FolderSources = () => {
     refetchOnWindowFocus: false,
   });
 
-  let sources = folderData?.data?.knowledge_sources || [];
-  sources = sources.knowledge_sources;
-  const folderName = folderData?.data?.folder_name || 'Unknown Folder';
+  // Handle different possible data structures
+  const sources = folderData?.data?.knowledge_sources?.knowledge_sources || 
+                  folderData?.data?.knowledge_sources || 
+                  folderData?.knowledge_sources || 
+                  [];
+  
+  const folderName = folderData?.data?.folder_name || `Agent ${agentId} Knowledge Sources`;
 
-  const filteredSources = sources.filter(source => {
+  const filteredSources = sources.filter ? sources.filter(source => {
     const matchesSearch = source.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.url?.toLowerCase().includes(searchQuery.toLowerCase());
     
@@ -75,7 +70,7 @@ const FolderSources = () => {
       (typeFilter === 'third_party' && source.type === 'third_party');
     
     return matchesSearch && matchesType;
-  });
+  }) : [];
 
   const typeFilterOptions = [
     { value: 'all', label: 'All Sources' },
