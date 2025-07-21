@@ -31,7 +31,7 @@ const KnowledgeBase = () => {
       const token = getAccessToken();
       if (!token) throw new Error('No authentication token');
 
-      const response = await fetch(`${BASE_URL}knowledge/folders/`, {
+      const response = await fetch(`${BASE_URL}knowledge-folders/`, {
         headers: getAuthHeaders(token)
       });
 

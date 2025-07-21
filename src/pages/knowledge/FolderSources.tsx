@@ -32,7 +32,7 @@ const FolderSources = () => {
       const token = getAccessToken();
       if (!token) throw new Error('No authentication token');
 
-      const response = await fetch(`${BASE_URL}agents/${agentId}/knowledge-sources/`, {
+      const response = await fetch(`${BASE_URL}agents/${agentId}/knowledge-folder/`, {
         headers: getAuthHeaders(token)
       });
 
@@ -59,7 +59,8 @@ const FolderSources = () => {
     refetchOnWindowFocus: false,
   });
 
-  const sources = folderData?.data?.knowledge_sources || [];
+  let sources = folderData?.data?.knowledge_sources || [];
+  sources = sources.knowledge_sources;
   const folderName = folderData?.data?.folder_name || 'Unknown Folder';
 
   const filteredSources = sources.filter(source => {
