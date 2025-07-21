@@ -132,9 +132,9 @@ const KnowledgeBase = () => {
                       {folder.name}
                       <ArrowRight className="h-3 w-3 text-slate-400" />
                     </h3>
-                    <Badge className="bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700 text-xs font-medium">
-                      {folder.file_count || 0} {folder.file_count === 1 ? 'file' : 'files'}
-                    </Badge>
+                    {/* <Badge className="bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700 text-xs font-medium">
+                      {filteredFolders.length || 0} {filteredFolders.length === 1 ? 'file' : 'files'}
+                    </Badge> */}
                   </div>
                   <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                     Agent {folder.agent} • Created {formatDate(folder.created_at)}

@@ -37,6 +37,8 @@ const getBadgeForStatus = (status: string) => {
       return <Badge variant="default" className="text-[10px] px-2 py-0.5 bg-blue-100 text-blue-700 border-blue-200">Training</Badge>;
     case 'failed':
       return <Badge variant="default" className="text-[10px] px-2 py-0.5 bg-red-100 text-red-700 border-red-200">Failed</Badge>;
+    case 'deleted':
+      return <Badge variant="default" className="text-[10px] px-2 py-0.5 bg-red-100 text-red-700 border-red-200">Deleted</Badge>;
     default:
       return <Badge variant="outline" className="text-[10px] px-2 py-0.5">Unknown</Badge>;
   }
@@ -112,7 +114,7 @@ export const BuilderSidebar = () => {
       const token = getAccessToken();
       if (!token) throw new Error('No authentication token');
 
-      const response = await fetch(`${BASE_URL}agents/${agentData.id}/knowledge-sources/`, {
+      const response = await fetch(`${BASE_URL}agents/${agentData.id}/knowledge-folder/`, {
         headers: getAuthHeaders(token)
       });
 
@@ -122,7 +124,7 @@ export const BuilderSidebar = () => {
 
       const data = await response.json();
       console.log('Agent knowledge sources:', data);
-      return data;
+      return data.data;
     },
     enabled: !!agentData.id,
     staleTime: 5 * 60 * 1000,
@@ -145,12 +147,9 @@ export const BuilderSidebar = () => {
       const token = getAccessToken();
       if (!token) throw new Error('No authentication token');
 
-      const response = await fetch(`${BASE_URL}agents/${agentData.id}/remove-knowledge-sources/`, {
-        method: 'POST',
-        headers: getAuthHeaders(token),
-        body: JSON.stringify({
-          knowledgeSources: [sourceToDelete]
-        })
+      const response = await fetch(`${BASE_URL}knowledgesource/${sourceToDelete}/`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(token)
       });
 
       if (!response.ok) {
