@@ -1,4 +1,3 @@
-
 import { XMLParser } from 'fast-xml-parser';
 
 interface SitemapUrl {
@@ -35,7 +34,6 @@ export class SitemapParser {
   constructor() {
     this.parser = new XMLParser({
       ignoreAttributes: false,
-      ignoreNamespace: false,
       parseTagValue: true,
       parseAttributeValue: true,
       trimValues: true
