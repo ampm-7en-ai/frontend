@@ -665,7 +665,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
                 <Label className="text-sm font-medium text-foreground">Selected Files</Label>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {files.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-200 dark:bg-gray-900 rounded-xl">
                       <div className="flex items-center gap-3">
                         <FileText className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">{file.name}</span>
@@ -678,6 +678,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile(index)}
+                        iconOnly
                         className="h-8 w-8 p-0"
                       >
                         <X className="h-4 w-4" />
