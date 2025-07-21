@@ -51,25 +51,11 @@ export const ConfigurationReadOnlyView = ({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 pb-2 border-b border-border">
-        <div className="p-2 bg-primary/10 rounded-lg">
-          <FileText className="h-4 w-4 text-primary" />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-sm font-semibold text-foreground">Historical Configuration</h3>
-          <p className="text-xs text-muted-foreground">View saved configuration parameters</p>
-        </div>
-        {cellId && (
-          <Badge variant="secondary" className="text-xs">
-            {cellId}
-          </Badge>
-        )}
-      </div>
+      
 
       {/* Model Configuration */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3 pb-2 border-b border-border">
+      <div className="space-y-2 border-b border-border pb-2">
+        <div className="flex items-center gap-3 mb-0 pb-0">
           <div className="p-2 bg-primary/10 rounded-lg">
             <Settings2 className="h-4 w-4 text-primary" />
           </div>
@@ -79,7 +65,7 @@ export const ConfigurationReadOnlyView = ({
           </div>
         </div>
         
-        <div className="px-3">
+        <div className="px-0">
           <Badge variant="default" className="text-xs">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary-foreground" />
@@ -104,13 +90,6 @@ export const ConfigurationReadOnlyView = ({
           </span>
         </div>
         
-        <div className="px-3">
-          <div className="text-xs text-muted-foreground">
-            {config?.temperature === 0 ? 'Deterministic' : 
-             config?.temperature && config.temperature <= 0.3 ? 'Conservative' :
-             config?.temperature && config.temperature <= 0.7 ? 'Balanced' : 'Creative'}
-          </div>
-        </div>
       </div>
 
       {/* Token Length */}
@@ -127,43 +106,40 @@ export const ConfigurationReadOnlyView = ({
             {config?.maxLength || 8000}
           </span>
         </div>
-        
-        <div className="px-3">
-          <div className="text-xs text-muted-foreground">
-            tokens maximum response length
-          </div>
-        </div>
       </div>
 
       {/* System Prompt */}
       <div className="space-y-4">
-        <div className="flex items-center gap-3 pb-2 border-b border-border">
-          <div className="p-2 bg-green-500/10 rounded-lg">
+        <div className="flex gap-3 pb-2 border-none flex-col">
+          <div className="flex gap-3">
+            <div className="p-2 bg-green-500/10 rounded-lg">
             <FileText className="h-4 w-4 text-green-500" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-foreground">System Prompt</h3>
+              <p className="text-xs text-muted-foreground">Agent behavior instructions</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => handleCopy(config?.systemPrompt || '', 'System Prompt')}
+            >
+              {copiedField === 'System Prompt' ? (
+                <Check className="h-4 w-4 text-green-500" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
           </div>
-          <div className="flex-1">
-            <h3 className="text-sm font-semibold text-foreground">System Prompt</h3>
-            <p className="text-xs text-muted-foreground">Agent behavior instructions</p>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={() => handleCopy(config?.systemPrompt || '', 'System Prompt')}
-          >
-            {copiedField === 'System Prompt' ? (
-              <Check className="h-4 w-4 text-green-500" />
-            ) : (
-              <Copy className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
-        
-        <div className="px-3">
-          <div className="text-sm text-foreground bg-muted/30 rounded-md p-3 border max-h-32 overflow-y-auto">
+          <div className="px-0">
+          <div className="text-sm text-foreground bg-muted/30 rounded-md p-3 border max-h-80 overflow-y-auto">
             {config?.systemPrompt || 'No system prompt configured'}
           </div>
         </div>
+        </div>
+        
+        
       </div>
     </div>
   );

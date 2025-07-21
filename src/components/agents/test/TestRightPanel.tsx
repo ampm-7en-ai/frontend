@@ -93,7 +93,7 @@ export const TestRightPanel = ({
   );
 
   const getPanelTitle = () => {
-    if (isPreparingNewMessage) return 'Configure New Message';
+    if (isPreparingNewMessage) return 'Request Configuration';
     if (isHistoryMode) return 'Historical Configuration';
     return 'Request Configuration';
   };
@@ -114,7 +114,7 @@ export const TestRightPanel = ({
       {/* Panel Header */}
       <div className="h-14 px-4 bg-background border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {showBackButton && (
+          {/* {showBackButton && (
             <Button
               variant="ghost"
               size="icon"
@@ -123,7 +123,7 @@ export const TestRightPanel = ({
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-          )}
+          )} */}
           <h3 className="text-lg font-semibold text-foreground">
             {getPanelTitle()}
           </h3>
@@ -150,25 +150,7 @@ export const TestRightPanel = ({
             />
           ) : (
             <>
-              {/* Header */}
-              <div className="flex items-center gap-3 pb-2">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <FileText className="h-4 w-4 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-foreground">
-                    {getPanelTitle()}
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    {getPanelDescription()}
-                  </p>
-                </div>
-                {selectedCellId && (
-                  <Badge variant="secondary" className="text-xs">
-                    {selectedCellId}
-                  </Badge>
-                )}
-              </div>
+              
 
               {/* Model Configuration Section */}
               <div className="space-y-4">
@@ -182,7 +164,7 @@ export const TestRightPanel = ({
                   </div>
                 </div>
 
-                <div className="px-3">
+                <div className="px-0">
                   <ModernDropdown
                     value={currentConfig.model}
                     onValueChange={(value) => handleConfigUpdate('model', value)}
@@ -208,7 +190,7 @@ export const TestRightPanel = ({
                   </span>
                 </div>
                 
-                <div className="px-3">
+                <div className="px-0">
                   <Slider
                     min={0}
                     max={1}
@@ -235,7 +217,7 @@ export const TestRightPanel = ({
                   </span>
                 </div>
                 
-                <div className="px-3">
+                <div className="px-0">
                   <ExponentialSlider
                     minValue={4000}
                     maxValue={32000}
@@ -258,7 +240,7 @@ export const TestRightPanel = ({
                   </div>
                 </div>
                 
-                <div className="px-3">
+                <div className="px-0">
                   <SystemPromptSection
                     agentType={currentConfig.agentType || 'general-assistant'}
                     systemPrompt={currentConfig.systemPrompt || ''}
