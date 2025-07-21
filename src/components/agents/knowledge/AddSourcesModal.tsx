@@ -238,25 +238,39 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
 
     setIsExtractingUrls(true);
     
+    // Show loading toast with more detailed feedback
+    const loadingToastId = showToast({
+      title: "Extracting URLs",
+      description: "Analyzing sitemap and extracting URLs...",
+      variant: "loading"
+    });
+    
     try {
       const urls = await sitemapParser.extractUrls(url);
       setExtractedUrls(urls);
       setShowUrlList(true);
       
+      hideToast(loadingToastId);
       showToast({
-        title: "URLs Extracted",
-        description: `Found ${urls.length} URLs from sitemap`,
+        title: "URLs Extracted Successfully",
+        description: `Found ${urls.length} URLs from sitemap. You can review and select which ones to import.`,
         variant: "success"
       });
     } catch (error) {
       console.error('Error extracting URLs:', error);
+      
+      hideToast(loadingToastId);
+      
+      // Show more detailed error message
+      const errorMessage = error instanceof Error ? error.message : "Failed to extract URLs from sitemap";
+      
       showToast({
         title: "Extraction Failed",
-        description: error instanceof Error ? error.message : "Failed to extract URLs from sitemap",
+        description: errorMessage,
         variant: "error"
       });
       
-      // Show empty URL list for manual entry
+      // Show empty URL list for manual entry with helpful message
       setExtractedUrls([]);
       setShowUrlList(true);
     } finally {
