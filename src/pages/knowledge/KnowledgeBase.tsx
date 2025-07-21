@@ -7,7 +7,7 @@ import { ChevronRight, Search, FolderOpen, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { knowledgeApi } from '@/utils/api-config';
+import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Badge } from "@/components/ui/badge";
@@ -28,49 +28,18 @@ const KnowledgeBase = () => {
   } = useQuery({
     queryKey: ['knowledgeFolders'],
     queryFn: async () => {
-      // Dummy data for testing UI - adding file counts
-      return {
-        message: "List of AgentKnowledgeFolders for your team owner",
-        data: [
-          {
-            id: 1,
-            name: "Marketing Agent Knowledge",
-            agent: 1,
-            owner: 1,
-            file_count: 12,
-            created_at: "2025-07-17T11:14:41.680411Z",
-            updated_at: "2025-07-17T11:14:41.680411Z"
-          },
-          {
-            id: 2,
-            name: "Customer Support Bot",
-            agent: 2,
-            owner: 1,
-            file_count: 8,
-            created_at: "2025-07-16T09:30:15.123456Z",
-            updated_at: "2025-07-18T14:22:33.987654Z"
-          },
-          {
-            id: 3,
-            name: "Sales Assistant AI",
-            agent: 3,
-            owner: 1,
-            file_count: 24,
-            created_at: "2025-07-15T16:45:22.555777Z",
-            updated_at: "2025-07-18T10:15:44.111222Z"
-          },
-          {
-            id: 4,
-            name: "Product Documentation Helper",
-            agent: 4,
-            owner: 1,
-            file_count: 6,
-            created_at: "2025-07-14T08:20:11.333444Z",
-            updated_at: "2025-07-17T13:55:28.666888Z"
-          }
-        ],
-        status: "success"
-      };
+      const token = getAccessToken();
+      if (!token) throw new Error('No authentication token');
+
+      const response = await fetch(`${BASE_URL}knowledge/folders/`, {
+        headers: getAuthHeaders(token)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch knowledge folders');
+      }
+
+      return response.json();
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -164,7 +133,7 @@ const KnowledgeBase = () => {
                       <ArrowRight className="h-3 w-3 text-slate-400" />
                     </h3>
                     <Badge className="bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700 text-xs font-medium">
-                      {folder.file_count} {folder.file_count === 1 ? 'file' : 'files'}
+                      {folder.file_count || 0} {folder.file_count === 1 ? 'file' : 'files'}
                     </Badge>
                   </div>
                   <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">

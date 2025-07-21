@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, Folder, FolderOpen, X, Loader2 } from 'lucide-react';
@@ -32,14 +33,14 @@ const getIconForType = (type: string) => {
 
 const getBadgeForStatus = (status: string) => {
   switch (status) {
-    case 'Active':
-      return <Badge variant="default" className="text-[10px] px-2 py-0.5 bg-green-100 text-green-700 border-green-200">Trained</Badge>;
-    case 'Training':
+    case 'active':
+      return <Badge variant="default" className="text-[10px] px-2 py-0.5 bg-green-100 text-green-700 border-green-200">Active</Badge>;
+    case 'training':
       return <Badge variant="default" className="text-[10px] px-2 py-0.5 bg-blue-100 text-blue-700 border-blue-200">Training</Badge>;
-    case 'Issues':
-      return <Badge variant="default" className="text-[10px] px-2 py-0.5 bg-yellow-100 text-yellow-700 border-yellow-200">Issues</Badge>;
+    case 'failed':
+      return <Badge variant="default" className="text-[10px] px-2 py-0.5 bg-red-100 text-red-700 border-red-200">Failed</Badge>;
     default:
-      return <Badge variant="outline" className="text-[10px] px-2 py-0.5">Untrained</Badge>;
+      return <Badge variant="outline" className="text-[10px] px-2 py-0.5">Unknown</Badge>;
   }
 };
 
@@ -71,9 +72,9 @@ const KnowledgeSourceTreeCard = ({ source, expanded, onToggle, onDelete }: {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-              {source.name}
+              {source.title}
             </h3>
-            {getBadgeForStatus(source.trainingStatus)}
+            {getBadgeForStatus(source.status)}
           </div>
           <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
             {source.type}
@@ -94,61 +95,36 @@ const KnowledgeSourceTreeCard = ({ source, expanded, onToggle, onDelete }: {
       {expanded && (
         <div className="border-t border-gray-200 dark:border-gray-700 px-3 pb-3">
           <div className="space-y-0.5 mt-2">
-            {source.knowledge_sources?.filter((ks: any) => ks.is_selected).map((ks: any, index: number) => (
-              <div key={index} className="ml-4">
-                {/* Main source node */}
-                <div className="flex items-center gap-2 py-1">
-                  <div className="w-3 flex justify-center">
-                    <div className="w-0.5 h-3 bg-gray-300 dark:bg-gray-600"></div>
-                  </div>
-                  <div className="w-2 h-0.5 bg-gray-300 dark:bg-gray-600"></div>
-                  <File className="h-3 w-3 text-green-500 flex-shrink-0" />
-                  {ks.url ? (
-                    <a 
-                      href={ks.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline truncate flex-1"
-                    >
-                      {ks.title || ks.url || `Source ${index + 1}`}
-                    </a>
-                  ) : (
-                    <span className="text-xs text-gray-700 dark:text-gray-300 truncate flex-1">
-                      {ks.title || `Source ${index + 1}`}
-                    </span>
-                  )}
+            <div className="ml-4">
+              {/* Main source node */}
+              <div className="flex items-center gap-2 py-1">
+                <div className="w-3 flex justify-center">
+                  <div className="w-0.5 h-3 bg-gray-300 dark:bg-gray-600"></div>
                 </div>
-                
-                {/* Sub URLs as tree branches */}
-                {source.type === 'website' && ks.metadata?.sub_urls?.children?.length > 0 && (
-                  <div className="space-y-0.5">
-                    {ks.metadata.sub_urls.children.filter((subUrl: any) => subUrl.is_selected).map((subUrl: any, subIndex: number) => (
-                      <div key={subIndex} className="flex items-center gap-2 py-0.5 ml-2">
-                        <div className="w-3 flex justify-center">
-                          <div className="w-0.5 h-2 bg-gray-200 dark:bg-gray-600"></div>
-                        </div>
-                        <div className="w-2 h-0.5 bg-gray-200 dark:bg-gray-600"></div>
-                        <Globe className="h-2.5 w-2.5 text-blue-500 flex-shrink-0" />
-                        <a 
-                          href={subUrl.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline truncate flex-1"
-                        >
-                          {subUrl.url.replace(/^https?:\/\//, '')}
-                        </a>
-                      </div>
-                    ))}
-                  </div>
+                <div className="w-2 h-0.5 bg-gray-300 dark:bg-gray-600"></div>
+                <File className="h-3 w-3 text-green-500 flex-shrink-0" />
+                {source.url ? (
+                  <a 
+                    href={source.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline truncate flex-1"
+                  >
+                    {source.title || source.url}
+                  </a>
+                ) : (
+                  <span className="text-xs text-gray-700 dark:text-gray-300 truncate flex-1">
+                    {source.title || 'Source'}
+                  </span>
                 )}
               </div>
-            ))}
-            {source.knowledge_sources?.filter((ks: any) => ks.is_selected).length === 0 && (
+            </div>
+            {!source.url && !source.title && (
               <div className="text-center py-4">
                 <div className="w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-700 mx-auto mb-2 flex items-center justify-center">
                   <File className="h-2.5 w-2.5 text-gray-500 dark:text-gray-400" />
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">No sources selected</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">No content available</p>
               </div>
             )}
           </div>
@@ -168,6 +144,34 @@ export const BuilderSidebar = () => {
   const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
+
+  // Fetch knowledge sources for the agent
+  const { 
+    data: knowledgeSources, 
+    isLoading: sourcesLoading, 
+    error: sourcesError 
+  } = useQuery({
+    queryKey: ['agentKnowledgeSources', agentData.id],
+    queryFn: async () => {
+      const token = getAccessToken();
+      if (!token) throw new Error('No authentication token');
+
+      const response = await fetch(`${BASE_URL}agents/${agentData.id}/knowledge-sources/`, {
+        headers: getAuthHeaders(token)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch knowledge sources');
+      }
+
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: !!agentData.id,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
   const handleSourceClick = (sourceId: number) => {
     setSelectedSourceId(sourceId);
@@ -198,9 +202,8 @@ export const BuilderSidebar = () => {
         throw new Error('Failed to delete knowledge source');
       }
 
-      // Update local state
-      const updatedSources = agentData.knowledgeSources.filter(source => source.id !== sourceToDelete);
-      updateAgentData({ knowledgeSources: updatedSources });
+      // Refresh the data
+      queryClient.invalidateQueries({ queryKey: ['agentKnowledgeSources', agentData.id] });
       
       // Close modal if the deleted source was selected
       if (selectedSourceId === sourceToDelete) {
@@ -252,7 +255,7 @@ export const BuilderSidebar = () => {
     );
   }
 
-  if (isLoading) {
+  if (isLoading || sourcesLoading) {
     return (
       <div className="w-full h-full bg-background flex flex-col">
         {/* Header Skeleton */}
@@ -288,6 +291,8 @@ export const BuilderSidebar = () => {
     );
   }
 
+  const displaySources = knowledgeSources || [];
+
   return (
     <>
       <div className="w-full h-full bg-background flex flex-col">
@@ -303,7 +308,7 @@ export const BuilderSidebar = () => {
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
             <div className="p-4 space-y-3">
-              {agentData.knowledgeSources.length === 0 ? (
+              {displaySources.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <Brain className="h-8 w-8 text-white" />
@@ -316,7 +321,7 @@ export const BuilderSidebar = () => {
                 </div>
               ) : (
                 <>
-                  {agentData.knowledgeSources.map((knowledgeSource) => (
+                  {displaySources.map((knowledgeSource) => (
                     <KnowledgeSourceTreeCard
                       key={knowledgeSource.id}
                       source={knowledgeSource}
@@ -334,7 +339,7 @@ export const BuilderSidebar = () => {
         <KnowledgeSourceModal
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
-          sources={agentData.knowledgeSources}
+          sources={displaySources}
           initialSourceId={selectedSourceId}
           agentId={agentData.id?.toString()}
           onSourceDelete={() => {}}

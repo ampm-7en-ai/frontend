@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ModernInput } from '@/components/ui/modern-input';
@@ -5,7 +6,7 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { Search, FileText, Globe, Plus, ArrowLeft, MoreHorizontal, Download, Trash2, Database, File } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { useToast } from '@/hooks/use-toast';
-import { knowledgeApi } from '@/utils/api-config';
+import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { useQuery } from '@tanstack/react-query';
 import AddSourcesModal from '@/components/agents/knowledge/AddSourcesModal';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
@@ -28,100 +29,26 @@ const FolderSources = () => {
   } = useQuery({
     queryKey: ['folderSources', agentId],
     queryFn: async () => {
-      // Dummy data for testing UI
+      const token = getAccessToken();
+      if (!token) throw new Error('No authentication token');
+
+      const response = await fetch(`${BASE_URL}agents/${agentId}/knowledge-sources/`, {
+        headers: getAuthHeaders(token)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch knowledge sources');
+      }
+
+      const data = await response.json();
+      
+      // Transform the data to match the expected format
       return {
-        message: "Knowledge folder retrieved successfully",
+        message: "Knowledge sources retrieved successfully",
         data: {
           folder_id: parseInt(agentId || '1'),
-          folder_name: `Agent ${agentId} Knowledge Folder`,
-          knowledge_sources: [
-            {
-              id: 5,
-              url: "https://docs.company.com/api-guide",
-              file: null,
-              plain_text: null,
-              google_drive_file_id: null,
-              title: "API Documentation Guide",
-              status: "active",
-              agent_knowledge_folder: parseInt(agentId || '1'),
-              parent_knowledge_source: null,
-              metadata: {
-                no_of_pages: 12,
-                no_of_chars: 4041,
-                upload_date: "2025-07-07T04:59:02.449302+00:00"
-              },
-              owner: 1,
-              is_selected: true,
-              training_status: "Active",
-              sub_urls: null,
-              type: 'website'
-            },
-            {
-              id: 6,
-              url: null,
-              file: "http://localhost:8000/media/knowledge_sources/6_Company_Handbook.pdf",
-              plain_text: null,
-              google_drive_file_id: null,
-              title: "payling-api-documentation.pdf",
-              status: "active",
-              agent_knowledge_folder: parseInt(agentId || '1'),
-              parent_knowledge_source: null,
-              metadata: {
-                format: "pdf",
-                file_size: "12.3 KB",
-                no_of_rows: null,
-                no_of_chars: 125000,
-                no_of_pages: 4,
-                upload_date: "2025-07-18T04:59:02.449302+00:00"
-              },
-              owner: 1,
-              is_selected: true,
-              training_status: "Active",
-              sub_urls: null,
-              type: 'document'
-            },
-            {
-              id: 7,
-              url: "https://support.company.com/faq",
-              file: null,
-              plain_text: null,
-              google_drive_file_id: null,
-              title: "Customer Support FAQ",
-              status: "training",
-              agent_knowledge_folder: parseInt(agentId || '1'),
-              parent_knowledge_source: null,
-              metadata: {
-                no_of_pages: 8,
-                no_of_chars: 2340,
-                upload_date: "2025-07-15T12:30:15.123456+00:00"
-              },
-              owner: 1,
-              is_selected: false,
-              training_status: "Training in progress",
-              sub_urls: null,
-              type: 'website'
-            },
-            {
-              id: 8,
-              url: null,
-              file: null,
-              plain_text: "This is sample plain text content that was directly entered into the knowledge base system for testing purposes.",
-              google_drive_file_id: null,
-              title: "Sample Plain Text Entry",
-              status: "failed",
-              agent_knowledge_folder: parseInt(agentId || '1'),
-              parent_knowledge_source: null,
-              metadata: {
-                no_of_chars: 115,
-                upload_date: "2025-07-17T12:30:15.123456+00:00"
-              },
-              owner: 1,
-              is_selected: false,
-              training_status: "Training failed",
-              sub_urls: null,
-              type: 'plain_text'
-            }
-          ]
+          folder_name: `Agent ${agentId} Knowledge Sources`,
+          knowledge_sources: data.data || []
         },
         status: "success"
       };
