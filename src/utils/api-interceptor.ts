@@ -40,6 +40,8 @@ const refreshAccessToken = async (): Promise<string | null> => {
     
     if (!refreshToken) return null;
     
+    console.log('Attempting to refresh token...');
+    
     const response = await fetch(getApiUrl('token/refresh/'), {
       method: 'POST',
       headers: {
@@ -51,10 +53,12 @@ const refreshAccessToken = async (): Promise<string | null> => {
     });
     
     if (!response.ok) {
+      console.error('Refresh token expired or invalid');
       throw new Error('Refresh token expired');
     }
     
     const data = await response.json();
+    console.log('Token refreshed successfully');
     
     // Update stored user data with new access token
     const updatedUserData = {
@@ -63,6 +67,11 @@ const refreshAccessToken = async (): Promise<string | null> => {
     };
     
     localStorage.setItem('user', JSON.stringify(updatedUserData));
+    
+    // Dispatch event to notify AuthContext of token update
+    window.dispatchEvent(new CustomEvent('token-refreshed', {
+      detail: { newToken: data.access, userData: updatedUserData }
+    }));
     
     return data.access;
   } catch (error) {
@@ -90,8 +99,12 @@ export const apiRequest = async (
       const userData = JSON.parse(user);
       accessToken = userData.accessToken;
       
+      console.log('Current token expiring check:', accessToken ? isTokenExpiring(accessToken) : 'No token');
+      
       // Check if token is expiring and refresh if needed
       if (accessToken && isTokenExpiring(accessToken)) {
+        console.log('Token is expiring, refreshing...');
+        
         if (!isRefreshing) {
           isRefreshing = true;
           refreshPromise = refreshAccessToken();
@@ -100,6 +113,9 @@ export const apiRequest = async (
         const newToken = await refreshPromise;
         if (newToken) {
           accessToken = newToken;
+          console.log('Using refreshed token for request');
+        } else {
+          console.log('Failed to refresh token');
         }
         
         isRefreshing = false;
@@ -163,6 +179,7 @@ export const apiRequest = async (
       isRefreshing = false;
       
       if (newToken) {
+        console.log('Token refreshed, retrying original request');
         // Retry the original request with new token
         let retryHeaders: HeadersInit = {};
         
@@ -197,12 +214,14 @@ export const apiRequest = async (
         
         // If still 401 after refresh, trigger logout
         if (retryResponse.status === 401) {
+          console.log('Still 401 after refresh, triggering logout');
           window.dispatchEvent(new CustomEvent('token-expired'));
         }
         
         return retryResponse;
       } else {
         // Refresh failed, trigger logout
+        console.log('Refresh failed, triggering logout');
         window.dispatchEvent(new CustomEvent('token-expired'));
       }
     }

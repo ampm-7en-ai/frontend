@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getApiUrl, getAuthHeaders, isUserVerified, authApi } from '@/utils/api-config';
@@ -114,6 +113,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, []);
 
+  // Listen for token refresh events and update user state
+  useEffect(() => {
+    const handleTokenRefreshed = (event: any) => {
+      const { newToken, userData } = event.detail;
+      console.log('Token refreshed, updating AuthContext user state');
+      
+      // Update user state with new token
+      setUser(prevUser => {
+        if (prevUser) {
+          return {
+            ...prevUser,
+            accessToken: newToken
+          };
+        }
+        return prevUser;
+      });
+    };
+
+    window.addEventListener('token-refreshed', handleTokenRefreshed);
+    
+    return () => {
+      window.removeEventListener('token-refreshed', handleTokenRefreshed);
+    };
+  }, []);
+
   // Proactive token checking - check every 5 minutes
   useEffect(() => {
     if (!isAuthenticated || !user?.accessToken) return;
@@ -142,11 +166,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const expirationTime = decoded.exp;
         const timeUntilExpiration = expirationTime - currentTime;
         
-        // If token expires in less than 10 minutes, trigger a refresh
+        // If token expires in less than 10 minutes, log for debugging
         if (timeUntilExpiration < 600) {
-          console.log('Token will expire soon, triggering proactive refresh');
-          // The api-interceptor will handle the actual refresh when the next API call is made
-          // Or we could trigger a refresh immediately if needed
+          console.log('Token will expire soon, time remaining:', timeUntilExpiration, 'seconds');
         }
       } catch (error) {
         console.error('Error checking token expiration:', error);
