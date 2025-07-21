@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, X, ExternalLink, FileSpreadsheet, Layers } from 'lucide-react';
@@ -150,10 +149,10 @@ export const BuilderSidebar = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Extract knowledge sources from the API response
-  const knowledgeSources = knowledgeSourcesData?.knowledge_sources?.knowledge_sources || 
+  // Extract knowledge sources from the API response and filter out deleted ones
+  const knowledgeSources = (knowledgeSourcesData?.knowledge_sources?.knowledge_sources || 
                           knowledgeSourcesData?.knowledge_sources || 
-                          [];
+                          []).filter(source => source && source.status !== 'deleted');
 
   const handleDeleteConfirm = (sourceId: number) => {
     setSourceToDelete(sourceId);

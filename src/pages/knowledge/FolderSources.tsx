@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ModernInput } from '@/components/ui/modern-input';
@@ -54,11 +53,11 @@ const FolderSources = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Handle different possible data structures
-  const sources = folderData?.data?.knowledge_sources?.knowledge_sources || 
+  // Handle different possible data structures and filter out deleted sources
+  const sources = (folderData?.data?.knowledge_sources?.knowledge_sources || 
                   folderData?.data?.knowledge_sources || 
                   folderData?.knowledge_sources || 
-                  [];
+                  []).filter(source => source.status !== 'deleted');
   
   const folderName = folderData?.data?.folder_name || `Agent ${agentId} Knowledge Sources`;
 
