@@ -151,7 +151,7 @@ export const TestRightPanel = ({
           ) : (
             <>
               {/* Header */}
-              <div className="flex items-center gap-3 pb-2 border-b border-border">
+              <div className="flex items-center gap-3 pb-2">
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <FileText className="h-4 w-4 text-primary" />
                 </div>
@@ -172,7 +172,7 @@ export const TestRightPanel = ({
 
               {/* Model Configuration Section */}
               <div className="space-y-4">
-                <div className="flex items-center gap-3 pb-2 border-b border-border">
+                <div className="flex items-center gap-3 pb-2">
                   <div className="p-2 bg-primary/10 rounded-lg">
                     <Settings2 className="h-4 w-4 text-primary" />
                   </div>
@@ -195,7 +195,7 @@ export const TestRightPanel = ({
 
               {/* Temperature Section */}
               <div className="space-y-4">
-                <div className="flex items-center gap-3 pb-2 border-b border-border">
+                <div className="flex items-center gap-3 pb-2">
                   <div className="p-2 bg-orange-500/10 rounded-lg">
                     <Thermometer className="h-4 w-4 text-orange-500" />
                   </div>
@@ -222,7 +222,7 @@ export const TestRightPanel = ({
 
               {/* Token Length Section */}
               <div className="space-y-4">
-                <div className="flex items-center gap-3 pb-2 border-b border-border">
+                <div className="flex items-center gap-3 pb-2">
                   <div className="p-2 bg-blue-500/10 rounded-lg">
                     <Hash className="h-4 w-4 text-blue-500" />
                   </div>
@@ -248,7 +248,7 @@ export const TestRightPanel = ({
 
               {/* System Prompt Section */}
               <div className="space-y-4">
-                <div className="flex items-center gap-3 pb-2 border-b border-border">
+                <div className="flex items-center gap-3 pb-2">
                   <div className="p-2 bg-green-500/10 rounded-lg">
                     <FileText className="h-4 w-4 text-green-500" />
                   </div>
