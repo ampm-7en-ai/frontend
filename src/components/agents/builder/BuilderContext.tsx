@@ -158,15 +158,16 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         
         console.log('Fetched agent data:', agentData);
 
-        // Map API response to our form structure - Fix model configuration mapping
+        // Map API response to our form structure - Enhanced model configuration mapping
         const mappedData: AgentFormData = {
           id: agentData.id || id,
           name: agentData.name || 'Untitled Agent',
           description: agentData.description || 'A helpful AI assistant created with our builder.',
           agentType: agentData.agentType || 'Customer Support',
-          model: agentData.model?.selectedModel || agentData.model?.name || 'gpt-3.5-turbo',
+          // Updated model mapping to handle the new API structure
+          model: agentData.model?.response_model || agentData.model?.selectedModel || agentData.model?.name || 'gpt-3.5-turbo',
           temperature: agentData.model?.temperature || 0.7,
-          maxTokens: agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
+          maxTokens: agentData.model?.token_length || agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
           systemPrompt: agentData.systemPrompt || 'You are a helpful AI assistant. Be friendly, professional, and provide accurate information.',
           primaryColor: agentData.appearance?.primaryColor || '#3b82f6',
           secondaryColor: agentData.appearance?.secondaryColor || '#ffffff',
@@ -190,15 +191,16 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
             aiToAiHandoff: agentData.behavior?.aiToAiHandoff || false,
             multilingualSupport: agentData.behavior?.multilingualSupport || false
           },
+          // Updated settings mapping to match the new API structure
           settings: {
             temperature: agentData.model?.temperature || 0.7,
-            token_length: agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
-            response_model: agentData.model?.selectedModel || agentData.model?.name || 'gpt-3.5-turbo'
+            token_length: agentData.model?.token_length || agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
+            response_model: agentData.model?.response_model || agentData.model?.selectedModel || agentData.model?.name || 'gpt-3.5-turbo'
           },
-          knowledgeSources: formatKnowledgeSources(agentData.knowledge_bases || agentData.knowledgeSources || [])
+          knowledgeSources: formatKnowledgeSources(agentData.knowledge_sources || agentData.knowledgeSources || [])
         };
 
-        console.log('Mapped agent data with knowledge sources:', mappedData);
+        console.log('Mapped agent data with updated model settings:', mappedData);
 
         setState(prev => ({
           ...prev,
@@ -295,10 +297,11 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
             aiToAiHandoff: state.agentData.behavior?.aiToAiHandoff,
             multilingualSupport: state.agentData.behavior?.multilingualSupport
           },
+          // Updated model payload to match the new API structure
           model: {
-            selectedModel: state.agentData.model,
+            response_model: state.agentData.model,
             temperature: state.agentData.temperature,
-            maxResponseLength: state.agentData.maxTokens
+            token_length: state.agentData.maxTokens
           },
           agentType: state.agentData.agentType,
           systemPrompt: state.agentData.systemPrompt,
@@ -333,7 +336,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (response.data) {
         const updatedAgentData = {
           ...response.data,
-          // Map API response to our internal format
+          // Map API response to our internal format with updated model mapping
           name: response.data.name,
           description: response.data.description,
           primaryColor: response.data.appearance?.primaryColor || state.agentData.primaryColor,
@@ -348,12 +351,18 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           suggestions: response.data.behavior?.suggestions || state.agentData.suggestions,
           guidelines: response.data.behavior?.guidelines || state.agentData.guidelines,
           behavior: response.data.behavior || state.agentData.behavior,
-          model: response.data.model?.selectedModel || state.agentData.model,
+          // Updated model mapping for the response
+          model: response.data.model?.response_model || state.agentData.model,
           temperature: response.data.model?.temperature || state.agentData.temperature,
-          maxTokens: response.data.model?.maxResponseLength || state.agentData.maxTokens,
+          maxTokens: response.data.model?.token_length || state.agentData.maxTokens,
+          settings: {
+            temperature: response.data.model?.temperature || state.agentData.temperature,
+            token_length: response.data.model?.token_length || state.agentData.maxTokens,
+            response_model: response.data.model?.response_model || state.agentData.model
+          },
           agentType: response.data.agentType || state.agentData.agentType,
           systemPrompt: response.data.systemPrompt || state.agentData.systemPrompt,
-          knowledgeSources: formatKnowledgeSources(response.data.knowledge_bases || [])
+          knowledgeSources: formatKnowledgeSources(response.data.knowledge_sources || [])
         };
         
         setState(prev => ({ 
