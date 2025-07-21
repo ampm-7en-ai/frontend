@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Search, ExternalLink, CheckAll, X, Plus } from 'lucide-react';
+import { Search, ExternalLink, Check, X, Plus } from 'lucide-react';
 import { ExtractedUrl } from '@/utils/sitemapParser';
 import ModernButton from '@/components/dashboard/ModernButton';
 
@@ -86,7 +86,7 @@ export const UrlListManager: React.FC<UrlListManagerProps> = ({
             onClick={handleSelectAll}
             disabled={selectedCount === totalCount}
           >
-            <CheckAll className="h-4 w-4 mr-1" />
+            <Check className="h-4 w-4 mr-1" />
             All
           </ModernButton>
           <ModernButton

@@ -35,7 +35,7 @@ export class SitemapParser {
   constructor() {
     this.parser = new XMLParser({
       ignoreAttributes: false,
-      ignoreNameSpace: false,
+      ignoreNamespace: false,
       parseTagValue: true,
       parseAttributeValue: true,
       trimValues: true
