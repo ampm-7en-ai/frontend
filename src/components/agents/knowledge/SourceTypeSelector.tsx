@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -63,7 +62,7 @@ interface SourceTypeSelectorProps {
   availableThirdPartyProviders: [string, ThirdPartyConfig][];
   thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig>;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  removeFile: (index: number) => void;
+  removeFile: () => void;
   handleQuickConnect: (provider: ThirdPartyProvider) => void;
   handleRemoveSelectedFile: (index: number) => void;
   handleFileUploadClick: (e?: React.MouseEvent) => void;
@@ -222,9 +221,9 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                 <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 dark:text-gray-600 rounded-2xl flex items-center justify-center mb-4 transition-colors duration-200">
                   {sourceConfigs[sourceType].icon}
                 </div>
-                <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Drop your files here</h3>
+                <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Drop your file here</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                  {sourceType === 'document' ? 'PDF, DOCX, TXT up to 10MB each' : 'CSV, XLSX, XLS up to 10MB each'}
+                  {sourceType === 'document' ? 'PDF, DOCX, TXT up to 10MB' : 'CSV, XLSX, XLS up to 10MB'}
                 </p>
                 <ModernButton 
                   variant="outline" 
@@ -233,12 +232,11 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                   type="button"
                 >
                   <Upload className="h-4 w-4 mr-2" />
-                  Browse Files
+                  Browse File
                 </ModernButton>
                 <input 
                   id="file-upload" 
                   type="file" 
-                  multiple 
                   onChange={handleFileChange}
                   className="hidden" 
                   accept={sourceConfigs[sourceType].acceptedTypes}
@@ -252,30 +250,28 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
             
             {files.length > 0 && (
               <div className="space-y-3">
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Selected Files ({files.length})</Label>
-                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl divide-y divide-slate-100 dark:divide-slate-700 transition-colors duration-200">
-                  {files.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-50 dark:bg-blue-950/50 rounded-lg flex items-center justify-center transition-colors duration-200">
-                          {sourceType === 'document' ? <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" /> : <Table className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate max-w-[200px]">{file.name}</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                        </div>
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Selected File</Label>
+                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl transition-colors duration-200">
+                  <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-50 dark:bg-blue-950/50 rounded-lg flex items-center justify-center transition-colors duration-200">
+                        {sourceType === 'document' ? <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" /> : <Table className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
                       </div>
-                      <ModernButton 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => removeFile(index)} 
-                        className="h-10 w-10 p-0"
-                        type="button"
-                      >
-                        <X className="h-5 w-5" />
-                      </ModernButton>
+                      <div>
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate max-w-[200px]">{files[0].name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{(files[0].size / 1024 / 1024).toFixed(2)} MB</p>
+                      </div>
                     </div>
-                  ))}
+                    <ModernButton 
+                      variant="outline" 
+                      size="sm"
+                      onClick={removeFile} 
+                      className="h-10 w-10 p-0"
+                      type="button"
+                    >
+                      <X className="h-5 w-5" />
+                    </ModernButton>
+                  </div>
                 </div>
               </div>
             )}
