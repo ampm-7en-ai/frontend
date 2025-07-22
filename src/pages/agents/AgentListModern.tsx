@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Bot, Plus } from 'lucide-react';
@@ -7,11 +6,12 @@ import AgentCard from '@/components/agents/AgentCard';
 import AgentListFilters from '@/components/agents/AgentListFilters';
 import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 import { useToast } from '@/hooks/use-toast';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useNavigate } from 'react-router-dom';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { transformAgentResponse, addAgentToCache, addKnowledgeFolderToCache } from '@/utils/agentCacheUtils';
 
 const AgentListModern = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,6 +19,7 @@ const AgentListModern = () => {
   const { toast } = useToast();
   const { theme } = useAppTheme();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const fetchAgents = async (): Promise<Agent[]> => {
     const token = getAccessToken();
@@ -132,9 +133,19 @@ const AgentListModern = () => {
         throw new Error(data.error?.message || 'Failed to create agent');
       }
       
+      // Optimistic update: immediately add new agent to cache
+      if (data.data) {
+        console.log('Adding new agent to cache:', data.data);
+        const transformedAgent = transformAgentResponse(data.data);
+        addAgentToCache(queryClient, transformedAgent);
+        
+        // Also update knowledge folders cache
+        addKnowledgeFolderToCache(queryClient, data.data);
+      }
+      
       toast({
         title: "Agent Created",
-        description: data.data?.message || "New agent has been created successfully.",
+        description: data.message || "New agent has been created successfully.",
         variant: "default"
       });
       

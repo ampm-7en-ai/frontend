@@ -7,12 +7,13 @@ import { useAgentFiltering, Agent } from '@/hooks/useAgentFiltering';
 import AgentCard from '@/components/agents/AgentCard';
 import { API_ENDPOINTS, getAuthHeaders, getAccessToken, getApiUrl } from '@/utils/api-config';
 import { useToast } from '@/hooks/use-toast';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useNavigate } from 'react-router-dom';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Label } from '@/components/ui/label';
+import { transformAgentResponse, addAgentToCache, addKnowledgeFolderToCache } from '@/utils/agentCacheUtils';
 
 interface ApiResponse {
   agents: any[];
@@ -40,6 +41,7 @@ const AgentList = () => {
   const { toast } = useToast();
   const { theme } = useAppTheme();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const fetchAgents = async (): Promise<Agent[]> => {
     const token = getAccessToken();
@@ -163,6 +165,16 @@ const AgentList = () => {
       
       if (!response.ok) {
         throw new Error(data.error?.message || 'Failed to create agent');
+      }
+      
+      // Optimistic update: immediately add new agent to cache
+      if (data.data) {
+        console.log('Adding new agent to cache:', data.data);
+        const transformedAgent = transformAgentResponse(data.data);
+        addAgentToCache(queryClient, transformedAgent);
+        
+        // Also update knowledge folders cache
+        addKnowledgeFolderToCache(queryClient, data.data);
       }
       
       toast({
