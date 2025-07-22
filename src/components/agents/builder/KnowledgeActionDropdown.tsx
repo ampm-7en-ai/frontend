@@ -18,46 +18,46 @@ export const KnowledgeActionDropdown = () => {
     console.log('🎉 Raw upload success response received:', response);
     setShowUploadModal(false);
     
-    // Handle different response formats
-    let responseData = response;
+    // The response should have this structure:
+    // { message: "...", data: { id, title, etc... }, status: "success" }
+    let sourceData = null;
     
-    // If response has a data property, use that
     if (response && response.data) {
-      responseData = response.data;
-      console.log('📦 Using response.data:', responseData);
-    }
-    // If response itself is the data (direct API response)
-    else if (response && response.id) {
-      responseData = response;
-      console.log('📦 Using direct response:', responseData);
-    }
-    // If no valid response data
-    else {
+      // Response has data property - use it
+      sourceData = response.data;
+      console.log('📦 Using response.data:', sourceData);
+    } else if (response && response.id) {
+      // Response is the data itself (fallback)
+      sourceData = response;
+      console.log('📦 Using direct response as data:', sourceData);
+    } else {
       console.warn('⚠️ No valid response data received:', response);
       return;
     }
     
-    if (responseData && agentData.id) {
-      console.log('🎯 Processing new knowledge source:', responseData);
+    if (sourceData && agentData.id) {
+      console.log('🎯 Processing new knowledge source with data:', sourceData);
       
-      // Update agent cache with new source using the response data
-      addKnowledgeSourceToAgentCache(queryClient, String(agentData.id), responseData);
+      // Update agent cache with new source
+      addKnowledgeSourceToAgentCache(queryClient, String(agentData.id), sourceData);
       
-      // Transform the response to UI format for local state
-      const transformedSource: KnowledgeSource = transformApiSourceToUI(responseData);
+      // Transform the source data to UI format for local state
+      const transformedSource: KnowledgeSource = transformApiSourceToUI(sourceData);
       console.log('🔄 Transformed source for UI:', transformedSource);
       
-      const updatedKnowledgeSources: KnowledgeSource[] = [
-        ...(agentData.knowledgeSources || []),
-        transformedSource
-      ];
-      
-      updateAgentData({ knowledgeSources: updatedKnowledgeSources });
-      console.log('✅ Local agent data updated with new source');
+      if (transformedSource) {
+        const updatedKnowledgeSources: KnowledgeSource[] = [
+          ...(agentData.knowledgeSources || []),
+          transformedSource
+        ];
+        
+        updateAgentData({ knowledgeSources: updatedKnowledgeSources });
+        console.log('✅ Local agent data updated with new source');
+      }
     } else {
-      console.warn('⚠️ Missing agentData.id or responseData:', { 
+      console.warn('⚠️ Missing agentData.id or sourceData:', { 
         agentId: agentData.id, 
-        responseData 
+        sourceData 
       });
     }
   };

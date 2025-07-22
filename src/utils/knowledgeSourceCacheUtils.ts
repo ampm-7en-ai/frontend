@@ -1,3 +1,4 @@
+
 import { useQueryClient } from '@tanstack/react-query';
 
 export interface CachedKnowledgeSource {
@@ -71,7 +72,7 @@ export const addKnowledgeSourceToAgentCache = (queryClient: any, agentId: string
         
         const updatedKnowledgeSources = [...(agent.knowledgeSources || []), transformedSource];
         
-        console.log('✅ Updated agent knowledge sources:', updatedKnowledgeSources.length);
+        console.log('✅ Updated agent knowledge sources count:', updatedKnowledgeSources.length);
         
         return {
           ...agent,
