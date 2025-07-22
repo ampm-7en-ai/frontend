@@ -44,6 +44,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { createAgent } from '@/utils/api-config';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import ModernButton from '../dashboard/ModernButton';
+import { useQueryClient } from '@tanstack/react-query';
+import { updateCachesAfterAgentCreation } from '@/utils/agentCacheUtils';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -79,6 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useAppTheme();
+  const queryClient = useQueryClient();
   const userRole = user?.role;
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -116,6 +119,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       
       console.log("Agent creation successful:", data);
       
+      // Update caches using unified system
+      updateCachesAfterAgentCreation(queryClient, data);
+      
       // Show success toast
       toast({
         title: "Agent Created",
@@ -123,12 +129,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         variant: "default"
       });
       
-      // Navigate to agent builder page with the new agent id
-      if (data.data?.id) {
-        navigate(`/agents/builder/${data.data.id}`);
-      } else {
-        navigate('/agents/builder');
-      }
+      // Add delay to ensure cache updates complete before navigation
+      setTimeout(() => {
+        if (data.data?.id) {
+          navigate(`/agents/builder/${data.data.id}`);
+        } else {
+          navigate('/agents/builder');
+        }
+      }, 150);
     } catch (error) {
       console.error('Error creating agent:', error);
       toast({
