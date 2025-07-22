@@ -6,6 +6,7 @@ import AddSourcesModal from '@/components/agents/knowledge/AddSourcesModal';
 import { useBuilder } from './BuilderContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { addKnowledgeSourceToAgentCache } from '@/utils/knowledgeSourceCacheUtils';
+import { KnowledgeSource } from '@/components/agents/knowledge/types';
 
 export const KnowledgeActionDropdown = () => {
   const { state, updateAgentData } = useBuilder();
@@ -32,8 +33,8 @@ export const KnowledgeActionDropdown = () => {
         });
       });
       
-      // Update local BuilderContext state
-      const updatedKnowledgeSources = [
+      // Update local BuilderContext state with proper KnowledgeSource type
+      const updatedKnowledgeSources: KnowledgeSource[] = [
         ...(agentData.knowledgeSources || []),
         ...newSources.map(source => ({
           id: source.id,
@@ -41,10 +42,14 @@ export const KnowledgeActionDropdown = () => {
           type: source.type,
           size: 'N/A',
           lastUpdated: new Date().toLocaleDateString('en-GB'),
-          trainingStatus: source.status || 'active',
+          trainingStatus: source.status || 'active' as const,
           linkBroken: false,
           knowledge_sources: [],
-          metadata: source.url ? { url: source.url } : {}
+          metadata: {
+            url: source.url,
+            created_at: source.created_at,
+            last_updated: source.updated_at
+          }
         }))
       ];
       

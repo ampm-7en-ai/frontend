@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, X, ExternalLink, FileSpreadsheet, Layers } from 'lucide-react';
@@ -231,7 +232,7 @@ export const BuilderSidebar = () => {
     title: source.name,
     type: source.type,
     status: source.trainingStatus,
-    url: source.metadata?.url
+    url: source.metadata?.url || source.url
   })) : [];
 
   return (

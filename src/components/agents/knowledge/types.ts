@@ -1,10 +1,11 @@
+
 export interface KnowledgeSource {
   id: number;
   name: string;
   type: string;
   size: string;
   lastUpdated: string;
-  trainingStatus: 'idle' | 'training' | 'success' | 'error' | 'Active' | 'Training' | 'Issues';
+  trainingStatus: 'idle' | 'training' | 'success' | 'error' | 'Active' | 'Training' | 'Issues' | 'active' | 'deleted';
   progress?: number;
   linkBroken?: boolean;
   hasError?: boolean;
@@ -42,6 +43,7 @@ export interface KnowledgeSource {
     };
     size?: string | number;
     created_at?: string;
+    url?: string; // Add url to metadata type
     // Third party specific metadata
     mimeType?: string;
     name?: string;
