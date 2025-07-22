@@ -17,6 +17,11 @@ export interface CachedKnowledgeSource {
 export const transformApiSourceToUI = (apiSource: any) => {
   console.log('🔄 Transforming API source to UI format:', apiSource);
   
+  if (!apiSource || !apiSource.id) {
+    console.warn('⚠️ Invalid API source provided to transform:', apiSource);
+    return null;
+  }
+  
   return {
     id: apiSource.id,
     name: apiSource.title || 'Untitled Source',
@@ -39,11 +44,19 @@ export const transformApiSourceToUI = (apiSource: any) => {
 
 // Add knowledge source to agent's cached data
 export const addKnowledgeSourceToAgentCache = (queryClient: any, agentId: string, newSource: any) => {
-  console.log('🔄 Adding knowledge source to agent cache:', agentId, newSource);
+  console.log('🔄 Adding knowledge source to agent cache:', { agentId, newSource });
+  
+  if (!newSource || !newSource.id) {
+    console.warn('⚠️ Invalid source data provided to cache:', newSource);
+    return;
+  }
   
   // Update the main agents cache
   queryClient.setQueryData(['agents'], (oldData: any[] | undefined) => {
-    if (!oldData || !Array.isArray(oldData)) return oldData;
+    if (!oldData || !Array.isArray(oldData)) {
+      console.log('📊 No existing agents cache found');
+      return oldData;
+    }
     
     return oldData.map(agent => {
       if (String(agent.id) === String(agentId)) {
@@ -51,7 +64,14 @@ export const addKnowledgeSourceToAgentCache = (queryClient: any, agentId: string
         
         // Transform the API source to UI format for the agent's knowledgeSources array
         const transformedSource = transformApiSourceToUI(newSource);
+        if (!transformedSource) {
+          console.warn('⚠️ Failed to transform source, skipping cache update');
+          return agent;
+        }
+        
         const updatedKnowledgeSources = [...(agent.knowledgeSources || []), transformedSource];
+        
+        console.log('✅ Updated agent knowledge sources:', updatedKnowledgeSources.length);
         
         return {
           ...agent,
@@ -64,7 +84,10 @@ export const addKnowledgeSourceToAgentCache = (queryClient: any, agentId: string
   
   // Also update the specific agent knowledge sources cache if it exists
   queryClient.setQueryData(['agentKnowledgeSources', agentId], (oldData: any) => {
-    if (!oldData) return oldData;
+    if (!oldData) {
+      console.log('📊 No specific agent knowledge sources cache found');
+      return oldData;
+    }
     
     console.log('🎯 Updating specific agent knowledge sources cache');
     
@@ -90,7 +113,7 @@ export const addKnowledgeSourceToAgentCache = (queryClient: any, agentId: string
     refetchType: 'none'
   });
   
-  console.log('✅ Knowledge source added to agent cache');
+  console.log('✅ Knowledge source added to agent cache successfully');
 };
 
 // Remove knowledge source from agent's cached data

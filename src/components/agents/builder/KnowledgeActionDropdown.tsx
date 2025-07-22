@@ -15,20 +15,36 @@ export const KnowledgeActionDropdown = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   const handleUploadSuccess = (response?: any) => {
+    console.log('🎉 Raw upload success response received:', response);
     setShowUploadModal(false);
     
-    console.log('🎉 Upload success response:', response);
+    // Handle different response formats
+    let responseData = response;
     
-    if (response?.data && agentData.id) {
-      // The response.data contains the new knowledge source from the API
-      const newSource = response.data;
-      console.log('🎉 New source from API:', newSource);
+    // If response has a data property, use that
+    if (response && response.data) {
+      responseData = response.data;
+      console.log('📦 Using response.data:', responseData);
+    }
+    // If response itself is the data (direct API response)
+    else if (response && response.id) {
+      responseData = response;
+      console.log('📦 Using direct response:', responseData);
+    }
+    // If no valid response data
+    else {
+      console.warn('⚠️ No valid response data received:', response);
+      return;
+    }
+    
+    if (responseData && agentData.id) {
+      console.log('🎯 Processing new knowledge source:', responseData);
       
-      // Update agent cache with new source using the API response structure
-      addKnowledgeSourceToAgentCache(queryClient, String(agentData.id), newSource);
+      // Update agent cache with new source using the response data
+      addKnowledgeSourceToAgentCache(queryClient, String(agentData.id), responseData);
       
-      // Transform the API response to UI format for local state
-      const transformedSource: KnowledgeSource = transformApiSourceToUI(newSource);
+      // Transform the response to UI format for local state
+      const transformedSource: KnowledgeSource = transformApiSourceToUI(responseData);
       console.log('🔄 Transformed source for UI:', transformedSource);
       
       const updatedKnowledgeSources: KnowledgeSource[] = [
@@ -38,6 +54,11 @@ export const KnowledgeActionDropdown = () => {
       
       updateAgentData({ knowledgeSources: updatedKnowledgeSources });
       console.log('✅ Local agent data updated with new source');
+    } else {
+      console.warn('⚠️ Missing agentData.id or responseData:', { 
+        agentId: agentData.id, 
+        responseData 
+      });
     }
   };
 
