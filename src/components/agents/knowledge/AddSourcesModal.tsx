@@ -1,19 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Globe, FileText, Table, AlignLeft, ExternalLink, Upload, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ModernButton from '@/components/dashboard/ModernButton';
-import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import { useIntegrations } from '@/hooks/useIntegrations';
 import { fetchGoogleDriveFiles, BASE_URL } from '@/utils/api-config';
 import SourceTypeSelector from './SourceTypeSelector';
+import { ModernModal } from '@/components/ui/modern-modal';
+import { Table, FileText } from 'lucide-react';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 type ThirdPartyProvider = 'googleDrive' | 'slack' | 'notion' | 'dropbox' | 'github';
@@ -144,7 +139,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
       showToast({
         title: "Error",
         description: "Failed to fetch Google Drive files. Please try again.",
-        variant: "error"
+        variant: "destructive"
       });
       setIsLoadingGoogleDriveFiles(false);
     }
@@ -234,6 +229,51 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const createKnowledgeSource = async () => {
+    const formData = new FormData();
+    formData.append('title', documentName);
+    formData.append('agent_id', agentId);
+    formData.append('source_type', sourceType);
+
+    switch (sourceType) {
+      case 'url':
+        formData.append('source_url', url);
+        formData.append('crawl_all_pages', importAllPages.toString());
+        break;
+
+      case 'document':
+      case 'csv':
+        files.forEach((file) => {
+          formData.append('files', file);
+        });
+        break;
+
+      case 'plainText':
+        formData.append('content', plainText);
+        break;
+
+      case 'thirdParty':
+        if (selectedProvider) {
+          formData.append('provider', selectedProvider);
+          formData.append('selected_files', JSON.stringify(selectedFiles));
+        }
+        break;
+    }
+
+    const response = await fetch(`${BASE_URL}/knowledgesource/`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to create knowledge source');
+    }
+
+    return response.json();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -241,7 +281,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
       showToast({
         title: "Validation Error",
         description: "Please fix the errors and try again.",
-        variant: "error"
+        variant: "destructive"
       });
       return;
     }
@@ -249,25 +289,25 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     setIsUploading(true);
 
     try {
-      // Simulate upload process
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
+      const response = await createKnowledgeSource();
+      
       setIsUploading(false);
       toast({
         title: "Success!",
-        description: "Knowledge sources added successfully",
+        description: "Knowledge source added successfully",
         variant: "success"
       });
 
       if (onSuccess) {
-        onSuccess();
+        onSuccess(response);
       }
       onClose();
     } catch (error) {
       setIsUploading(false);
+      console.error('Error creating knowledge source:', error);
       toast({
         title: "Upload Failed",
-        description: "Failed to add knowledge sources. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to add knowledge sources. Please try again.",
         variant: "destructive"
       });
     }
@@ -372,94 +412,90 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-0 rounded-3xl shadow-2xl">
-        <DialogHeader className="space-y-6 pb-6">
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-slate-900 via-slate-700 to-slate-600 dark:from-slate-100 dark:via-slate-300 dark:to-slate-400 bg-clip-text text-transparent">
-            Add Knowledge Sources
-          </DialogTitle>
-          <DialogDescription className="text-slate-600 dark:text-slate-400 text-base leading-relaxed">
-            Import content from various sources to enhance your agent's knowledge base. Choose from websites, documents, or third-party integrations.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Source Name */}
-          <div className="space-y-3">
-            <Label htmlFor="document-name" className="text-sm font-medium text-slate-700 dark:text-slate-300">Source Name *</Label>
-            <Input 
-              id="document-name" 
-              variant="modern"
-              size="lg"
-              placeholder="Enter a descriptive name for this knowledge source"
-              value={documentName}
-              onChange={(e) => setDocumentName(e.target.value)}
-              className={validationErrors.documentName ? 'border-red-500 dark:border-red-400' : ''}
-            />
-            {validationErrors.documentName && (
-              <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.documentName}</p>
-            )}
-          </div>
-
-          {/* Source Type Selector */}
-          <SourceTypeSelector
-            sourceType={sourceType}
-            setSourceType={setSourceType}
-            url={url}
-            setUrl={setUrl}
-            files={files}
-            setFiles={setFiles}
-            plainText={plainText}
-            setPlainText={setPlainText}
-            importAllPages={importAllPages}
-            setImportAllPages={setImportAllPages}
-            selectedProvider={selectedProvider}
-            setSelectedProvider={setSelectedProvider}
-            selectedFiles={selectedFiles}
-            setSelectedFiles={setSelectedFiles}
-            validationErrors={validationErrors}
-            setValidationErrors={setValidationErrors}
-            isDragOver={isDragOver}
-            setIsDragOver={setIsDragOver}
-            isConnecting={isConnecting}
-            isLoadingGoogleDriveFiles={isLoadingGoogleDriveFiles}
-            googleDriveFiles={googleDriveFiles}
-            availableThirdPartyProviders={availableThirdPartyProviders}
-            thirdPartyProviders={thirdPartyProviders}
-            handleFileChange={handleFileChange}
-            removeFile={removeFile}
-            handleQuickConnect={handleQuickConnect}
-            handleRemoveSelectedFile={handleRemoveSelectedFile}
-            handleFileUploadClick={handleFileUploadClick}
-            handleDragOver={handleDragOver}
-            handleDragLeave={handleDragLeave}
-            handleDrop={handleDrop}
-            getFileIcon={getFileIcon}
-            toggleFileSelection={toggleFileSelection}
-            fetchGoogleDriveData={fetchGoogleDriveData}
+    <ModernModal
+      open={isOpen}
+      onOpenChange={onClose}
+      title="Add Knowledge Sources"
+      description="Import content from various sources to enhance your agent's knowledge base. Choose from websites, documents, or third-party integrations."
+      size="4xl"
+      fixedFooter={true}
+      footer={
+        <div className="flex justify-center gap-4">
+          <ModernButton 
+            variant="outline" 
+            onClick={onClose}
+            disabled={isUploading}
+            type="button"
+          >
+            Cancel
+          </ModernButton>
+          <ModernButton 
+            onClick={handleSubmit}
+            disabled={isUploading}
+            className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100"
+          >
+            {isUploading ? 'Processing...' : 'Add Source'}
+          </ModernButton>
+        </div>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Source Name */}
+        <div className="space-y-3">
+          <Label htmlFor="document-name" className="text-sm font-medium text-slate-700 dark:text-slate-300">Source Name *</Label>
+          <Input 
+            id="document-name" 
+            variant="modern"
+            size="lg"
+            placeholder="Enter a descriptive name for this knowledge source"
+            value={documentName}
+            onChange={(e) => setDocumentName(e.target.value)}
+            className={validationErrors.documentName ? 'border-red-500 dark:border-red-400' : ''}
           />
-          
-          {/* Actions */}
-          <div className="flex justify-center gap-4 pt-6 border-t border-slate-200/50 dark:border-slate-700/50">
-            <ModernButton 
-              variant="outline" 
-              onClick={onClose}
-              disabled={isUploading}
-              type="button"
-            >
-              Cancel
-            </ModernButton>
-            <ModernButton 
-              type="submit"
-              disabled={isUploading}
-              className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100"
-            >
-              {isUploading ? 'Processing...' : 'Add Source'}
-            </ModernButton>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+          {validationErrors.documentName && (
+            <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.documentName}</p>
+          )}
+        </div>
+
+        {/* Source Type Selector */}
+        <SourceTypeSelector
+          sourceType={sourceType}
+          setSourceType={setSourceType}
+          url={url}
+          setUrl={setUrl}
+          files={files}
+          setFiles={setFiles}
+          plainText={plainText}
+          setPlainText={setPlainText}
+          importAllPages={importAllPages}
+          setImportAllPages={setImportAllPages}
+          selectedProvider={selectedProvider}
+          setSelectedProvider={setSelectedProvider}
+          selectedFiles={selectedFiles}
+          setSelectedFiles={setSelectedFiles}
+          validationErrors={validationErrors}
+          setValidationErrors={setValidationErrors}
+          isDragOver={isDragOver}
+          setIsDragOver={setIsDragOver}
+          isConnecting={isConnecting}
+          isLoadingGoogleDriveFiles={isLoadingGoogleDriveFiles}
+          googleDriveFiles={googleDriveFiles}
+          availableThirdPartyProviders={availableThirdPartyProviders}
+          thirdPartyProviders={thirdPartyProviders}
+          handleFileChange={handleFileChange}
+          removeFile={removeFile}
+          handleQuickConnect={handleQuickConnect}
+          handleRemoveSelectedFile={handleRemoveSelectedFile}
+          handleFileUploadClick={handleFileUploadClick}
+          handleDragOver={handleDragOver}
+          handleDragLeave={handleDragLeave}
+          handleDrop={handleDrop}
+          getFileIcon={getFileIcon}
+          toggleFileSelection={toggleFileSelection}
+          fetchGoogleDriveData={fetchGoogleDriveData}
+        />
+      </form>
+    </ModernModal>
   );
 };
 
