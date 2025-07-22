@@ -120,21 +120,30 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
   console.log('BuilderProvider - Agent ID from URL:', id);
   console.log('BuilderProvider - Current agent data:', state.agentData);
 
-  // Helper function to format knowledge sources
-  const formatKnowledgeSources = (knowledgeBases: any[]): KnowledgeSource[] => {
-    if (!knowledgeBases || !Array.isArray(knowledgeBases)) return [];
+  // Helper function to format knowledge sources - Updated to match real API structure
+  const formatKnowledgeSources = (knowledgeSources: any[]): KnowledgeSource[] => {
+    if (!knowledgeSources || !Array.isArray(knowledgeSources)) return [];
     
-    return knowledgeBases.map(kb => ({
-      id: kb.id,
-      name: kb.name,
-      type: kb.type,
-      size: kb.size || kb.metadata?.size || 'N/A',
-      lastUpdated: kb.last_updated ? new Date(kb.last_updated).toLocaleDateString('en-GB') : 'N/A',
-      trainingStatus: kb.training_status || kb.status || 'idle',
-      linkBroken: false,
-      knowledge_sources: kb.knowledge_sources || [],
-      metadata: kb.metadata || {}
-    }));
+    return knowledgeSources
+      .filter(ks => ks && ks.training_status !== 'deleted') // Filter out deleted sources
+      .map(ks => ({
+        id: ks.id,
+        name: ks.title || 'Untitled Source',
+        type: ks.type || 'unknown',
+        size: ks.metadata?.file_size || 'N/A',
+        lastUpdated: ks.metadata?.upload_date ? new Date(ks.metadata.upload_date).toLocaleDateString('en-GB') : 'N/A',
+        trainingStatus: ks.training_status || ks.status || 'idle',
+        linkBroken: false,
+        knowledge_sources: [],
+        metadata: {
+          ...ks.metadata,
+          url: ks.file || ks.url,
+          created_at: ks.metadata?.upload_date,
+          last_updated: ks.updated_at
+        },
+        url: ks.file || ks.url,
+        title: ks.title
+      }));
   };
 
   // Fetch agent data when ID is present
@@ -199,7 +208,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
             token_length: agentData.model?.token_length || agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
             response_model: agentData.model?.response_model || agentData.model?.selectedModel || agentData.model?.name || 'gpt-3.5-turbo'
           },
-          knowledgeSources: formatKnowledgeSources(agentData.knowledge_sources || agentData.knowledgeSources || [])
+          knowledgeSources: formatKnowledgeSources(agentData.knowledge_sources || [])
         };
 
         console.log('Mapped agent data with updated model settings:', mappedData);

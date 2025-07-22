@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, X, ExternalLink, FileSpreadsheet, Layers } from 'lucide-react';
@@ -122,11 +121,15 @@ export const BuilderSidebar = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
 
-  // Get knowledge sources from cached agent data instead of separate API call
+  // Get knowledge sources from cached agent data - properly filtered
   const knowledgeSources = useMemo(() => {
     const sources = agentData.knowledgeSources || [];
     console.log('📁 Using cached knowledge sources from agent data:', sources.length);
-    return sources.filter(source => source && source.trainingStatus !== 'deleted');
+    return sources.filter(source => 
+      source && 
+      source.trainingStatus !== 'deleted' && 
+      source.trainingStatus !== 'failed'
+    );
   }, [agentData.knowledgeSources]);
 
   const handleDeleteConfirm = (sourceId: number) => {
@@ -226,10 +229,10 @@ export const BuilderSidebar = () => {
     );
   }
 
-  // Ensure we have an array and convert to display format
+  // Transform knowledge sources for display with proper field mapping
   const displaySources = Array.isArray(knowledgeSources) ? knowledgeSources.map(source => ({
     id: source.id,
-    title: source.name,
+    title: source.name || source.title,
     type: source.type,
     status: source.trainingStatus,
     url: source.metadata?.url || source.url

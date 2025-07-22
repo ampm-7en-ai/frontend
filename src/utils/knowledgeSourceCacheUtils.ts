@@ -6,10 +6,35 @@ export interface CachedKnowledgeSource {
   title: string;
   type: string;
   status: string;
+  training_status: string;
   url?: string;
+  file?: string;
+  metadata?: any;
   created_at?: string;
   updated_at?: string;
 }
+
+// Transform API knowledge source to UI format
+export const transformApiSourceToUI = (apiSource: any) => {
+  return {
+    id: apiSource.id,
+    name: apiSource.title || 'Untitled Source',
+    type: apiSource.type || 'unknown',
+    size: apiSource.metadata?.file_size || 'N/A',
+    lastUpdated: apiSource.metadata?.upload_date ? new Date(apiSource.metadata.upload_date).toLocaleDateString('en-GB') : 'N/A',
+    trainingStatus: apiSource.training_status || apiSource.status || 'idle',
+    linkBroken: false,
+    knowledge_sources: [],
+    metadata: {
+      ...apiSource.metadata,
+      url: apiSource.file || apiSource.url,
+      created_at: apiSource.metadata?.upload_date,
+      last_updated: apiSource.updated_at
+    },
+    url: apiSource.file || apiSource.url,
+    title: apiSource.title
+  };
+};
 
 // Add knowledge source to agent's cached data
 export const addKnowledgeSourceToAgentCache = (queryClient: any, agentId: string, newSource: CachedKnowledgeSource) => {
@@ -20,17 +45,8 @@ export const addKnowledgeSourceToAgentCache = (queryClient: any, agentId: string
     
     return oldData.map(agent => {
       if (agent.id === agentId) {
-        const updatedKnowledgeSources = [...(agent.knowledgeSources || []), {
-          id: newSource.id,
-          name: newSource.title,
-          type: newSource.type,
-          size: 'N/A',
-          lastUpdated: new Date().toLocaleDateString('en-GB'),
-          trainingStatus: newSource.status,
-          linkBroken: false,
-          knowledge_sources: [],
-          metadata: {}
-        }];
+        const transformedSource = transformApiSourceToUI(newSource);
+        const updatedKnowledgeSources = [...(agent.knowledgeSources || []), transformedSource];
         
         return {
           ...agent,
@@ -41,7 +57,7 @@ export const addKnowledgeSourceToAgentCache = (queryClient: any, agentId: string
     });
   });
   
-  // Also update the specific agent knowledge sources cache
+  // Also update the specific agent knowledge sources cache if it exists
   queryClient.setQueryData(['agentKnowledgeSources', agentId], (oldData: any) => {
     if (!oldData) return oldData;
     
@@ -140,7 +156,7 @@ export const updateKnowledgeSourceInAgentCache = (queryClient: any, agentId: str
               ...source,
               name: updates.title || source.name,
               type: updates.type || source.type,
-              trainingStatus: updates.status || source.trainingStatus,
+              trainingStatus: updates.training_status || updates.status || source.trainingStatus,
               lastUpdated: new Date().toLocaleDateString('en-GB')
             };
           }

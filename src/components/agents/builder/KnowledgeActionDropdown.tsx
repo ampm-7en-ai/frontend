@@ -5,7 +5,7 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import AddSourcesModal from '@/components/agents/knowledge/AddSourcesModal';
 import { useBuilder } from './BuilderContext';
 import { useQueryClient } from '@tanstack/react-query';
-import { addKnowledgeSourceToAgentCache } from '@/utils/knowledgeSourceCacheUtils';
+import { addKnowledgeSourceToAgentCache, transformApiSourceToUI } from '@/utils/knowledgeSourceCacheUtils';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 
 export const KnowledgeActionDropdown = () => {
@@ -20,37 +20,18 @@ export const KnowledgeActionDropdown = () => {
     if (newSources && newSources.length > 0 && agentData.id) {
       console.log('🎉 New sources added via modal:', newSources);
       
-      // Update agent cache with new sources
+      // Update agent cache with new sources using the real API structure
       newSources.forEach(source => {
-        addKnowledgeSourceToAgentCache(queryClient, String(agentData.id), {
-          id: source.id,
-          title: source.title || source.name,
-          type: source.type,
-          status: source.status || 'active',
-          url: source.url,
-          created_at: source.created_at,
-          updated_at: source.updated_at
-        });
+        // Use the API response structure directly for cache
+        addKnowledgeSourceToAgentCache(queryClient, String(agentData.id), source);
       });
       
-      // Update local BuilderContext state with proper KnowledgeSource type
+      // Update local BuilderContext state with properly transformed sources
+      const transformedSources: KnowledgeSource[] = newSources.map(source => transformApiSourceToUI(source));
+      
       const updatedKnowledgeSources: KnowledgeSource[] = [
         ...(agentData.knowledgeSources || []),
-        ...newSources.map(source => ({
-          id: source.id,
-          name: source.title || source.name,
-          type: source.type,
-          size: 'N/A',
-          lastUpdated: new Date().toLocaleDateString('en-GB'),
-          trainingStatus: source.status || 'active' as const,
-          linkBroken: false,
-          knowledge_sources: [],
-          metadata: {
-            url: source.url,
-            created_at: source.created_at,
-            last_updated: source.updated_at
-          }
-        }))
+        ...transformedSources
       ];
       
       updateAgentData({ knowledgeSources: updatedKnowledgeSources });
