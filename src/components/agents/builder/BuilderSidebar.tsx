@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, X, ExternalLink, FileSpreadsheet, Layers } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +11,7 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { useToast } from '@/hooks/use-toast';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { KnowledgeActionDropdown } from './KnowledgeActionDropdown';
-import { updateKnowledgeFolderWithDetails } from '@/utils/agentCacheUtils';
+import { removeKnowledgeSourceFromAgentCache } from '@/utils/knowledgeSourceCacheUtils';
 
 const getIconForType = (type: string) => {
   switch (type?.toLowerCase()) {
@@ -78,9 +78,9 @@ const KnowledgeSourceCard = ({ source, onDelete }: {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-              {source.title || 'Untitled Source'}
+              {source.title || source.name || 'Untitled Source'}
             </h3>
-            {getBadgeForStatus(source.status)}
+            {getBadgeForStatus(source.status || source.trainingStatus)}
           </div>
           <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
             {source.type || 'Unknown Type'}
@@ -114,53 +114,19 @@ const KnowledgeSourceCard = ({ source, onDelete }: {
 };
 
 export const BuilderSidebar = () => {
-  const { state } = useBuilder();
+  const { state, updateAgentData } = useBuilder();
   const { agentData, isLoading } = state;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [sourceToDelete, setSourceToDelete] = useState<number | null>(null);
 
-  // Fetch knowledge sources for the agent
-  const { 
-    data: knowledgeSourcesData, 
-    isLoading: sourcesLoading, 
-    error: sourcesError 
-  } = useQuery({
-    queryKey: ['agentKnowledgeSources', agentData.id],
-    queryFn: async () => {
-      const token = getAccessToken();
-      if (!token) throw new Error('No authentication token');
-
-      console.log('🔍 Fetching knowledge sources for agent:', agentData.id, typeof agentData.id);
-
-      const response = await fetch(`${BASE_URL}agents/${agentData.id}/knowledge-folder/`, {
-        headers: getAuthHeaders(token)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch knowledge sources');
-      }
-
-      const data = await response.json();
-      console.log('📁 Agent knowledge sources response:', data);
-      
-      // Fix TypeScript error by converting agentData.id to string
-      console.log('🔄 Updating knowledge folder cache with agent ID:', String(agentData.id));
-      updateKnowledgeFolderWithDetails(queryClient, String(agentData.id), data);
-      
-      return data.data;
-    },
-    enabled: !!agentData.id,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
-
-  // Extract knowledge sources from the API response and filter out deleted ones
-  const knowledgeSources = (knowledgeSourcesData?.knowledge_sources?.knowledge_sources || 
-                          knowledgeSourcesData?.knowledge_sources || 
-                          []).filter(source => source && source.status !== 'deleted');
+  // Get knowledge sources from cached agent data instead of separate API call
+  const knowledgeSources = useMemo(() => {
+    const sources = agentData.knowledgeSources || [];
+    console.log('📁 Using cached knowledge sources from agent data:', sources.length);
+    return sources.filter(source => source && source.trainingStatus !== 'deleted');
+  }, [agentData.knowledgeSources]);
 
   const handleDeleteConfirm = (sourceId: number) => {
     setSourceToDelete(sourceId);
@@ -183,8 +149,12 @@ export const BuilderSidebar = () => {
         throw new Error('Failed to delete knowledge source');
       }
 
-      // Refresh the data
-      queryClient.invalidateQueries({ queryKey: ['agentKnowledgeSources', agentData.id] });
+      // Update cache immediately
+      removeKnowledgeSourceFromAgentCache(queryClient, String(agentData.id), sourceToDelete);
+      
+      // Update local state in BuilderContext
+      const updatedKnowledgeSources = knowledgeSources.filter(source => source.id !== sourceToDelete);
+      updateAgentData({ knowledgeSources: updatedKnowledgeSources });
 
       toast({
         title: "Knowledge source removed",
@@ -220,7 +190,7 @@ export const BuilderSidebar = () => {
     );
   }
 
-  if (isLoading || sourcesLoading) {
+  if (isLoading) {
     return (
       <div className="w-full h-full bg-background flex flex-col">
         {/* Header Skeleton */}
@@ -255,8 +225,14 @@ export const BuilderSidebar = () => {
     );
   }
 
-  // Ensure we have an array and filter safely
-  const displaySources = Array.isArray(knowledgeSources) ? knowledgeSources.filter(source => source && typeof source === 'object') : [];
+  // Ensure we have an array and convert to display format
+  const displaySources = Array.isArray(knowledgeSources) ? knowledgeSources.map(source => ({
+    id: source.id,
+    title: source.name,
+    type: source.type,
+    status: source.trainingStatus,
+    url: source.metadata?.url
+  })) : [];
 
   return (
     <>
