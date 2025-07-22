@@ -178,26 +178,17 @@ export const updateKnowledgeFolderWithDetails = (queryClient: any, agentId: stri
 
 // ✨ NEW: Pure cache-first unified update function
 export const updateCachesAfterAgentCreation = (queryClient: any, apiResponse: any) => {
-  console.log('🚀 CACHE-FIRST: Starting unified cache update for agent creation');
-  console.log('📊 API response received:', apiResponse);
-  console.log('🔍 Response structure analysis:');
-  console.log('  - Has data property:', !!apiResponse.data);
-  console.log('  - Data type:', typeof apiResponse.data);
-  console.log('  - Agent ID:', apiResponse.data?.id);
-  console.log('  - Agent name:', apiResponse.data?.name);
+
   
   // Transform the agent data using unified transformer
   const transformedAgent = transformAgentCreationResponse(apiResponse);
   
   if (!transformedAgent) {
-    console.error('❌ Failed to transform agent creation response');
     return;
   }
   
-  console.log('✅ Successfully transformed agent:', transformedAgent);
   
-  // CACHE-FIRST: Update agent cache without triggering API calls
-  console.log('📦 Step 1: Updating agent cache (CACHE-FIRST)');
+  
   addAgentToCache(queryClient, transformedAgent);
   
   // CACHE-FIRST: Update knowledge folders cache

@@ -124,18 +124,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       if (data.data) {
         console.log('🔄 Sidebar: Updating caches (CACHE-FIRST)');
         updateCachesAfterAgentCreation(queryClient, data);
-        
-        // Verify cache update
-        setTimeout(() => {
-          const updatedCache = queryClient.getQueryData(['agents']);
-          console.log('🔍 Sidebar: Post-update cache verification:');
-          console.log('  - Type:', Array.isArray(updatedCache) ? 'Array' : typeof updatedCache);
-          console.log('  - Length:', Array.isArray(updatedCache) ? updatedCache.length : 'N/A');
-          console.log('  - Contains new agent:', Array.isArray(updatedCache) ? 
-            updatedCache.some(a => a.id === data.data.id.toString()) : 'N/A');
-          console.log('  - Cache update successful:', Array.isArray(updatedCache) && 
-            updatedCache.some(a => a.id === data.data.id.toString()) ? '✅' : '❌');
-        }, 100);
       }
       
       // Show success toast

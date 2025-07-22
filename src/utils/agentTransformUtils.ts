@@ -3,10 +3,10 @@ import { Agent } from '@/hooks/useAgentFiltering';
 
 // Unified agent transformation function that handles both listing and cache scenarios
 export const transformAgentData = (apiAgent: any): Agent => {
-  console.log('🔄 Unified transformAgentData called with:', apiAgent);
+ 
   
   // Handle both direct agent data and nested data.data structure
-  const agentData = apiAgent.data || apiAgent;
+  const agentData = apiAgent;
   
   const transformed: Agent = {
     id: agentData.id.toString(),
@@ -54,15 +54,13 @@ export const transformAgentList = (apiResponse: any): Agent[] => {
 
 // Handle agent creation response specifically
 export const transformAgentCreationResponse = (apiResponse: any): Agent | null => {
-  console.log('🆕 Transforming agent creation response:', apiResponse);
+
   
   if (!apiResponse.data) {
-    console.error('❌ No data in agent creation response:', apiResponse);
     return null;
   }
   
   const transformed = transformAgentData(apiResponse.data);
-  console.log('✅ Transformed created agent:', transformed);
   
   return transformed;
 };
