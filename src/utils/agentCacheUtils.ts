@@ -1,4 +1,3 @@
-
 import { Agent } from '@/hooks/useAgentFiltering';
 import { transformAgentCreationResponse, transformAgentData } from './agentTransformUtils';
 
@@ -59,6 +58,53 @@ export const addAgentToCache = (queryClient: any, newAgent: Agent) => {
     exact: true,
     refetchType: 'none' // Critical: prevents API call, only notifies components
   });
+};
+
+// Remove deleted agent from cache
+export const removeAgentFromCache = (queryClient: any, agentId: string) => {
+  console.log('🗑️ Removing agent from cache with ID:', agentId);
+  
+  queryClient.setQueryData(['agents'], (oldData: Agent[] | undefined) => {
+    console.log('🔄 Cache removal function called with oldData:', oldData);
+    
+    if (!oldData || !Array.isArray(oldData)) {
+      console.log('⚠️ No existing array data in cache');
+      return oldData;
+    }
+    
+    // Filter out the deleted agent
+    const updatedData = oldData.filter(agent => agent.id !== agentId);
+    console.log('✅ Removed agent from cache. Old length:', oldData.length, 'New length:', updatedData.length);
+    
+    return updatedData;
+  });
+  
+  // Also remove from knowledge folders cache if it exists
+  queryClient.setQueryData(['knowledgeFolders'], (oldData: any) => {
+    if (!oldData || !oldData.data) return oldData;
+    
+    const updatedData = {
+      ...oldData,
+      data: oldData.data.filter((folder: any) => folder.agent !== agentId)
+    };
+    
+    console.log('🗂️ Removed knowledge folder for agent:', agentId);
+    return updatedData;
+  });
+  
+  // CACHE-FIRST: Notify components without refetch
+  queryClient.invalidateQueries({ 
+    queryKey: ['agents'],
+    exact: true,
+    refetchType: 'none' // Critical: prevents API call, only notifies components
+  });
+  
+  queryClient.invalidateQueries({ 
+    queryKey: ['knowledgeFolders'],
+    refetchType: 'none'
+  });
+  
+  console.log('✅ Agent removal from cache completed');
 };
 
 // Transform knowledge folder API response to match expected format

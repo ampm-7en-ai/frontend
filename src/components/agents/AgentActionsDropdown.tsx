@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Edit, Copy, Trash2, MoreVertical } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { agentApi } from '@/utils/api-config';
+import { removeAgentFromCache } from '@/utils/agentCacheUtils';
+import { useQueryClient } from '@tanstack/react-query';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import {
@@ -27,6 +29,7 @@ interface AgentActionsDropdownProps {
 const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: AgentActionsDropdownProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [deleting, setDeleting] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -45,6 +48,10 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
         } catch { /* ignore */ }
         throw new Error(detail || response.statusText || 'Failed to delete agent');
       }
+      
+      // CACHE-FIRST: Remove agent from cache immediately
+      console.log('🗑️ AgentActionsDropdown: Removing agent from cache:', agentId);
+      removeAgentFromCache(queryClient, agentId);
       
       toast({
         title: "Agent deleted",
