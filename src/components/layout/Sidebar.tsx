@@ -44,6 +44,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { createAgent } from '@/utils/api-config';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import ModernButton from '../dashboard/ModernButton';
+import { useQueryClient } from '@tanstack/react-query';
+import { updateCachesAfterAgentCreation } from '@/utils/agentCacheUtils';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -79,6 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useAppTheme();
+  const queryClient = useQueryClient();
   const userRole = user?.role;
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -109,12 +112,30 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     if (isCreatingAgent) return;
     
     setIsCreatingAgent(true);
-    console.log("Creating agent directly from sidebar...");
+    console.log("🚀 Sidebar: Creating agent directly from sidebar...");
     
     try {
       const data = await createAgent('Untitled Agent', 'AI Agent created from builder');
       
-      console.log("Agent creation successful:", data);
+      console.log("📦 Sidebar: Agent creation successful:", data);
+      console.log('🔍 Response analysis:');
+      console.log('  - Status: Success');
+      console.log('  - Has data:', !!data.data);
+      console.log('  - Agent ID:', data.data?.id);
+      
+      // ENHANCED: Use unified cache update function with promise-based completion
+      if (data.data) {
+        console.log('🔄 Sidebar: Updating caches after agent creation');
+        await updateCachesAfterAgentCreation(queryClient, data);
+        
+        // ADDED: Additional verification after cache update
+        const updatedCache = queryClient.getQueryData(['agents']);
+        console.log('🔍 Sidebar: Post-update cache inspection:');
+        console.log('  - Type:', Array.isArray(updatedCache) ? 'Array' : typeof updatedCache);
+        console.log('  - Length:', Array.isArray(updatedCache) ? updatedCache.length : 'N/A');
+        console.log('  - Contains new agent:', Array.isArray(updatedCache) ? 
+          updatedCache.some(a => a.id === data.data.id.toString()) : 'N/A');
+      }
       
       // Show success toast
       toast({
@@ -123,14 +144,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         variant: "default"
       });
       
-      // Navigate to agent builder page with the new agent id
-      if (data.data?.id) {
-        navigate(`/agents/builder/${data.data.id}`);
-      } else {
-        navigate('/agents/builder');
-      }
+      // ENHANCED: Add small delay before navigation to ensure cache updates complete
+      setTimeout(() => {
+        if (data.data?.id) {
+          console.log('🧭 Sidebar: Navigating to builder with agent ID:', data.data.id);
+          navigate(`/agents/builder/${data.data.id}`);
+        } else {
+          navigate('/agents/builder');
+        }
+      }, 150); // Small delay to ensure cache reactivity
+      
     } catch (error) {
-      console.error('Error creating agent:', error);
+      console.error('❌ Sidebar: Error creating agent:', error);
       toast({
         title: "Creation Failed",
         description: error instanceof Error ? error.message : "An unexpected error occurred while creating the agent.",
