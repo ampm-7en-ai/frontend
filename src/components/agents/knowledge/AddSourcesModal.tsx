@@ -268,7 +268,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
       toast({
         title: "Upload Failed",
         description: "Failed to add knowledge sources. Please try again.",
-        variant: "error"
+        variant: "destructive"
       });
     }
   };
