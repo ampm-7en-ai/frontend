@@ -2,7 +2,7 @@
 import { Agent } from '@/hooks/useAgentFiltering';
 import { transformAgentCreationResponse, transformAgentData } from './agentTransformUtils';
 
-// Transform API response data to match Agent interface
+// Transform API response data to match Agent interface (deprecated - use unified transform)
 export const transformAgentResponse = (apiAgent: any): Agent => {
   console.log('🔄 Transforming agent response (deprecated - use unified transform):', apiAgent);
   return transformAgentData(apiAgent);
@@ -52,11 +52,12 @@ export const addAgentToCache = (queryClient: any, newAgent: Agent) => {
   console.log('✅ Cache verification - data type:', Array.isArray(updatedData) ? 'Array' : typeof updatedData);
   console.log('✅ Cache verification - length:', Array.isArray(updatedData) ? updatedData.length : 'N/A');
   
-  // Force cache notification (React Query optimization bypass)
+  // CACHE-FIRST: Only notify components about cache changes, no API refetch
+  console.log('🔔 Notifying components of cache update (no API call)');
   queryClient.invalidateQueries({ 
     queryKey: ['agents'],
     exact: true,
-    refetchType: 'none' // Don't refetch, just notify components
+    refetchType: 'none' // Critical: prevents API call, only notifies components
   });
 };
 
@@ -106,6 +107,12 @@ export const addKnowledgeFolderToCache = (queryClient: any, agentData: any) => {
     
     console.log('✅ Updated knowledge folders cache:', updatedData);
     return updatedData;
+  });
+  
+  // CACHE-FIRST: Notify without refetch
+  queryClient.invalidateQueries({ 
+    queryKey: ['knowledgeFolders'],
+    refetchType: 'none'
   });
 };
 
@@ -169,9 +176,9 @@ export const updateKnowledgeFolderWithDetails = (queryClient: any, agentId: stri
   });
 };
 
-// Unified cache update function for both agent and knowledge folder
+// ✨ NEW: Pure cache-first unified update function
 export const updateCachesAfterAgentCreation = (queryClient: any, apiResponse: any) => {
-  console.log('🚀 Starting unified cache update for agent creation');
+  console.log('🚀 CACHE-FIRST: Starting unified cache update for agent creation');
   console.log('📊 API response received:', apiResponse);
   console.log('🔍 Response structure analysis:');
   console.log('  - Has data property:', !!apiResponse.data);
@@ -189,28 +196,30 @@ export const updateCachesAfterAgentCreation = (queryClient: any, apiResponse: an
   
   console.log('✅ Successfully transformed agent:', transformedAgent);
   
-  // Update agent cache
-  console.log('📦 Step 1: Updating agent cache');
+  // CACHE-FIRST: Update agent cache without triggering API calls
+  console.log('📦 Step 1: Updating agent cache (CACHE-FIRST)');
   addAgentToCache(queryClient, transformedAgent);
   
-  // Update knowledge folders cache with initial data
-  console.log('📁 Step 2: Updating knowledge folder cache');
+  // CACHE-FIRST: Update knowledge folders cache
+  console.log('📁 Step 2: Updating knowledge folder cache (CACHE-FIRST)');
   addKnowledgeFolderToCache(queryClient, apiResponse.data);
   
   // Log current cache keys for debugging
   const allCacheKeys = Array.from(queryClient.getQueryCache().getAll().map(query => query.queryKey));
   console.log('🔑 All current cache keys:', allCacheKeys);
   
-  // Final verification
+  // Final verification - NO API CALLS MADE
   const agentsCache = queryClient.getQueryData(['agents']);
   const foldersCache = queryClient.getQueryData(['knowledgeFolders']);
   
-  console.log('✅ Final agents cache verification:');
+  console.log('✅ CACHE-FIRST: Final agents cache verification:');
   console.log('  - Type:', Array.isArray(agentsCache) ? 'Array' : typeof agentsCache);
   console.log('  - Length:', Array.isArray(agentsCache) ? agentsCache.length : 'N/A');
   console.log('  - First agent ID:', Array.isArray(agentsCache) && agentsCache[0] ? agentsCache[0].id : 'N/A');
+  console.log('  - Contains new agent:', Array.isArray(agentsCache) ? 
+    agentsCache.some(a => a.id === apiResponse.data.id.toString()) : 'N/A');
   
-  console.log('✅ Final folders cache verification:', foldersCache);
+  console.log('✅ CACHE-FIRST: Final folders cache verification:', foldersCache);
   
-  console.log('🎉 Unified cache update completed successfully');
+  console.log('🎉 CACHE-FIRST: Unified cache update completed - NO ADDITIONAL API CALLS MADE');
 };

@@ -107,20 +107,36 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     navigate('/knowledge/upload');
   };
 
-  // Handle agent plus action - create agent and redirect to builder
+  // CACHE-FIRST: Handle agent plus action - create agent and redirect to builder
   const handleAgentPlus = async () => {
     if (isCreatingAgent) return;
     
     setIsCreatingAgent(true);
-    console.log("Creating agent directly from sidebar...");
+    console.log("CACHE-FIRST: Creating agent directly from sidebar...");
     
     try {
+      // API call - this should be the ONLY network request
       const data = await createAgent('Untitled Agent', 'AI Agent created from builder');
       
       console.log("Agent creation successful:", data);
       
-      // Update caches using unified system
-      updateCachesAfterAgentCreation(queryClient, data);
+      // CACHE-FIRST: Update cache immediately, no additional API calls
+      if (data.data) {
+        console.log('🔄 Sidebar: Updating caches (CACHE-FIRST)');
+        updateCachesAfterAgentCreation(queryClient, data);
+        
+        // Verify cache update
+        setTimeout(() => {
+          const updatedCache = queryClient.getQueryData(['agents']);
+          console.log('🔍 Sidebar: Post-update cache verification:');
+          console.log('  - Type:', Array.isArray(updatedCache) ? 'Array' : typeof updatedCache);
+          console.log('  - Length:', Array.isArray(updatedCache) ? updatedCache.length : 'N/A');
+          console.log('  - Contains new agent:', Array.isArray(updatedCache) ? 
+            updatedCache.some(a => a.id === data.data.id.toString()) : 'N/A');
+          console.log('  - Cache update successful:', Array.isArray(updatedCache) && 
+            updatedCache.some(a => a.id === data.data.id.toString()) ? '✅' : '❌');
+        }, 100);
+      }
       
       // Show success toast
       toast({

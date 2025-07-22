@@ -53,7 +53,7 @@ const AgentList = () => {
       throw new Error('Authentication required');
     }
     
-    console.log('🌐 Fetching agents from:', getApiUrl(API_ENDPOINTS.AGENTS));
+    console.log('🌐 AgentList: Fetching from API (cache miss):', getApiUrl(API_ENDPOINTS.AGENTS));
     
     const response = await fetch(getApiUrl(API_ENDPOINTS.AGENTS), {
       headers: getAuthHeaders(token)
@@ -89,10 +89,12 @@ const AgentList = () => {
   } = useQuery({
     queryKey: ['agents'],
     queryFn: fetchAgents,
-    staleTime: 2 * 60 * 1000, // 2 minutes - longer stale time
-    gcTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false, // Keep false to prevent excessive calls
-    refetchOnMount: true, // Enable to test cache reactivity
+    // CACHE-FIRST: Optimized settings for better cache utilization
+    staleTime: 30 * 1000, // 30 seconds - fresh enough for immediate use
+    gcTime: 10 * 60 * 1000, // 10 minutes - keep in memory longer
+    refetchOnWindowFocus: false, // Prevent unnecessary API calls
+    refetchOnMount: false, // Use cache if available
+    refetchInterval: false, // No automatic polling
     retry: 2
   });
 
@@ -101,6 +103,7 @@ const AgentList = () => {
     const cacheData = queryClient.getQueryData(['agents']);
     console.log('🔍 AgentList mounted - current cache data:', cacheData);
     console.log('📊 Current agents from query:', agents);
+    console.log('💾 Cache hit status:', cacheData ? 'CACHE HIT' : 'CACHE MISS');
   }, [queryClient, agents]);
 
   useEffect(() => {
@@ -126,9 +129,13 @@ const AgentList = () => {
     setModelFilter
   });
 
+  // CACHE-FIRST: Only refresh if cache is actually empty
   const handleDeleteAgent = async (_agentId: string) => {
-    // We just refetch to refresh the list. (Better than filtering locally unless you want instant feedback)
-    refetch();
+    const cacheData = queryClient.getQueryData(['agents']);
+    if (!cacheData) {
+      console.log('🔄 Cache empty after delete, refreshing...');
+      refetch();
+    }
   };
 
   const handleCreateAgent = async () => {
@@ -144,8 +151,9 @@ const AgentList = () => {
     }
     
     try {
-      console.log('🚀 AgentList: Starting agent creation...');
+      console.log('🚀 AgentList: Starting agent creation (CACHE-FIRST)...');
       
+      // API call - this should be the ONLY network request
       const response = await fetch(getApiUrl(API_ENDPOINTS.AGENTS), {
         method: 'POST',
         headers: getAuthHeaders(token),
@@ -157,28 +165,26 @@ const AgentList = () => {
       
       const data = await response.json();
       console.log('📦 Agent creation API response:', data);
-      console.log('🔍 Response analysis:');
-      console.log('  - Status:', response.ok ? 'Success' : 'Error');
-      console.log('  - Has data:', !!data.data);
-      console.log('  - Agent ID:', data.data?.id);
       
       if (!response.ok) {
         throw new Error(data.error?.message || 'Failed to create agent');
       }
       
-      // Use unified cache update function
+      // CACHE-FIRST: Update cache immediately, no additional API calls
       if (data.data) {
-        console.log('🔄 AgentList: Updating caches after agent creation');
+        console.log('🔄 AgentList: Updating caches (CACHE-FIRST)');
         updateCachesAfterAgentCreation(queryClient, data);
         
-        // Force cache inspection after update
+        // Verify cache update
         setTimeout(() => {
           const updatedCache = queryClient.getQueryData(['agents']);
-          console.log('🔍 Post-update cache inspection:');
+          console.log('🔍 AgentList: Post-update cache verification:');
           console.log('  - Type:', Array.isArray(updatedCache) ? 'Array' : typeof updatedCache);
           console.log('  - Length:', Array.isArray(updatedCache) ? updatedCache.length : 'N/A');
           console.log('  - Contains new agent:', Array.isArray(updatedCache) ? 
             updatedCache.some(a => a.id === data.data.id.toString()) : 'N/A');
+          console.log('  - Cache update successful:', Array.isArray(updatedCache) && 
+            updatedCache.some(a => a.id === data.data.id.toString()) ? '✅' : '❌');
         }, 100);
       } else {
         console.warn('⚠️ No data.data in response, cache not updated');
@@ -208,6 +214,7 @@ const AgentList = () => {
   };
 
   console.log('🎨 AgentList render - agents count:', agents.length, 'filtered:', filteredAgents.length);
+  console.log('💾 Render cache status:', agents.length > 0 ? 'USING CACHE' : 'LOADING/EMPTY');
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>

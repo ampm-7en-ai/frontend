@@ -70,37 +70,34 @@ const AgentCreate = () => {
     }
     
     setIsSubmitting(true);
-    console.log("Starting agent creation...");
+    console.log("CACHE-FIRST: Starting agent creation from create page...");
     
     try {
       console.log("Sending agent creation request with:", { agentName, agentDescription });
+      // API call - this should be the ONLY network request
       const data = await createAgent(agentName, agentDescription);
       
       console.log("Agent creation successful from create page:", data);
-      console.log('🔍 Create page response analysis:');
-      console.log('  - Has data:', !!data.data);
-      console.log('  - Agent ID:', data.data?.id);
       
-      // Use unified cache update function
+      // CACHE-FIRST: Update cache immediately, no additional API calls
       if (data.data) {
-        console.log('🔄 AgentCreate: Updating caches after agent creation');
+        console.log('🔄 AgentCreate: Updating caches (CACHE-FIRST)');
         updateCachesAfterAgentCreation(queryClient, data);
         
         // Verify cache update
         setTimeout(() => {
           const updatedCache = queryClient.getQueryData(['agents']);
-          console.log('🔍 AgentCreate: Post-update cache inspection:');
+          console.log('🔍 AgentCreate: Post-update cache verification:');
           console.log('  - Type:', Array.isArray(updatedCache) ? 'Array' : typeof updatedCache);
           console.log('  - Length:', Array.isArray(updatedCache) ? updatedCache.length : 'N/A');
           console.log('  - Contains new agent:', Array.isArray(updatedCache) ? 
             updatedCache.some(a => a.id === data.data.id.toString()) : 'N/A');
+          console.log('  - Cache update successful:', Array.isArray(updatedCache) && 
+            updatedCache.some(a => a.id === data.data.id.toString()) ? '✅' : '❌');
         }, 100);
       }
       
-      // Invalidate knowledge folders cache to refresh the knowledge base page
-      queryClient.invalidateQueries({ 
-        queryKey: ['knowledgeFolders'] 
-      });
+      // CACHE-FIRST: No additional invalidateQueries calls needed
       
       // Show success toast with message from response
       toast({
