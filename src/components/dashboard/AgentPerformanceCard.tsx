@@ -1,12 +1,10 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ComposedChart } from 'recharts';
 import { Users, Clock, Star, TrendingUp, TrendingDown, Bot, Heart } from 'lucide-react';
 import { AgentPerformanceComparison } from '@/hooks/useAdminDashboard';
 import ModernTabNavigation from './ModernTabNavigation';
 import ModernButton from './ModernButton';
-import AgentPerformanceFilters, { AgentFilters } from './AgentPerformanceFilters';
 import {
   Select,
   SelectContent,
@@ -25,51 +23,15 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
   const [activeTab, setActiveTab] = useState('performance');
   const [selectedMetric, setSelectedMetric] = useState('conversations');
 
-  // Filter state
-  const [filters, setFilters] = useState<AgentFilters>({
-    search: '',
-    performanceLevel: 'all',
-    volumeLevel: 'all',
-    responseTimeLevel: 'all',
-    sortBy: 'efficiency',
-    sortOrder: 'desc',
-    perPage: agentPerformanceComparison.length > 15 ? 15 : 999,
-    showFilters: false,
-  });
-
   const tabs = [
     { id: 'performance', label: 'Performance' },
     { id: 'efficiency', label: 'Efficiency' },
     { id: 'satisfaction', label: 'Satisfaction' }
   ];
 
-  // Helper functions for filtering
-  const getPerformanceLevel = (efficiency: number) => {
-    if (efficiency > 80) return 'high';
-    if (efficiency >= 50) return 'medium';
-    return 'low';
-  };
-
-  const getVolumeLevel = (conversations: number, allConversations: number[]) => {
-    const sorted = [...allConversations].sort((a, b) => b - a);
-    const topQuartile = sorted[Math.floor(sorted.length * 0.25)];
-    const bottomQuartile = sorted[Math.floor(sorted.length * 0.75)];
-    
-    if (conversations >= topQuartile) return 'high';
-    if (conversations >= bottomQuartile) return 'medium';
-    return 'low';
-  };
-
-  const getResponseTimeLevel = (responseTime: number) => {
-    if (responseTime < 30) return 'fast';
-    if (responseTime <= 120) return 'medium';
-    return 'slow';
-  };
-
-  // Generate and filter performance data
-  const filteredPerformanceData = useMemo(() => {
-    // Generate full dataset
-    let data = agentPerformanceComparison.map((agent, index) => ({
+  // Generate performance data using actual API values
+  const generatePerformanceData = () => {
+    return agentPerformanceComparison.map((agent, index) => ({
       name: agent.agent_name.substring(0, 8) + (agent.agent_name.length > 8 ? '...' : ''),
       fullName: agent.agent_name,
       conversations: agent.conversations,
@@ -78,78 +40,15 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
       efficiency: agent.efficiency,
       resolved: agent.resolved,
       pending: agent.pending,
+      // Keep CSAT as original value (0-5 or 0-10 scale)
       csat: agent.csat || 0,
       nps: agent.nps || 0,
     }));
+  };
 
-    const allConversations = data.map(d => d.conversations);
+  const performanceData = generatePerformanceData();
 
-    // Apply filters
-    if (filters.search) {
-      data = data.filter(agent => 
-        agent.fullName.toLowerCase().includes(filters.search.toLowerCase())
-      );
-    }
-
-    if (filters.performanceLevel !== 'all') {
-      data = data.filter(agent => 
-        getPerformanceLevel(agent.efficiency) === filters.performanceLevel
-      );
-    }
-
-    if (filters.volumeLevel !== 'all') {
-      data = data.filter(agent => 
-        getVolumeLevel(agent.conversations, allConversations) === filters.volumeLevel
-      );
-    }
-
-    if (filters.responseTimeLevel !== 'all') {
-      data = data.filter(agent => 
-        getResponseTimeLevel(agent.responseTime) === filters.responseTimeLevel
-      );
-    }
-
-    // Sort data
-    data.sort((a, b) => {
-      let aVal, bVal;
-      switch (filters.sortBy) {
-        case 'name':
-          aVal = a.fullName.toLowerCase();
-          bVal = b.fullName.toLowerCase();
-          break;
-        case 'conversations':
-          aVal = a.conversations;
-          bVal = b.conversations;
-          break;
-        case 'responseTime':
-          aVal = a.responseTime;
-          bVal = b.responseTime;
-          break;
-        case 'efficiency':
-        default:
-          aVal = a.efficiency;
-          bVal = b.efficiency;
-          break;
-      }
-
-      if (filters.sortOrder === 'asc') {
-        return aVal > bVal ? 1 : -1;
-      } else {
-        return aVal < bVal ? 1 : -1;
-      }
-    });
-
-    // Apply pagination
-    if (filters.perPage < 999) {
-      data = data.slice(0, filters.perPage);
-    }
-
-    return data;
-  }, [agentPerformanceComparison, filters]);
-
-  const performanceData = filteredPerformanceData;
-
-  // Calculate summary stats from filtered data
+  // Calculate summary stats
   const totalConversations = performanceData.reduce((sum, agent) => sum + agent.conversations, 0);
   const avgResponseTime = performanceData.reduce((sum, agent) => sum + agent.responseTime, 0) / performanceData.length;
   const avgSatisfaction = performanceData.reduce((sum, agent) => sum + agent.satisfaction, 0) / performanceData.length;
@@ -158,24 +57,6 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
   const formatResponseTime = (time: number) => {
     if (time < 60) return `${Math.round(time)}s`;
     return `${Math.round(time / 60)}m`;
-  };
-
-  // Handle filter changes
-  const handleFiltersChange = (newFilters: Partial<AgentFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
-  };
-
-  const handleResetFilters = () => {
-    setFilters({
-      search: '',
-      performanceLevel: 'all',
-      volumeLevel: 'all',
-      responseTimeLevel: 'all',
-      sortBy: 'efficiency',
-      sortOrder: 'desc',
-      perPage: agentPerformanceComparison.length > 15 ? 15 : 999,
-      showFilters: false,
-    });
   };
 
   // Calculate appropriate chart height based on number of agents
@@ -406,28 +287,16 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Filters */}
-        <AgentPerformanceFilters
-          filters={filters}
-          onFiltersChange={handleFiltersChange}
-          totalAgents={agentPerformanceComparison.length}
-          filteredCount={performanceData.length}
-          onReset={handleResetFilters}
-        />
+        {performanceData.length > 15 && (
+          <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-lg p-3">
+            <span className="font-medium">Note:</span> Showing {performanceData.length} agents. 
+            {performanceData.length > 20 && " Consider filtering for better readability."}
+          </div>
+        )}
         
         {/* Chart */}
         <div className="overflow-hidden">
-          {performanceData.length > 0 ? (
-            renderChart()
-          ) : (
-            <div className="flex items-center justify-center h-64 text-slate-500 dark:text-slate-400">
-              <div className="text-center">
-                <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium">No agents match your filters</p>
-                <p className="text-sm">Try adjusting your search criteria or reset filters</p>
-              </div>
-            </div>
-          )}
+          {renderChart()}
         </div>
       </CardContent>
     </Card>
