@@ -6,25 +6,23 @@ import { Search, FileText, Globe, Plus, ArrowLeft, MoreHorizontal, Download, Tra
 import { Badge } from "@/components/ui/badge";
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import AddSourcesModal from '@/components/agents/knowledge/AddSourcesModal';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import KnowledgeStatsCard from '@/components/dashboard/KnowledgeStatsCard';
 import { ModernModal } from '@/components/ui/modern-modal';
-import { removeSourceFromFolderCache } from '@/utils/knowledgeSourceCacheUtils';
 
 const FolderSources = () => {
   const { agentId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [sourceToDelete, setSourceToDelete] = useState<any>(null);
 
-  // Fetch sources for the agent's folder with improved caching
+  // Fetch sources for the agent's folder
   const { 
     data: folderData, 
     isLoading,
@@ -50,8 +48,8 @@ const FolderSources = () => {
       return data;
     },
     enabled: !!agentId,
-    staleTime: 5 * 60 * 1000, // 5 minutes - increased from 1 minute
-    gcTime: 30 * 60 * 1000, // 30 minutes - increased from 1 minute  
+    staleTime: 1 * 60 * 1000,
+    gcTime: 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -192,8 +190,7 @@ const FolderSources = () => {
         description: `"${sourceToDelete.title}" has been successfully deleted.`,
       });
 
-      // 🔥 NEW: Use cache update instead of refetch
-      removeSourceFromFolderCache(queryClient, agentId || '', sourceToDelete.id);
+      refetch();
     } catch (error) {
       console.error('Error deleting knowledge source:', error);
       toast({
@@ -386,14 +383,13 @@ const FolderSources = () => {
         </div>
       </div>
 
-      {/* Add Sources Modal with cache update */}
+      {/* Add Sources Modal */}
       <AddSourcesModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         agentId={agentId || ''}
         onSuccess={() => {
-          // Cache will be updated by AddSourcesModal itself
-          console.log('✅ Sources added successfully - cache updated');
+          refetch(); // Refresh the sources list
         }}
       />
 
