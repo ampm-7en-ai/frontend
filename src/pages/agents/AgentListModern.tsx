@@ -62,7 +62,7 @@ const AgentListModern = () => {
   } = useQuery({
     queryKey: ['agents'],
     queryFn: fetchAgents,
-    staleTime: 2 * 60 * 1000, // 2 minutes - longer stale time for agent list
+    staleTime: 30 * 1000, // REDUCED: From 2 minutes to 30 seconds for immediate updates
     gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false, // Disable for agent list to prevent excessive calls
     refetchOnMount: true, // Enable to test cache reactivity
@@ -137,20 +137,18 @@ const AgentListModern = () => {
         throw new Error(data.error?.message || 'Failed to create agent');
       }
       
-      // Use unified cache update function
+      // ENHANCED: Use unified cache update function with promise-based completion
       if (data.data) {
         console.log('🔄 AgentListModern: Updating caches after creation');
-        updateCachesAfterAgentCreation(queryClient, data);
+        await updateCachesAfterAgentCreation(queryClient, data);
         
-        // Force cache inspection after update
-        setTimeout(() => {
-          const updatedCache = queryClient.getQueryData(['agents']);
-          console.log('🔍 AgentListModern: Post-update cache inspection:');
-          console.log('  - Type:', Array.isArray(updatedCache) ? 'Array' : typeof updatedCache);
-          console.log('  - Length:', Array.isArray(updatedCache) ? updatedCache.length : 'N/A');
-          console.log('  - Contains new agent:', Array.isArray(updatedCache) ? 
-            updatedCache.some(a => a.id === data.data.id.toString()) : 'N/A');
-        }, 100);
+        // ADDED: Additional verification after cache update
+        const updatedCache = queryClient.getQueryData(['agents']);
+        console.log('🔍 AgentListModern: Post-update cache inspection:');
+        console.log('  - Type:', Array.isArray(updatedCache) ? 'Array' : typeof updatedCache);
+        console.log('  - Length:', Array.isArray(updatedCache) ? updatedCache.length : 'N/A');
+        console.log('  - Contains new agent:', Array.isArray(updatedCache) ? 
+          updatedCache.some(a => a.id === data.data.id.toString()) : 'N/A');
       }
       
       toast({
@@ -159,12 +157,16 @@ const AgentListModern = () => {
         variant: "default"
       });
       
-      if (data.data?.id) {
-        console.log('🧭 AgentListModern: Navigating to builder:', data.data.id);
-        navigate(`/agents/builder/${data.data.id}`);
-      } else {
-        navigate('/agents/builder');
-      }
+      // ENHANCED: Add small delay before navigation to ensure cache updates complete
+      setTimeout(() => {
+        if (data.data?.id) {
+          console.log('🧭 AgentListModern: Navigating to builder:', data.data.id);
+          navigate(`/agents/builder/${data.data.id}`);
+        } else {
+          navigate('/agents/builder');
+        }
+      }, 150); // Small delay to ensure cache reactivity
+      
     } catch (error) {
       console.error('❌ AgentListModern: Creation failed:', error);
       toast({

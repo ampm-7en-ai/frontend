@@ -81,20 +81,18 @@ const AgentCreate = () => {
       console.log('  - Has data:', !!data.data);
       console.log('  - Agent ID:', data.data?.id);
       
-      // Use unified cache update function
+      // ENHANCED: Use unified cache update function with promise-based completion
       if (data.data) {
         console.log('🔄 AgentCreate: Updating caches after agent creation');
-        updateCachesAfterAgentCreation(queryClient, data);
+        await updateCachesAfterAgentCreation(queryClient, data);
         
-        // Verify cache update
-        setTimeout(() => {
-          const updatedCache = queryClient.getQueryData(['agents']);
-          console.log('🔍 AgentCreate: Post-update cache inspection:');
-          console.log('  - Type:', Array.isArray(updatedCache) ? 'Array' : typeof updatedCache);
-          console.log('  - Length:', Array.isArray(updatedCache) ? updatedCache.length : 'N/A');
-          console.log('  - Contains new agent:', Array.isArray(updatedCache) ? 
-            updatedCache.some(a => a.id === data.data.id.toString()) : 'N/A');
-        }, 100);
+        // ADDED: Verify cache update with detailed logging
+        const updatedCache = queryClient.getQueryData(['agents']);
+        console.log('🔍 AgentCreate: Post-update cache inspection:');
+        console.log('  - Type:', Array.isArray(updatedCache) ? 'Array' : typeof updatedCache);
+        console.log('  - Length:', Array.isArray(updatedCache) ? updatedCache.length : 'N/A');
+        console.log('  - Contains new agent:', Array.isArray(updatedCache) ? 
+          updatedCache.some(a => a.id === data.data.id.toString()) : 'N/A');
       }
       
       // Invalidate knowledge folders cache to refresh the knowledge base page
@@ -109,8 +107,12 @@ const AgentCreate = () => {
         variant: "default"
       });
       
-      // Navigate back to agent list
-      navigate('/agents');
+      // ENHANCED: Add small delay before navigation to ensure cache updates complete
+      setTimeout(() => {
+        console.log('🧭 AgentCreate: Navigating to agents list after cache update');
+        navigate('/agents');
+      }, 150); // Small delay to ensure cache reactivity
+      
     } catch (error) {
       console.error('Error creating agent:', error);
       toast({
