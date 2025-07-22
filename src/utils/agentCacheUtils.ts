@@ -60,44 +60,10 @@ export const addAgentToCache = (queryClient: any, newAgent: Agent) => {
   });
 };
 
-// Remove agent from cache
-export const removeAgentFromCache = (queryClient: any, agentId: string) => {
-  queryClient.setQueryData(['agents'], (oldData: Agent[] | undefined) => {
-    if (!oldData) return [];
-    return oldData.filter(agent => agent.id !== agentId);
-  });
-  
-  // Also remove from knowledge folders cache
-  queryClient.setQueryData(['knowledgeFolders'], (oldData: any) => {
-    if (!oldData || !oldData.data) return oldData;
-    
-    return {
-      ...oldData,
-      data: oldData.data.filter((folder: any) => folder.agent.toString() !== agentId)
-    };
-  });
-  
-  // Invalidate specific agent caches
-  queryClient.removeQueries({ queryKey: ['agentKnowledgeSources', agentId] });
-};
-
 // Add knowledge folder to cache from agent creation
 export const addKnowledgeFolderToCache = (queryClient: any, agentData: any) => {
   queryClient.setQueryData(['knowledgeFolders'], (oldData: any) => {
-    if (!oldData || !oldData.data) {
-      return {
-        data: [{
-          id: agentData.id,
-          agent: agentData.id,
-          name: agentData.name,
-          description: agentData.description,
-          source_count: 0,
-          status: 'active',
-          created_at: agentData.created_at,
-          updated_at: agentData.updated_at
-        }]
-      };
-    }
+    if (!oldData || !oldData.data) return oldData;
     
     const newFolder = {
       id: agentData.id,
@@ -165,11 +131,8 @@ export const updateKnowledgeFolderWithDetails = (queryClient: any, agentId: stri
 
 // Unified cache update function for both agent and knowledge folder
 export const updateCachesAfterAgentCreation = (queryClient: any, agentData: any) => {
-  console.log('Updating caches with agent data:', agentData);
-  
   // Update agent cache
   const transformedAgent = transformAgentResponse(agentData);
-  console.log('Transformed agent:', transformedAgent);
   addAgentToCache(queryClient, transformedAgent);
   
   // Update knowledge folders cache with initial data
