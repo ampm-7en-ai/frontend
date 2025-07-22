@@ -76,12 +76,25 @@ const AgentCreate = () => {
       console.log("Sending agent creation request with:", { agentName, agentDescription });
       const data = await createAgent(agentName, agentDescription);
       
-      console.log("Agent creation successful:", data);
+      console.log("Agent creation successful from create page:", data);
+      console.log('🔍 Create page response analysis:');
+      console.log('  - Has data:', !!data.data);
+      console.log('  - Agent ID:', data.data?.id);
       
       // Use unified cache update function
       if (data.data) {
-        console.log('Updating caches after agent creation from create page:', data.data);
-        updateCachesAfterAgentCreation(queryClient, data.data);
+        console.log('🔄 AgentCreate: Updating caches after agent creation');
+        updateCachesAfterAgentCreation(queryClient, data);
+        
+        // Verify cache update
+        setTimeout(() => {
+          const updatedCache = queryClient.getQueryData(['agents']);
+          console.log('🔍 AgentCreate: Post-update cache inspection:');
+          console.log('  - Type:', Array.isArray(updatedCache) ? 'Array' : typeof updatedCache);
+          console.log('  - Length:', Array.isArray(updatedCache) ? updatedCache.length : 'N/A');
+          console.log('  - Contains new agent:', Array.isArray(updatedCache) ? 
+            updatedCache.some(a => a.id === data.data.id.toString()) : 'N/A');
+        }, 100);
       }
       
       // Invalidate knowledge folders cache to refresh the knowledge base page

@@ -1,66 +1,30 @@
 
 import { Agent } from '@/hooks/useAgentFiltering';
+import { transformAgentCreationResponse, transformAgentData } from './agentTransformUtils';
 
 // Transform API response data to match Agent interface
 export const transformAgentResponse = (apiAgent: any): Agent => {
-  console.log('🔄 Transforming agent response:', apiAgent);
-  
-  const transformed = {
-    id: apiAgent.id.toString(),
-    name: apiAgent.name,
-    description: apiAgent.description || '',
-    conversations: 0, // New agents start with 0 conversations
-    lastModified: apiAgent.created_at,
-    averageRating: 0, // New agents start with 0 rating
-    knowledgeSources: apiAgent.knowledge_sources?.map((kb: any, index: number) => ({
-      id: kb.id || index,
-      name: kb.name || `Source ${index + 1}`,
-      type: kb.type || 'document',
-      icon: 'BookOpen',
-      hasError: kb.status === 'deleted',
-      hasIssue: kb.status === 'issues'
-    })) || [],
-    model: apiAgent.model?.response_model || apiAgent.model?.selectedModel || apiAgent.model?.name || 'mistral-small',
-    isDeployed: apiAgent.status === 'Live',
-    status: apiAgent.status || 'Idle'
-  };
-  
-  console.log('✅ Transformed agent:', transformed);
-  return transformed;
+  console.log('🔄 Transforming agent response (deprecated - use unified transform):', apiAgent);
+  return transformAgentData(apiAgent);
 };
 
-// Transform knowledge folder API response to match expected format
-export const transformKnowledgeFolderResponse = (apiResponse: any) => {
-  if (!apiResponse.data) return null;
-  
-  return {
-    id: apiResponse.data.folder_id,
-    agent: apiResponse.data.folder_id, // Using folder_id as agent reference
-    name: apiResponse.data.folder_name,
-    description: '',
-    source_count: apiResponse.data.knowledge_sources?.length || 0,
-    status: 'active',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    knowledge_sources: apiResponse.data.knowledge_sources || []
-  };
-};
-
-// Add new agent to existing cache
+// Add new agent to existing cache with proper structure validation
 export const addAgentToCache = (queryClient: any, newAgent: Agent) => {
   console.log('🏪 Adding agent to cache with key: ["agents"]');
   console.log('📦 Agent data to add:', newAgent);
   
-  // Get current cache data to inspect
+  // Get current cache data to inspect structure
   const currentData = queryClient.getQueryData(['agents']);
   console.log('📋 Current agents cache data:', currentData);
   console.log('📊 Current cache data type:', Array.isArray(currentData) ? 'Array' : typeof currentData);
   
   queryClient.setQueryData(['agents'], (oldData: Agent[] | undefined) => {
     console.log('🔄 Cache update function called with oldData:', oldData);
+    console.log('🔍 oldData type:', Array.isArray(oldData) ? 'Array' : typeof oldData);
+    console.log('🔍 oldData length:', Array.isArray(oldData) ? oldData.length : 'N/A');
     
-    if (!oldData) {
-      console.log('✨ No existing data, creating new array with agent');
+    if (!oldData || !Array.isArray(oldData)) {
+      console.log('✨ No existing array data, creating new array with agent');
       return [newAgent];
     }
     
@@ -71,20 +35,46 @@ export const addAgentToCache = (queryClient: any, newAgent: Agent) => {
       // Update existing agent
       const updatedData = [...oldData];
       updatedData[existingIndex] = newAgent;
-      console.log('✅ Updated agents array:', updatedData);
+      console.log('✅ Updated agents array length:', updatedData.length);
       return updatedData;
     }
     
     // Add new agent to the beginning of the list
     console.log('➕ Adding new agent to beginning of list');
     const newData = [newAgent, ...oldData];
-    console.log('✅ New agents array:', newData);
+    console.log('✅ New agents array length:', newData.length);
+    console.log('🔍 First 3 agent IDs:', newData.slice(0, 3).map(a => a.id));
     return newData;
   });
   
   // Verify the cache was updated
   const updatedData = queryClient.getQueryData(['agents']);
-  console.log('✅ Cache updated, new data:', updatedData);
+  console.log('✅ Cache verification - data type:', Array.isArray(updatedData) ? 'Array' : typeof updatedData);
+  console.log('✅ Cache verification - length:', Array.isArray(updatedData) ? updatedData.length : 'N/A');
+  
+  // Force cache notification (React Query optimization bypass)
+  queryClient.invalidateQueries({ 
+    queryKey: ['agents'],
+    exact: true,
+    refetchType: 'none' // Don't refetch, just notify components
+  });
+};
+
+// Transform knowledge folder API response to match expected format
+export const transformKnowledgeFolderResponse = (apiResponse: any) => {
+  if (!apiResponse.data) return null;
+  
+  return {
+    id: apiResponse.data.folder_id,
+    agent: apiResponse.data.folder_id,
+    name: apiResponse.data.folder_name,
+    description: '',
+    source_count: apiResponse.data.knowledge_sources?.length || 0,
+    status: 'active',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    knowledge_sources: apiResponse.data.knowledge_sources || []
+  };
 };
 
 // Add knowledge folder to cache from agent creation
@@ -140,7 +130,6 @@ export const updateKnowledgeFolderWithDetails = (queryClient: any, agentId: stri
     
     if (existingIndex !== -1) {
       console.log('🔄 Updating existing folder at index:', existingIndex);
-      // Update existing folder with detailed information
       updatedData[existingIndex] = {
         ...updatedData[existingIndex],
         id: transformedFolder.id,
@@ -150,7 +139,6 @@ export const updateKnowledgeFolderWithDetails = (queryClient: any, agentId: stri
       };
     } else {
       console.log('➕ Adding new folder to knowledge folders');
-      // Add new folder if it doesn't exist
       updatedData.unshift({
         id: transformedFolder.id,
         agent: agentId,
@@ -182,35 +170,46 @@ export const updateKnowledgeFolderWithDetails = (queryClient: any, agentId: stri
 };
 
 // Unified cache update function for both agent and knowledge folder
-export const updateCachesAfterAgentCreation = (queryClient: any, agentData: any) => {
+export const updateCachesAfterAgentCreation = (queryClient: any, apiResponse: any) => {
   console.log('🚀 Starting unified cache update for agent creation');
-  console.log('📊 Agent data received:', agentData);
-  console.log('🔑 Agent ID type:', typeof agentData.id, 'Value:', agentData.id);
+  console.log('📊 API response received:', apiResponse);
+  console.log('🔍 Response structure analysis:');
+  console.log('  - Has data property:', !!apiResponse.data);
+  console.log('  - Data type:', typeof apiResponse.data);
+  console.log('  - Agent ID:', apiResponse.data?.id);
+  console.log('  - Agent name:', apiResponse.data?.name);
   
-  // Check if we have the required data
-  if (!agentData || !agentData.id) {
-    console.error('❌ Invalid agent data for cache update:', agentData);
+  // Transform the agent data using unified transformer
+  const transformedAgent = transformAgentCreationResponse(apiResponse);
+  
+  if (!transformedAgent) {
+    console.error('❌ Failed to transform agent creation response');
     return;
   }
   
+  console.log('✅ Successfully transformed agent:', transformedAgent);
+  
   // Update agent cache
   console.log('📦 Step 1: Updating agent cache');
-  const transformedAgent = transformAgentResponse(agentData);
   addAgentToCache(queryClient, transformedAgent);
   
   // Update knowledge folders cache with initial data
   console.log('📁 Step 2: Updating knowledge folder cache');
-  addKnowledgeFolderToCache(queryClient, agentData);
+  addKnowledgeFolderToCache(queryClient, apiResponse.data);
   
   // Log current cache keys for debugging
   const allCacheKeys = Array.from(queryClient.getQueryCache().getAll().map(query => query.queryKey));
   console.log('🔑 All current cache keys:', allCacheKeys);
   
-  // Verify both caches were updated
+  // Final verification
   const agentsCache = queryClient.getQueryData(['agents']);
   const foldersCache = queryClient.getQueryData(['knowledgeFolders']);
   
-  console.log('✅ Final agents cache verification:', agentsCache);
+  console.log('✅ Final agents cache verification:');
+  console.log('  - Type:', Array.isArray(agentsCache) ? 'Array' : typeof agentsCache);
+  console.log('  - Length:', Array.isArray(agentsCache) ? agentsCache.length : 'N/A');
+  console.log('  - First agent ID:', Array.isArray(agentsCache) && agentsCache[0] ? agentsCache[0].id : 'N/A');
+  
   console.log('✅ Final folders cache verification:', foldersCache);
   
   console.log('🎉 Unified cache update completed successfully');

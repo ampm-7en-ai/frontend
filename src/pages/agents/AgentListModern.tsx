@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Bot, Plus } from 'lucide-react';
@@ -12,6 +11,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useNavigate } from 'react-router-dom';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { transformAgentList } from '@/utils/agentTransformUtils';
 import { updateCachesAfterAgentCreation } from '@/utils/agentCacheUtils';
 
 const AgentListModern = () => {
@@ -41,33 +41,16 @@ const AgentListModern = () => {
     }
 
     const responseData = await response.json();
-    console.log('📊 AgentListModern: API response:', responseData);
+    console.log('📊 AgentListModern: Raw API response structure:', {
+      hasData: !!responseData.data,
+      dataType: Array.isArray(responseData.data) ? 'Array' : typeof responseData.data,
+      dataLength: Array.isArray(responseData.data) ? responseData.data.length : 'N/A'
+    });
     
-    if (!responseData.data) {
-      return [];
-    }
+    // Use unified transformation
+    const transformedAgents = transformAgentList(responseData);
+    console.log('✅ AgentListModern: Final transformed agents:', transformedAgents.length, 'agents');
     
-    const transformedAgents = responseData.data.map((agent: any) => ({
-      id: agent.id.toString(),
-      name: agent.name,
-      description: agent.description || '',
-      conversations: agent.conversations || 0,
-      lastModified: agent.created_at,
-      averageRating: agent.average_rating || 0,
-      knowledgeSources: agent.knowledge_bases?.map((kb: any, index: number) => ({
-        id: kb.id || index,
-        name: kb.name || `Source ${index + 1}`,
-        type: kb.type || 'document',
-        icon: 'BookOpen',
-        hasError: kb.status === 'deleted',
-        hasIssue: kb.status === 'issues'
-      })) || [],
-      model: agent.model?.selectedModel || agent.model?.name || 'gpt-3.5',
-      isDeployed: agent.status === 'Live',
-      status: agent.status || 'Draft'
-    }));
-    
-    console.log('✅ AgentListModern: Transformed agents:', transformedAgents);
     return transformedAgents;
   };
 
@@ -144,7 +127,11 @@ const AgentListModern = () => {
       });
       
       const data = await response.json();
-      console.log('📦 AgentListModern: Creation response:', data);
+      console.log('📦 AgentListModern: Creation API response:', data);
+      console.log('🔍 Response analysis:');
+      console.log('  - Status:', response.ok ? 'Success' : 'Error');
+      console.log('  - Has data:', !!data.data);
+      console.log('  - Agent ID:', data.data?.id);
       
       if (!response.ok) {
         throw new Error(data.error?.message || 'Failed to create agent');
@@ -152,13 +139,17 @@ const AgentListModern = () => {
       
       // Use unified cache update function
       if (data.data) {
-        console.log('🔄 AgentListModern: Updating caches after creation:', data.data);
-        updateCachesAfterAgentCreation(queryClient, data.data);
+        console.log('🔄 AgentListModern: Updating caches after creation');
+        updateCachesAfterAgentCreation(queryClient, data);
         
-        // Verify cache update
+        // Force cache inspection after update
         setTimeout(() => {
           const updatedCache = queryClient.getQueryData(['agents']);
-          console.log('✅ AgentListModern: Cache after update:', updatedCache);
+          console.log('🔍 AgentListModern: Post-update cache inspection:');
+          console.log('  - Type:', Array.isArray(updatedCache) ? 'Array' : typeof updatedCache);
+          console.log('  - Length:', Array.isArray(updatedCache) ? updatedCache.length : 'N/A');
+          console.log('  - Contains new agent:', Array.isArray(updatedCache) ? 
+            updatedCache.some(a => a.id === data.data.id.toString()) : 'N/A');
         }, 100);
       }
       

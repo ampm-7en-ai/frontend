@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Label } from '@/components/ui/label';
+import { transformAgentList } from '@/utils/agentTransformUtils';
 import { updateCachesAfterAgentCreation } from '@/utils/agentCacheUtils';
 
 interface ApiResponse {
@@ -68,34 +68,16 @@ const AgentList = () => {
     }
 
     const responseData = await response.json();
-    console.log('📊 Agent data received from API:', responseData);
+    console.log('📊 Raw API response structure:', {
+      hasData: !!responseData.data,
+      dataType: Array.isArray(responseData.data) ? 'Array' : typeof responseData.data,
+      dataLength: Array.isArray(responseData.data) ? responseData.data.length : 'N/A'
+    });
     
-    if (!responseData.data) {
-      console.error('❌ Invalid response format, missing data property:', responseData);
-      return [];
-    }
+    // Use unified transformation
+    const transformedAgents = transformAgentList(responseData);
+    console.log('✅ Final transformed agents:', transformedAgents.length, 'agents');
     
-    const transformedAgents = responseData.data.map((agent: any) => ({
-      id: agent.id.toString(),
-      name: agent.name,
-      description: agent.description || '',
-      conversations: agent.conversations || 0,
-      lastModified: agent.created_at,
-      averageRating: agent.average_rating || 0,
-      knowledgeSources: agent.knowledge_bases?.map((kb: any, index: number) => ({
-        id: kb.id || index,
-        name: kb.name || `Source ${index + 1}`,
-        type: kb.type || 'document',
-        icon: 'BookOpen',
-        hasError: kb.status === 'deleted',
-        hasIssue: kb.status === 'issues'
-      })) || [],
-      model: agent.model?.selectedModel || agent.model?.name || 'gpt-3.5',
-      isDeployed: agent.status === 'Live',
-      status: agent.status || 'Draft'
-    }));
-    
-    console.log('✅ Transformed agents for display:', transformedAgents);
     return transformedAgents;
   };
 
@@ -174,7 +156,11 @@ const AgentList = () => {
       });
       
       const data = await response.json();
-      console.log('📦 Agent creation response:', data);
+      console.log('📦 Agent creation API response:', data);
+      console.log('🔍 Response analysis:');
+      console.log('  - Status:', response.ok ? 'Success' : 'Error');
+      console.log('  - Has data:', !!data.data);
+      console.log('  - Agent ID:', data.data?.id);
       
       if (!response.ok) {
         throw new Error(data.error?.message || 'Failed to create agent');
@@ -182,13 +168,17 @@ const AgentList = () => {
       
       // Use unified cache update function
       if (data.data) {
-        console.log('🔄 AgentList: Updating caches after agent creation:', data.data);
-        updateCachesAfterAgentCreation(queryClient, data.data);
+        console.log('🔄 AgentList: Updating caches after agent creation');
+        updateCachesAfterAgentCreation(queryClient, data);
         
-        // Verify cache update immediately
+        // Force cache inspection after update
         setTimeout(() => {
           const updatedCache = queryClient.getQueryData(['agents']);
-          console.log('✅ Cache verification after update:', updatedCache);
+          console.log('🔍 Post-update cache inspection:');
+          console.log('  - Type:', Array.isArray(updatedCache) ? 'Array' : typeof updatedCache);
+          console.log('  - Length:', Array.isArray(updatedCache) ? updatedCache.length : 'N/A');
+          console.log('  - Contains new agent:', Array.isArray(updatedCache) ? 
+            updatedCache.some(a => a.id === data.data.id.toString()) : 'N/A');
         }, 100);
       } else {
         console.warn('⚠️ No data.data in response, cache not updated');
@@ -196,11 +186,11 @@ const AgentList = () => {
       
       toast({
         title: "Agent Created",
-        description: data.data?.message || "New agent has been created successfully.",
+        description: data.message || "New agent has been created successfully.",
         variant: "default"
       });
       
-      // Navigate to the builder page with the newly created agent ID
+      // Navigate to builder
       if (data.data?.id) {
         console.log('🧭 Navigating to builder with agent ID:', data.data.id);
         navigate(`/agents/builder/${data.data.id}`);
