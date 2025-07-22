@@ -6,6 +6,7 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import { useIntegrations } from '@/hooks/useIntegrations';
 import { fetchGoogleDriveFiles, BASE_URL, getAccessToken } from '@/utils/api-config';
+import { apiRequest } from '@/utils/api-interceptor';
 import SourceTypeSelector from './SourceTypeSelector';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { Table, FileText } from 'lucide-react';
@@ -259,18 +260,9 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
         break;
     }
 
-    const token = getAccessToken();
-    const headers: HeadersInit = {};
-    
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${BASE_URL}knowledgesource/`, {
+    const response = await apiRequest(`${BASE_URL}knowledgesource/`, {
       method: 'POST',
       body: formData,
-      headers,
-      credentials: 'include',
     });
 
     if (!response.ok) {
