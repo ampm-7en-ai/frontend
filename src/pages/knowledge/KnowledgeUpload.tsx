@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -818,7 +819,7 @@ const KnowledgeUpload = () => {
                   availableThirdPartyProviders={availableThirdPartyProviders}
                   thirdPartyProviders={thirdPartyProviders}
                   handleFileChange={handleFileChange}
-                  removeFile={removeFile}
+                  removeFile={(index: number) => removeFile(index)}
                   handleQuickConnect={handleQuickConnect}
                   handleRemoveSelectedFile={handleRemoveSelectedFile}
                   handleFileUploadClick={handleFileUploadClick}
