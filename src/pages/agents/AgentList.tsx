@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,36 +46,36 @@ const AgentList = () => {
 
   const fetchAgents = async (): Promise<Agent[]> => {
     const token = getAccessToken();
-    console.log('Fetching agents with token:', token ? 'Token exists' : 'No token');
+    console.log('🔍 AgentList: Fetching agents with token:', token ? 'Token exists' : 'No token');
     
     if (!token) {
-      console.error('No authentication token found for agent fetch');
+      console.error('❌ No authentication token found for agent fetch');
       throw new Error('Authentication required');
     }
     
-    console.log('Fetching agents from:', getApiUrl(API_ENDPOINTS.AGENTS));
+    console.log('🌐 Fetching agents from:', getApiUrl(API_ENDPOINTS.AGENTS));
     
     const response = await fetch(getApiUrl(API_ENDPOINTS.AGENTS), {
       headers: getAuthHeaders(token)
     });
     
-    console.log('Agent fetch response status:', response.status);
+    console.log('📡 Agent fetch response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Failed to fetch agents: ${response.status}`, errorText);
+      console.error(`❌ Failed to fetch agents: ${response.status}`, errorText);
       throw new Error(`Failed to fetch agents: ${response.status}`);
     }
 
     const responseData = await response.json();
-    console.log('Agent data received:', responseData);
+    console.log('📊 Agent data received from API:', responseData);
     
     if (!responseData.data) {
-      console.error('Invalid response format, missing data property:', responseData);
+      console.error('❌ Invalid response format, missing data property:', responseData);
       return [];
     }
     
-    return responseData.data.map((agent: any) => ({
+    const transformedAgents = responseData.data.map((agent: any) => ({
       id: agent.id.toString(),
       name: agent.name,
       description: agent.description || '',
@@ -93,6 +94,9 @@ const AgentList = () => {
       isDeployed: agent.status === 'Live',
       status: agent.status || 'Draft'
     }));
+    
+    console.log('✅ Transformed agents for display:', transformedAgents);
+    return transformedAgents;
   };
 
   const { 
@@ -105,15 +109,21 @@ const AgentList = () => {
     queryFn: fetchAgents,
     staleTime: 2 * 60 * 1000, // 2 minutes - longer stale time
     gcTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false, // Disable to prevent excessive calls
-    refetchOnMount: false, // Disable automatic refetch on mount
+    refetchOnWindowFocus: false, // Keep false to prevent excessive calls
+    refetchOnMount: true, // Enable to test cache reactivity
     retry: 2
   });
 
-  // Remove the useEffect that was causing refetch on mount
+  // Debug cache state on component mount
+  useEffect(() => {
+    const cacheData = queryClient.getQueryData(['agents']);
+    console.log('🔍 AgentList mounted - current cache data:', cacheData);
+    console.log('📊 Current agents from query:', agents);
+  }, [queryClient, agents]);
+
   useEffect(() => {
     if (error) {
-      console.error('Error fetching agents:', error);
+      console.error('❌ Error fetching agents:', error);
       toast({
         title: "Error fetching agents",
         description: error instanceof Error ? error.message : "Unknown error occurred",
@@ -152,6 +162,8 @@ const AgentList = () => {
     }
     
     try {
+      console.log('🚀 AgentList: Starting agent creation...');
+      
       const response = await fetch(getApiUrl(API_ENDPOINTS.AGENTS), {
         method: 'POST',
         headers: getAuthHeaders(token),
@@ -162,6 +174,7 @@ const AgentList = () => {
       });
       
       const data = await response.json();
+      console.log('📦 Agent creation response:', data);
       
       if (!response.ok) {
         throw new Error(data.error?.message || 'Failed to create agent');
@@ -169,8 +182,16 @@ const AgentList = () => {
       
       // Use unified cache update function
       if (data.data) {
-        console.log('Updating caches after agent creation:', data.data);
+        console.log('🔄 AgentList: Updating caches after agent creation:', data.data);
         updateCachesAfterAgentCreation(queryClient, data.data);
+        
+        // Verify cache update immediately
+        setTimeout(() => {
+          const updatedCache = queryClient.getQueryData(['agents']);
+          console.log('✅ Cache verification after update:', updatedCache);
+        }, 100);
+      } else {
+        console.warn('⚠️ No data.data in response, cache not updated');
       }
       
       toast({
@@ -181,12 +202,13 @@ const AgentList = () => {
       
       // Navigate to the builder page with the newly created agent ID
       if (data.data?.id) {
+        console.log('🧭 Navigating to builder with agent ID:', data.data.id);
         navigate(`/agents/builder/${data.data.id}`);
       } else {
         navigate('/agents/builder');
       }
     } catch (error) {
-      console.error('Error creating agent:', error);
+      console.error('❌ Error creating agent:', error);
       toast({
         title: "Creation Failed",
         description: error instanceof Error ? error.message : "An unexpected error occurred.",
@@ -194,6 +216,8 @@ const AgentList = () => {
       });
     }
   };
+
+  console.log('🎨 AgentList render - agents count:', agents.length, 'filtered:', filteredAgents.length);
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>

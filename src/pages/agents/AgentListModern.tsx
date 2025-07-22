@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Bot, Plus } from 'lucide-react';
@@ -28,6 +29,8 @@ const AgentListModern = () => {
       throw new Error('Authentication required');
     }
     
+    console.log('🌐 AgentListModern: Fetching agents from API');
+    
     const response = await fetch(getApiUrl(API_ENDPOINTS.AGENTS), {
       headers: getAuthHeaders(token)
     });
@@ -38,12 +41,13 @@ const AgentListModern = () => {
     }
 
     const responseData = await response.json();
+    console.log('📊 AgentListModern: API response:', responseData);
     
     if (!responseData.data) {
       return [];
     }
     
-    return responseData.data.map((agent: any) => ({
+    const transformedAgents = responseData.data.map((agent: any) => ({
       id: agent.id.toString(),
       name: agent.name,
       description: agent.description || '',
@@ -62,6 +66,9 @@ const AgentListModern = () => {
       isDeployed: agent.status === 'Live',
       status: agent.status || 'Draft'
     }));
+    
+    console.log('✅ AgentListModern: Transformed agents:', transformedAgents);
+    return transformedAgents;
   };
 
   const { 
@@ -75,9 +82,16 @@ const AgentListModern = () => {
     staleTime: 2 * 60 * 1000, // 2 minutes - longer stale time for agent list
     gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false, // Disable for agent list to prevent excessive calls
-    refetchOnMount: false, // Disable to prevent refetch every time
+    refetchOnMount: true, // Enable to test cache reactivity
     retry: 2
   });
+
+  // Debug cache state
+  useEffect(() => {
+    const cacheData = queryClient.getQueryData(['agents']);
+    console.log('🔍 AgentListModern mounted - cache data:', cacheData);
+    console.log('📊 Current agents from query:', agents);
+  }, [queryClient, agents]);
 
   useEffect(() => {
     if (error) {
@@ -118,6 +132,8 @@ const AgentListModern = () => {
     }
     
     try {
+      console.log('🚀 AgentListModern: Creating new agent...');
+      
       const response = await fetch(getApiUrl(API_ENDPOINTS.AGENTS), {
         method: 'POST',
         headers: getAuthHeaders(token),
@@ -128,6 +144,7 @@ const AgentListModern = () => {
       });
       
       const data = await response.json();
+      console.log('📦 AgentListModern: Creation response:', data);
       
       if (!response.ok) {
         throw new Error(data.error?.message || 'Failed to create agent');
@@ -135,8 +152,14 @@ const AgentListModern = () => {
       
       // Use unified cache update function
       if (data.data) {
-        console.log('Updating caches after agent creation:', data.data);
+        console.log('🔄 AgentListModern: Updating caches after creation:', data.data);
         updateCachesAfterAgentCreation(queryClient, data.data);
+        
+        // Verify cache update
+        setTimeout(() => {
+          const updatedCache = queryClient.getQueryData(['agents']);
+          console.log('✅ AgentListModern: Cache after update:', updatedCache);
+        }, 100);
       }
       
       toast({
@@ -146,11 +169,13 @@ const AgentListModern = () => {
       });
       
       if (data.data?.id) {
+        console.log('🧭 AgentListModern: Navigating to builder:', data.data.id);
         navigate(`/agents/builder/${data.data.id}`);
       } else {
         navigate('/agents/builder');
       }
     } catch (error) {
+      console.error('❌ AgentListModern: Creation failed:', error);
       toast({
         title: "Creation Failed",
         description: error instanceof Error ? error.message : "An unexpected error occurred.",
@@ -158,6 +183,8 @@ const AgentListModern = () => {
       });
     }
   };
+
+  console.log('🎨 AgentListModern render - agents:', agents.length, 'filtered:', filteredAgents.length);
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>

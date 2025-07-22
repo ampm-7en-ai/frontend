@@ -132,6 +132,8 @@ export const BuilderSidebar = () => {
       const token = getAccessToken();
       if (!token) throw new Error('No authentication token');
 
+      console.log('🔍 Fetching knowledge sources for agent:', agentData.id, typeof agentData.id);
+
       const response = await fetch(`${BASE_URL}agents/${agentData.id}/knowledge-folder/`, {
         headers: getAuthHeaders(token)
       });
@@ -141,10 +143,11 @@ export const BuilderSidebar = () => {
       }
 
       const data = await response.json();
-      console.log('Agent knowledge sources:', data);
+      console.log('📁 Agent knowledge sources response:', data);
       
-      // Update knowledge folder cache with detailed data
-      updateKnowledgeFolderWithDetails(queryClient, agentData.id, data);
+      // Fix TypeScript error by converting agentData.id to string
+      console.log('🔄 Updating knowledge folder cache with agent ID:', String(agentData.id));
+      updateKnowledgeFolderWithDetails(queryClient, String(agentData.id), data);
       
       return data.data;
     },
