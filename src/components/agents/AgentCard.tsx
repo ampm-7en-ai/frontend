@@ -175,7 +175,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                 <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">
                   {agent.knowledgeSources?.length || 0} sources
                 </span>
-                <Collapsible open={isKnowledgeExpanded} onOpenChange={setIsKnowledgeExpanded}>
+                {/* <Collapsible open={isKnowledgeExpanded} onOpenChange={setIsKnowledgeExpanded}>
                   <CollapsibleTrigger asChild>
                     <ModernButton variant="outline" size="sm" className="h-8 w-8 p-0" iconOnly>
                       {isKnowledgeExpanded ? (
@@ -185,13 +185,13 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                       )}
                     </ModernButton>
                   </CollapsibleTrigger>
-                </Collapsible>
+                </Collapsible> */}
               </div>
             </div>
           </CardContent>
 
           {/* Expanded Knowledge Base Section - Full Width */}
-          <Collapsible open={isKnowledgeExpanded} onOpenChange={setIsKnowledgeExpanded}>
+          {/* <Collapsible open={isKnowledgeExpanded} onOpenChange={setIsKnowledgeExpanded}>
             <CollapsibleContent>
               <div className="px-6 pb-4">
                 <div className="bg-slate-50/80 dark:bg-slate-700/80 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
@@ -295,7 +295,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                 </div>
               </div>
             </CollapsibleContent>
-          </Collapsible>
+          </Collapsible> */}
           
           
         </Card>
