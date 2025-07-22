@@ -14,27 +14,30 @@ export const KnowledgeActionDropdown = () => {
   const queryClient = useQueryClient();
   const [showUploadModal, setShowUploadModal] = useState(false);
 
-  const handleUploadSuccess = (newSources?: any[]) => {
+  const handleUploadSuccess = (response?: any) => {
     setShowUploadModal(false);
     
-    if (newSources && newSources.length > 0 && agentData.id) {
-      console.log('🎉 New sources added via modal:', newSources);
+    console.log('🎉 Upload success response:', response);
+    
+    if (response?.data && agentData.id) {
+      // The response.data contains the new knowledge source from the API
+      const newSource = response.data;
+      console.log('🎉 New source from API:', newSource);
       
-      // Update agent cache with new sources using the real API structure
-      newSources.forEach(source => {
-        // Use the API response structure directly for cache
-        addKnowledgeSourceToAgentCache(queryClient, String(agentData.id), source);
-      });
+      // Update agent cache with new source using the API response structure
+      addKnowledgeSourceToAgentCache(queryClient, String(agentData.id), newSource);
       
-      // Update local BuilderContext state with properly transformed sources
-      const transformedSources: KnowledgeSource[] = newSources.map(source => transformApiSourceToUI(source));
+      // Transform the API response to UI format for local state
+      const transformedSource: KnowledgeSource = transformApiSourceToUI(newSource);
+      console.log('🔄 Transformed source for UI:', transformedSource);
       
       const updatedKnowledgeSources: KnowledgeSource[] = [
         ...(agentData.knowledgeSources || []),
-        ...transformedSources
+        transformedSource
       ];
       
       updateAgentData({ knowledgeSources: updatedKnowledgeSources });
+      console.log('✅ Local agent data updated with new source');
     }
   };
 

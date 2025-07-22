@@ -1,4 +1,3 @@
-
 import { useQueryClient } from '@tanstack/react-query';
 
 export interface CachedKnowledgeSource {
@@ -16,6 +15,8 @@ export interface CachedKnowledgeSource {
 
 // Transform API knowledge source to UI format
 export const transformApiSourceToUI = (apiSource: any) => {
+  console.log('🔄 Transforming API source to UI format:', apiSource);
+  
   return {
     id: apiSource.id,
     name: apiSource.title || 'Untitled Source',
@@ -37,14 +38,18 @@ export const transformApiSourceToUI = (apiSource: any) => {
 };
 
 // Add knowledge source to agent's cached data
-export const addKnowledgeSourceToAgentCache = (queryClient: any, agentId: string, newSource: CachedKnowledgeSource) => {
+export const addKnowledgeSourceToAgentCache = (queryClient: any, agentId: string, newSource: any) => {
   console.log('🔄 Adding knowledge source to agent cache:', agentId, newSource);
   
+  // Update the main agents cache
   queryClient.setQueryData(['agents'], (oldData: any[] | undefined) => {
     if (!oldData || !Array.isArray(oldData)) return oldData;
     
     return oldData.map(agent => {
-      if (agent.id === agentId) {
+      if (String(agent.id) === String(agentId)) {
+        console.log('🎯 Found agent in cache, updating knowledge sources');
+        
+        // Transform the API source to UI format for the agent's knowledgeSources array
         const transformedSource = transformApiSourceToUI(newSource);
         const updatedKnowledgeSources = [...(agent.knowledgeSources || []), transformedSource];
         
@@ -61,15 +66,15 @@ export const addKnowledgeSourceToAgentCache = (queryClient: any, agentId: string
   queryClient.setQueryData(['agentKnowledgeSources', agentId], (oldData: any) => {
     if (!oldData) return oldData;
     
-    const currentSources = oldData.knowledge_sources?.knowledge_sources || oldData.knowledge_sources || [];
+    console.log('🎯 Updating specific agent knowledge sources cache');
+    
+    // For the specific knowledge sources cache, we keep the API structure
+    const currentSources = oldData.knowledge_sources || [];
     const updatedSources = [...currentSources, newSource];
     
     return {
       ...oldData,
-      knowledge_sources: {
-        ...oldData.knowledge_sources,
-        knowledge_sources: updatedSources
-      }
+      knowledge_sources: updatedSources
     };
   });
   
@@ -96,7 +101,7 @@ export const removeKnowledgeSourceFromAgentCache = (queryClient: any, agentId: s
     if (!oldData || !Array.isArray(oldData)) return oldData;
     
     return oldData.map(agent => {
-      if (agent.id === agentId) {
+      if (String(agent.id) === String(agentId)) {
         const updatedKnowledgeSources = (agent.knowledgeSources || []).filter(
           (source: any) => source.id !== sourceId
         );
@@ -114,15 +119,12 @@ export const removeKnowledgeSourceFromAgentCache = (queryClient: any, agentId: s
   queryClient.setQueryData(['agentKnowledgeSources', agentId], (oldData: any) => {
     if (!oldData) return oldData;
     
-    const currentSources = oldData.knowledge_sources?.knowledge_sources || oldData.knowledge_sources || [];
+    const currentSources = oldData.knowledge_sources || [];
     const updatedSources = currentSources.filter((source: any) => source.id !== sourceId);
     
     return {
       ...oldData,
-      knowledge_sources: {
-        ...oldData.knowledge_sources,
-        knowledge_sources: updatedSources
-      }
+      knowledge_sources: updatedSources
     };
   });
   
@@ -149,7 +151,7 @@ export const updateKnowledgeSourceInAgentCache = (queryClient: any, agentId: str
     if (!oldData || !Array.isArray(oldData)) return oldData;
     
     return oldData.map(agent => {
-      if (agent.id === agentId) {
+      if (String(agent.id) === String(agentId)) {
         const updatedKnowledgeSources = (agent.knowledgeSources || []).map((source: any) => {
           if (source.id === sourceId) {
             return {
@@ -176,7 +178,7 @@ export const updateKnowledgeSourceInAgentCache = (queryClient: any, agentId: str
   queryClient.setQueryData(['agentKnowledgeSources', agentId], (oldData: any) => {
     if (!oldData) return oldData;
     
-    const currentSources = oldData.knowledge_sources?.knowledge_sources || oldData.knowledge_sources || [];
+    const currentSources = oldData.knowledge_sources || [];
     const updatedSources = currentSources.map((source: any) => {
       if (source.id === sourceId) {
         return { ...source, ...updates };
@@ -186,10 +188,7 @@ export const updateKnowledgeSourceInAgentCache = (queryClient: any, agentId: str
     
     return {
       ...oldData,
-      knowledge_sources: {
-        ...oldData.knowledge_sources,
-        knowledge_sources: updatedSources
-      }
+      knowledge_sources: updatedSources
     };
   });
   
