@@ -11,6 +11,7 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { useToast } from '@/hooks/use-toast';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { KnowledgeActionDropdown } from './KnowledgeActionDropdown';
+import { updateKnowledgeFolderWithDetails } from '@/utils/agentCacheUtils';
 
 const getIconForType = (type: string) => {
   switch (type?.toLowerCase()) {
@@ -141,6 +142,10 @@ export const BuilderSidebar = () => {
 
       const data = await response.json();
       console.log('Agent knowledge sources:', data);
+      
+      // Update knowledge folder cache with detailed data
+      updateKnowledgeFolderWithDetails(queryClient, agentData.id, data);
+      
       return data.data;
     },
     enabled: !!agentData.id,

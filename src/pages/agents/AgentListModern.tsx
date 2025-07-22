@@ -11,7 +11,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useNavigate } from 'react-router-dom';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { transformAgentResponse, addAgentToCache, addKnowledgeFolderToCache } from '@/utils/agentCacheUtils';
+import { updateCachesAfterAgentCreation } from '@/utils/agentCacheUtils';
 
 const AgentListModern = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -133,14 +133,10 @@ const AgentListModern = () => {
         throw new Error(data.error?.message || 'Failed to create agent');
       }
       
-      // Optimistic update: immediately add new agent to cache
+      // Use unified cache update function
       if (data.data) {
-        console.log('Adding new agent to cache:', data.data);
-        const transformedAgent = transformAgentResponse(data.data);
-        addAgentToCache(queryClient, transformedAgent);
-        
-        // Also update knowledge folders cache
-        addKnowledgeFolderToCache(queryClient, data.data);
+        console.log('Updating caches after agent creation:', data.data);
+        updateCachesAfterAgentCreation(queryClient, data.data);
       }
       
       toast({

@@ -14,7 +14,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { createAgent } from '@/utils/api-config';
 import { useQueryClient } from '@tanstack/react-query';
-import { transformAgentResponse, addAgentToCache, addKnowledgeFolderToCache } from '@/utils/agentCacheUtils';
+import { updateCachesAfterAgentCreation } from '@/utils/agentCacheUtils';
 
 const AgentCreate = () => {
   const { toast } = useToast();
@@ -78,14 +78,10 @@ const AgentCreate = () => {
       
       console.log("Agent creation successful:", data);
       
-      // Optimistic update: immediately add new agent to cache
+      // Use unified cache update function
       if (data.data) {
-        console.log('Adding new agent to cache from create page:', data.data);
-        const transformedAgent = transformAgentResponse(data.data);
-        addAgentToCache(queryClient, transformedAgent);
-        
-        // Also update knowledge folders cache
-        addKnowledgeFolderToCache(queryClient, data.data);
+        console.log('Updating caches after agent creation from create page:', data.data);
+        updateCachesAfterAgentCreation(queryClient, data.data);
       }
       
       // Invalidate knowledge folders cache to refresh the knowledge base page
