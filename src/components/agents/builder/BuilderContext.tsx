@@ -1,9 +1,10 @@
-
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { agentApi } from '@/utils/api-config';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
+import { updateAgentInCache } from '@/utils/agentCacheUtils';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AgentFormData {
   id?: string | number;
@@ -113,6 +114,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const navigate = useNavigate();
   const { toast } = useToast();
   const { id } = useParams();
+  const queryClient = useQueryClient();
 
   // Enhanced logging for debugging
   console.log('BuilderProvider - Agent ID from URL:', id);
@@ -318,6 +320,12 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         response = await updateResponse.json();
         console.log('Update response:', response);
+
+        // 🔥 NEW: Update cache immediately with the response data
+        if (response.data) {
+          console.log('🏪 Updating agent cache after save...');
+          updateAgentInCache(queryClient, response.data);
+        }
       } else {
         // Create new agent
         response = await agentApi.create(state.agentData.name, state.agentData.description);
@@ -390,7 +398,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } finally {
       setState(prev => ({ ...prev, isLoading: false }));
     }
-  }, [state.agentData, navigate, toast, id]);
+  }, [state.agentData, navigate, toast, id, queryClient]);
 
   const deleteAgent = useCallback(async () => {
     if (!id) {

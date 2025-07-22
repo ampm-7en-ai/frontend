@@ -107,6 +107,77 @@ export const removeAgentFromCache = (queryClient: any, agentId: string) => {
   console.log('✅ Agent removal from cache completed');
 };
 
+// Update existing agent in cache after save/update
+export const updateAgentInCache = (queryClient: any, updatedAgentData: any) => {
+  console.log('🔄 Updating agent in cache with data:', updatedAgentData);
+  
+  // Transform the updated agent data using our unified transformer
+  const transformedAgent = transformAgentData(updatedAgentData);
+  
+  if (!transformedAgent) {
+    console.warn('❌ Could not transform updated agent data');
+    return;
+  }
+  
+  console.log('✅ Transformed updated agent:', transformedAgent);
+  
+  queryClient.setQueryData(['agents'], (oldData: Agent[] | undefined) => {
+    console.log('🔄 Cache update function called with oldData:', oldData);
+    
+    if (!oldData || !Array.isArray(oldData)) {
+      console.log('⚠️ No existing array data in cache');
+      return oldData;
+    }
+    
+    // Find and update the existing agent
+    const updatedData = oldData.map(agent => 
+      agent.id === transformedAgent.id ? transformedAgent : agent
+    );
+    
+    console.log('✅ Updated agent in cache. Array length:', updatedData.length);
+    console.log('🔍 Updated agent found:', updatedData.find(a => a.id === transformedAgent.id));
+    
+    return updatedData;
+  });
+  
+  // Also update knowledge folders cache if needed
+  queryClient.setQueryData(['knowledgeFolders'], (oldData: any) => {
+    if (!oldData || !oldData.data) return oldData;
+    
+    const updatedFolders = oldData.data.map((folder: any) => {
+      if (folder.agent.toString() === transformedAgent.id) {
+        return {
+          ...folder,
+          name: updatedAgentData.name,
+          description: updatedAgentData.description,
+          updated_at: updatedAgentData.updated_at
+        };
+      }
+      return folder;
+    });
+    
+    console.log('🗂️ Updated knowledge folder for agent:', transformedAgent.id);
+    return {
+      ...oldData,
+      data: updatedFolders
+    };
+  });
+  
+  // CACHE-FIRST: Notify components without refetch
+  queryClient.invalidateQueries({ 
+    queryKey: ['agents'],
+    exact: true,
+    refetchType: 'none' // Critical: prevents API call, only notifies components
+  });
+  
+  queryClient.invalidateQueries({ 
+    queryKey: ['knowledgeFolders'],
+    refetchType: 'none'
+  });
+  
+  console.log('✅ Agent update in cache completed');
+};
+
 // Transform knowledge folder API response to match expected format
 export const transformKnowledgeFolderResponse = (apiResponse: any) => {
   if (!apiResponse.data) return null;
