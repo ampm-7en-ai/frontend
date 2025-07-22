@@ -43,9 +43,9 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
   };
 
   const hasProblematicSources = (knowledgeSources: any[]) => {
-    return knowledgeSources.some(kb => 
-      kb.training_status === 'deleted' || 
-      kb.knowledge_sources?.some((source: any) => source.status === 'deleted' && source.is_selected === true)
+    return knowledgeSources.some(source => 
+      source.trainingStatus === 'deleted' || 
+      source.trainingStatus === 'failed'
     );
   };
 
@@ -83,39 +83,22 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
     });
 
     try {
-      const knowledgeSourceIds = agentData.knowledgeSources
-        .flatMap(kb => kb.knowledge_sources || [])
-        .filter(source => source.is_selected !== false)
-        .map(s => typeof s.id === 'number' ? s.id : parseInt(s.id.toString()))
-        .filter(id => !isNaN(id));
-
+      // Extract knowledge source IDs for non-website sources
+      const knowledgeSourceIds: number[] = [];
       const websiteUrls: string[] = [];
       
-      agentData.knowledgeSources.forEach(kb => {
-        if (kb.type === "website" && kb.knowledge_sources) {
-          kb.knowledge_sources.forEach(source => {
-            if (source.is_selected !== false) {
-              if (source.url) {
-                websiteUrls.push(source.url);
-              }
-              
-              if (source.metadata?.sub_urls?.children) {
-                source.metadata.sub_urls.children.forEach(subUrl => {
-                  if (subUrl.is_selected !== false && subUrl.url) {
-                    websiteUrls.push(subUrl.url);
-                  }
-                });
-              }
-              
-              if (source.sub_urls?.children) {
-                source.sub_urls.children.forEach(subUrl => {
-                  if (subUrl.is_selected !== false && subUrl.url) {
-                    websiteUrls.push(subUrl.url);
-                  }
-                });
-              }
+      agentData.knowledgeSources.forEach(source => {
+        // Only include sources that are not deleted or failed
+        if (source.trainingStatus !== 'deleted' && source.trainingStatus !== 'failed') {
+          if (source.type === 'website') {
+            // For website sources, extract URLs
+            if (source.metadata?.url) {
+              websiteUrls.push(source.metadata.url);
             }
-          });
+          } else {
+            // For other source types (docs, csv, etc.), include the ID
+            knowledgeSourceIds.push(source.id);
+          }
         }
       });
 
@@ -292,18 +275,18 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
         open={showCleanupDialog}
         onOpenChange={setShowCleanupDialog}
         knowledgeSources={
-          agentData.knowledgeSources?.flatMap(kb => 
-            kb.knowledge_sources?.filter((s: any) => s.is_selected === true).map((source: any) => ({
-              id: source.id,
-              name: source.title,
-              type: kb.type,
-              size: 'N/A',
-              lastUpdated: 'N/A',
-              trainingStatus: source.status || 'idle',
-              hasError: source.status === 'deleted' || kb.training_status === 'deleted',
-              hasIssue: source.status === 'deleted'
-            }))
-          ).filter(source => source.hasError || source.hasIssue) || []
+          agentData.knowledgeSources?.filter(source => 
+            source.trainingStatus === 'deleted' || source.trainingStatus === 'failed'
+          ).map(source => ({
+            id: source.id,
+            name: source.name,
+            type: source.type,
+            size: source.size,
+            lastUpdated: source.lastUpdated,
+            trainingStatus: source.trainingStatus,
+            hasError: source.trainingStatus === 'deleted' || source.trainingStatus === 'failed',
+            hasIssue: source.trainingStatus === 'deleted' || source.trainingStatus === 'failed'
+          })) || []
         }
         agentId={agentData.id?.toString()}
       />
