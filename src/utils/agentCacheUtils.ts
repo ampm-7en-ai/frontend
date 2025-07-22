@@ -52,17 +52,11 @@ export const addAgentToCache = (queryClient: any, newAgent: Agent) => {
   console.log('✅ Cache verification - data type:', Array.isArray(updatedData) ? 'Array' : typeof updatedData);
   console.log('✅ Cache verification - length:', Array.isArray(updatedData) ? updatedData.length : 'N/A');
   
-  // FIXED: Force immediate cache notification without refetch type restriction
+  // Force cache notification (React Query optimization bypass)
   queryClient.invalidateQueries({ 
     queryKey: ['agents'],
-    exact: true
-    // Removed refetchType: 'none' to allow immediate component updates
-  });
-  
-  // ADDED: Additional refetch as backup to ensure UI updates
-  queryClient.refetchQueries({
-    queryKey: ['agents'],
-    exact: true
+    exact: true,
+    refetchType: 'none' // Don't refetch, just notify components
   });
 };
 
@@ -175,7 +169,7 @@ export const updateKnowledgeFolderWithDetails = (queryClient: any, agentId: stri
   });
 };
 
-// ENHANCED: Unified cache update function with improved reactivity
+// Unified cache update function for both agent and knowledge folder
 export const updateCachesAfterAgentCreation = (queryClient: any, apiResponse: any) => {
   console.log('🚀 Starting unified cache update for agent creation');
   console.log('📊 API response received:', apiResponse);
@@ -190,13 +184,13 @@ export const updateCachesAfterAgentCreation = (queryClient: any, apiResponse: an
   
   if (!transformedAgent) {
     console.error('❌ Failed to transform agent creation response');
-    return Promise.reject(new Error('Failed to transform agent data'));
+    return;
   }
   
   console.log('✅ Successfully transformed agent:', transformedAgent);
   
-  // Update agent cache with enhanced reactivity
-  console.log('📦 Step 1: Updating agent cache with immediate reactivity');
+  // Update agent cache
+  console.log('📦 Step 1: Updating agent cache');
   addAgentToCache(queryClient, transformedAgent);
   
   // Update knowledge folders cache with initial data
@@ -207,23 +201,16 @@ export const updateCachesAfterAgentCreation = (queryClient: any, apiResponse: an
   const allCacheKeys = Array.from(queryClient.getQueryCache().getAll().map(query => query.queryKey));
   console.log('🔑 All current cache keys:', allCacheKeys);
   
-  // Final verification with promise for async completion
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const agentsCache = queryClient.getQueryData(['agents']);
-      const foldersCache = queryClient.getQueryData(['knowledgeFolders']);
-      
-      console.log('✅ Final agents cache verification:');
-      console.log('  - Type:', Array.isArray(agentsCache) ? 'Array' : typeof agentsCache);
-      console.log('  - Length:', Array.isArray(agentsCache) ? agentsCache.length : 'N/A');
-      console.log('  - First agent ID:', Array.isArray(agentsCache) && agentsCache[0] ? agentsCache[0].id : 'N/A');
-      console.log('  - Contains new agent:', Array.isArray(agentsCache) ? 
-        agentsCache.some(a => a.id === transformedAgent.id) : 'N/A');
-      
-      console.log('✅ Final folders cache verification:', foldersCache);
-      console.log('🎉 Unified cache update completed successfully');
-      
-      resolve(transformedAgent);
-    }, 50); // Small delay to ensure cache updates are processed
-  });
+  // Final verification
+  const agentsCache = queryClient.getQueryData(['agents']);
+  const foldersCache = queryClient.getQueryData(['knowledgeFolders']);
+  
+  console.log('✅ Final agents cache verification:');
+  console.log('  - Type:', Array.isArray(agentsCache) ? 'Array' : typeof agentsCache);
+  console.log('  - Length:', Array.isArray(agentsCache) ? agentsCache.length : 'N/A');
+  console.log('  - First agent ID:', Array.isArray(agentsCache) && agentsCache[0] ? agentsCache[0].id : 'N/A');
+  
+  console.log('✅ Final folders cache verification:', foldersCache);
+  
+  console.log('🎉 Unified cache update completed successfully');
 };
