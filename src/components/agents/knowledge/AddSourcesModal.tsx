@@ -67,7 +67,7 @@ interface AddSourcesModalProps {
   isOpen: boolean;
   onClose: () => void;
   agentId: string;
-  onSuccess?: () => void;
+  onSuccess?: (responseData?: any) => void;
 }
 
 const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agentId, onSuccess }) => {
@@ -319,6 +319,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
 
     try {
       let response;
+      let responseData;
       let success = false;
       
       if (sourceType === 'thirdParty') {
@@ -364,7 +365,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
           throw new Error(errorMessage);
         }
 
-        response = await apiResponse.json();
+        responseData = await apiResponse.json();
         success = true;
       } else {
         // Use the new knowledgesource endpoint
@@ -397,13 +398,14 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
                     const errorData = await fileResponse.json().catch(() => ({}));
                     throw new Error(errorData.message || errorData.error || errorData.detail || `Failed to upload ${file.name}`);
                   }
-                  responses.push(fileResponse);
+                  const fileResponseData = await fileResponse.json();
+                  responses.push(fileResponseData);
                 } catch (error) {
                   console.error(`Error uploading file ${file.name}:`, error);
                   throw error;
                 }
               }
-              response = responses[0]; // Use first response for success handling
+              responseData = responses[0]; // Use first response for success handling
               success = responses.length > 0;
             }
             break;
@@ -415,24 +417,17 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.message || errorData.error || errorData.detail || 'Failed to create knowledge source');
           }
+          responseData = await response.json();
           success = true;
         }
       }
 
-      if (success && response) {
-        // Only try to parse response if it exists and the request was successful
-        try {
-          const responseData = response.json ? await response.json() : response;
-          if (responseData.data) {
-            storeNewKnowledgeBase(responseData.data);
-          }
-        } catch (parseError) {
-          console.warn('Could not parse response data:', parseError);
-          // Continue with success flow even if parsing fails
+      if (success && responseData) {
+        // Store the knowledge base data if available
+        if (responseData.data) {
+          storeNewKnowledgeBase(responseData.data);
         }
-      }
 
-      if (success) {
         hideToast(loadingToastId);
         showToast({
           title: "Success!",
@@ -440,7 +435,8 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({ isOpen, onClose, agen
           variant: "success"
         });
 
-        onSuccess?.();
+        // Pass the response data to the onSuccess callback
+        onSuccess?.(responseData);
         onClose();
       } else {
         throw new Error('Failed to create knowledge source - no successful responses');
