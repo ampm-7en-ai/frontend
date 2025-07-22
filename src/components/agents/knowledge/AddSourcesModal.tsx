@@ -139,7 +139,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
       showToast({
         title: "Error",
         description: "Failed to fetch Google Drive files. Please try again.",
-        variant: "destructive"
+        variant: "error"
       });
       setIsLoadingGoogleDriveFiles(false);
     }
@@ -281,7 +281,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
       showToast({
         title: "Validation Error",
         description: "Please fix the errors and try again.",
-        variant: "destructive"
+        variant: "error"
       });
       return;
     }
