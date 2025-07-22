@@ -165,7 +165,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
       case 'document':
       case 'csv':
         if (files.length === 0) {
-          errors.files = `Please select a ${sourceType === 'document' ? 'document' : 'spreadsheet'} file`;
+          errors.files = `Please select at least one ${sourceType === 'document' ? 'document' : 'spreadsheet'} file`;
         }
         break;
 
@@ -200,15 +200,34 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFile = e.target.files[0];
-      setFiles([selectedFile]); // Only keep one file
-      setValidationErrors(prev => ({ ...prev, files: undefined }));
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+
+      const uniqueNewFiles = newFiles.filter(newFile => {
+        return !files.some(existingFile =>
+          existingFile.name === newFile.name &&
+          existingFile.size === newFile.size
+        );
+      });
+
+      setFiles(prevFiles => [...prevFiles, ...uniqueNewFiles]);
+
+      if (uniqueNewFiles.length > 0) {
+        setValidationErrors(prev => ({ ...prev, files: undefined }));
+      }
+
+      if (uniqueNewFiles.length < newFiles.length) {
+        toast({
+          title: "Duplicate files detected",
+          description: "Some files were skipped because they were already selected.",
+          variant: "default"
+        });
+      }
     }
   };
 
-  const removeFile = () => {
-    setFiles([]);
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const createKnowledgeSource = async () => {
@@ -224,9 +243,9 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
 
       case 'document':
       case 'csv':
-        if (files.length > 0) {
-          formData.append('file', files[0]); // Use 'file' instead of 'files'
-        }
+        files.forEach((file) => {
+          formData.append('files', file);
+        });
         break;
 
       case 'plainText':
@@ -365,7 +384,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
 
     const droppedFiles = Array.from(e.dataTransfer.files);
     if (droppedFiles.length > 0) {
-      setFiles([droppedFiles[0]]); // Only keep the first file
+      setFiles(prevFiles => [...prevFiles, ...droppedFiles]);
       setValidationErrors(prev => ({ ...prev, files: undefined }));
     }
   };
