@@ -143,8 +143,8 @@ export const BuilderSidebar = () => {
       const data = await response.json();
       console.log('Agent knowledge sources:', data);
       
-      // Update knowledge folder cache with detailed data
-      updateKnowledgeFolderWithDetails(queryClient, agentData.id, data);
+      // Update knowledge folder cache with detailed data - convert agentData.id to string
+      updateKnowledgeFolderWithDetails(queryClient, String(agentData.id), data);
       
       return data.data;
     },
