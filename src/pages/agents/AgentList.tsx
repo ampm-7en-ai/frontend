@@ -101,18 +101,14 @@ const AgentList = () => {
   } = useQuery({
     queryKey: ['agents'],
     queryFn: fetchAgents,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-    retry: 3
+    staleTime: 2 * 60 * 1000, // 2 minutes - longer stale time
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false, // Disable to prevent excessive calls
+    refetchOnMount: false, // Disable automatic refetch on mount
+    retry: 2
   });
 
-  // Fetch agents on component mount
-  useEffect(() => {
-    console.log('AgentList component mounted, fetching agents...');
-    refetch();
-  }, [refetch]);
-
-  // Move the error toast to useEffect to prevent render-time state updates
+  // Remove the useEffect that was causing refetch on mount
   useEffect(() => {
     if (error) {
       console.error('Error fetching agents:', error);

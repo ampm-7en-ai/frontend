@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ModernCard, ModernCardContent } from '@/components/ui/modern-card';
 import { ModernInput } from '@/components/ui/modern-input';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { ChevronRight, Search, FolderOpen, ArrowRight, RefreshCw } from 'lucide-react';
+import { ChevronRight, Search, FolderOpen, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -21,13 +21,11 @@ const KnowledgeBase = () => {
   
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch all knowledge folders with improved cache settings
+  // Fetch all knowledge folders with optimized cache settings
   const { 
     data: folders, 
     isLoading: foldersLoading, 
-    error: foldersError,
-    refetch: refetchFolders,
-    isFetching
+    error: foldersError
   } = useQuery({
     queryKey: ['knowledgeFolders'],
     queryFn: async () => {
@@ -44,11 +42,11 @@ const KnowledgeBase = () => {
 
       return response.json();
     },
-    staleTime: 30 * 1000, // 30 seconds instead of 5 minutes
+    staleTime: 30 * 1000, // 30 seconds
     gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: true, // Enable refetch on window focus
-    refetchOnMount: true, // Ensure refetch on mount
-    retry: 2, // Add retry logic
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    retry: 2,
   });
 
   const filteredFolders = folders?.data?.filter((folder: any) => 
@@ -66,22 +64,6 @@ const KnowledgeBase = () => {
     navigate(`/knowledge/sources/${folder.agent}`);
   };
 
-  const handleRefresh = async () => {
-    try {
-      await refetchFolders();
-      toast({
-        title: "Knowledge folders refreshed",
-        description: "The latest folders have been loaded.",
-      });
-    } catch (error) {
-      toast({
-        title: "Refresh failed",
-        description: "Failed to refresh knowledge folders.",
-        variant: "destructive"
-      });
-    }
-  };
-
   const renderMainView = () => (
     <div className="space-y-6">
       {/* Header */}
@@ -90,15 +72,6 @@ const KnowledgeBase = () => {
           <h1 className="text-2xl font-bold text-foreground">Knowledge Folders</h1>
           <p className="text-muted-foreground">Manage your agent-specific knowledge folders</p>
         </div>
-        <ModernButton
-          variant="outline"
-          icon={RefreshCw}
-          onClick={handleRefresh}
-          disabled={isFetching}
-          className={isFetching ? "animate-spin" : ""}
-        >
-          {isFetching ? "Refreshing..." : "Refresh"}
-        </ModernButton>
       </div>
 
       {/* Search */}
@@ -141,17 +114,6 @@ const KnowledgeBase = () => {
             <p className="text-muted-foreground max-w-md mx-auto">
               {searchQuery ? 'Try adjusting your search query.' : 'Create an agent to get started with knowledge folders.'}
             </p>
-            {!searchQuery && (
-              <div className="mt-4">
-                <ModernButton
-                  variant="outline"
-                  onClick={handleRefresh}
-                  disabled={isFetching}
-                >
-                  Check for new folders
-                </ModernButton>
-              </div>
-            )}
           </div>
         ) : (
           filteredFolders.map((folder, index) => (

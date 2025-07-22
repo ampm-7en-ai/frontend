@@ -71,9 +71,11 @@ const AgentListModern = () => {
   } = useQuery({
     queryKey: ['agents'],
     queryFn: fetchAgents,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    retry: 3
+    staleTime: 2 * 60 * 1000, // 2 minutes - longer stale time for agent list
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false, // Disable for agent list to prevent excessive calls
+    refetchOnMount: false, // Disable to prevent refetch every time
+    retry: 2
   });
 
   useEffect(() => {
