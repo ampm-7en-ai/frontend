@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { agentApi } from '@/utils/api-config';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
-import { updateAgentInCache } from '@/utils/agentCacheUtils';
+import { updateAgentInCache, removeAgentFromCache } from '@/utils/agentCacheUtils';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface AgentFormData {
@@ -422,6 +422,10 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         throw new Error(`Failed to delete agent: ${response.statusText}`);
       }
 
+      // CACHE-FIRST: Remove agent from cache immediately
+      console.log('🗑️ BuilderContext: Removing agent from cache:', id);
+      removeAgentFromCache(queryClient, id);
+
       toast({
         title: "Agent Deleted",
         description: "The agent has been deleted successfully.",
@@ -437,7 +441,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         variant: "destructive"
       });
     }
-  }, [navigate, toast, id]);
+  }, [navigate, toast, id, queryClient]);
 
   const value: BuilderContextType = {
     state,
