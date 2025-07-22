@@ -30,19 +30,17 @@ const getIconForType = (type: string) => {
   }
 };
 
-const getBadgeForStatus = (status: string) => {
-  switch (status) {
-    case 'active':
-      return <Badge variant="default" className="text-[10px] px-2 py-0.5 bg-green-100 text-green-700 border-green-200">Active</Badge>;
-    case 'training':
-      return <Badge variant="default" className="text-[10px] px-2 py-0.5 bg-blue-100 text-blue-700 border-blue-200">Training</Badge>;
-    case 'failed':
-      return <Badge variant="default" className="text-[10px] px-2 py-0.5 bg-red-100 text-red-700 border-red-200">Failed</Badge>;
-    case 'deleted':
-      return <Badge variant="default" className="text-[10px] px-2 py-0.5 bg-red-100 text-red-700 border-red-200">Deleted</Badge>;
-    default:
-      return <Badge variant="outline" className="text-[10px] px-2 py-0.5">Unknown</Badge>;
-  }
+const getStatusBadge = (status) => {
+    const statusConfig = {
+      'active': { label: 'Untrained', className: 'bg-yellow-50 text-yellow-800 border-yellow-200 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800' },
+      'success': { label: 'Trained', className: 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/60 dark:text-blue-400 dark:border-blue-700' },
+      'failed': { label: 'Failed', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
+      'deleted': { label: 'Deleted', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
+      'pending': { label: 'Pending', className: 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800' },
+    };
+
+    const config = statusConfig[status?.toLowerCase()] || { label: 'Unknown', className: 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800' };
+    return <Badge className={`${config.className} text-[9px] font-medium`}>{config.label}</Badge>;
 };
 
 const getIconBackground = (type: string) => {
@@ -71,33 +69,25 @@ const KnowledgeSourceCard = ({ source, onDelete }: {
   return (
     <div className="group border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200">
       <div className="flex items-center gap-3 p-3">
-        <div className={`flex items-center justify-center w-8 h-8 rounded-md flex-shrink-0 ${getIconBackground(source.type)}`}>
-          <IconComponent className="h-4 w-4 text-white" />
+        <div className={`flex items-center justify-center w-6 h-6 rounded-lg flex-shrink-0 ${getIconBackground(source.type)}`}>
+          <IconComponent className="h-3 w-3 text-white" />
         </div>
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-              {source.title || source.name || 'Untitled Source'}
-            </h3>
-            {getBadgeForStatus(source.status || source.trainingStatus)}
-          </div>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
-            {source.type || 'Unknown Type'}
-          </p>
-          {source.url && (
-            <div className="flex items-center gap-1 mt-1">
-              <ExternalLink className="h-3 w-3 text-gray-400" />
               <a 
                 href={source.url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline truncate max-w-[200px]"
+                className="text-xs text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-300 font-semibold truncate"
               >
-                {source.url}
-              </a>
-            </div>
-          )}
+                {source.title || source.name || 'Untitled Source'}
+                </a>
+            </h3>
+            {getStatusBadge(source.status || source.trainingStatus)}
+          </div>
+          {/* <p className="text-gray-500 text-xs">{source.type}</p> */}
         </div>
 
         <Button

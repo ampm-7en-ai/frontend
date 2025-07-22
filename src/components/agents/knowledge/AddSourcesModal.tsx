@@ -237,25 +237,25 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
 
     switch (sourceType) {
       case 'url':
-        formData.append('source_url', url);
+        formData.append('url', url);
         formData.append('crawl_all_pages', importAllPages.toString());
         break;
 
       case 'document':
       case 'csv':
         files.forEach((file) => {
-          formData.append('files', file);
+          formData.append('file', file);
         });
         break;
 
       case 'plainText':
-        formData.append('content', plainText);
+        formData.append('plain_text', plainText);
         break;
 
       case 'thirdParty':
         if (selectedProvider) {
           formData.append('provider', selectedProvider);
-          formData.append('selected_files', JSON.stringify(selectedFiles));
+          formData.append('file_id', JSON.stringify(selectedFiles));
         }
         break;
     }
