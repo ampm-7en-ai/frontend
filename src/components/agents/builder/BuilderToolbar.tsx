@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBuilder } from './BuilderContext';
-import { ArrowLeft, Rocket, Play, Trash2, Save, Brain } from 'lucide-react';
+import { ArrowLeft, Rocket, Play, Trash2, Save, Brain, ExternalLink } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import {
@@ -192,15 +192,7 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
 
         {/* Right Section */}
         <div className="flex items-center gap-2">
-          <ModernButton
-            variant="primary"
-            size="sm"
-            icon={Brain}
-            onClick={handleTrainKnowledge}
-            disabled={agentData.knowledgeSources.length === 0 || isTraining}
-          >
-            {isTraining ? 'Training...' : 'Train Agent'}
-          </ModernButton>
+          
           
           <ModernButton
             variant="ghost"
@@ -214,13 +206,13 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
           <ModernButton
             variant="ghost"
             size="sm"
-            icon={Play}
+            icon={ExternalLink}
             onClick={() => navigate(`/agents/${agentData.id}/test`)}
           >
-            Test
+            Playground
           </ModernButton>
           
-          <ModernButton
+          {/* <ModernButton
             variant="ghost"
             size="sm"
             icon={Trash2}
@@ -228,8 +220,17 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
             className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
           >
             Delete
+          </ModernButton> */}
+          <ModernButton
+            variant="ghost"
+            size="sm"
+            icon={Brain}
+            onClick={handleTrainKnowledge}
+            disabled={agentData.knowledgeSources.length === 0 || isTraining}
+          >
+            {isTraining ? 'Training...' : 'Train Agent'}
           </ModernButton>
-          
+
           <ModernButton
             variant="gradient"
             size="sm"

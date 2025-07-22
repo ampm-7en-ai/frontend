@@ -398,10 +398,10 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         navigate(`/agents/builder/${response.data.id}`);
       }
     } catch (error) {
-      console.error('Error deploying agent:', error);
+      console.error('Error Saving agent:', error);
       toast({
-        title: "Deployment Failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred while deploying the agent.",
+        title: "Saving Failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred while saving the configurations.",
         variant: "destructive"
       });
     } finally {

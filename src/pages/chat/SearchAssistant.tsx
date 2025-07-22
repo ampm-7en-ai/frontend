@@ -441,9 +441,13 @@ const SearchAssistant = () => {
         className="h-screen flex items-center justify-center p-4"
         style={{ 
           fontFamily: config.fontFamily || 'Inter',
-          backgroundColor: bgColor,
-          color: textColor
+          background: isDarkTheme 
+            ? `linear-gradient(to right, #1A1F2C, #232838)` 
+            : `linear-gradient(to right, #FFFFFF, #F5F6F7)`,
+          color: textColor,
+          borderColor: borderColor
         }}
+        
       >
         {/* Main floating container with enhanced transitions */}
         <div 
@@ -473,7 +477,7 @@ const SearchAssistant = () => {
                 className="flex items-center gap-2 hover-scale transition-all duration-200"
                 style={{ 
                   color: textColor,
-                  backgroundColor: `${primaryColor}10`,
+                  backgroundColor: currentTheme === 'dark' ? `${primaryColor}30` : `${primaryColor}10`,
                 }}
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -509,7 +513,7 @@ const SearchAssistant = () => {
                         return (
                           <div key={message.id} className="flex items-start gap-2">
                             <Avatar className="h-8 w-8 mt-1">
-                              <AvatarFallback className="bg-gray-200">
+                              <AvatarFallback className="bg-gray-200 dark:bg-gray-800">
                                 <User className="h-4 w-4" />
                               </AvatarFallback>
                             </Avatar>
@@ -732,7 +736,7 @@ const SearchAssistant = () => {
               {/* Input container with enhanced transitions */}
               <div 
                 className={`relative transition-all duration-700 ease-out ${
-                  mode === 'suggestions' ? 'rounded-3xl shadow-2xl border animate-scale-in border-none shadow-none' : 'animate-fade-in'
+                  mode === 'suggestions' ? 'rounded-3xl border animate-scale-in border-none shadow-none' : 'animate-fade-in'
                 }`}
                 style={{
                   backgroundColor: mode === 'suggestions' ? cardBgColor : 'transparent',
@@ -932,7 +936,7 @@ const SearchAssistant = () => {
                     return (
                       <div key={message.id} className="flex items-start gap-2">
                         <Avatar className="h-8 w-8 mt-1">
-                          <AvatarFallback className="bg-gray-200">
+                          <AvatarFallback className="bg-gray-200 dark:bg-gray-800">
                             <User className="h-4 w-4" />
                           </AvatarFallback>
                         </Avatar>

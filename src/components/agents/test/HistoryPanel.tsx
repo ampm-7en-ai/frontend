@@ -1,11 +1,12 @@
 
 import React from 'react';
-import { History, Clock, MessageSquare } from 'lucide-react';
+import { History, Clock, MessageSquare, X } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { HistoryItem } from '@/types/history';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface HistoryPanelProps {
   isOpen: boolean;
@@ -41,14 +42,15 @@ export const HistoryPanel = ({
             <History className="h-5 w-5 text-primary" />
             <h3 className="font-semibold text-foreground">Query History</h3>
           </div>
-          <Button
+          <ModernButton
             variant="ghost"
             size="sm"
             onClick={onClose}
             className="h-8 w-8 p-0"
+            iconOnly
           >
-            ×
-          </Button>
+            <X className='w-3 h-3'></X>
+          </ModernButton>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
           View previous queries and responses

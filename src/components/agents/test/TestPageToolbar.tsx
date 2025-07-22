@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Trash2, FileText, RotateCcw, Database, Download } from 'lucide-react';
+import { ArrowLeft, Play, Trash2, FileText, RotateCcw, Database, Download, CogIcon, BrushIcon, Paintbrush } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Button } from '@/components/ui/button';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
@@ -404,16 +404,16 @@ export const TestPageToolbar = ({
           <ModernButton
             variant="ghost"
             size="sm"
-            icon={RotateCcw}
+            icon={Paintbrush}
             onClick={onClearChat}
           >
-            Clear
+            Clear Cell
           </ModernButton>
           
           <ModernButton
             variant="gradient"
             size="sm"
-            icon={Play}
+            icon={CogIcon}
             onClick={() => navigate(`/agents/builder/${selectedAgentId}`)}
           >
             Builder

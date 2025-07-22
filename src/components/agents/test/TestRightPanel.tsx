@@ -13,6 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { useAIModels } from '@/hooks/useAIModels';
 import { useToast } from '@/hooks/use-toast';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface TestRightPanelProps {
   isOpen: boolean;
@@ -108,7 +109,7 @@ export const TestRightPanel = ({
   const isReadOnly = isHistoryMode && !isPreparingNewMessage;
 
   return (
-    <div className={`w-80 border-l border-border bg-background transition-all duration-300 ${
+    <div className={`w-80 border-l border-border bg-background dark:bg-slate-900/60 transition-all duration-300 ${
       isOpen ? 'translate-x-0' : 'translate-x-full'
     } flex flex-col overflow-hidden`}>
       {/* Panel Header */}
@@ -128,14 +129,15 @@ export const TestRightPanel = ({
             {getPanelTitle()}
           </h3>
         </div>
-        <Button
+        <ModernButton
           variant="ghost"
-          size="icon"
+          size="sm"
           className="h-8 w-8"
           onClick={onClose}
+          iconOnly
         >
           <X className="h-4 w-4" />
-        </Button>
+        </ModernButton>
       </div>
 
       {/* Panel Content */}

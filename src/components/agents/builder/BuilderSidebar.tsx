@@ -67,7 +67,7 @@ const KnowledgeSourceCard = ({ source, onDelete }: {
   const IconComponent = getIconForType(source.type);
   
   return (
-    <div className="group border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200">
+    <div className="group border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200">
       <div className="flex items-center gap-3 p-3">
         <div className={`flex items-center justify-center w-6 h-6 rounded-lg flex-shrink-0 ${getIconBackground(source.type)}`}>
           <IconComponent className="h-3 w-3 text-white" />

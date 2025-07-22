@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { HistoryItem } from '@/types/history';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 // Dotted background pattern for the model comparison area
 const dottedBackgroundStyle = `
@@ -200,14 +201,15 @@ export const TestCanvas = ({
             {/* History Mode Toggle */}
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  variant={isHistoryMode ? "default" : "ghost"}
+                <ModernButton
+                  variant={isHistoryMode ? "gradient" : "ghost"}
                   size="sm"
                   onClick={handleHistoryToggle}
-                  className="h-8"
+                  className="h-8 w-8"
+                  iconOnly
                 >
                   <History className="h-4 w-4" />
-                </Button>
+                </ModernButton>
               </TooltipTrigger>
               <TooltipContent side="bottom">
                 <p>{isHistoryMode ? "Exit History Mode" : "Enter History Mode"}</p>
@@ -218,15 +220,16 @@ export const TestCanvas = ({
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
+                <ModernButton
                   variant="ghost"
                   size="sm"
                   onClick={onAddModel}
-                  className="h-8"
+                  className="h-8 w-8"
                   disabled={numModels >= 6}
+                  iconOnly
                 >
                   <Plus className="h-4 w-4" />
-                </Button>
+                </ModernButton>
               </TooltipTrigger>
               <TooltipContent side="bottom">
                 <p>Add model cell</p>
@@ -235,15 +238,16 @@ export const TestCanvas = ({
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
+                <ModernButton
                   variant="ghost"
                   size="sm"
                   onClick={onRemoveModel}
-                  className="h-8"
+                  className="h-8 w-8"
                   disabled={numModels <= 1}
+                  iconOnly
                 >
                   <Minus className="h-4 w-4" />
-                </Button>
+                </ModernButton>
               </TooltipTrigger>
               <TooltipContent side="bottom">
                 <p>Remove model cell</p>
