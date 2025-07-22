@@ -193,7 +193,15 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Agent</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{agentName}"? This action cannot be undone and will permanently remove the agent and all its conversations.
+              Are you sure you want to delete "{agentName}"? This action cannot be undone and will permanently remove:
+              <br />
+              <br />
+              • The agent and all its conversations
+              <br />
+              • The associated knowledge folder and all its sources
+              <br />
+              <br />
+              All data will be permanently lost.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
