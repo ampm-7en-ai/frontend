@@ -125,9 +125,9 @@ const AgentPerformanceFilters: React.FC<AgentPerformanceFiltersProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Levels</SelectItem>
-                  <SelectItem value="high">High (>80% efficiency)</SelectItem>
+                  <SelectItem value="high">High (&gt;80% efficiency)</SelectItem>
                   <SelectItem value="medium">Medium (50-80%)</SelectItem>
-                  <SelectItem value="low">Low (<50%)</SelectItem>
+                  <SelectItem value="low">Low (&lt;50%)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -167,9 +167,9 @@ const AgentPerformanceFilters: React.FC<AgentPerformanceFiltersProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Response Times</SelectItem>
-                  <SelectItem value="fast">Fast (<30s)</SelectItem>
+                  <SelectItem value="fast">Fast (&lt;30s)</SelectItem>
                   <SelectItem value="medium">Medium (30s-2min)</SelectItem>
-                  <SelectItem value="slow">Slow (>2min)</SelectItem>
+                  <SelectItem value="slow">Slow (&gt;2min)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
