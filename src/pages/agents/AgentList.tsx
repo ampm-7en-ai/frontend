@@ -134,9 +134,44 @@ const AgentList = () => {
     setModelFilter
   });
 
-  const handleDeleteAgent = async (_agentId: string) => {
-    // We just refetch to refresh the list. (Better than filtering locally unless you want instant feedback)
-    refetch();
+  const handleDeleteAgent = async (agentId: string) => {
+    console.log('Deleting agent with ID:', agentId);
+    
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('No authentication token');
+      }
+
+      const response = await fetch(`${getApiUrl(API_ENDPOINTS.AGENTS)}/${agentId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(token)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete agent');
+      }
+
+      // Update cache immediately
+      const { removeAgentFromCache } = await import('@/utils/agentCacheUtils');
+      removeAgentFromCache(queryClient, agentId);
+
+      toast({
+        title: "Agent Deleted",
+        description: "The agent has been successfully deleted.",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error deleting agent:', error);
+      toast({
+        title: "Delete Failed",
+        description: error instanceof Error ? error.message : "Failed to delete agent",
+        variant: "destructive"
+      });
+      
+      // Refetch as fallback
+      refetch();
+    }
   };
 
   const handleCreateAgent = async () => {
