@@ -14,10 +14,12 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { createAgent } from '@/utils/api-config';
+import { useQueryClient } from '@tanstack/react-query';
 
 const AgentCreate = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   // Form state
   const [agentName, setAgentName] = useState('');
@@ -75,6 +77,11 @@ const AgentCreate = () => {
       const data = await createAgent(agentName, agentDescription);
       
       console.log("Agent creation successful:", data);
+      
+      // Invalidate knowledge folders cache to refresh the knowledge base page
+      queryClient.invalidateQueries({ 
+        queryKey: ['knowledgeFolders'] 
+      });
       
       // Show success toast with message from response
       toast({

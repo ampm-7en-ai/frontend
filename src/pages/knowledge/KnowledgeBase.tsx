@@ -3,12 +3,12 @@ import React, { useState } from 'react';
 import { ModernCard, ModernCardContent } from '@/components/ui/modern-card';
 import { ModernInput } from '@/components/ui/modern-input';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { ChevronRight, Search, FolderOpen, ArrowRight } from 'lucide-react';
+import { ChevronRight, Search, FolderOpen, ArrowRight, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Badge } from "@/components/ui/badge";
 
@@ -17,14 +17,17 @@ const KnowledgeBase = () => {
   const { toast } = useToast();
   const { theme } = useAppTheme();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch all knowledge folders
+  // Fetch all knowledge folders with improved cache settings
   const { 
     data: folders, 
     isLoading: foldersLoading, 
-    error: foldersError 
+    error: foldersError,
+    refetch: refetchFolders,
+    isFetching
   } = useQuery({
     queryKey: ['knowledgeFolders'],
     queryFn: async () => {
@@ -41,9 +44,11 @@ const KnowledgeBase = () => {
 
       return response.json();
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000, // 30 seconds instead of 5 minutes
     gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true, // Enable refetch on window focus
+    refetchOnMount: true, // Ensure refetch on mount
+    retry: 2, // Add retry logic
   });
 
   const filteredFolders = folders?.data?.filter((folder: any) => 
@@ -61,6 +66,22 @@ const KnowledgeBase = () => {
     navigate(`/knowledge/sources/${folder.agent}`);
   };
 
+  const handleRefresh = async () => {
+    try {
+      await refetchFolders();
+      toast({
+        title: "Knowledge folders refreshed",
+        description: "The latest folders have been loaded.",
+      });
+    } catch (error) {
+      toast({
+        title: "Refresh failed",
+        description: "Failed to refresh knowledge folders.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const renderMainView = () => (
     <div className="space-y-6">
       {/* Header */}
@@ -69,6 +90,15 @@ const KnowledgeBase = () => {
           <h1 className="text-2xl font-bold text-foreground">Knowledge Folders</h1>
           <p className="text-muted-foreground">Manage your agent-specific knowledge folders</p>
         </div>
+        <ModernButton
+          variant="outline"
+          icon={RefreshCw}
+          onClick={handleRefresh}
+          disabled={isFetching}
+          className={isFetching ? "animate-spin" : ""}
+        >
+          {isFetching ? "Refreshing..." : "Refresh"}
+        </ModernButton>
       </div>
 
       {/* Search */}
@@ -111,6 +141,17 @@ const KnowledgeBase = () => {
             <p className="text-muted-foreground max-w-md mx-auto">
               {searchQuery ? 'Try adjusting your search query.' : 'Create an agent to get started with knowledge folders.'}
             </p>
+            {!searchQuery && (
+              <div className="mt-4">
+                <ModernButton
+                  variant="outline"
+                  onClick={handleRefresh}
+                  disabled={isFetching}
+                >
+                  Check for new folders
+                </ModernButton>
+              </div>
+            )}
           </div>
         ) : (
           filteredFolders.map((folder, index) => (
@@ -132,9 +173,6 @@ const KnowledgeBase = () => {
                       {folder.name}
                       <ArrowRight className="h-3 w-3 text-slate-400" />
                     </h3>
-                    {/* <Badge className="bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700 text-xs font-medium">
-                      {filteredFolders.length || 0} {filteredFolders.length === 1 ? 'file' : 'files'}
-                    </Badge> */}
                   </div>
                   <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                     Agent {folder.agent} • Created {formatDate(folder.created_at)}
