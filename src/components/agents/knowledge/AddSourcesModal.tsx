@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,12 @@ interface AddSourcesModalProps {
   onSuccess?: () => void;
 }
 
+interface SourceItem {
+  url: string;
+  title: string;
+  file?: File;
+}
+
 const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   isOpen,
   onClose,
@@ -29,7 +36,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [sourceType, setSourceType] = useState('');
-  const [sources, setSources] = useState([{ url: '', title: '' }]);
+  const [sources, setSources] = useState<SourceItem[]>([{ url: '', title: '' }]);
 
   const handleAddSource = () => {
     setSources([...sources, { url: '', title: '' }]);
@@ -41,9 +48,9 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     setSources(newSources);
   };
 
-  const handleSourceChange = (index: number, field: string, value: string) => {
+  const handleSourceChange = (index: number, field: keyof SourceItem, value: string) => {
     const newSources = [...sources];
-    newSources[index][field] = value;
+    (newSources[index] as any)[field] = value;
     setSources(newSources);
   };
 
@@ -64,13 +71,13 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     }
 
     // Clear existing sources and add new ones based on files
-    const newSources = files.map(file => ({
+    const newSources: SourceItem[] = files.map(file => ({
       file: file,
       title: file.name,
       url: '' // URL not applicable for files
     }));
 
-    setSources(newSources as any); // Update sources with file objects
+    setSources(newSources);
   }, [toast]);
 
   const handleSubmit = async () => {
