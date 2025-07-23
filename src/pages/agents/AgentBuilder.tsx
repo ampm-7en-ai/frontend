@@ -12,6 +12,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
+import { updateKnowledgeSourceInAgentCache } from '@/utils/knowledgeSourceCacheUtils';
 
 const AgentBuilderContent = () => {
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
@@ -22,6 +24,7 @@ const AgentBuilderContent = () => {
   const { state, updateAgentData } = useBuilder();
   const { addNotification } = useNotifications();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Check for untrained knowledge sources - Updated to check status field
   useEffect(() => {
@@ -63,6 +66,23 @@ const AgentBuilderContent = () => {
     setIsTraining(true);
     setShowUntrainedAlert(false);
 
+    // Update cache to show "Training" status for all knowledge sources
+    console.log('🔄 Updating knowledge sources to training status in cache');
+    state.agentData.knowledgeSources.forEach(source => {
+      updateKnowledgeSourceInAgentCache(queryClient, agentId, source.id, {
+        training_status: 'training',
+        status: 'training'
+      });
+    });
+
+    // Update local state to show training status
+    const updatedSources = state.agentData.knowledgeSources.map(source => ({
+      ...source,
+      status: 'training',
+      trainingStatus: 'training' as const
+    }));
+    updateAgentData({ knowledgeSources: updatedSources });
+
     addNotification({
       title: 'Training Started',
       message: `Retraining ${state.agentData.name} with updated knowledge sources`,
@@ -80,14 +100,17 @@ const AgentBuilderContent = () => {
       );
       
       if (success) {
-        // Update sources status to "success" after successful training
-        const updatedSources = state.agentData.knowledgeSources.map(source => ({
-          ...source,
-          status: 'success',
-          trainingStatus: 'success' as const
-        }));
+        // Fetch the updated agent data to get actual statuses from API
+        console.log('🔄 Fetching updated agent data after training');
         
-        updateAgentData({ knowledgeSources: updatedSources });
+        // Trigger a refetch of the agent data to get actual statuses
+        queryClient.invalidateQueries({
+          queryKey: ['agents']
+        });
+        
+        queryClient.invalidateQueries({
+          queryKey: ['agentKnowledgeSources', agentId]
+        });
 
         addNotification({
           title: 'Training Complete',
@@ -97,6 +120,14 @@ const AgentBuilderContent = () => {
           agentName: state.agentData.name
         });
       } else {
+        // Reset to previous status on failure
+        const revertedSources = state.agentData.knowledgeSources.map(source => ({
+          ...source,
+          status: 'active',
+          trainingStatus: 'active' as const
+        }));
+        updateAgentData({ knowledgeSources: revertedSources });
+
         addNotification({
           title: 'Training Failed',
           message: `Agent "${state.agentData.name}" training failed.`,
@@ -107,6 +138,15 @@ const AgentBuilderContent = () => {
       }
     } catch (error) {
       console.error("Error training agent:", error);
+      
+      // Reset to previous status on error
+      const revertedSources = state.agentData.knowledgeSources.map(source => ({
+        ...source,
+        status: 'active',
+        trainingStatus: 'active' as const
+      }));
+      updateAgentData({ knowledgeSources: revertedSources });
+
       addNotification({
         title: 'Training Failed',
         message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,

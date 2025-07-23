@@ -25,9 +25,9 @@ export const UntrainedSourcesAlert: React.FC<UntrainedSourcesAlertProps> = ({
 
   return (
     <div className={cn(
-      "fixed top-20 left-1/2 transform -translate-x-1/2 z-40 transition-all duration-300 ease-out",
-      "animate-in slide-in-from-top-2 fade-in-0",
-      isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2",
+      "fixed top-20 left-1/2 transform -translate-x-1/2 z-40 transition-all duration-500 ease-out",
+      "animate-in slide-in-from-top-4 fade-in-0",
+      isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4",
       className
     )}>
       <div className="bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-800 rounded-2xl shadow-lg backdrop-blur-sm">
