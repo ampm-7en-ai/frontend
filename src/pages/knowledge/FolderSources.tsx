@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ModernInput } from '@/components/ui/modern-input';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { Search, FileText, Globe, Plus, ArrowLeft, MoreHorizontal, Download, Trash2, Database, File, FileSpreadsheet, Layers } from 'lucide-react';
+import { Search, FileText, Globe, Plus, ArrowLeft, MoreHorizontal, Download, Trash2, Database, File, FileSpreadsheet, Layers, Eye } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
@@ -11,6 +11,7 @@ import AddSourcesModal from '@/components/agents/knowledge/AddSourcesModal';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import KnowledgeStatsCard from '@/components/dashboard/KnowledgeStatsCard';
 import { ModernModal } from '@/components/ui/modern-modal';
+import PlainTextViewerModal from '@/components/agents/knowledge/PlainTextViewerModal';
 
 const FolderSources = () => {
   const { agentId } = useParams();
@@ -21,6 +22,8 @@ const FolderSources = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [sourceToDelete, setSourceToDelete] = useState<any>(null);
+  const [plainTextViewerOpen, setPlainTextViewerOpen] = useState(false);
+  const [selectedPlainTextSource, setSelectedPlainTextSource] = useState<any>(null);
 
   // Fetch sources for the agent's folder
   const { 
@@ -208,6 +211,11 @@ const FolderSources = () => {
     navigate('/knowledge');
   };
 
+  const handleViewPlainText = (source) => {
+    setSelectedPlainTextSource(source);
+    setPlainTextViewerOpen(true);
+  };
+
   if (error) {
     return (
       <div className="container max-w-7xl mx-auto p-6">
@@ -351,6 +359,19 @@ const FolderSources = () => {
                     </p>
                   </div>
                   <div className="flex-shrink-0 flex items-center gap-1">
+                    {source.type === 'plain_text' && source.content && (
+                      <ModernButton
+                        variant="ghost"
+                        size="sm"
+                        icon={Eye}
+                        iconOnly={true}
+                        className="h-10 w-10 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg hover:text-blue-600"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewPlainText(source);
+                        }}
+                      />
+                    )}
                     {source.file && (
                       <ModernButton
                         variant="ghost"
@@ -421,6 +442,16 @@ const FolderSources = () => {
           </p>
         </div>
       </ModernModal>
+
+      {/* Plain Text Viewer Modal */}
+      {selectedPlainTextSource && (
+        <PlainTextViewerModal
+          open={plainTextViewerOpen}
+          onOpenChange={setPlainTextViewerOpen}
+          title={selectedPlainTextSource.title}
+          content={selectedPlainTextSource.content || ''}
+        />
+      )}
     </div>
   );
 };
