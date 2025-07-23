@@ -8,19 +8,22 @@ interface TrainingAlertBadgeProps {
   isVisible: boolean;
   message?: string;
   className?: string;
+  hasUntrainedAlert?: boolean;
 }
 
 export const TrainingAlertBadge: React.FC<TrainingAlertBadgeProps> = ({
   isVisible,
   message = "Training in progress...",
-  className
+  className,
+  hasUntrainedAlert = false
 }) => {
   if (!isVisible) return null;
 
   return (
     <div className={cn(
-      "fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ease-out",
+      "fixed left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ease-out",
       "animate-in slide-in-from-top-2 fade-in-0",
+      hasUntrainedAlert ? "top-32" : "top-6", // Adjust position if untrained alert is visible
       isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2",
       className
     )}>
