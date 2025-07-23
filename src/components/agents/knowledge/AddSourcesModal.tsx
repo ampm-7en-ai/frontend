@@ -316,43 +316,56 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     setSelectedProvider(provider);
     setIsConnecting(true);
 
-    setTimeout(() => {
+    if (provider === 'googleDrive') {
+      // Fetch real Google Drive files
+      fetchGoogleDriveData();
       setIsConnecting(false);
-
+      
       toast({
         title: "Connected Successfully",
-        description: `Connected to ${thirdPartyProviders[provider].name}. Importing common files automatically.`,
+        description: "Connected to Google Drive. Loading your files...",
         variant: "success"
       });
+    } else {
+      // Keep existing mock data for other providers
+      setTimeout(() => {
+        setIsConnecting(false);
 
-      if (provider === 'slack') {
-        setSelectedFiles([
-          'sales-team channel history',
-          'product-updates channel history',
-          'customer-support channel history'
-        ]);
-      } else if (provider === 'notion') {
-        setSelectedFiles([
-          'Company Wiki',
-          'Product Documentation',
-          'Meeting Notes'
-        ]);
-      } else if (provider === 'dropbox') {
-        setSelectedFiles([
-          'Marketing Assets/Brand Guidelines.pdf',
-          'Research/Market Analysis 2023.docx',
-          'Presentations/Investor Deck.pptx'
-        ]);
-      } else if (provider === 'github') {
-        setSelectedFiles([
-          'Documentation/README.md',
-          'Documentation/API_REFERENCE.md',
-          'Documentation/CONTRIBUTING.md'
-        ]);
-      }
+        toast({
+          title: "Connected Successfully",
+          description: `Connected to ${thirdPartyProviders[provider].name}. Importing common files automatically.`,
+          variant: "success"
+        });
 
-      setValidationErrors(prev => ({ ...prev, thirdParty: undefined }));
-    }, 1500);
+        if (provider === 'slack') {
+          setSelectedFiles([
+            'sales-team channel history',
+            'product-updates channel history',
+            'customer-support channel history'
+          ]);
+        } else if (provider === 'notion') {
+          setSelectedFiles([
+            'Company Wiki',
+            'Product Documentation',
+            'Meeting Notes'
+          ]);
+        } else if (provider === 'dropbox') {
+          setSelectedFiles([
+            'Marketing Assets/Brand Guidelines.pdf',
+            'Research/Market Analysis 2023.docx',
+            'Presentations/Investor Deck.pptx'
+          ]);
+        } else if (provider === 'github') {
+          setSelectedFiles([
+            'Documentation/README.md',
+            'Documentation/API_REFERENCE.md',
+            'Documentation/CONTRIBUTING.md'
+          ]);
+        }
+
+        setValidationErrors(prev => ({ ...prev, thirdParty: undefined }));
+      }, 1500);
+    }
   };
 
   const handleRemoveSelectedFile = (index: number) => {
