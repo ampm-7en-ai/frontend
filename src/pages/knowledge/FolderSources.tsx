@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ModernInput } from '@/components/ui/modern-input';
@@ -359,7 +360,7 @@ const FolderSources = () => {
                     </p>
                   </div>
                   <div className="flex-shrink-0 flex items-center gap-1">
-                    {source.type === 'plain_text' && source.content && (
+                    {source.type === 'plain_text' && source.plain_text && (
                       <ModernButton
                         variant="ghost"
                         size="sm"
@@ -449,7 +450,7 @@ const FolderSources = () => {
           open={plainTextViewerOpen}
           onOpenChange={setPlainTextViewerOpen}
           title={selectedPlainTextSource.title}
-          content={selectedPlainTextSource.content || ''}
+          content={selectedPlainTextSource.plain_text || ''}
         />
       )}
     </div>
