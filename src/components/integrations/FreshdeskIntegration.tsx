@@ -4,7 +4,7 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernInput } from '@/components/ui/modern-input';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 import { Label } from '@/components/ui/label';
-import { Zap, ExternalLink, Shield, CheckCircle, Building2, Globe, Link } from 'lucide-react';
+import { Zap, ExternalLink, Shield, CheckCircle, Building2, Globe, Link, Key } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { integrationApi } from '@/utils/api-config';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -222,7 +222,48 @@ const FreshdeskIntegration = () => {
           }
         </p>
 
-        
+        {!isConnected && (
+          <div className="space-y-4 mb-6">
+            <div className="space-y-2">
+              <Label htmlFor="domain" className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                Freshdesk Domain
+              </Label>
+              <div className="relative">
+                <Building2 className="absolute left-3 top-3 h-4 w-4 text-slate-500 dark:text-slate-400" />
+                <ModernInput
+                  id="domain"
+                  type="text"
+                  placeholder="e.g., yourcompany.freshdesk.com"
+                  value={domain}
+                  onChange={(e) => setDomain(e.target.value)}
+                  className="pl-10"
+                  disabled={isConnecting}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="apiKey" className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                API Key
+              </Label>
+              <div className="relative">
+                <Key className="absolute left-3 top-3 h-4 w-4 text-slate-500 dark:text-slate-400" />
+                <ModernInput
+                  id="apiKey"
+                  type="password"
+                  placeholder="Enter your Freshdesk API key"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="pl-10"
+                  disabled={isConnecting}
+                />
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Find your API key in Freshdesk: Profile Settings → API Key
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-3">
           {isConnected ? (
