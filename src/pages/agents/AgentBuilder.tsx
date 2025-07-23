@@ -92,39 +92,11 @@ const AgentBuilderContent = () => {
       );
       
       if (success) {
-        console.log('✅ Training successful, attempting to refetch knowledge sources from API');
-        console.log('🔍 Available query cache keys:', queryClient.getQueryCache().getAll().map(q => q.queryKey));
+        console.log('✅ Training successful, refetching agent data from API');
         
-        // Try multiple possible query keys that might be used for knowledge sources
-        const possibleKeys = [
-          ['agentKnowledgeBases', agentId],
-          ['agentKnowledgeSources', agentId],
-          ['agents', agentId, 'knowledgeSources'],
-          ['agent', agentId, 'knowledge'],
-          ['knowledgeSources', agentId]
-        ];
-
-        console.log('🔄 Attempting to refetch with multiple possible keys...');
-        
-        for (const key of possibleKeys) {
-          console.log(`🔄 Trying to refetch with key:`, key);
-          try {
-            await queryClient.refetchQueries({ 
-              queryKey: key,
-              exact: false
-            });
-            console.log(`✅ Successfully refetched with key:`, key);
-          } catch (error) {
-            console.log(`❌ Failed to refetch with key:`, key, error);
-          }
-        }
-
-        // Also try to invalidate all related queries
-        await queryClient.invalidateQueries({ 
-          predicate: (query) => {
-            const key = query.queryKey;
-            return key.includes('agent') || key.includes('knowledge') || key.includes(agentId);
-          }
+        // Refetch agent data from API to get the actual status
+        await queryClient.refetchQueries({ 
+          queryKey: ['agents']
         });
 
         addNotification({
