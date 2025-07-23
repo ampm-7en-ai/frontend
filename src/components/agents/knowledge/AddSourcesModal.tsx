@@ -231,6 +231,41 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   };
 
   const createKnowledgeSource = async () => {
+    // Handle Google Drive specifically
+    if (sourceType === 'thirdParty' && selectedProvider === 'googleDrive') {
+      const selectedGoogleDriveFiles = googleDriveFiles.filter(file => 
+        selectedFiles.includes(file.name)
+      );
+
+      // Create sources for each selected Google Drive file
+      const responses = [];
+      for (const file of selectedGoogleDriveFiles) {
+        const payload = {
+          agent_id: parseInt(agentId),
+          file_id: file.id,
+          title: file.name
+        };
+
+        const response = await apiRequest(`${BASE_URL}drive/add-to-agent-folder/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Failed to add ${file.name} from Google Drive`);
+        }
+
+        responses.push(response);
+      }
+
+      return responses[0].json(); // Return first response
+    }
+
+    // For other source types, use the existing FormData approach
     const formData = new FormData();
     formData.append('title', documentName);
     formData.append('agent_id', agentId);
@@ -242,7 +277,6 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
         break;
 
       case 'document':
-      case 'csv':
         files.forEach((file) => {
           formData.append('file', file);
         });

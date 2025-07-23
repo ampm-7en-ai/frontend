@@ -388,17 +388,52 @@ const KnowledgeUpload = () => {
       let response;
       let success = false;
       
-      if (sourceType === 'thirdParty') {
-        // For third-party integrations, use existing logic
+      if (sourceType === 'thirdParty' && selectedProvider === 'googleDrive') {
+        // Use the new Google Drive endpoint
+        const selectedGoogleDriveFiles = googleDriveFiles.filter(file => 
+          selectedFiles.includes(file.name)
+        );
+
+        // Create sources for each selected Google Drive file
+        const responses = [];
+        for (const file of selectedGoogleDriveFiles) {
+          const payload = {
+            agent_id: parseInt(selectedAgentId),
+            file_id: file.id,
+            title: file.name
+          };
+
+          try {
+            const fileResponse = await fetch(`${BASE_URL}drive/add-to-agent-folder/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${user?.accessToken}`
+              },
+              body: JSON.stringify(payload)
+            });
+
+            if (!fileResponse.ok) {
+              const errorData = await fileResponse.json().catch(() => ({}));
+              throw new Error(errorData.message || errorData.error || errorData.detail || `Failed to add ${file.name} from Google Drive`);
+            }
+
+            responses.push(fileResponse);
+          } catch (error) {
+            console.error(`Error adding Google Drive file ${file.name}:`, error);
+            throw error;
+          }
+        }
+
+        response = responses[0]; // Use first response for success handling
+        success = responses.length > 0;
+      } else if (sourceType === 'thirdParty') {
+        // For other third-party integrations, use existing logic
         const payload = {
           name: documentName || `New ${selectedProvider || 'Integration'} Source`,
           type: "third_party",
           source: selectedProvider === 'googleDrive' ? 'google_drive' : selectedProvider,
-          file_ids: selectedProvider === 'googleDrive' 
-            ? googleDriveFiles
-                .filter(file => selectedFiles.includes(file.name))
-                .map(file => file.id)
-            : selectedFiles,
+          file_ids: selectedFiles,
           agent_id: selectedAgentId
         };
 
@@ -434,7 +469,7 @@ const KnowledgeUpload = () => {
         response = await apiResponse.json();
         success = true;
       } else {
-        // Use the new knowledgesource endpoint like AddSourcesModal
+        // Use the new knowledgesource endpoint for other source types
         const payload: any = {
           agent_id: parseInt(selectedAgentId),
           title: documentName
@@ -448,7 +483,6 @@ const KnowledgeUpload = () => {
             payload.plain_text = plainText;
             break;
           case 'document':
-          case 'csv':
             if (files.length > 0) {
               // For files, we'll create sources one by one
               const responses = [];
@@ -476,7 +510,7 @@ const KnowledgeUpload = () => {
             break;
         }
 
-        if (sourceType !== 'document' && sourceType !== 'csv') {
+        if (sourceType !== 'document') {
           response = await knowledgeApi.createSource(payload);
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
