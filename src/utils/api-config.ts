@@ -1,3 +1,4 @@
+
 /**
  * API configuration constants
  */
@@ -511,6 +512,22 @@ const fileToDataURL = (file: File): Promise<string> => {
     };
     reader.onerror = error => reject(error);
   });
+};
+
+// Function to add Google Drive file to agent
+export const addGoogleDriveFileToAgent = async (agentId: string, fileId: string, title: string): Promise<any> => {
+  const response = await apiPost(getApiUrl('drive/add-to-agent-folder/'), {
+    agent_id: parseInt(agentId),
+    file_id: fileId,
+    title: title
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+    throw new Error(errorData.message || `Failed to add Google Drive file to agent: ${response.status}`);
+  }
+  
+  return response.json();
 };
 
 // Legacy functions - now use the centralized API functions above
