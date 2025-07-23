@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { createKnowledgeBase, BASE_URL, knowledgeApi } from '@/utils/api-config';
+import { createKnowledgeBase, BASE_URL, knowledgeApi, addGoogleDriveFileToAgent } from '@/utils/api-config';
 import { storeNewKnowledgeBase } from '@/utils/knowledgeStorage';
 import ModernButton from '@/components/dashboard/ModernButton';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
@@ -388,17 +389,41 @@ const KnowledgeUpload = () => {
       let response;
       let success = false;
       
-      if (sourceType === 'thirdParty') {
-        // For third-party integrations, use existing logic
+      if (sourceType === 'thirdParty' && selectedProvider === 'googleDrive') {
+        // Handle Google Drive files using the correct endpoint
+        const selectedGoogleDriveFiles = googleDriveFiles.filter(file => 
+          selectedFiles.includes(file.name)
+        );
+
+        if (selectedGoogleDriveFiles.length === 0) {
+          throw new Error('No Google Drive files selected');
+        }
+
+        // Process each selected Google Drive file
+        const responses = [];
+        for (const file of selectedGoogleDriveFiles) {
+          try {
+            const fileResponse = await addGoogleDriveFileToAgent(
+              selectedAgentId,
+              file.id,
+              file.name
+            );
+            responses.push(fileResponse);
+          } catch (error) {
+            console.error(`Error adding Google Drive file ${file.name}:`, error);
+            throw error;
+          }
+        }
+
+        response = responses[0]; // Use first response for success handling
+        success = responses.length > 0;
+      } else if (sourceType === 'thirdParty') {
+        // For other third-party integrations, use existing logic
         const payload = {
           name: documentName || `New ${selectedProvider || 'Integration'} Source`,
           type: "third_party",
-          source: selectedProvider === 'googleDrive' ? 'google_drive' : selectedProvider,
-          file_ids: selectedProvider === 'googleDrive' 
-            ? googleDriveFiles
-                .filter(file => selectedFiles.includes(file.name))
-                .map(file => file.id)
-            : selectedFiles,
+          source: selectedProvider,
+          file_ids: selectedFiles,
           agent_id: selectedAgentId
         };
 
