@@ -4,32 +4,26 @@ import React, { useState } from 'react';
 interface TabItem {
   id: string;
   label: string;
-  icon?: React.ComponentType<any>;
 }
 
 interface ModernTabNavigationProps {
-  tabs?: TabItem[];
-  items?: TabItem[];
+  tabs: TabItem[];
   activeTab: string;
   onTabChange: (tabId: string) => void;
-  variant?: string;
   className?: string;
 }
 
 const ModernTabNavigation: React.FC<ModernTabNavigationProps> = ({
   tabs,
-  items,
   activeTab,
   onTabChange,
-  variant,
   className = ""
 }) => {
-  const tabsToRender = tabs || items || [];
   const isXtraSmall = className.includes('text-xs');
   
   return (
     <div className={`inline-flex bg-slate-100 dark:bg-slate-800 rounded-2xl p-1 ${className}`}>
-      {tabsToRender.map((tab) => (
+      {tabs.map((tab) => (
         <button
           key={tab.id}
           type="button"
