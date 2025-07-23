@@ -4,7 +4,7 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernInput } from '@/components/ui/modern-input';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 import { Label } from '@/components/ui/label';
-import { Zap, ExternalLink, Shield, CheckCircle, Building2, Globe, Link, Key } from 'lucide-react';
+import { Zap, ExternalLink, Shield, CheckCircle, Building2, Globe, Link, Key, Edit } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { integrationApi } from '@/utils/api-config';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -31,9 +31,11 @@ const FreshdeskIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [isUnlinking, setIsUnlinking] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [freshdeskStatus, setFreshdeskStatus] = useState<FreshdeskStatus | null>(null);
   const [domain, setDomain] = useState('');
   const [apiKey, setApiKey] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
   // Check Freshdesk connection status on component mount
@@ -52,15 +54,14 @@ const FreshdeskIntegration = () => {
 
       const result = await response.json();
       if (result.status === 'success') {
-        // Handle array response - use first integration if available
-        if (Array.isArray(result.data) && result.data.length > 0) {
-          const integration = result.data[0];
+        // Handle the correct API response structure
+        if (result.data && result.data.has_freshdesk_integrated && result.data.integration) {
           setFreshdeskStatus({
             has_freshdesk_integrated: true,
-            integration: integration
+            integration: result.data.integration
           });
           // Pre-populate fields with existing data
-          setDomain(integration.domain || '');
+          setDomain(result.data.integration.domain || '');
         } else {
           setFreshdeskStatus({ has_freshdesk_integrated: false });
         }
@@ -119,6 +120,68 @@ const FreshdeskIntegration = () => {
     }
   };
 
+  const handleUpdate = async () => {
+    if (!domain || !apiKey) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!freshdeskStatus?.integration?.id) {
+      toast({
+        title: "Update Failed",
+        description: "Integration ID not found.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const response = await fetch(`https://api-staging.7en.ai/api/ticketing/freshdesk-integrations/${freshdeskStatus.integration.id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${JSON.parse(localStorage.getItem('user') || '{}').accessToken}`
+        },
+        body: JSON.stringify({
+          domain: domain,
+          api_key: apiKey,
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update Freshdesk: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        setFreshdeskStatus({
+          has_freshdesk_integrated: true,
+          integration: result.data
+        });
+        setIsEditing(false);
+        setApiKey('');
+        toast({
+          title: "Successfully Updated",
+          description: "Freshdesk integration has been updated successfully.",
+        });
+      }
+    } catch (error) {
+      console.error('Error updating Freshdesk:', error);
+      toast({
+        title: "Update Failed",
+        description: "Unable to update Freshdesk integration. Please check your credentials.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const handleUnlink = async () => {
     setIsUnlinking(true);
     try {
@@ -133,6 +196,7 @@ const FreshdeskIntegration = () => {
         setFreshdeskStatus({ has_freshdesk_integrated: false });
         setDomain('');
         setApiKey('');
+        setIsEditing(false);
         toast({
           title: "Successfully Unlinked",
           description: "Freshdesk integration has been disconnected.",
@@ -163,12 +227,20 @@ const FreshdeskIntegration = () => {
 
   return (
     <div className="space-y-8">
-      
-
       {/* Current Configuration Cards */}
       {isConnected && freshdeskStatus?.integration && (
         <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6">Current Configuration</h3>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Current Configuration</h3>
+            <ModernButton
+              onClick={() => setIsEditing(!isEditing)}
+              variant="outline"
+              icon={Edit}
+              size="sm"
+            >
+              {isEditing ? 'Cancel' : 'Edit'}
+            </ModernButton>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
@@ -222,7 +294,7 @@ const FreshdeskIntegration = () => {
           }
         </p>
 
-        {!isConnected && (
+        {(!isConnected || isEditing) && (
           <div className="space-y-4 mb-6">
             <div className="space-y-2">
               <Label htmlFor="domain" className="text-sm font-medium text-slate-900 dark:text-slate-100">
@@ -237,7 +309,7 @@ const FreshdeskIntegration = () => {
                   value={domain}
                   onChange={(e) => setDomain(e.target.value)}
                   className="pl-10"
-                  disabled={isConnecting}
+                  disabled={isConnecting || isUpdating}
                 />
               </div>
             </div>
@@ -255,7 +327,7 @@ const FreshdeskIntegration = () => {
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   className="pl-10"
-                  disabled={isConnecting}
+                  disabled={isConnecting || isUpdating}
                 />
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -267,15 +339,27 @@ const FreshdeskIntegration = () => {
 
         <div className="flex flex-col sm:flex-row gap-3">
           {isConnected ? (
-            <ModernButton 
-              onClick={handleUnlink}
-              disabled={isUnlinking}
-              variant="outline"
-              className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
-              size="sm"
-            >
-              {isUnlinking ? "Disconnecting..." : "Disconnect Integration"}
-            </ModernButton>
+            <>
+              {isEditing ? (
+                <ModernButton 
+                  onClick={handleUpdate}
+                  disabled={isUpdating}
+                  variant="primary"
+                  icon={Zap}
+                >
+                  {isUpdating ? "Updating..." : "Update Integration"}
+                </ModernButton>
+              ) : null}
+              <ModernButton 
+                onClick={handleUnlink}
+                disabled={isUnlinking}
+                variant="outline"
+                className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                size="sm"
+              >
+                {isUnlinking ? "Disconnecting..." : "Disconnect Integration"}
+              </ModernButton>
+            </>
           ) : (
             <ModernButton 
               onClick={handleConnect}
