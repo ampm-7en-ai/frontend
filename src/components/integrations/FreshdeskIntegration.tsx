@@ -4,7 +4,7 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernInput } from '@/components/ui/modern-input';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 import { Label } from '@/components/ui/label';
-import { Zap, ExternalLink, Shield, CheckCircle, Building2, Globe, Link, Key } from 'lucide-react';
+import { Zap, ExternalLink, Shield, CheckCircle, Building2, Link, Key } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { integrationApi } from '@/utils/api-config';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -197,21 +197,6 @@ const FreshdeskIntegration = () => {
             <p className="text-sm text-slate-600 dark:text-slate-400 break-all">
               {freshdeskStatus.integration.webhook_url}
             </p>
-          </div>
-
-          <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-            <div className="flex items-start gap-3">
-              <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Webhook Configuration</h4>
-                <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
-                  To complete the integration, configure this webhook URL in your Freshdesk admin panel.
-                </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400">
-                  Go to Admin → Automations → Webhooks and add the URL above to receive ticket events.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       )}
