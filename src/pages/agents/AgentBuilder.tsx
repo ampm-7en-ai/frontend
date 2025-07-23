@@ -92,11 +92,11 @@ const AgentBuilderContent = () => {
       );
       
       if (success) {
-        console.log('✅ Training successful, refetching agent data from API');
+        console.log('✅ Training successful, refetching knowledge sources from API');
         
-        // Refetch agent data from API to get the actual status
+        // Refetch knowledge sources from API to get the actual status
         await queryClient.refetchQueries({ 
-          queryKey: ['agents']
+          queryKey: ['agentKnowledgeBases', agentId]
         });
 
         addNotification({
