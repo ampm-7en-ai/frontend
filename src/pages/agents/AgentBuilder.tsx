@@ -12,6 +12,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 const AgentBuilderContent = () => {
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
@@ -22,6 +23,7 @@ const AgentBuilderContent = () => {
   const { state, updateAgentData } = useBuilder();
   const { addNotification } = useNotifications();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Check for untrained knowledge sources - Updated to check status field
   useEffect(() => {
@@ -63,6 +65,16 @@ const AgentBuilderContent = () => {
     setIsTraining(true);
     setShowUntrainedAlert(false);
 
+    // Update cache with "Training" status for knowledge sources
+    console.log('🏃 Setting knowledge sources to "Training" status in cache');
+    const sourcesWithTrainingStatus = state.agentData.knowledgeSources.map(source => ({
+      ...source,
+      status: 'training',
+      trainingStatus: 'training' as const
+    }));
+    
+    updateAgentData({ knowledgeSources: sourcesWithTrainingStatus });
+
     addNotification({
       title: 'Training Started',
       message: `Retraining ${state.agentData.name} with updated knowledge sources`,
@@ -80,14 +92,12 @@ const AgentBuilderContent = () => {
       );
       
       if (success) {
-        // Update sources status to "success" after successful training
-        const updatedSources = state.agentData.knowledgeSources.map(source => ({
-          ...source,
-          status: 'success',
-          trainingStatus: 'success' as const
-        }));
+        console.log('✅ Training successful, refetching agent data from API');
         
-        updateAgentData({ knowledgeSources: updatedSources });
+        // Refetch agent data from API to get the actual status
+        await queryClient.refetchQueries({ 
+          queryKey: ['agents']
+        });
 
         addNotification({
           title: 'Training Complete',
