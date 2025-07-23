@@ -156,7 +156,6 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
   const sourceNavItems = [
     { id: 'url', label: 'Website', icon: Globe },
     { id: 'document', label: 'Documents', icon: FileText },
-    { id: 'csv', label: 'Spreadsheet', icon: Table },
     { id: 'plainText', label: 'Plain Text', icon: AlignLeft },
     { id: 'thirdParty', label: 'Integrations', icon: ExternalLink }
   ];

@@ -734,39 +734,7 @@ export const GuidelinesPanel = () => {
               </AccordionTrigger>
               <AccordionContent className="pb-4">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
-                    <div className="space-y-1">
-                      <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        Conversation Memory
-                      </Label>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Enable conversation history so the agent remembers previous interactions
-                      </p>
-                    </div>
-                    <Switch
-                      checked={agentData.behavior?.conversationMemory || false}
-                      onCheckedChange={(checked) => updateAgentData({ 
-                        behavior: { ...agentData.behavior, conversationMemory: checked }
-                      })}
-                    />
-                  </div>
                   
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
-                    <div className="space-y-1">
-                      <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        Continuous Learning
-                      </Label>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Allow the agent to improve from interactions over time
-                      </p>
-                    </div>
-                    <Switch
-                      checked={agentData.behavior?.continuousLearning || false}
-                      onCheckedChange={(checked) => updateAgentData({ 
-                        behavior: { ...agentData.behavior, continuousLearning: checked }
-                      })}
-                    />
-                  </div>
                   
                   <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
                     <div className="space-y-1">
@@ -802,22 +770,7 @@ export const GuidelinesPanel = () => {
                     />
                   </div>
                   
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
-                    <div className="space-y-1">
-                      <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        Multilingual Support
-                      </Label>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Enable automatic translation for non-primary languages
-                      </p>
-                    </div>
-                    <Switch
-                      checked={agentData.behavior?.multilingualSupport || false}
-                      onCheckedChange={(checked) => updateAgentData({ 
-                        behavior: { ...agentData.behavior, multilingualSupport: checked }
-                      })}
-                    />
-                  </div>
+                 
                 </div>
               </AccordionContent>
             </AccordionItem>
