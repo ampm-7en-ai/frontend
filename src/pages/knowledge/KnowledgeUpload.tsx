@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ChevronLeft, FileText, Upload, X, Globe, Table, AlignLeft, ExternalLink} from 'lucide-react';
+import { ChevronLeft, FileText, Upload, X, Globe, AlignLeft, ExternalLink} from 'lucide-react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,7 +24,7 @@ import { useIntegrations } from '@/hooks/useIntegrations';
 import { fetchGoogleDriveFiles } from '@/utils/api-config';
 import SourceTypeSelector from '@/components/agents/knowledge/SourceTypeSelector';
 
-type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
+type SourceType = 'url' | 'document' | 'plainText' | 'thirdParty';
 
 type ThirdPartyProvider = 'googleDrive' | 'slack' | 'notion' | 'dropbox' | 'github';
 
@@ -192,12 +192,6 @@ const KnowledgeUpload = () => {
       description: "PDF, DOCX, TXT files",
       acceptedTypes: ".pdf,.docx,.txt"
     },
-    csv: {
-      icon: <Table className="h-4 w-4" />,
-      title: "Spreadsheet",
-      description: "CSV, Excel files",
-      acceptedTypes: ".csv,.xlsx,.xls"
-    },
     plainText: {
       icon: <AlignLeft className="h-4 w-4" />,
       title: "Plain Text",
@@ -214,7 +208,6 @@ const KnowledgeUpload = () => {
   const sourceNavItems = [
     { id: 'url', label: 'Website', icon: Globe },
     { id: 'document', label: 'Documents', icon: FileText },
-    { id: 'csv', label: 'Spreadsheet', icon: Table },
     { id: 'plainText', label: 'Plain Text', icon: AlignLeft },
     { id: 'thirdParty', label: 'Integrations', icon: ExternalLink }
   ];
@@ -239,7 +232,6 @@ const KnowledgeUpload = () => {
         ?.filter((file: GoogleDriveFile) => 
           file.mimeType !== 'application/vnd.google-apps.folder' && // Exclude folders
           (file.mimeType.includes('document') || 
-           file.mimeType.includes('spreadsheet') ||
            file.mimeType.includes('pdf'))
         )
         .slice(0, 5) // Take first 5 files
@@ -279,9 +271,8 @@ const KnowledgeUpload = () => {
         break;
 
       case 'document':
-      case 'csv':
         if (files.length === 0) {
-          errors.files = `Please select at least one ${sourceType === 'document' ? 'document' : 'spreadsheet'} file`;
+          errors.files = 'Please select at least one document file';
         }
         break;
 
@@ -388,17 +379,52 @@ const KnowledgeUpload = () => {
       let response;
       let success = false;
       
-      if (sourceType === 'thirdParty') {
-        // For third-party integrations, use existing logic
+      if (sourceType === 'thirdParty' && selectedProvider === 'googleDrive') {
+        // Use the new Google Drive endpoint
+        const selectedGoogleDriveFiles = googleDriveFiles.filter(file => 
+          selectedFiles.includes(file.name)
+        );
+
+        // Create sources for each selected file
+        const responses = [];
+        for (const file of selectedGoogleDriveFiles) {
+          const payload = {
+            agent_id: parseInt(selectedAgentId),
+            file_id: file.id,
+            title: file.name
+          };
+
+          try {
+            const fileResponse = await fetch(`${BASE_URL}drive/add-to-agent-folder/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${user?.accessToken}`
+              },
+              body: JSON.stringify(payload)
+            });
+
+            if (!fileResponse.ok) {
+              const errorData = await fileResponse.json().catch(() => ({}));
+              throw new Error(errorData.message || errorData.error || errorData.detail || `Failed to import ${file.name}`);
+            }
+
+            responses.push(fileResponse);
+          } catch (error) {
+            console.error(`Error importing file ${file.name}:`, error);
+            throw error;
+          }
+        }
+        
+        response = responses[0]; // Use first response for success handling
+        success = responses.length > 0;
+      } else if (sourceType === 'thirdParty') {
+        // For other third-party integrations, use existing logic
         const payload = {
           name: documentName || `New ${selectedProvider || 'Integration'} Source`,
           type: "third_party",
           source: selectedProvider === 'googleDrive' ? 'google_drive' : selectedProvider,
-          file_ids: selectedProvider === 'googleDrive' 
-            ? googleDriveFiles
-                .filter(file => selectedFiles.includes(file.name))
-                .map(file => file.id)
-            : selectedFiles,
+          file_ids: selectedFiles,
           agent_id: selectedAgentId
         };
 
@@ -448,7 +474,6 @@ const KnowledgeUpload = () => {
             payload.plain_text = plainText;
             break;
           case 'document':
-          case 'csv':
             if (files.length > 0) {
               // For files, we'll create sources one by one
               const responses = [];
@@ -476,7 +501,7 @@ const KnowledgeUpload = () => {
             break;
         }
 
-        if (sourceType !== 'document' && sourceType !== 'csv') {
+        if (sourceType !== 'document') {
           response = await knowledgeApi.createSource(payload);
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
@@ -626,7 +651,7 @@ const KnowledgeUpload = () => {
         if (validFiles.length !== droppedFiles.length) {
           toast({
             title: "Invalid file types",
-            description: `Only ${sourceType === 'document' ? 'PDF, DOCX, TXT' : 'CSV, XLSX, XLS'} files are allowed.`,
+            description: 'Only PDF, DOCX, TXT files are allowed.',
             variant: "destructive"
           });
         }
@@ -658,9 +683,7 @@ const KnowledgeUpload = () => {
   };
 
   const getFileIcon = (mimeType: string) => {
-    if (mimeType.includes('spreadsheet')) {
-      return <Table className="h-4 w-4 text-green-600 dark:text-green-400" />;
-    } else if (mimeType.includes('document')) {
+    if (mimeType.includes('document')) {
       return <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
     } else if (mimeType.includes('pdf')) {
       return <FileText className="h-4 w-4 text-red-600 dark:text-red-400" />;
