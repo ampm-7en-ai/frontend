@@ -29,15 +29,9 @@ export const useIntegrations = () => {
 
   // Get integrations by type
   const getIntegrationsByType = (type: string) => {
-    console.log('Getting integrations by type:', type);
-    console.log('All integrations:', integrations);
-    
-    const filtered = Object.entries(integrations)
+    return Object.entries(integrations)
       .filter(([_, integration]) => integration.type === type)
       .map(([id, integration]) => ({ id, ...integration }));
-    
-    console.log('Filtered integrations for type', type, ':', filtered);
-    return filtered;
   };
 
   // Get connected ticketing providers (for backward compatibility)
@@ -57,10 +51,6 @@ export const useIntegrations = () => {
     const ticketingProviders = getIntegrationsByType('ticketing');
     return ticketingProviders.find(provider => provider.is_default)?.id || null;
   };
-
-  // Debug all integrations
-  console.log('useIntegrations - All integrations:', integrations);
-  console.log('useIntegrations - Has connected providers:', Object.values(integrations).some(i => i.status === 'connected'));
 
   return {
     // Data

@@ -70,28 +70,12 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
 
   // Use centralized integration management
-  const { getIntegrationsByType, integrations, forceRefresh } = useIntegrations();
+  const { getIntegrationsByType } = useIntegrations();
 
-  // Force refresh integrations when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      console.log('Modal opened, forcing integration refresh...');
-      forceRefresh();
-    }
-  }, [isOpen, forceRefresh]);
-
-  // Get connected storage integrations - check both 'storage' and 'drive' types
-  const connectedStorageIntegrations = [
-    ...getIntegrationsByType('storage'),
-    ...getIntegrationsByType('drive')
-  ].filter(integration => integration.status === 'connected');
-
-  // Debug integration status
-  useEffect(() => {
-    console.log('AddSourcesModal - All integrations:', integrations);
-    console.log('AddSourcesModal - Connected storage integrations:', connectedStorageIntegrations);
-    console.log('AddSourcesModal - Available third party providers:', availableThirdPartyProviders);
-  }, [integrations, connectedStorageIntegrations]);
+  // Get connected storage integrations
+  const connectedStorageIntegrations = getIntegrationsByType('storage').filter(
+    integration => integration.status === 'connected'
+  );
 
   const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
     googleDrive: {
@@ -99,7 +83,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
       name: "Google Drive",
       description: "Import documents from your Google Drive",
       color: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
-      id: "drive"
+      id: "google_drive"
     },
     slack: {
       icon: <img src="https://img.logo.dev/slack.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="Slack" className="h-4 w-4" />,
@@ -132,21 +116,9 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   };
 
   // Filter third party providers to show only connected ones
-  const availableThirdPartyProviders = Object.entries(thirdPartyProviders).filter(([providerKey, provider]) => {
-    const isConnected = connectedStorageIntegrations.some(integration => integration.id === provider.id);
-    console.log(`Provider ${provider.name} (${provider.id}): ${isConnected ? 'connected' : 'not connected'}`);
-    console.log('Looking for integration with id:', provider.id);
-    console.log('Available integrations:', connectedStorageIntegrations.map(i => ({ id: i.id, type: i.type, status: i.status })));
-    return isConnected;
-  });
-
-  // Auto-fetch Google Drive files when third party tab is selected and Google Drive is available
-  useEffect(() => {
-    if (sourceType === 'thirdParty' && availableThirdPartyProviders.some(([id]) => id === 'googleDrive')) {
-      console.log('Auto-fetching Google Drive files...');
-      fetchGoogleDriveData();
-    }
-  }, [sourceType, availableThirdPartyProviders.length]);
+  const availableThirdPartyProviders = Object.entries(thirdPartyProviders).filter(([id, provider]) =>
+    connectedStorageIntegrations.some(integration => integration.id === provider.id)
+  );
 
   useEffect(() => {
     setFiles([]);
@@ -155,27 +127,13 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     setSelectedProvider(null);
     setSelectedFiles([]);
     setValidationErrors({});
-    setGoogleDriveFiles([]);
   }, [sourceType]);
 
   const fetchGoogleDriveData = async () => {
-    if (isLoadingGoogleDriveFiles) return; // Prevent multiple simultaneous requests
-    
     setIsLoadingGoogleDriveFiles(true);
-    console.log('Fetching Google Drive files...');
-    
     try {
       const response = await fetchGoogleDriveFiles();
-      console.log('Google Drive files response:', response);
-      
       setGoogleDriveFiles(response.files || []);
-      
-      // Auto-select Google Drive if it's available and no provider is selected
-      if (!selectedProvider && availableThirdPartyProviders.some(([id]) => id === 'googleDrive')) {
-        setSelectedProvider('googleDrive');
-        console.log('Auto-selected Google Drive provider');
-      }
-      
       setIsLoadingGoogleDriveFiles(false);
     } catch (error) {
       console.error('Error fetching Google Drive files:', error);
@@ -221,11 +179,9 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
 
       case 'thirdParty':
         if (!selectedProvider) {
-          errors.thirdParty = 'Please select a third-party provider';
-        } else if (selectedProvider === 'googleDrive' && googleDriveFiles.length === 0) {
-          errors.thirdParty = 'No Google Drive files available. Please check your connection.';
+          errors.thirdParty = 'Please select and connect to a third-party provider';
         } else if (selectedFiles.length === 0) {
-          errors.thirdParty = 'Please select at least one file to import';
+          errors.thirdParty = 'No files have been imported from the selected provider';
         }
         break;
     }
@@ -275,45 +231,6 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   };
 
   const createKnowledgeSource = async () => {
-    // Handle Google Drive specifically
-    if (sourceType === 'thirdParty' && selectedProvider === 'googleDrive') {
-      const selectedGoogleDriveFiles = googleDriveFiles.filter(file => 
-        selectedFiles.includes(file.name)
-      );
-
-      console.log('Creating knowledge source for Google Drive files:', selectedGoogleDriveFiles);
-
-      // Create sources for each selected Google Drive file
-      const responses = [];
-      for (const file of selectedGoogleDriveFiles) {
-        const payload = {
-          agent_id: parseInt(agentId),
-          file_id: file.id,
-          title: file.name
-        };
-
-        console.log('Sending payload to drive/add-to-agent-folder/:', payload);
-
-        const response = await apiRequest(`${BASE_URL}drive/add-to-agent-folder/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          console.error('Error response:', errorData);
-          throw new Error(errorData.message || `Failed to add ${file.name} from Google Drive`);
-        }
-
-        responses.push(response);
-      }
-
-      return responses[0].json(); // Return first response
-    }
-
     const formData = new FormData();
     formData.append('title', documentName);
     formData.append('agent_id', agentId);
@@ -325,6 +242,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
         break;
 
       case 'document':
+      case 'csv':
         files.forEach((file) => {
           formData.append('file', file);
         });
@@ -395,30 +313,8 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   };
 
   const handleQuickConnect = (provider: ThirdPartyProvider) => {
-    console.log('Quick connect called for provider:', provider);
     setSelectedProvider(provider);
     setIsConnecting(true);
-
-    if (provider === 'googleDrive') {
-      // For Google Drive, we already have the files fetched, just need to select the provider
-      setIsConnecting(false);
-      
-      if (googleDriveFiles.length > 0) {
-        // Auto-select some common files if available
-        const commonFiles = googleDriveFiles.slice(0, 3).map(file => file.name);
-        setSelectedFiles(commonFiles);
-        console.log('Auto-selected Google Drive files:', commonFiles);
-      }
-      
-      toast({
-        title: "Google Drive Ready",
-        description: `${googleDriveFiles.length} files available for import.`,
-        variant: "success"
-      });
-      
-      setValidationErrors(prev => ({ ...prev, thirdParty: undefined }));
-      return;
-    }
 
     setTimeout(() => {
       setIsConnecting(false);
