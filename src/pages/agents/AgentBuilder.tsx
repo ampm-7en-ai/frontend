@@ -13,6 +13,7 @@ import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { agentApi } from '@/utils/api-config';
 
 const AgentBuilderContent = () => {
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
@@ -24,6 +25,67 @@ const AgentBuilderContent = () => {
   const { addNotification } = useNotifications();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Helper function to format knowledge sources
+  const formatKnowledgeSources = (knowledgeSources: any[]) => {
+    if (!knowledgeSources || !Array.isArray(knowledgeSources)) return [];
+    
+    return knowledgeSources
+      .filter(ks => ks && ks.training_status !== 'deleted')
+      .map(ks => ({
+        id: ks.id,
+        name: ks.title || 'Untitled Source',
+        type: ks.type || 'unknown',
+        size: ks.metadata?.file_size || 'N/A',
+        lastUpdated: ks.metadata?.upload_date ? new Date(ks.metadata.upload_date).toLocaleDateString('en-GB') : 'N/A',
+        status: ks.status || 'active',
+        trainingStatus: ks.training_status || ks.status || 'idle',
+        linkBroken: false,
+        knowledge_sources: [],
+        metadata: {
+          ...ks.metadata,
+          url: ks.file || ks.url,
+          created_at: ks.metadata?.upload_date,
+          last_updated: ks.updated_at
+        },
+        url: ks.file || ks.url,
+        title: ks.title
+      }));
+  };
+
+  // Function to manually refetch agent data from API
+  const refetchAgentData = async (agentId: string) => {
+    try {
+      console.log('🔄 Manually refetching agent data for ID:', agentId);
+      
+      const response = await agentApi.getById(agentId);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch agent: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      const agentData = result.data;
+      
+      console.log('✅ Fetched fresh agent data:', agentData);
+
+      // Update the agent data in BuilderContext with fresh data
+      const updatedKnowledgeSources = formatKnowledgeSources(agentData.knowledge_sources || []);
+      
+      updateAgentData({
+        knowledgeSources: updatedKnowledgeSources
+      });
+
+      console.log('✅ Updated BuilderContext with fresh knowledge sources:', updatedKnowledgeSources);
+
+      // Also invalidate and refetch the agents cache
+      await queryClient.refetchQueries({ 
+        queryKey: ['agents']
+      });
+
+    } catch (error) {
+      console.error('❌ Error refetching agent data:', error);
+    }
+  };
 
   // Check for untrained knowledge sources - Updated to check status field
   useEffect(() => {
@@ -92,12 +154,10 @@ const AgentBuilderContent = () => {
       );
       
       if (success) {
-        console.log('✅ Training successful, refetching agent data from API');
+        console.log('✅ Training successful, manually refetching agent data');
         
-        // Refetch agent data from API to get the actual status
-        await queryClient.refetchQueries({ 
-          queryKey: ['agents']
-        });
+        // Manually refetch agent data from API
+        await refetchAgentData(agentId);
 
         addNotification({
           title: 'Training Complete',
