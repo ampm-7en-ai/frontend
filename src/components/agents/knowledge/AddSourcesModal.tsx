@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import { useIntegrations } from '@/hooks/useIntegrations';
-import { fetchGoogleDriveFiles, BASE_URL, getAccessToken } from '@/utils/api-config';
+import { fetchGoogleDriveFiles, BASE_URL, getAccessToken, addGoogleDriveFileToAgent } from '@/utils/api-config';
 import { apiRequest } from '@/utils/api-interceptor';
 import SourceTypeSelector from './SourceTypeSelector';
 import { ModernModal } from '@/components/ui/modern-modal';
@@ -288,7 +288,25 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     setIsUploading(true);
 
     try {
-      const response = await createKnowledgeSource();
+      let response;
+
+      // Handle Google Drive files differently
+      if (sourceType === 'thirdParty' && selectedProvider === 'googleDrive') {
+        // Use the specialized Google Drive endpoint
+        const promises = selectedFiles.map(fileName => {
+          const file = googleDriveFiles.find(f => f.name === fileName);
+          if (file) {
+            return addGoogleDriveFileToAgent(agentId, file.id, fileName);
+          }
+          return null;
+        }).filter(Boolean);
+
+        const results = await Promise.all(promises);
+        response = results[0]; // Use first result for success callback
+      } else {
+        // Use the regular knowledge source endpoint for all other cases
+        response = await createKnowledgeSource();
+      }
       
       setIsUploading(false);
       toast({
