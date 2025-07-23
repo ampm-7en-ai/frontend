@@ -410,6 +410,51 @@ const IntegrationsPage = () => {
       );
     }
     
+    // For ticketing integrations, show both Configure and Set as Default buttons
+    if (integration.type === 'ticketing' && integration.status === 'connected') {
+      return (
+        <div className="flex gap-2 flex-wrap">
+          <ModernButton 
+            variant="outline" 
+            size="sm"
+            className="w-full sm:w-auto"
+            onClick={() => setSelectedIntegration(integration.id)}
+          >
+            Configure Integration
+          </ModernButton>
+          {defaultProvider !== integration.id && (
+            <ModernButton 
+              variant="outline" 
+              size="sm"
+              className={`w-full sm:w-auto ${
+                isSettingDefault === integration.id ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              onClick={() => {
+                if (isSettingDefault !== integration.id) {
+                  handleSetAsDefault(integration.id);
+                }
+              }}
+              disabled={isSettingDefault === integration.id}
+            >
+              <Star className="h-3 w-3 mr-1" />
+              {isSettingDefault === integration.id ? 'Setting...' : 'Set as Default'}
+            </ModernButton>
+          )}
+          {defaultProvider === integration.id && (
+            <ModernButton 
+              variant="outline" 
+              size="sm"
+              className="w-full sm:w-auto text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400"
+              disabled
+            >
+              <Star className="h-3 w-3 mr-1 fill-current" />
+              Default
+            </ModernButton>
+          )}
+        </div>
+      );
+    }
+    
     return (
       <ModernButton 
         variant="outline" 
@@ -544,7 +589,6 @@ const IntegrationsPage = () => {
                                   </h3>
                                   <div className="flex flex-col gap-1 items-end ml-2 flex-shrink-0">
                                     {getStatusBadge(integration.status)}
-                                    {integration.type === 'ticketing' && integration.status === 'connected' && getDefaultBadge(integration.id)}
                                   </div>
                                 </div>
                                 
