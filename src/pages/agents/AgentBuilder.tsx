@@ -18,7 +18,6 @@ const AgentBuilderContent = () => {
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
   const [isTraining, setIsTraining] = useState(false);
   const [showUntrainedAlert, setShowUntrainedAlert] = useState(false);
-  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
 
   const { state, updateAgentData } = useBuilder();
   const { addNotification } = useNotifications();
@@ -48,17 +47,14 @@ const AgentBuilderContent = () => {
 
     console.log('🎯 Untrained sources found:', untrainedSources.length, untrainedSources);
 
-    const alertKey = `${agentId}-untrained`;
-    const shouldShowAlert = untrainedSources.length > 0 && !dismissedAlerts.has(alertKey);
+    const shouldShowAlert = untrainedSources.length > 0;
     
     console.log('⚠️ Should show alert:', shouldShowAlert, {
-      untrainedCount: untrainedSources.length,
-      isDismissed: dismissedAlerts.has(alertKey),
-      alertKey
+      untrainedCount: untrainedSources.length
     });
     
     setShowUntrainedAlert(shouldShowAlert);
-  }, [state.agentData.knowledgeSources, state.agentData.id, isTraining, dismissedAlerts, state.isLoading]);
+  }, [state.agentData.knowledgeSources, state.agentData.id, isTraining, state.isLoading]);
 
   const handleRetrainAgent = async () => {
     const agentId = state.agentData.id?.toString();
@@ -124,31 +120,8 @@ const AgentBuilderContent = () => {
   };
 
   const handleDismissUntrainedAlert = () => {
-    const agentId = state.agentData.id?.toString();
-    if (agentId) {
-      const alertKey = `${agentId}-untrained`;
-      setDismissedAlerts(prev => new Set([...prev, alertKey]));
-      
-      // Store in session storage to persist dismissal during session
-      const dismissedAlertsArray = Array.from(dismissedAlerts);
-      dismissedAlertsArray.push(alertKey);
-      sessionStorage.setItem('dismissedUntrainedAlerts', JSON.stringify(dismissedAlertsArray));
-    }
     setShowUntrainedAlert(false);
   };
-
-  // Load dismissed alerts from session storage on mount
-  useEffect(() => {
-    const stored = sessionStorage.getItem('dismissedUntrainedAlerts');
-    if (stored) {
-      try {
-        const alerts = JSON.parse(stored);
-        setDismissedAlerts(new Set(alerts));
-      } catch (error) {
-        console.error('Error loading dismissed alerts:', error);
-      }
-    }
-  }, []);
 
   // Updated to check status field instead of trainingStatus
   const untrainedCount = state.agentData.knowledgeSources.filter(
