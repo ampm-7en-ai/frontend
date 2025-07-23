@@ -120,7 +120,7 @@ const KnowledgeUpload = () => {
   const [url, setUrl] = useState('');
   const [importAllPages, setImportAllPages] = useState(true);
   const [plainText, setPlainText] = useState('');
-  const [selectedProvider, setSelectedProvider] = useState<ThirdPartyProvider | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
@@ -136,7 +136,7 @@ const KnowledgeUpload = () => {
     integration => integration.status === 'connected'
   );
 
-  const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
+  const thirdPartyProviders: Record<string, ThirdPartyConfig> = {
     googleDrive: {
       icon: <img src="https://img.logo.dev/google.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="Google Drive" className="h-4 w-4" />,
       name: "Google Drive",
@@ -555,7 +555,7 @@ const KnowledgeUpload = () => {
     }
   };
 
-  const handleQuickConnect = (provider: ThirdPartyProvider) => {
+  const handleQuickConnect = (provider: string) => {
     setSelectedProvider(provider);
     setIsConnecting(true);
 

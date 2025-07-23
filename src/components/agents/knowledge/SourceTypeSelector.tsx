@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -5,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import ModernButton from '@/components/dashboard/ModernButton';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
-import { Upload, X, Globe, AlignLeft, ExternalLink, FileText } from 'lucide-react';
+import { Upload, X, Globe, AlignLeft, ExternalLink, FileText, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -118,7 +119,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
   return (
     <div className="space-y-6">
       <ModernTabNavigation
-        items={sourceNavItems}
+        tabs={sourceNavItems}
         activeTab={sourceType}
         onTabChange={setSourceType}
         variant="pills"
