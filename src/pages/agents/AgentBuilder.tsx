@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { BuilderProvider, useBuilder } from '@/components/agents/builder/BuilderContext';
 import { BuilderToolbar } from '@/components/agents/builder/BuilderToolbar';
@@ -12,8 +11,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
 import { useToast } from '@/hooks/use-toast';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { updateKnowledgeSourceInAgentCache } from '@/utils/knowledgeSourceCacheUtils';
+import { agentApi } from '@/utils/api-config';
+import { useParams } from 'react-router-dom';
 
 const AgentBuilderContent = () => {
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
@@ -25,6 +26,59 @@ const AgentBuilderContent = () => {
   const { addNotification } = useNotifications();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { id } = useParams();
+
+  // Add active query to listen for cache invalidation and auto-refetch
+  const { data: agentData } = useQuery({
+    queryKey: ['agentKnowledgeSources', id],
+    queryFn: async () => {
+      if (!id) return null;
+      console.log('🔄 Fetching agent knowledge sources after training:', id);
+      const response = await agentApi.getById(id);
+      if (!response.ok) throw new Error('Failed to fetch agent');
+      const result = await response.json();
+      return result.data;
+    },
+    enabled: !!id && isTraining, // Only query when training is active
+    refetchOnWindowFocus: false,
+    staleTime: 0 // Always consider stale to allow immediate refetch
+  });
+
+  // Update local state when fresh data arrives from API after training
+  useEffect(() => {
+    if (agentData && isTraining) {
+      console.log('🔄 Received fresh agent data from API after training:', agentData);
+      
+      // Format knowledge sources with actual API status
+      const formattedSources = (agentData.knowledge_sources || [])
+        .filter((ks: any) => ks && ks.training_status !== 'deleted')
+        .map((ks: any) => ({
+          id: ks.id,
+          name: ks.title || 'Untitled Source',
+          type: ks.type || 'unknown',
+          size: ks.metadata?.file_size || 'N/A',
+          lastUpdated: ks.metadata?.upload_date ? new Date(ks.metadata.upload_date).toLocaleDateString('en-GB') : 'N/A',
+          status: ks.status || 'active', // Use actual API status
+          trainingStatus: ks.training_status || ks.status || 'idle', // Use actual API training status
+          linkBroken: false,
+          knowledge_sources: [],
+          metadata: {
+            ...ks.metadata,
+            url: ks.file || ks.url,
+            created_at: ks.metadata?.upload_date,
+            last_updated: ks.updated_at
+          },
+          url: ks.file || ks.url,
+          title: ks.title
+        }));
+
+      console.log('✅ Updating local state with actual API statuses:', formattedSources);
+      updateAgentData({ knowledgeSources: formattedSources });
+      
+      // Stop training state once we get fresh data
+      setIsTraining(false);
+    }
+  }, [agentData, isTraining, updateAgentData]);
 
   // Check for untrained knowledge sources - Updated to check status field
   useEffect(() => {
@@ -100,14 +154,9 @@ const AgentBuilderContent = () => {
       );
       
       if (success) {
-        // Fetch the updated agent data to get actual statuses from API
-        console.log('🔄 Fetching updated agent data after training');
+        console.log('🔄 Training successful, triggering API refetch...');
         
-        // Trigger a refetch of the agent data to get actual statuses
-        queryClient.invalidateQueries({
-          queryKey: ['agents']
-        });
-        
+        // Trigger a refetch of the agent data - this will now work with our active query
         queryClient.invalidateQueries({
           queryKey: ['agentKnowledgeSources', agentId]
         });
@@ -127,6 +176,7 @@ const AgentBuilderContent = () => {
           trainingStatus: 'active' as const
         }));
         updateAgentData({ knowledgeSources: revertedSources });
+        setIsTraining(false);
 
         addNotification({
           title: 'Training Failed',
@@ -146,6 +196,7 @@ const AgentBuilderContent = () => {
         trainingStatus: 'active' as const
       }));
       updateAgentData({ knowledgeSources: revertedSources });
+      setIsTraining(false);
 
       addNotification({
         title: 'Training Failed',
@@ -154,8 +205,6 @@ const AgentBuilderContent = () => {
         agentId,
         agentName: state.agentData.name
       });
-    } finally {
-      setIsTraining(false);
     }
   };
 
