@@ -120,7 +120,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
   console.log('BuilderProvider - Agent ID from URL:', id);
   console.log('BuilderProvider - Current agent data:', state.agentData);
 
-  // Helper function to format knowledge sources - Updated to match real API structure
+  // Helper function to format knowledge sources - Updated to include status field
   const formatKnowledgeSources = (knowledgeSources: any[]): KnowledgeSource[] => {
     if (!knowledgeSources || !Array.isArray(knowledgeSources)) return [];
     
@@ -132,6 +132,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         type: ks.type || 'unknown',
         size: ks.metadata?.file_size || 'N/A',
         lastUpdated: ks.metadata?.upload_date ? new Date(ks.metadata.upload_date).toLocaleDateString('en-GB') : 'N/A',
+        status: ks.status || 'active', // Map status field from API
         trainingStatus: ks.training_status || ks.status || 'idle',
         linkBroken: false,
         knowledge_sources: [],

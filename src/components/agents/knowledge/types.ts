@@ -1,9 +1,11 @@
+
 export interface KnowledgeSource {
   id: number;
   name: string;
   type: string;
   size: string;
   lastUpdated: string;
+  status?: string; // Add status field to match API response
   trainingStatus: 'idle' | 'training' | 'success' | 'error' | 'Active' | 'Training' | 'Issues' | 'active' | 'deleted' | 'failed';
   progress?: number;
   linkBroken?: boolean;

@@ -24,20 +24,41 @@ const AgentBuilderContent = () => {
   const { addNotification } = useNotifications();
   const { toast } = useToast();
 
-  // Check for untrained knowledge sources
+  // Check for untrained knowledge sources - Updated to check status field
   useEffect(() => {
     const agentId = state.agentData.id?.toString();
-    if (!agentId || isTraining) return;
+    if (!agentId || isTraining || state.isLoading) return;
 
+    // Debug logging
+    console.log('🔍 Checking knowledge sources for untrained status:', {
+      agentId,
+      knowledgeSourcesCount: state.agentData.knowledgeSources.length,
+      sources: state.agentData.knowledgeSources.map(source => ({
+        id: source.id,
+        name: source.name,
+        status: source.status,
+        trainingStatus: source.trainingStatus
+      }))
+    });
+
+    // Check for sources with status === "active" (untrained)
     const untrainedSources = state.agentData.knowledgeSources.filter(
-      source => source.trainingStatus === 'active' || source.trainingStatus === 'idle'
+      source => source.status === 'active'
     );
+
+    console.log('🎯 Untrained sources found:', untrainedSources.length, untrainedSources);
 
     const alertKey = `${agentId}-untrained`;
     const shouldShowAlert = untrainedSources.length > 0 && !dismissedAlerts.has(alertKey);
     
+    console.log('⚠️ Should show alert:', shouldShowAlert, {
+      untrainedCount: untrainedSources.length,
+      isDismissed: dismissedAlerts.has(alertKey),
+      alertKey
+    });
+    
     setShowUntrainedAlert(shouldShowAlert);
-  }, [state.agentData.knowledgeSources, state.agentData.id, isTraining, dismissedAlerts]);
+  }, [state.agentData.knowledgeSources, state.agentData.id, isTraining, dismissedAlerts, state.isLoading]);
 
   const handleRetrainAgent = async () => {
     const agentId = state.agentData.id?.toString();
@@ -63,9 +84,10 @@ const AgentBuilderContent = () => {
       );
       
       if (success) {
-        // Refresh knowledge sources by updating their training status
+        // Update sources status to "success" after successful training
         const updatedSources = state.agentData.knowledgeSources.map(source => ({
           ...source,
+          status: 'success',
           trainingStatus: 'success' as const
         }));
         
@@ -128,8 +150,9 @@ const AgentBuilderContent = () => {
     }
   }, []);
 
+  // Updated to check status field instead of trainingStatus
   const untrainedCount = state.agentData.knowledgeSources.filter(
-    source => source.trainingStatus === 'active' || source.trainingStatus === 'idle'
+    source => source.status === 'active'
   ).length;
 
   return (
