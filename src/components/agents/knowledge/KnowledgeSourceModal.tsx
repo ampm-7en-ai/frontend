@@ -1,12 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { KnowledgeSource } from './types';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { AlertTriangle, FileText, Globe, Database, Check, Trash2, ExternalLink } from 'lucide-react';
+import { AlertTriangle, FileText, Globe, Database, Check, Trash2, ExternalLink, Eye } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import PlainTextViewerModal from './PlainTextViewerModal';
 
 interface KnowledgeSourceModalProps {
   open: boolean;
@@ -29,6 +29,7 @@ const KnowledgeSourceModal = ({
 }: KnowledgeSourceModalProps) => {
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(initialSourceId);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPlainTextViewer, setShowPlainTextViewer] = useState(false);
 
   // Update the selected source when initialSourceId changes
   useEffect(() => {
@@ -70,6 +71,10 @@ const KnowledgeSourceModal = ({
     setSelectedSourceId(null);
     setShowDeleteDialog(false);
     onOpenChange(false);
+  };
+
+  const handleViewPlainText = () => {
+    setShowPlainTextViewer(true);
   };
 
   const getSourceIcon = (type: string) => {
@@ -222,15 +227,28 @@ const KnowledgeSourceModal = ({
                 <div className="space-y-6 pr-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">{currentSource.name}</h3>
-                    <ModernButton 
-                      variant="outline" 
-                      size="sm"
-                      className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      icon={Trash2}
-                      onClick={handleDeleteClick}
-                    >
-                      Delete
-                    </ModernButton>
+                    <div className="flex items-center gap-2">
+                      {currentSource.type === 'plain_text' && currentSource.content && (
+                        <ModernButton 
+                          variant="outline" 
+                          size="sm"
+                          className="text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          icon={Eye}
+                          onClick={handleViewPlainText}
+                        >
+                          View Content
+                        </ModernButton>
+                      )}
+                      <ModernButton 
+                        variant="outline" 
+                        size="sm"
+                        className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        icon={Trash2}
+                        onClick={handleDeleteClick}
+                      >
+                        Delete
+                      </ModernButton>
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 text-sm">
@@ -260,12 +278,38 @@ const KnowledgeSourceModal = ({
 
                   <div className="mt-6">
                     <h4 className="text-md font-medium mb-4 text-slate-900 dark:text-slate-100">
-                      {currentSource.type.toLowerCase() === 'website' ? 'Selected URLs' : 'Selected Files'}
+                      {currentSource.type.toLowerCase() === 'website' ? 'Selected URLs' : 
+                       currentSource.type === 'plain_text' ? 'Content Preview' : 'Selected Files'}
                     </h4>
-                    {currentSource.type.toLowerCase() === 'website' 
-                      ? renderSourceUrls(currentSource)
-                      : renderSourceFiles(currentSource)
-                    }
+                    {currentSource.type === 'plain_text' ? (
+                      <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50">
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                            {currentSource.content ? `${currentSource.content.length} characters` : 'No content'}
+                          </p>
+                          {currentSource.content && (
+                            <ModernButton 
+                              variant="ghost" 
+                              size="sm"
+                              className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                              icon={Eye}
+                              onClick={handleViewPlainText}
+                            >
+                              View Full Content
+                            </ModernButton>
+                          )}
+                        </div>
+                        <div className="bg-white dark:bg-slate-900/50 p-3 rounded-lg max-h-32 overflow-hidden">
+                          <p className="text-sm text-slate-700 dark:text-slate-300 line-clamp-4">
+                            {currentSource.content || 'No content available'}
+                          </p>
+                        </div>
+                      </div>
+                    ) : currentSource.type.toLowerCase() === 'website' ? (
+                      renderSourceUrls(currentSource)
+                    ) : (
+                      renderSourceFiles(currentSource)
+                    )}
                   </div>
 
                   {currentSource.content && (
@@ -316,6 +360,16 @@ const KnowledgeSourceModal = ({
           </p>
         </div>
       </ModernModal>
+
+      {/* Plain Text Viewer Modal */}
+      {currentSource && (
+        <PlainTextViewerModal
+          open={showPlainTextViewer}
+          onOpenChange={setShowPlainTextViewer}
+          title={currentSource.name}
+          content={currentSource.content || ''}
+        />
+      )}
     </>
   );
 };
