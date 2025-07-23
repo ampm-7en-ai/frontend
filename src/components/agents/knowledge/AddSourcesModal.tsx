@@ -70,17 +70,27 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
 
   // Use centralized integration management
-  const { getIntegrationsByType, integrations } = useIntegrations();
+  const { getIntegrationsByType, integrations, forceRefresh } = useIntegrations();
 
-  // Get connected storage integrations - using 'drive' as the integration ID
-  const connectedStorageIntegrations = getIntegrationsByType('storage').filter(
-    integration => integration.status === 'connected'
-  );
+  // Force refresh integrations when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      console.log('Modal opened, forcing integration refresh...');
+      forceRefresh();
+    }
+  }, [isOpen, forceRefresh]);
+
+  // Get connected storage integrations - check both 'storage' and 'drive' types
+  const connectedStorageIntegrations = [
+    ...getIntegrationsByType('storage'),
+    ...getIntegrationsByType('drive')
+  ].filter(integration => integration.status === 'connected');
 
   // Debug integration status
   useEffect(() => {
-    console.log('All integrations:', integrations);
-    console.log('Connected storage integrations:', connectedStorageIntegrations);
+    console.log('AddSourcesModal - All integrations:', integrations);
+    console.log('AddSourcesModal - Connected storage integrations:', connectedStorageIntegrations);
+    console.log('AddSourcesModal - Available third party providers:', availableThirdPartyProviders);
   }, [integrations, connectedStorageIntegrations]);
 
   const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
@@ -122,9 +132,11 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   };
 
   // Filter third party providers to show only connected ones
-  const availableThirdPartyProviders = Object.entries(thirdPartyProviders).filter(([id, provider]) => {
+  const availableThirdPartyProviders = Object.entries(thirdPartyProviders).filter(([providerKey, provider]) => {
     const isConnected = connectedStorageIntegrations.some(integration => integration.id === provider.id);
     console.log(`Provider ${provider.name} (${provider.id}): ${isConnected ? 'connected' : 'not connected'}`);
+    console.log('Looking for integration with id:', provider.id);
+    console.log('Available integrations:', connectedStorageIntegrations.map(i => ({ id: i.id, type: i.type, status: i.status })));
     return isConnected;
   });
 

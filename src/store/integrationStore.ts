@@ -67,17 +67,24 @@ export const useIntegrationStore = create<IntegrationStore>((set, get) => ({
       }
 
       const result = await response.json();
-      console.log('Integration statuses fetched:', result);
+      console.log('Integration statuses API response:', result);
 
       const integrations: Record<string, IntegrationData> = {};
       
+      // Debug: log the raw data structure
+      console.log('Raw integration data:', result.data);
+      
       Object.entries(result.data).forEach(([key, integration]: [string, any]) => {
+        console.log(`Processing integration ${key}:`, integration);
+        
         integrations[key] = {
           status: integration.status as IntegrationStatus,
           type: integration.type,
           is_default: integration.is_default || false
         };
       });
+
+      console.log('Processed integrations:', integrations);
 
       set({
         integrations,
