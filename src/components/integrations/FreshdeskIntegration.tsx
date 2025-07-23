@@ -242,7 +242,7 @@ const FreshdeskIntegration = () => {
             </ModernButton>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
               <div className="flex items-center gap-3 mb-2">
                 <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
@@ -255,13 +255,23 @@ const FreshdeskIntegration = () => {
 
             <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
               <div className="flex items-center gap-3 mb-2">
-                <Link className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                <h4 className="font-medium text-slate-900 dark:text-slate-100">Webhook URL</h4>
+                <Key className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">Webhook Secret</h4>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400 break-all">
-                {freshdeskStatus.integration.webhook_url}
+              <p className="text-sm text-slate-600 dark:text-slate-400 font-mono break-all">
+                {freshdeskStatus.integration.webhook_secret}
               </p>
             </div>
+          </div>
+
+          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+            <div className="flex items-center gap-3 mb-2">
+              <Link className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+              <h4 className="font-medium text-slate-900 dark:text-slate-100">Webhook URL</h4>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400 break-all">
+              {freshdeskStatus.integration.webhook_url}
+            </p>
           </div>
 
           <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
