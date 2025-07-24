@@ -19,6 +19,7 @@ interface Message {
   timestamp: string;
   ui_type?: string;
   messageId?: string;
+  session_id?: string;
 }
 
 interface ChatboxPreviewProps {
@@ -62,6 +63,7 @@ export const ChatboxPreview = ({
   const [isConnected, setIsConnected] = useState(false);
   const chatServiceRef = useRef<ChatWebSocketService | null>(null);
   const [inputValue, setInputValue] = useState('');
+  const [emailInputValue, setEmailInputValue] = useState('');
   const [showTypingIndicator, setShowTypingIndicator] = useState(false);
   const [systemMessage, setSystemMessage] = useState<string>('');
   const [isInitializing, setIsInitializing] = useState(true);
@@ -76,14 +78,25 @@ export const ChatboxPreview = ({
   // Internal state for floating button mode
   const [isMinimized, setIsMinimized] = useState(initiallyMinimized);
 
-  // Check if input should be disabled (when there's a pending yes/no question)
+  // Email validation function
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Check if input should be disabled (when there's a pending yes/no or email question)
   const shouldDisableInput = messages.some(msg => 
-    msg.type === 'ui' && msg.ui_type === 'yes_no'
+    msg.type === 'ui' && (msg.ui_type === 'yes_no' || msg.ui_type === 'email')
   );
 
   // Get the latest yes/no message for displaying buttons
   const latestYesNoMessage = messages.slice().reverse().find(msg => 
     msg.type === 'ui' && msg.ui_type === 'yes_no'
+  );
+
+  // Get the latest email message for displaying email input
+  const latestEmailMessage = messages.slice().reverse().find(msg => 
+    msg.type === 'ui' && msg.ui_type === 'email'
   );
 
   // Updated scroll effect to only scroll the message container, not the entire tab
@@ -110,7 +123,7 @@ export const ChatboxPreview = ({
     
     // Create a more robust ID based on content + type + sequence
     messageSequenceRef.current += 1;
-    const contentHash = message.content.slice(0, 30).replace(/\s+/g, '-');
+    const contentHash = message.content?.slice(0, 30).replace(/\s+/g, '-') || 'no-content';
     return `${message.type}-${contentHash}-${messageSequenceRef.current}-${Date.now()}`;
   };
 
@@ -257,6 +270,24 @@ export const ChatboxPreview = ({
     setMessages(prev => prev.filter(msg => !(msg.type === 'ui' && msg.ui_type === 'yes_no')));
   };
 
+  const handleEmailSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (emailInputValue.trim() && isValidEmail(emailInputValue)) {
+      sendMessage(emailInputValue);
+      setEmailInputValue('');
+      // Remove the email message from the list to re-enable input
+      setMessages(prev => prev.filter(msg => !(msg.type === 'ui' && msg.ui_type === 'email')));
+    }
+  };
+
+  const handleNoThanksClick = () => {
+    sendMessage('No thanks');
+    setEmailInputValue('');
+    // Remove the email message from the list to re-enable input
+    setMessages(prev => prev.filter(msg => !(msg.type === 'ui' && msg.ui_type === 'email')));
+  };
+
   const handleSuggestionClick = (suggestion: string) => {
     if (!chatServiceRef.current || !isConnected || shouldDisableInput) {
       toast({
@@ -281,6 +312,7 @@ export const ChatboxPreview = ({
     setConnectionError(null);
     setIsInitializing(true);
     setIsConnected(false);
+    setEmailInputValue('');
     
     // Clear processed message IDs and reset sequence
     processedMessageIds.current.clear();
@@ -663,6 +695,56 @@ export const ChatboxPreview = ({
                               </ModernButton>
                             </div>
                           )}
+
+                          {/* Email UI Component */}
+                          {message.type === 'ui' && message.ui_type === 'email' && (
+                            <div className="flex flex-col gap-3 animate-fade-in">
+                              <form onSubmit={handleEmailSubmit} className="flex flex-col gap-3">
+                                <ModernInput
+                                  type="email"
+                                  value={emailInputValue}
+                                  onChange={(e) => setEmailInputValue(e.target.value)}
+                                  placeholder="Enter your email address"
+                                  className="text-sm"
+                                  style={{ 
+                                    borderColor: `${primaryColor}20`,
+                                    focusRing: `${primaryColor}50`
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && isValidEmail(emailInputValue)) {
+                                      e.preventDefault();
+                                      handleEmailSubmit(e);
+                                    }
+                                  }}
+                                />
+                                <div className="flex gap-3 justify-center">
+                                  <ModernButton
+                                    type="submit"
+                                    disabled={!isValidEmail(emailInputValue)}
+                                    className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105"
+                                    style={{ 
+                                      backgroundColor: isValidEmail(emailInputValue) ? primaryColor : '#gray',
+                                      color: 'white'
+                                    }}
+                                  >
+                                    Submit
+                                  </ModernButton>
+                                  <ModernButton
+                                    onClick={handleNoThanksClick}
+                                    variant="outline"
+                                    className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 border-2"
+                                    style={{ 
+                                      borderColor: primaryColor,
+                                      color: primaryColor,
+                                      backgroundColor: 'white'
+                                    }}
+                                  >
+                                    No thanks
+                                  </ModernButton>
+                                </div>
+                              </form>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -771,7 +853,7 @@ export const ChatboxPreview = ({
                     <Textarea
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
-                      placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
+                      placeholder={shouldDisableInput ? (latestEmailMessage ? "Please enter your email above..." : "Please select Yes or No above...") : "Type your message..."}
                       className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200 resize-none overflow-hidden pr-12"
                       style={{ 
                         borderColor: `${primaryColor}20`,
@@ -1182,6 +1264,56 @@ export const ChatboxPreview = ({
                       </ModernButton>
                     </div>
                   )}
+
+                  {/* Email UI Component */}
+                  {message.type === 'ui' && message.ui_type === 'email' && (
+                    <div className="flex flex-col gap-3 animate-fade-in">
+                      <form onSubmit={handleEmailSubmit} className="flex flex-col gap-3">
+                        <ModernInput
+                          type="email"
+                          value={emailInputValue}
+                          onChange={(e) => setEmailInputValue(e.target.value)}
+                          placeholder="Enter your email address"
+                          className="text-sm"
+                          style={{ 
+                            borderColor: `${primaryColor}20`,
+                            focusRing: `${primaryColor}50`
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && isValidEmail(emailInputValue)) {
+                              e.preventDefault();
+                              handleEmailSubmit(e);
+                            }
+                          }}
+                        />
+                        <div className="flex gap-3 justify-center">
+                          <ModernButton
+                            type="submit"
+                            disabled={!isValidEmail(emailInputValue)}
+                            className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105"
+                            style={{ 
+                              backgroundColor: isValidEmail(emailInputValue) ? primaryColor : '#gray',
+                              color: 'white'
+                            }}
+                          >
+                            Submit
+                          </ModernButton>
+                          <ModernButton
+                            onClick={handleNoThanksClick}
+                            variant="outline"
+                            className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 border-2"
+                            style={{ 
+                              borderColor: primaryColor,
+                              color: primaryColor,
+                              backgroundColor: 'white'
+                            }}
+                          >
+                            No thanks
+                          </ModernButton>
+                        </div>
+                      </form>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -1290,7 +1422,7 @@ export const ChatboxPreview = ({
             <Textarea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
+              placeholder={shouldDisableInput ? (latestEmailMessage ? "Please enter your email above..." : "Please select Yes or No above...") : "Type your message..."}
               className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200 resize-none overflow-hidden pr-12"
               style={{ 
                 borderColor: `${primaryColor}20`,
