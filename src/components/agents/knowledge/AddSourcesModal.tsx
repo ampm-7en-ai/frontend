@@ -1,626 +1,415 @@
-import React, { useState, useEffect } from 'react';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import ModernButton from '@/components/dashboard/ModernButton';
-import { useFloatingToast } from '@/context/FloatingToastContext';
-import { useIntegrations } from '@/hooks/useIntegrations';
-import { fetchGoogleDriveFiles, BASE_URL, getAccessToken, addGoogleDriveFileToAgent } from '@/utils/api-config';
-import { apiRequest } from '@/utils/api-interceptor';
+import React, { useState, useCallback } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { Upload, Loader2 } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast"
+import { agentApi } from '@/utils/api-config';
 import SourceTypeSelector from './SourceTypeSelector';
-import { ModernModal } from '@/components/ui/modern-modal';
-import { Table, FileText } from 'lucide-react';
-
-type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
-type ThirdPartyProvider = 'googleDrive' | 'slack' | 'notion' | 'dropbox' | 'github';
-
-interface ValidationErrors {
-  documentName?: string;
-  url?: string;
-  files?: string;
-  plainText?: string;
-  thirdParty?: string;
-}
-
-interface ThirdPartyConfig {
-  icon: React.ReactNode;
-  name: string;
-  description: string;
-  color: string;
-  id: string;
-}
-
-interface GoogleDriveFile {
-  id: string;
-  name: string;
-  mimeType: string;
-  webViewLink: string;
-  createdTime: string;
-  modifiedTime: string;
-}
-
-interface ScrapedUrl {
-  url: string;
-  title: string;
-  selected: boolean;
-}
+import { ApiKnowledgeBase } from './types';
 
 interface AddSourcesModalProps {
   isOpen: boolean;
   onClose: () => void;
-  agentId: string;
-  onSuccess?: (response?: any) => void;
+  onSourcesAdded?: (knowledgeBase: ApiKnowledgeBase) => void;
+  agentId?: string;
 }
 
 const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   isOpen,
   onClose,
-  agentId,
-  onSuccess
+  onSourcesAdded,
+  agentId
 }) => {
-  const { toast } = useToast();
-  const { showToast } = useFloatingToast();
-  const [files, setFiles] = useState<File[]>([]);
-  const [documentName, setDocumentName] = useState('');
-  const [sourceType, setSourceType] = useState<SourceType>('url');
-  const [isUploading, setIsUploading] = useState(false);
+  const [knowledgeBaseName, setKnowledgeBaseName] = useState('');
+  const [sourceType, setSourceType] = useState('upload');
   const [url, setUrl] = useState('');
-  const [importAllPages, setImportAllPages] = useState(false);
-  const [plainText, setPlainText] = useState('');
-  const [selectedProvider, setSelectedProvider] = useState<ThirdPartyProvider | null>(null);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [googleDriveFiles, setGoogleDriveFiles] = useState<GoogleDriveFile[]>([]);
+  const [isUrlLoading, setIsUrlLoading] = useState(false);
+  const [textContent, setTextContent] = useState('');
+  const [selectedProvider, setSelectedProvider] = useState<"google_drive" | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [googleDriveFiles, setGoogleDriveFiles] = useState<any[]>([]);
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
+  const [selectedUrls, setSelectedUrls] = useState<string[]>([]);
+  const [importAllLinkedPages, setImportAllLinkedPages] = useState(false);
   const [isScrapingUrls, setIsScrapingUrls] = useState(false);
-  const [scrapedUrls, setScrapedUrls] = useState<ScrapedUrl[]>([]);
+  const [scrapedUrls, setScrapedUrls] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
 
-  // Use centralized integration management
-  const { getIntegrationsByType } = useIntegrations();
-
-  // Get connected storage integrations
-  const connectedStorageIntegrations = getIntegrationsByType('storage').filter(
-    integration => integration.status === 'connected'
+  const canUpload = knowledgeBaseName.trim() !== '' && (
+    (sourceType === 'upload' && selectedFiles.length > 0) ||
+    (sourceType === 'url' && url.trim() !== '') ||
+    (sourceType === 'text' && textContent.trim() !== '') ||
+    (sourceType === 'google_drive' && googleDriveFiles.length > 0) ||
+    (sourceType === 'website' && scrapedUrls.length > 0)
   );
 
-  const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
-    googleDrive: {
-      icon: <img src="https://img.logo.dev/google.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="Google Drive" className="h-4 w-4" />,
-      name: "Google Drive",
-      description: "Import documents from your Google Drive",
-      color: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
-      id: "google_drive"
-    },
-    slack: {
-      icon: <img src="https://img.logo.dev/slack.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="Slack" className="h-4 w-4" />,
-      name: "Slack",
-      description: "Import conversations and files from Slack",
-      color: "bg-pink-50 text-pink-600 border-pink-200 dark:bg-pink-950/50 dark:text-pink-400 dark:border-pink-800",
-      id: "slack"
-    },
-    notion: {
-      icon: <img src="https://img.logo.dev/notion.so?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="Notion" className="h-4 w-4" />,
-      name: "Notion",
-      description: "Import pages and databases from Notion",
-      color: "bg-gray-50 text-gray-800 border-gray-200 dark:bg-gray-900/50 dark:text-gray-300 dark:border-gray-700",
-      id: "notion"
-    },
-    dropbox: {
-      icon: <img src="https://img.logo.dev/dropbox.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="Dropbox" className="h-4 w-4" />,
-      name: "Dropbox",
-      description: "Import files from your Dropbox",
-      color: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
-      id: "dropbox"
-    },
-    github: {
-      icon: <img src="https://img.logo.dev/github.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="GitHub" className="h-4 w-4" />,
-      name: "GitHub",
-      description: "Import repositories and documentation from GitHub",
-      color: "bg-gray-50 text-gray-800 border-gray-200 dark:bg-gray-900/50 dark:text-gray-300 dark:border-gray-700",
-      id: "github"
-    }
-  };
-
-  // Filter third party providers to show only connected ones
-  const availableThirdPartyProviders = Object.entries(thirdPartyProviders).filter(([id, provider]) =>
-    connectedStorageIntegrations.some(integration => integration.id === provider.id)
-  );
-
-  useEffect(() => {
-    setFiles([]);
-    setUrl('');
-    setPlainText('');
-    setSelectedProvider(null);
-    setSelectedFiles([]);
-    setValidationErrors({});
-    setScrapedUrls([]);
-    setImportAllPages(false);
-  }, [sourceType]);
-
-  const scrapeUrls = async (baseUrl: string) => {
-    setIsScrapingUrls(true);
+  const fetchGoogleDriveData = useCallback(async () => {
+    setIsLoadingGoogleDriveFiles(true);
     try {
-      const response = await apiRequest(`${BASE_URL}knowledge/scrape-urls/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          base_url: baseUrl
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to scrape URLs');
+      const response = await agentApi.getGoogleDriveFiles();
+      if (response.ok) {
+        const data = await response.json();
+        setGoogleDriveFiles(data);
+      } else {
+        toast({
+          title: "Error fetching Google Drive files",
+          description: "Failed to retrieve files from Google Drive.",
+          variant: "destructive",
+        });
       }
-
-      const data = await response.json();
-      const urls = data.data?.urls || data.urls || [];
-      
-      // Transform the response to our ScrapedUrl format
-      const scrapedUrlsData: ScrapedUrl[] = urls.map((urlItem: any) => ({
-        url: urlItem.url || urlItem,
-        title: urlItem.title || urlItem.url || urlItem,
-        selected: true
-      }));
-
-      setScrapedUrls(scrapedUrlsData);
-      
-      toast({
-        title: "URLs scraped successfully",
-        description: `Found ${scrapedUrlsData.length} URLs from the website`,
-        variant: "default"
-      });
     } catch (error) {
-      console.error('Error scraping URLs:', error);
+      console.error("Error fetching Google Drive files:", error);
       toast({
-        title: "Error",
-        description: "Failed to scrape URLs from the website",
-        variant: "destructive"
+        title: "Error fetching Google Drive files",
+        description: "An error occurred while fetching files from Google Drive.",
+        variant: "destructive",
       });
-      setImportAllPages(false);
     } finally {
-      setIsScrapingUrls(false);
+      setIsLoadingGoogleDriveFiles(false);
     }
-  };
+  }, [toast]);
 
-  const handleImportAllPagesChange = async (checked: boolean) => {
-    setImportAllPages(checked);
-    
-    if (checked && url) {
-      await scrapeUrls(url);
-    } else if (!checked) {
-      setScrapedUrls([]);
-    }
-  };
-
-  const toggleUrlSelection = (urlToToggle: string) => {
-    setScrapedUrls(prev => 
-      prev.map(urlData => 
-        urlData.url === urlToToggle 
-          ? { ...urlData, selected: !urlData.selected }
-          : urlData
-      )
-    );
+  const toggleUrlSelection = (url: string) => {
+    setSelectedUrls((prevSelectedUrls) => {
+      if (prevSelectedUrls.includes(url)) {
+        return prevSelectedUrls.filter((selectedUrl) => selectedUrl !== url);
+      } else {
+        return [...prevSelectedUrls, url];
+      }
+    });
   };
 
   const handleSortToggle = () => {
-    setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
   };
 
-  const handleRefreshFiles = () => {
-    if (selectedProvider === 'googleDrive') {
-      fetchGoogleDriveData();
-    }
-  };
-
-  const fetchGoogleDriveData = async () => {
-    setIsLoadingGoogleDriveFiles(true);
-    try {
-      const response = await fetchGoogleDriveFiles();
-      setGoogleDriveFiles(response.files || []);
-      setIsLoadingGoogleDriveFiles(false);
-    } catch (error) {
-      console.error('Error fetching Google Drive files:', error);
-      showToast({
-        title: "Error",
-        description: "Failed to fetch Google Drive files. Please try again.",
-        variant: "error"
-      });
-      setIsLoadingGoogleDriveFiles(false);
-    }
-  };
-
-  const validateForm = (): boolean => {
-    const errors: ValidationErrors = {};
-
-    if (!documentName.trim()) {
-      errors.documentName = 'Source name is required';
-    }
-
-    switch (sourceType) {
-      case 'url':
-        if (!url.trim()) {
-          errors.url = 'Website URL is required';
-        } else if (!isValidUrl(url)) {
-          errors.url = 'Please enter a valid URL';
-        }
-        break;
-
-      case 'document':
-      case 'csv':
-        if (files.length === 0) {
-          errors.files = `Please select at least one ${sourceType === 'document' ? 'document' : 'spreadsheet'} file`;
-        }
-        break;
-
-      case 'plainText':
-        if (!plainText.trim()) {
-          errors.plainText = 'Please enter some text content';
-        } else if (plainText.trim().length < 10) {
-          errors.plainText = 'Text content must be at least 10 characters long';
-        }
-        break;
-
-      case 'thirdParty':
-        if (!selectedProvider) {
-          errors.thirdParty = 'Please select and connect to a third-party provider';
-        } else if (selectedFiles.length === 0) {
-          errors.thirdParty = 'No files have been imported from the selected provider';
-        }
-        break;
-    }
-
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const isValidUrl = (string: string): boolean => {
-    try {
-      const url = new URL(string);
-      return url.protocol === 'http:' || url.protocol === 'https:';
-    } catch {
-      return false;
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-
-      const uniqueNewFiles = newFiles.filter(newFile => {
-        return !files.some(existingFile =>
-          existingFile.name === newFile.name &&
-          existingFile.size === newFile.size
-        );
-      });
-
-      setFiles(prevFiles => [...prevFiles, ...uniqueNewFiles]);
-
-      if (uniqueNewFiles.length > 0) {
-        setValidationErrors(prev => ({ ...prev, files: undefined }));
-      }
-
-      if (uniqueNewFiles.length < newFiles.length) {
-        toast({
-          title: "Duplicate files detected",
-          description: "Some files were skipped because they were already selected.",
-          variant: "default"
-        });
-      }
-    }
-  };
-
-  const removeFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const createKnowledgeSource = async () => {
-    const formData = new FormData();
-    formData.append('title', documentName);
-    formData.append('agent_id', agentId);
-
-    switch (sourceType) {
-      case 'url':
-        if (importAllPages && scrapedUrls.length > 0) {
-          const selectedUrls = scrapedUrls.filter(urlData => urlData.selected).map(urlData => urlData.url);
-          formData.append('urls', JSON.stringify(selectedUrls));
+  const handleRefreshFiles = async () => {
+    if (sourceType === 'website' && url.trim() !== '') {
+      setIsScrapingUrls(true);
+      try {
+        const response = await agentApi.scrapeWebsiteContent(url, importAllLinkedPages);
+        if (response.ok) {
+          const data = await response.json();
+          setScrapedUrls(data);
+          toast({
+            title: "Website content scraped",
+            description: "Successfully scraped content from the website.",
+          });
         } else {
-          formData.append('url', url);
+          toast({
+            title: "Error scraping website",
+            description: "Failed to scrape content from the website.",
+            variant: "destructive",
+          });
         }
-        formData.append('crawl_all_pages', importAllPages.toString());
-        break;
-
-      case 'document':
-      case 'csv':
-        files.forEach((file) => {
-          formData.append('file', file);
+      } catch (error) {
+        console.error("Error scraping website:", error);
+        toast({
+          title: "Error scraping website",
+          description: "An error occurred while scraping the website.",
+          variant: "destructive",
         });
-        break;
-
-      case 'plainText':
-        formData.append('plain_text', plainText);
-        break;
-
-      case 'thirdParty':
-        if (selectedProvider) {
-          formData.append('provider', selectedProvider);
-          formData.append('file_id', JSON.stringify(selectedFiles));
-        }
-        break;
+      } finally {
+        setIsScrapingUrls(false);
+      }
     }
-
-    const response = await apiRequest(`${BASE_URL}knowledgesource/`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Failed to create knowledge source');
-    }
-
-    return response.json();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const getUploadButtonText = () => {
+    switch (sourceType) {
+      case 'upload':
+        return `Upload ${selectedFiles.length} Files`;
+      case 'url':
+        return 'Add URL';
+      case 'text':
+        return 'Add Text';
+      case 'google_drive':
+        return `Add ${googleDriveFiles.length} Files from Google Drive`;
+      case 'website':
+        return `Add ${scrapedUrls.length} URLs`;
+      default:
+        return 'Upload';
+    }
+  };
 
-    if (!validateForm()) {
-      showToast({
-        title: "Validation Error",
-        description: "Please fix the errors and try again.",
-        variant: "error"
+  const handleUpload = async () => {
+    if (!agentId) {
+      toast({
+        title: "Error",
+        description: "Agent ID is missing",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!canUpload) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
       });
       return;
     }
 
     setIsUploading(true);
-
     try {
-      let response;
+      let knowledgeBase: ApiKnowledgeBase | null = null;
 
-      if (sourceType === 'thirdParty' && selectedProvider === 'googleDrive') {
-        const promises = selectedFiles.map(fileName => {
-          const file = googleDriveFiles.find(f => f.name === fileName);
-          if (file) {
-            return addGoogleDriveFileToAgent(agentId, file.id, fileName);
-          }
-          return null;
-        }).filter(Boolean);
+      if (sourceType === 'upload') {
+        const formData = new FormData();
+        selectedFiles.forEach(file => formData.append('files', file));
+        formData.append('name', knowledgeBaseName);
+        formData.append('type', 'document');
 
-        const results = await Promise.all(promises);
-        response = results[0];
-      } else {
-        response = await createKnowledgeSource();
-      }
-      
-      setIsUploading(false);
-      toast({
-        title: "Success!",
-        description: "Knowledge source added successfully",
-        variant: "success"
-      });
+        const response = await agentApi.uploadFiles(formData);
 
-      if (onSuccess) {
-        onSuccess(response);
-      }
-      onClose();
-    } catch (error) {
-      setIsUploading(false);
-      console.error('Error creating knowledge source:', error);
-      toast({
-        title: "Upload Failed",
-        description: error instanceof Error ? error.message : "Failed to add knowledge sources. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleQuickConnect = (provider: ThirdPartyProvider) => {
-    setSelectedProvider(provider);
-    setIsConnecting(true);
-
-    if (provider === 'googleDrive') {
-      fetchGoogleDriveData();
-      setIsConnecting(false);
-      
-      toast({
-        title: "Connected Successfully",
-        description: "Connected to Google Drive. Loading your files...",
-        variant: "success"
-      });
-    } else {
-      setTimeout(() => {
-        setIsConnecting(false);
-
-        toast({
-          title: "Connected Successfully",
-          description: `Connected to ${thirdPartyProviders[provider].name}. Importing common files automatically.`,
-          variant: "success"
+        if (response.ok) {
+          knowledgeBase = await response.json();
+          toast({
+            title: "Files uploaded",
+            description: "Successfully uploaded files.",
+          });
+        } else {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.message || `Failed to upload files: ${response.status}`);
+        }
+      } else if (sourceType === 'url') {
+        const response = await agentApi.createKnowledgeBase({
+          agentId: agentId,
+          name: knowledgeBaseName,
+          type: 'url',
+          url: url,
         });
 
-        if (provider === 'slack') {
-          setSelectedFiles([
-            'sales-team channel history',
-            'product-updates channel history',
-            'customer-support channel history'
-          ]);
-        } else if (provider === 'notion') {
-          setSelectedFiles([
-            'Company Wiki',
-            'Product Documentation',
-            'Meeting Notes'
-          ]);
-        } else if (provider === 'dropbox') {
-          setSelectedFiles([
-            'Marketing Assets/Brand Guidelines.pdf',
-            'Research/Market Analysis 2023.docx',
-            'Presentations/Investor Deck.pptx'
-          ]);
-        } else if (provider === 'github') {
-          setSelectedFiles([
-            'Documentation/README.md',
-            'Documentation/API_REFERENCE.md',
-            'Documentation/CONTRIBUTING.md'
-          ]);
+        if (response.ok) {
+          knowledgeBase = await response.json();
+          toast({
+            title: "URL added",
+            description: "Successfully added URL.",
+          });
+        } else {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.message || `Failed to add URL: ${response.status}`);
         }
+      } else if (sourceType === 'text') {
+        const response = await agentApi.createKnowledgeBase({
+          agentId: agentId,
+          name: knowledgeBaseName,
+          type: 'plain_text',
+          text: textContent,
+        });
 
-        setValidationErrors(prev => ({ ...prev, thirdParty: undefined }));
-      }, 1500);
-    }
-  };
+        if (response.ok) {
+          knowledgeBase = await response.json();
+          toast({
+            title: "Text added",
+            description: "Successfully added text.",
+          });
+        } else {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.message || `Failed to add text: ${response.status}`);
+        }
+      } else if (sourceType === 'google_drive') {
+        const fileIds = googleDriveFiles.map(file => file.id);
+        const response = await agentApi.createKnowledgeBase({
+          agentId: agentId,
+          name: knowledgeBaseName,
+          type: 'google_drive',
+          fileIds: fileIds,
+        });
 
-  const handleRemoveSelectedFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-  };
+        if (response.ok) {
+          knowledgeBase = await response.json();
+          toast({
+            title: "Google Drive files added",
+            description: "Successfully added Google Drive files.",
+          });
+        } else {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.message || `Failed to add Google Drive files: ${response.status}`);
+        }
+      } else if (sourceType === 'website') {
+        const urls = scrapedUrls.filter(item => selectedUrls.includes(item.url)).map(item => item.url);
+        const response = await agentApi.createKnowledgeBase({
+          agentId: agentId,
+          name: knowledgeBaseName,
+          type: 'website',
+          urls: urls,
+        });
 
-  const handleFileUploadClick = (e?: React.MouseEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
-    document.getElementById('file-upload')?.click();
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
-
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    if (droppedFiles.length > 0) {
-      setFiles(prevFiles => [...prevFiles, ...droppedFiles]);
-      setValidationErrors(prev => ({ ...prev, files: undefined }));
-    }
-  };
-
-  const getFileIcon = (mimeType: string) => {
-    if (mimeType.includes('spreadsheet')) {
-      return <Table className="h-4 w-4 text-green-600 dark:text-green-400" />;
-    } else if (mimeType.includes('document')) {
-      return <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
-    } else if (mimeType.includes('pdf')) {
-      return <FileText className="h-4 w-4 text-red-600 dark:text-red-400" />;
-    }
-    return <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />;
-  };
-
-  const toggleFileSelection = (fileName: string) => {
-    setSelectedFiles(prev => {
-      if (prev.includes(fileName)) {
-        return prev.filter(f => f !== fileName);
-      } else {
-        return [...prev, fileName];
+        if (response.ok) {
+          knowledgeBase = await response.json();
+          toast({
+            title: "Website URLs added",
+            description: "Successfully added website URLs.",
+          });
+        } else {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.message || `Failed to add website URLs: ${response.status}`);
+        }
       }
-    });
+
+      if (knowledgeBase) {
+        onSourcesAdded?.(knowledgeBase);
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error uploading:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to upload.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
+
+  const handleClear = () => {
+    setKnowledgeBaseName('');
+    setUrl('');
+    setTextContent('');
+    setUploadedFiles([]);
+    setSelectedFiles([]);
+    setGoogleDriveFiles([]);
+    setSelectedUrls([]);
+    setScrapedUrls([]);
+  };
+
+  // Add select all functionality
+  const handleSelectAllFiles = () => {
+    if (selectedFiles.length === uploadedFiles.length) {
+      // If all files are selected, deselect all
+      setSelectedFiles([]);
+    } else {
+      // Select all files
+      setSelectedFiles([...uploadedFiles]);
+    }
+  };
+
+  const handleSelectAllUrls = () => {
+    if (selectedUrls.length === scrapedUrls.length) {
+      // If all URLs are selected, deselect all
+      setSelectedUrls([]);
+    } else {
+      // Select all URLs
+      setSelectedUrls(scrapedUrls.map(url => url.url));
+    }
+  };
+
+  const isAllFilesSelected = selectedFiles.length === uploadedFiles.length && uploadedFiles.length > 0;
+  const isAllUrlsSelected = selectedUrls.length === scrapedUrls.length && scrapedUrls.length > 0;
 
   return (
-    <ModernModal
-      open={isOpen}
-      onOpenChange={onClose}
-      title="Add Knowledge Sources"
-      description="Import content from various sources to enhance your agent's knowledge base. Choose from websites, documents, or third-party integrations."
-      size="4xl"
-      fixedFooter={true}
-      footer={
-        <div className="flex justify-center gap-4">
-          <ModernButton 
-            variant="outline" 
-            onClick={onClose}
-            disabled={isUploading}
-            type="button"
-          >
-            Cancel
-          </ModernButton>
-          <ModernButton 
-            onClick={handleSubmit}
-            disabled={isUploading}
-            className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100"
-          >
-            {isUploading ? 'Processing...' : 'Add Source'}
-          </ModernButton>
-        </div>
-      }
-    >
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="space-y-3">
-          <Label htmlFor="document-name" className="text-sm font-medium text-slate-700 dark:text-slate-300">Source Name *</Label>
-          <Input 
-            id="document-name" 
-            variant="modern"
-            size="lg"
-            placeholder="Enter a descriptive name for this knowledge source"
-            value={documentName}
-            onChange={(e) => setDocumentName(e.target.value)}
-            className={validationErrors.documentName ? 'border-red-500 dark:border-red-400' : ''}
-          />
-          {validationErrors.documentName && (
-            <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.documentName}</p>
-          )}
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Add Knowledge Sources</DialogTitle>
+          <DialogDescription>
+            Add new knowledge sources to enhance your agent's capabilities
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="flex-1 overflow-y-auto">
+          <div className="space-y-6 p-1">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="modal-kb-name" className="text-sm font-medium">
+                  Knowledge Base Name
+                </Label>
+                <span className="text-red-500">*</span>
+              </div>
+              <Input
+                id="modal-kb-name"
+                value={knowledgeBaseName}
+                onChange={(e) => setKnowledgeBaseName(e.target.value)}
+                placeholder="Enter knowledge base name"
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-4">
+              <SourceTypeSelector
+                sourceType={sourceType}
+                setSourceType={setSourceType}
+                url={url}
+                setUrl={setUrl}
+                isUrlLoading={isUrlLoading}
+                setIsUrlLoading={setIsUrlLoading}
+                textContent={textContent}
+                setTextContent={setTextContent}
+                selectedProvider={selectedProvider}
+                setSelectedProvider={setSelectedProvider}
+                uploadedFiles={uploadedFiles}
+                setUploadedFiles={setUploadedFiles}
+                selectedFiles={selectedFiles}
+                setSelectedFiles={setSelectedFiles}
+                googleDriveFiles={googleDriveFiles}
+                setGoogleDriveFiles={setGoogleDriveFiles}
+                isLoadingGoogleDriveFiles={isLoadingGoogleDriveFiles}
+                setIsLoadingGoogleDriveFiles={setIsLoadingGoogleDriveFiles}
+                fetchGoogleDriveData={fetchGoogleDriveData}
+                selectedUrls={selectedUrls}
+                setSelectedUrls={setSelectedUrls}
+                importAllLinkedPages={importAllLinkedPages}
+                setImportAllLinkedPages={setImportAllLinkedPages}
+                isScrapingUrls={isScrapingUrls}
+                scrapedUrls={scrapedUrls}
+                toggleUrlSelection={toggleUrlSelection}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                sortOrder={sortOrder}
+                handleSortToggle={handleSortToggle}
+                handleRefreshFiles={handleRefreshFiles}
+                onSelectAllFiles={handleSelectAllFiles}
+                onSelectAllUrls={handleSelectAllUrls}
+                isAllFilesSelected={isAllFilesSelected}
+                isAllUrlsSelected={isAllUrlsSelected}
+              />
+            </div>
+          </div>
         </div>
 
-        <SourceTypeSelector
-          sourceType={sourceType}
-          setSourceType={setSourceType}
-          url={url}
-          setUrl={setUrl}
-          files={files}
-          setFiles={setFiles}
-          plainText={plainText}
-          setPlainText={setPlainText}
-          importAllPages={importAllPages}
-          setImportAllPages={handleImportAllPagesChange}
-          selectedProvider={selectedProvider}
-          setSelectedProvider={setSelectedProvider}
-          selectedFiles={selectedFiles}
-          setSelectedFiles={setSelectedFiles}
-          validationErrors={validationErrors}
-          setValidationErrors={setValidationErrors}
-          isDragOver={isDragOver}
-          setIsDragOver={setIsDragOver}
-          isConnecting={isConnecting}
-          isLoadingGoogleDriveFiles={isLoadingGoogleDriveFiles}
-          googleDriveFiles={googleDriveFiles}
-          availableThirdPartyProviders={availableThirdPartyProviders}
-          thirdPartyProviders={thirdPartyProviders}
-          handleFileChange={handleFileChange}
-          removeFile={removeFile}
-          handleQuickConnect={handleQuickConnect}
-          handleRemoveSelectedFile={handleRemoveSelectedFile}
-          handleFileUploadClick={handleFileUploadClick}
-          handleDragOver={handleDragOver}
-          handleDragLeave={handleDragLeave}
-          handleDrop={handleDrop}
-          getFileIcon={getFileIcon}
-          toggleFileSelection={toggleFileSelection}
-          fetchGoogleDriveData={fetchGoogleDriveData}
-          isScrapingUrls={isScrapingUrls}
-          scrapedUrls={scrapedUrls}
-          toggleUrlSelection={toggleUrlSelection}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          sortOrder={sortOrder}
-          handleSortToggle={handleSortToggle}
-          handleRefreshFiles={handleRefreshFiles}
-        />
-      </form>
-    </ModernModal>
+        <DialogFooter className="flex gap-3 pt-4 border-t">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={isUploading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUpload}
+            disabled={!canUpload || isUploading}
+          >
+            {isUploading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {getUploadButtonText()}
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4 mr-2" />
+                {getUploadButtonText()}
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
