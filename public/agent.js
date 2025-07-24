@@ -77,7 +77,7 @@
     return element;
   }
 
-  // WebSocket Service
+  // WebSocket Service - Updated to match ChatWebSocketService.ts exactly
   class ChatWebSocketService {
     constructor(agentId, wsUrl) {
       this.agentId = agentId;
@@ -88,6 +88,7 @@
       this.maxReconnectAttempts = 3;
       this.isConnecting = false;
       this.processedMessages = new Set();
+      this.processedMessageIds = new Set();
     }
 
     connect() {
@@ -96,8 +97,8 @@
       }
 
       this.isConnecting = true;
-      // Fix WebSocket URL construction - use the base URL and append the path
-      const url = `${this.wsUrl}/ws/chat`;
+      // Updated URL to match ChatWebSocketService.ts format
+      const url = `${this.wsUrl}/ws/chat/${this.agentId}/`;
       console.log('Connecting to WebSocket:', url);
       
       try {
@@ -108,12 +109,6 @@
           this.isConnecting = false;
           this.reconnectAttempts = 0;
           this.emit('connectionChange', true);
-          
-          // Send initial connection message with agent ID
-          this.socket.send(JSON.stringify({
-            type: 'connect',
-            agentId: this.agentId
-          }));
         };
         
         this.socket.onmessage = (event) => {
@@ -123,51 +118,8 @@
             const data = JSON.parse(event.data);
             console.log('WebSocket parsed message:', data);
             
-            // Generate message ID for deduplication
-            const messageId = data.id || (data.type + '-' + (data.content || '') + '-' + Date.now());
-            
-            if (this.processedMessages.has(messageId)) {
-              console.log('Skipping duplicate message:', messageId);
-              return;
-            }
-            
-            this.processedMessages.add(messageId);
-            
-            // Clean up old entries
-            if (this.processedMessages.size > 50) {
-              this.processedMessages = new Set(Array.from(this.processedMessages).slice(-25));
-            }
-            
-            // Handle different message types
-            switch (data.type) {
-              case 'email_request':
-                this.emit('emailRequest', data.content || 'Please provide your email address:');
-                break;
-              case 'bot_response':
-                this.emit('message', {
-                  content: data.content,
-                  type: 'bot',
-                  timestamp: data.timestamp || new Date().toISOString()
-                });
-                this.emit('typingEnd');
-                break;
-              case 'typing_start':
-                this.emit('typingStart', data.content);
-                break;
-              case 'typing_end':
-                this.emit('typingEnd');
-                break;
-              default:
-                // Handle generic messages
-                if (data.content) {
-                  this.emit('message', {
-                    content: data.content,
-                    type: data.type || 'bot',
-                    timestamp: data.timestamp || new Date().toISOString()
-                  });
-                }
-                break;
-            }
+            // Handle message exactly like ChatWebSocketService.ts
+            this.handleMessage(data);
           } catch (error) {
             console.error('Error parsing WebSocket message:', error);
           }
@@ -196,6 +148,129 @@
       }
     }
 
+    handleMessage(data) {
+      console.log('=== RAW WebSocket Message ===');
+      console.log('Full data:', JSON.stringify(data, null, 2));
+      console.log('Data type:', data.type);
+      
+      // Handle UI messages (like yes_no) that don't have content
+      if (data.type === 'ui' && data.ui_type) {
+        const messageTimestamp = this.extractTimestamp(data);
+        const messageId = `${data.type}-${data.ui_type}-${messageTimestamp}`;
+        
+        // Skip if we've already processed this message
+        if (this.processedMessageIds.has(messageId)) {
+          console.log('Skipping duplicate UI message:', messageId);
+          return;
+        }
+        
+        // Add to processed messages
+        this.processedMessageIds.add(messageId);
+        
+        // Emit the UI message event
+        this.emit('uiMessage', {
+          type: data.type,
+          ui_type: data.ui_type,
+          timestamp: messageTimestamp,
+          data: data.data || {}
+        });
+        
+        return;
+      }
+      
+      // Extract message content based on the response format
+      const messageContent = data.content || '';
+      const messageType = data.type || 'bot_response';
+      const messageTimestamp = this.extractTimestamp(data);
+      
+      // Skip if not a valid message (except for UI messages)
+      if (!messageContent && data.type !== 'ui') {
+        console.log('Skipping message without content');
+        return;
+      }
+      
+      // Generate a consistent ID for deduplication
+      const messageId = `${messageContent}-${messageTimestamp}`;
+      
+      // Skip if we've already processed this message
+      if (this.processedMessageIds.has(messageId)) {
+        console.log('Skipping duplicate message:', messageId);
+        return;
+      }
+      
+      // Add to processed messages
+      this.processedMessageIds.add(messageId);
+      
+      // Limit the size of the set to prevent memory issues
+      if (this.processedMessageIds.size > 100) {
+        this.processedMessageIds = new Set(
+          Array.from(this.processedMessageIds).slice(-50)
+        );
+      }
+      
+      // Handle different message types
+      switch (data.type) {
+        case 'email_request':
+          this.emit('emailRequest', data.content || 'Please provide your email address:');
+          break;
+        case 'bot_response':
+          this.emit('message', {
+            content: data.content,
+            type: 'bot',
+            timestamp: messageTimestamp
+          });
+          this.emit('typingEnd');
+          break;
+        case 'typing_start':
+          this.emit('typingStart', data.content);
+          break;
+        case 'typing_end':
+          this.emit('typingEnd');
+          break;
+        default:
+          // Handle generic messages
+          if (data.content) {
+            this.emit('message', {
+              content: data.content,
+              type: data.type || 'bot',
+              timestamp: messageTimestamp
+            });
+          }
+          break;
+      }
+    }
+
+    extractTimestamp(data) {
+      // Check multiple possible locations for timestamp
+      const possibleTimestamps = [
+        data.timestamp,
+        data.created_at,
+        data.time,
+        data.datetime,
+        data.sent_at,
+        data.message?.timestamp,
+        data.response?.timestamp,
+        data.message?.created_at,
+        data.response?.created_at
+      ];
+      
+      for (const ts of possibleTimestamps) {
+        if (ts) {
+          try {
+            const date = new Date(ts);
+            if (!isNaN(date.getTime())) {
+              return ts;
+            }
+          } catch (error) {
+            // Invalid timestamp format
+          }
+        }
+      }
+      
+      // Fallback to current time
+      return new Date().toISOString();
+    }
+
     handleReconnect() {
       if (this.reconnectAttempts < this.maxReconnectAttempts && !this.isConnecting) {
         this.reconnectAttempts++;
@@ -214,7 +289,6 @@
         const message = {
           type: isEmail ? 'email_message' : 'message',
           content: content,
-          agentId: this.agentId,
           timestamp: new Date().toISOString()
         };
         
@@ -256,7 +330,7 @@
     }
   }
 
-  // Updated CSS Styles to match ChatboxPreview
+  // Updated CSS Styles to match ChatboxPreview exactly
   const styles = `
     .chat-widget-container {
       position: fixed;
@@ -275,27 +349,30 @@
     }
     
     .chat-button {
-      width: 64px;
-      height: 64px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       border: none;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       transition: all 0.3s ease;
       color: white;
-      font-weight: 600;
+      font-weight: 500;
       font-size: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
     
     .chat-button:hover {
-      transform: scale(1.1);
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
     }
     
     .chat-button.with-text {
       width: auto;
+      min-width: 140px;
       padding: 12px 20px;
       border-radius: 25px;
       gap: 8px;
@@ -303,7 +380,7 @@
     
     .chat-window {
       width: 380px;
-      height: 500px;
+      height: 600px;
       background: white;
       border-radius: 12px;
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
@@ -325,7 +402,7 @@
     
     @keyframes chatWindowOpen {
       from {
-        transform: scale(0);
+        transform: scale(0.9);
         opacity: 0;
       }
       to {
@@ -340,6 +417,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
     
     .chat-header-info {
@@ -349,8 +427,8 @@
     }
     
     .chat-avatar {
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.2);
       display: flex;
@@ -376,18 +454,23 @@
     .chat-header-text p {
       margin: 0;
       font-size: 12px;
-      opacity: 0.8;
+      opacity: 0.9;
     }
     
     .chat-close {
       background: none;
       border: none;
       color: white;
-      font-size: 20px;
+      font-size: 24px;
       cursor: pointer;
       padding: 4px;
       opacity: 0.8;
       transition: opacity 0.2s;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     
     .chat-close:hover {
@@ -409,6 +492,18 @@
       align-items: flex-start;
       gap: 8px;
       max-width: 100%;
+      animation: messageSlideIn 0.3s ease-out;
+    }
+    
+    @keyframes messageSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
     
     .message.user {
@@ -435,15 +530,35 @@
       margin-left: auto;
     }
     
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    
+    .message-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    
     .welcome-message {
       background: rgba(59, 130, 246, 0.1);
       border: 1px solid rgba(59, 130, 246, 0.2);
       border-radius: 8px;
-      padding: 12px;
+      padding: 16px;
       margin-bottom: 16px;
-      font-size: 13px;
+      font-size: 14px;
       color: #1f2937;
-      font-style: italic;
+      line-height: 1.5;
     }
     
     .suggestions-container {
@@ -467,10 +582,10 @@
       background: white;
       border: 1px solid #e2e8f0;
       border-radius: 8px;
-      padding: 10px 12px;
+      padding: 12px 16px;
       text-align: left;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 14px;
       transition: all 0.2s;
       color: #475569;
     }
@@ -479,6 +594,24 @@
       background: #f1f5f9;
       border-color: #cbd5e1;
       transform: translateY(-1px);
+    }
+    
+    .restart-button {
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 12px;
+      color: #6b7280;
+      transition: all 0.2s;
+      align-self: flex-start;
+      margin-bottom: 16px;
+    }
+    
+    .restart-button:hover {
+      background: #e5e7eb;
+      border-color: #9ca3af;
     }
     
     .email-input-container {
@@ -538,30 +671,46 @@
       cursor: not-allowed;
     }
     
+    .yes-no-container {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    
+    .yes-no-button {
+      flex: 1;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      border: 1px solid #d1d5db;
+      background: white;
+      color: #374151;
+    }
+    
+    .yes-no-button.yes {
+      background: #10b981;
+      color: white;
+      border-color: #10b981;
+    }
+    
+    .yes-no-button.no {
+      background: #ef4444;
+      color: white;
+      border-color: #ef4444;
+    }
+    
+    .yes-no-button:hover {
+      transform: translateY(-1px);
+    }
+    
     .typing-indicator {
       display: flex;
       align-items: center;
       gap: 8px;
       margin-bottom: 8px;
-    }
-    
-    .typing-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: #e2e8f0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      overflow: hidden;
-    }
-    
-    .typing-avatar img {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
     }
     
     .typing-dots {
@@ -621,7 +770,7 @@
       font-size: 14px;
       resize: none;
       outline: none;
-      max-height: 120px;
+      max-height: 100px;
       min-height: 40px;
       transition: border-color 0.2s;
     }
@@ -684,7 +833,7 @@
     }
   `;
 
-  // Chat Widget Class
+  // Chat Widget Class - Updated to match ChatboxPreview exactly
   class ChatWidget {
     constructor(config) {
       this.config = config;
@@ -695,6 +844,8 @@
       this.chatService = null;
       this.isEmailRequested = false;
       this.emailValue = '';
+      this.sessionId = null;
+      this.isMinimized = false;
       
       this.init();
     }
@@ -726,7 +877,7 @@
       const buttonClass = hasText ? 'chat-button with-text' : 'chat-button';
       
       this.button = createElement('button', buttonClass, {
-        style: 'background: linear-gradient(135deg, ' + this.config.primaryColor + ', ' + adjustColor(this.config.primaryColor, -30) + ')',
+        style: `background: linear-gradient(135deg, ${this.config.primaryColor}, ${adjustColor(this.config.primaryColor, -30)})`,
         onclick: () => this.toggleChat()
       });
 
@@ -776,7 +927,7 @@
 
     createHeader() {
       const header = createElement('div', 'chat-header', {
-        style: 'background: linear-gradient(135deg, ' + this.config.primaryColor + ', ' + adjustColor(this.config.primaryColor, -30) + ')'
+        style: `background: linear-gradient(135deg, ${this.config.primaryColor}, ${adjustColor(this.config.primaryColor, -30)})`
       });
 
       const headerInfo = createElement('div', 'chat-header-info');
@@ -796,7 +947,7 @@
       }
       
       const headerText = createElement('div', 'chat-header-text', {
-        innerHTML: '<h3>' + this.config.chatbotName + '</h3><p>' + (this.isConnected ? 'Online' : 'Connecting...') + '</p>'
+        innerHTML: `<h3>${this.config.chatbotName}</h3><p>${this.isConnected ? 'Online' : 'Connecting...'}</p>`
       });
 
       headerInfo.appendChild(avatar);
@@ -852,6 +1003,47 @@
       suggestionsContainer.appendChild(suggestionsDiv);
       this.messagesContainer.appendChild(suggestionsContainer);
       this.suggestionsElement = suggestionsContainer;
+    }
+
+    createRestartButton() {
+      const restartButton = createElement('button', 'restart-button', {
+        innerHTML: '🔄 Start New Conversation',
+        onclick: () => this.restartConversation()
+      });
+      
+      this.messagesContainer.insertBefore(restartButton, this.messagesContainer.firstChild);
+      this.restartButtonElement = restartButton;
+    }
+
+    restartConversation() {
+      // Clear messages
+      this.messages = [];
+      this.messagesContainer.innerHTML = '';
+      
+      // Reset state
+      this.isEmailRequested = false;
+      this.emailValue = '';
+      this.setTyping(false);
+      
+      // Recreate welcome message and suggestions
+      if (this.config.welcomeMessage) {
+        const welcomeDiv = createElement('div', 'welcome-message', {
+          innerHTML: this.config.welcomeMessage
+        });
+        this.messagesContainer.appendChild(welcomeDiv);
+      }
+
+      if (this.config.suggestions.length > 0) {
+        this.createSuggestions();
+      }
+      
+      // Send restart signal to server
+      if (this.chatService && this.chatService.socket && this.chatService.socket.readyState === WebSocket.OPEN) {
+        this.chatService.socket.send(JSON.stringify({
+          type: 'restart',
+          timestamp: new Date().toISOString()
+        }));
+      }
     }
 
     createEmailInput() {
@@ -917,6 +1109,48 @@
       this.isEmailRequested = false;
     }
 
+    createYesNoButtons(data) {
+      const yesNoContainer = createElement('div', 'yes-no-container');
+      
+      const yesButton = createElement('button', 'yes-no-button yes', {
+        innerHTML: 'Yes',
+        onclick: () => this.handleYesNoClick('yes', data)
+      });
+      
+      const noButton = createElement('button', 'yes-no-button no', {
+        innerHTML: 'No',
+        onclick: () => this.handleYesNoClick('no', data)
+      });
+      
+      yesNoContainer.appendChild(yesButton);
+      yesNoContainer.appendChild(noButton);
+      
+      this.messagesContainer.appendChild(yesNoContainer);
+      this.yesNoContainer = yesNoContainer;
+    }
+
+    handleYesNoClick(response, data) {
+      // Send response to server
+      if (this.chatService && this.chatService.socket && this.chatService.socket.readyState === WebSocket.OPEN) {
+        this.chatService.socket.send(JSON.stringify({
+          type: 'ui_response',
+          response: response,
+          ui_type: 'yes_no',
+          data: data,
+          timestamp: new Date().toISOString()
+        }));
+      }
+      
+      // Remove yes/no buttons
+      if (this.yesNoContainer) {
+        this.yesNoContainer.remove();
+        this.yesNoContainer = null;
+      }
+      
+      // Add user response message
+      this.addMessage(response === 'yes' ? 'Yes' : 'No', 'user');
+    }
+
     createInput() {
       const inputContainer = createElement('div', 'chat-input-container');
       
@@ -928,7 +1162,7 @@
         rows: 1
       });
       
-      // Fix enter key handling and auto-resize
+      // Auto-resize textarea
       this.input.addEventListener('input', () => this.adjustTextareaHeight());
       this.input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -940,7 +1174,7 @@
       this.sendButton = createElement('button', 'chat-send-button', {
         type: 'submit',
         innerHTML: '➤',
-        style: 'background: ' + this.config.primaryColor
+        style: `background: ${this.config.primaryColor}`
       });
 
       form.appendChild(this.input);
@@ -957,7 +1191,7 @@
 
     adjustTextareaHeight() {
       this.input.style.height = 'auto';
-      this.input.style.height = Math.min(this.input.scrollHeight, 120) + 'px';
+      this.input.style.height = Math.min(this.input.scrollHeight, 100) + 'px';
     }
 
     toggleChat() {
@@ -985,6 +1219,11 @@
       this.chatService.on('message', (message) => {
         this.addMessage(message.content, message.type || 'bot');
         this.setTyping(false);
+        
+        // Show restart button after first bot message
+        if (!this.restartButtonElement && this.messages.length > 0) {
+          this.createRestartButton();
+        }
       });
 
       this.chatService.on('emailRequest', (message) => {
@@ -992,6 +1231,12 @@
         this.isEmailRequested = true;
         this.createEmailInput();
         this.setTyping(false);
+      });
+
+      this.chatService.on('uiMessage', (data) => {
+        if (data.ui_type === 'yes_no') {
+          this.createYesNoButtons(data.data);
+        }
       });
 
       this.chatService.on('typingStart', (systemMessage) => {
@@ -1057,7 +1302,7 @@
       
       // Add avatar for bot messages
       if (type === 'bot') {
-        const avatar = createElement('div', 'typing-avatar');
+        const avatar = createElement('div', 'message-avatar');
         if (this.config.avatarUrl) {
           const avatarImg = createElement('img', null, {
             src: this.config.avatarUrl,
@@ -1074,17 +1319,33 @@
       }
       
       const messageContent = createElement('div', 'message-content', {
-        innerHTML: content
+        innerHTML: this.parseMarkdown(content)
       });
 
       if (type === 'user') {
-        messageContent.style.background = 'linear-gradient(135deg, ' + this.config.primaryColor + ', ' + adjustColor(this.config.primaryColor, -30) + ')';
+        messageContent.style.background = `linear-gradient(135deg, ${this.config.primaryColor}, ${adjustColor(this.config.primaryColor, -30)})`;
       }
 
       messageDiv.appendChild(messageContent);
       this.messagesContainer.appendChild(messageDiv);
       
+      // Store message
+      this.messages.push({
+        content: content,
+        type: type,
+        timestamp: new Date().toISOString()
+      });
+      
       this.scrollToBottom();
+    }
+
+    parseMarkdown(text) {
+      // Basic markdown parsing
+      return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`(.*?)`/g, '<code>$1</code>')
+        .replace(/\n/g, '<br>');
     }
 
     setTyping(isTyping, systemMessage = '') {
@@ -1099,7 +1360,7 @@
       if (isTyping) {
         const typingDiv = createElement('div', 'typing-indicator');
         
-        const avatar = createElement('div', 'typing-avatar');
+        const avatar = createElement('div', 'message-avatar');
         if (this.config.avatarUrl) {
           const avatarImg = createElement('img', null, {
             src: this.config.avatarUrl,
