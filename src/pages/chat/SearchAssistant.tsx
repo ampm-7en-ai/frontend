@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
+import { ModernInput } from '@/components/ui/modern-input';
 import { Button } from '@/components/ui/button';
 import { ArrowUp, ArrowRight, Moon, Sun, User, ArrowLeft, Bot } from 'lucide-react';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
@@ -39,8 +39,10 @@ interface SearchResult {
 interface ChatMessage {
   id: string;
   content: string;
-  type: 'user' | 'bot_response' | 'system_message';
+  type: 'user' | 'bot_response' | 'system_message' | 'ui';
   timestamp: string;
+  ui_type?: string;
+  session_id?: string;
 }
 
 const fallbackSuggestions = [];
@@ -54,7 +56,6 @@ const thinkingMessages = [
   "Finding relevant answers..."
 ];
 
-// Enhanced mode system for better state management
 type AssistantMode = 'initial' | 'suggestions' | 'chat';
 
 const SearchAssistant = () => {
@@ -73,6 +74,8 @@ const SearchAssistant = () => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [thinkingMessage, setThinkingMessage] = useState<string>("Thinking...");
+  const [emailInput, setEmailInput] = useState<string>('');
+  const [activeUIMessage, setActiveUIMessage] = useState<ChatMessage | null>(null);
   
   // WebSocket and connectivity
   const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -123,9 +126,6 @@ const SearchAssistant = () => {
         const data = await response.json();
         setConfig(data);
         document.title = `${data.chatbotName} - AI Assistant`;
-        
-        // We don't automatically add the welcome message now
-        // Instead, we'll show it after the first interaction or if the user clicks a suggestion
       } catch (err) {
         console.error('Error fetching chatbot config:', err);
         setError('Failed to load assistant configuration');
@@ -151,6 +151,24 @@ const SearchAssistant = () => {
       onMessage: (message) => {
         console.log("Received message:", message);
         
+        // Handle UI messages
+        if (message.type === 'ui') {
+          const uiMessage: ChatMessage = {
+            id: `ui-${Date.now()}`,
+            content: '',
+            type: 'ui',
+            timestamp: message.timestamp,
+            ui_type: message.ui_type,
+            session_id: message.session_id
+          };
+          
+          setChatHistory(prev => [...prev, uiMessage]);
+          setActiveUIMessage(uiMessage);
+          clearThinkingInterval();
+          setIsProcessing(false);
+          return;
+        }
+        
         // Handle system messages for thinking states
         if (message.type === 'system_message') {
           setThinkingMessage(`${message.content}`);
@@ -160,6 +178,7 @@ const SearchAssistant = () => {
         // For regular messages, stop the thinking animation
         clearThinkingInterval();
         setIsProcessing(false);
+        setActiveUIMessage(null);
         
         // Add the bot response to chat history
         const newMessage: ChatMessage = {
@@ -187,6 +206,7 @@ const SearchAssistant = () => {
         });
         setIsProcessing(false);
         setIsConnected(false);
+        setActiveUIMessage(null);
       },
       onConnectionChange: (status) => {
         console.log("Connection status changed:", status);
@@ -194,6 +214,7 @@ const SearchAssistant = () => {
         if (!status) {
           clearThinkingInterval();
           setIsProcessing(false);
+          setActiveUIMessage(null);
         }
       }
     });
@@ -323,6 +344,49 @@ const SearchAssistant = () => {
     }
   }, [toast]);
 
+  // New functions for UI handling
+  const handleEmailSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (emailInput.trim() && isValidEmail(emailInput)) {
+      sendUIResponse(emailInput.trim());
+      setEmailInput('');
+    }
+  };
+
+  const handleEmailKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleEmailSubmit(e);
+    }
+  };
+
+  const handleNoThanks = () => {
+    sendUIResponse('No thanks');
+  };
+
+  const sendUIResponse = (message: string) => {
+    const newUserMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      content: message,
+      type: 'user',
+      timestamp: new Date().toISOString()
+    };
+    
+    setChatHistory(prev => [...prev, newUserMessage]);
+    setActiveUIMessage(null);
+    setIsProcessing(true);
+    
+    if (chatServiceRef.current?.isConnected()) {
+      startThinkingAnimation();
+      chatServiceRef.current.sendMessage(message);
+    }
+  };
+
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   // Enhanced input interaction with mode-based logic
   const handleInputClick = useCallback(() => {
     if (mode === 'initial') {
@@ -336,6 +400,7 @@ const SearchAssistant = () => {
     setChatHistory([]);
     setQuery('');
     setIsProcessing(false);
+    setActiveUIMessage(null);
     clearThinkingInterval();
     
     // Clean disconnect and reconnect WebSocket for fresh state
@@ -359,6 +424,7 @@ const SearchAssistant = () => {
           setChatHistory([]);
           setQuery('');
           setIsProcessing(false);
+          setActiveUIMessage(null);
           clearThinkingInterval();
           
           // Clean WebSocket state
@@ -501,7 +567,7 @@ const SearchAssistant = () => {
             </div>
           )}
 
-          {/* Enhanced chat content area with smooth transitions */}
+          {/* Enhanced chat content area with UI message handling */}
           {mode === 'chat' && (
             <div className="flex flex-col animate-fade-in" style={{ height: 'calc(100% - 4rem)' }}>
               {/* Chat history with enhanced scrolling */}
@@ -550,6 +616,7 @@ const SearchAssistant = () => {
                                       const match = /language-(\w+)/.exec(className || '');
                                       const language = match ? match[1] : '';
                                       
+                                      // Check if inline code
                                       const isInline = !match && children.toString().split('\n').length === 1;
                                       
                                       if (isInline) {
@@ -625,6 +692,60 @@ const SearchAssistant = () => {
                                   {message.content}
                                 </ReactMarkdown>
                               </div>
+                            </div>
+                          </div>
+                        );
+                      } else if (message.type === 'ui' && message.ui_type === 'email') {
+                        return (
+                          <div key={message.id} className="flex items-start gap-2">
+                            <Avatar className="h-8 w-8 mt-1" style={{
+                              backgroundColor: primaryColor
+                            }}>
+                              {config.avatarUrl ? (
+                                <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                              ) : null}
+                              <AvatarFallback style={{
+                                backgroundColor: primaryColor
+                              }}>
+                                <Bot className="h-4 w-4 text-white" />
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 pl-[10px] pt-[5px] space-y-3">
+                              <p className="text-sm" style={{ color: isDarkTheme ? '#bdbdbd' : '#333333' }}>
+                                Please enter your email address:
+                              </p>
+                              <form onSubmit={handleEmailSubmit} className="space-y-3">
+                                <ModernInput
+                                  type="email"
+                                  placeholder="Enter your email"
+                                  value={emailInput}
+                                  onChange={(e) => setEmailInput(e.target.value)}
+                                  onKeyPress={handleEmailKeyPress}
+                                  className="text-sm"
+                                  variant="modern"
+                                  required
+                                />
+                                <div className="flex gap-2">
+                                  <Button
+                                    type="submit"
+                                    size="sm"
+                                    disabled={!isValidEmail(emailInput)}
+                                    style={{ backgroundColor: primaryColor }}
+                                    className="text-white"
+                                  >
+                                    Submit
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleNoThanks}
+                                    style={{ borderColor: primaryColor, color: primaryColor }}
+                                  >
+                                    No thanks
+                                  </Button>
+                                </div>
+                              </form>
                             </div>
                           </div>
                         );
@@ -707,11 +828,11 @@ const SearchAssistant = () => {
                         color: textColor,
                         borderRadius: '16px'
                       }}
-                      disabled={isProcessing}
+                      disabled={isProcessing || !!activeUIMessage}
                     />
                     <Button
                       onClick={handleSearch}
-                      disabled={!query.trim() || isProcessing}
+                      disabled={!query.trim() || isProcessing || !!activeUIMessage}
                       className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full p-0 hover-scale transition-all duration-200 shadow-md"
                       style={{
                         backgroundColor: primaryColor,
@@ -764,11 +885,11 @@ const SearchAssistant = () => {
                       color: textColor,
                       fontSize: '1.25rem'
                     }}
-                    disabled={isProcessing}
+                    disabled={isProcessing || !!activeUIMessage}
                   />
                   <Button
                     onClick={handleSearch}
-                    disabled={!query.trim() || isProcessing}
+                    disabled={!query.trim() || isProcessing || !!activeUIMessage}
                     className="absolute right-4 top-1/2 transform -translate-y-1/2 h-9 w-9 rounded-full p-0 shadow-lg hover-scale transition-all duration-300 -mr-[8px]"
                     style={{
                       backgroundColor: primaryColor,
@@ -1088,6 +1209,60 @@ const SearchAssistant = () => {
                         </div>
                       </div>
                     );
+                  } else if (message.type === 'ui' && message.ui_type === 'email') {
+                    return (
+                      <div key={message.id} className="flex items-start gap-2">
+                        <Avatar className="h-8 w-8 mt-1" style={{
+                          backgroundColor: primaryColor
+                        }}>
+                          {config.avatarUrl ? (
+                            <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                          ) : null}
+                          <AvatarFallback style={{
+                            backgroundColor: primaryColor
+                          }}>
+                            <Bot className="h-4 w-4 text-white" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 pl-[10px] pt-[5px] space-y-3">
+                          <p className="text-sm" style={{ color: isDarkTheme ? '#bdbdbd' : '#333333' }}>
+                            Please enter your email address:
+                          </p>
+                          <form onSubmit={handleEmailSubmit} className="space-y-3">
+                            <ModernInput
+                              type="email"
+                              placeholder="Enter your email"
+                              value={emailInput}
+                              onChange={(e) => setEmailInput(e.target.value)}
+                              onKeyPress={handleEmailKeyPress}
+                              className="text-sm max-w-xs"
+                              variant="modern"
+                              required
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                type="submit"
+                                size="sm"
+                                disabled={!isValidEmail(emailInput)}
+                                style={{ backgroundColor: primaryColor }}
+                                className="text-white"
+                              >
+                                Submit
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleNoThanks}
+                                style={{ borderColor: primaryColor, color: primaryColor }}
+                              >
+                                No thanks
+                              </Button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    );
                   }
                   
                   return null; // For system messages or any other types
@@ -1168,7 +1343,7 @@ const SearchAssistant = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyPress}
-            disabled={isProcessing}
+            disabled={isProcessing || !!activeUIMessage}
             style={{ 
               backgroundColor: isDarkTheme ? '#333333' : '#f0f0f0',
               color: textColor,
@@ -1178,7 +1353,7 @@ const SearchAssistant = () => {
           <Button 
             className={`absolute right-1 top-1/2 transform -translate-y-1/2 w-8 h-8 p-0 rounded-full ${!query.trim() ? 'hidden' : ''}`}
             style={{ backgroundColor: primaryColor }}
-            disabled={isProcessing || !query.trim()}
+            disabled={isProcessing || !query.trim() || !!activeUIMessage}
             onClick={handleSearch}
           >
             {isProcessing ? (
