@@ -191,15 +191,47 @@ const HubspotIntegration = () => {
           'width=600,height=600,scrollbars=yes,resizable=yes'
         );
 
-        // Monitor the OAuth window
-        const checkClosed = setInterval(() => {
+        // Monitor the OAuth window for completion
+        const checkConnection = setInterval(async () => {
           if (authWindow?.closed) {
-            clearInterval(checkClosed);
+            clearInterval(checkConnection);
             setIsConnecting(false);
-            // Check status after window closes
-            setTimeout(() => checkHubspotStatus(), 1000);
+            return;
           }
-        }, 1000);
+
+          try {
+            // Check if connection was successful
+            const statusResponse = await integrationApi.hubspot.getStatus();
+            if (statusResponse.ok) {
+              const statusResult = await statusResponse.json();
+              if (statusResult.status === 'success' && statusResult.data.is_connected) {
+                // Connection successful - close window and update status
+                authWindow?.close();
+                clearInterval(checkConnection);
+                setIsConnecting(false);
+                setHubspotStatus(statusResult.data);
+                setShowSuccessBadge(true);
+                setTimeout(() => setShowSuccessBadge(false), 5000);
+                
+                toast({
+                  title: "Connection Successful",
+                  description: "HubSpot integration has been connected successfully.",
+                });
+              }
+            }
+          } catch (error) {
+            // Continue monitoring - connection might still be in progress
+            console.log('Checking connection status...');
+          }
+        }, 2000); // Check every 2 seconds
+
+        // Fallback: stop monitoring after 5 minutes
+        setTimeout(() => {
+          clearInterval(checkConnection);
+          if (!authWindow?.closed) {
+            setIsConnecting(false);
+          }
+        }, 300000);
       }
     } catch (error) {
       console.error('Error getting auth URL:', error);
