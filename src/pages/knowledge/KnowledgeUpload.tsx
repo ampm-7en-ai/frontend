@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useCallback, Dispatch, SetStateAction } from 'react';
-import { useRouter } from 'next/router';
-import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,17 +17,15 @@ import {
   Upload, 
   X, 
   Loader2,
-  GoogleDrive,
+  HardDrive,
   Slack,
-  Notion,
-  Dropbox,
+  FileBox,
+  Folder,
   Github
 } from 'lucide-react';
-import { useMutation, useQuery } from 'react-query';
-import { createKnowledge, getGoogleDriveFiles } from '@/lib/api';
-import { useAuth } from '@/providers/AuthProvider';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useSettings } from '@/providers/SettingsProvider';
 import SourceTypeSelector from '@/components/agents/knowledge/SourceTypeSelector';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
@@ -63,11 +62,45 @@ interface ScrapedUrl {
   selected: boolean;
 }
 
+// Mock API functions for development
+const createKnowledge = async (payload: any) => {
+  console.log('Creating knowledge with payload:', payload);
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  return { success: true };
+};
+
+const getGoogleDriveFiles = async (): Promise<GoogleDriveFile[]> => {
+  console.log('Fetching Google Drive files');
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  return [
+    {
+      id: '1',
+      name: 'Sample Document.pdf',
+      mimeType: 'application/pdf',
+      webViewLink: 'https://example.com',
+      createdTime: '2024-01-01T00:00:00Z',
+      modifiedTime: '2024-01-01T00:00:00Z'
+    }
+  ];
+};
+
 const KnowledgeUpload: React.FC = () => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { settings } = useSettings();
+
+  // Mock settings for development
+  const settings = {
+    integrations: {
+      googleDrive: { enabled: true },
+      slack: { enabled: true },
+      notion: { enabled: true },
+      dropbox: { enabled: true },
+      github: { enabled: true }
+    }
+  };
 
   const [documentName, setDocumentName] = useState('');
   const [sourceType, setSourceType] = useState<SourceType>('url');
@@ -89,7 +122,7 @@ const KnowledgeUpload: React.FC = () => {
 
   const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
     googleDrive: {
-      icon: <GoogleDrive className="h-5 w-5" />,
+      icon: <HardDrive className="h-5 w-5" />,
       name: 'Google Drive',
       description: 'Import documents and files directly from your Google Drive account.',
       color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400',
@@ -103,14 +136,14 @@ const KnowledgeUpload: React.FC = () => {
       id: 'slack'
     },
     notion: {
-      icon: <Notion className="h-5 w-5" />,
+      icon: <FileBox className="h-5 w-5" />,
       name: 'Notion',
       description: 'Import pages and databases from your Notion workspaces.',
       color: 'bg-gray-100 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400',
       id: 'notion'
     },
     dropbox: {
-      icon: <Dropbox className="h-5 w-5" />,
+      icon: <Folder className="h-5 w-5" />,
       name: 'Dropbox',
       description: 'Import files and folders directly from your Dropbox account.',
       color: 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400',
@@ -140,22 +173,21 @@ const KnowledgeUpload: React.FC = () => {
     data: googleDriveFiles, 
     isLoading: isLoadingGoogleDriveFiles,
     refetch: fetchGoogleDriveData 
-  } = useQuery<GoogleDriveFile[]>(
-    'googleDriveFiles', 
-    () => getGoogleDriveFiles(), 
-    {
-      enabled: selectedProvider === 'googleDrive',
-      retry: false,
-    }
-  );
+  } = useQuery<GoogleDriveFile[]>({
+    queryKey: ['googleDriveFiles'],
+    queryFn: getGoogleDriveFiles,
+    enabled: selectedProvider === 'googleDrive',
+    retry: false,
+  });
 
-  const createKnowledgeMutation = useMutation(createKnowledge, {
+  const createKnowledgeMutation = useMutation({
+    mutationFn: createKnowledge,
     onSuccess: () => {
       toast({
         title: 'Success!',
         description: 'Knowledge created successfully.',
       });
-      router.push('/knowledge');
+      navigate('/knowledge');
     },
     onError: (error: any) => {
       toast({
@@ -225,7 +257,7 @@ const KnowledgeUpload: React.FC = () => {
       type: knowledgeType,
       content: content,
       userId: user?.id,
-      teamId: user?.teamId,
+      teamId: user?.id, // Using user id as team id for now
       metadata: {
         url: sourceType === 'url' ? url : null,
         importAllPages: sourceType === 'url' ? importAllPages : null,
@@ -416,9 +448,9 @@ const KnowledgeUpload: React.FC = () => {
                   type="submit"
                   variant="primary"
                   size="lg"
-                  disabled={createKnowledgeMutation.isLoading}
+                  disabled={createKnowledgeMutation.isPending}
                 >
-                  {createKnowledgeMutation.isLoading ? (
+                  {createKnowledgeMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Please wait
