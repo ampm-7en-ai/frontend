@@ -73,6 +73,7 @@ export const ChatboxPreview = ({
   const processedMessageIds = useRef<Set<string>>(new Set());
   const restartingRef = useRef(false);
   const messageSequenceRef = useRef<number>(0);
+  const [emailValue, setEmailValue] = useState('');
 
   // Internal state for floating button mode
   const [isMinimized, setIsMinimized] = useState(initiallyMinimized);
@@ -258,9 +259,40 @@ export const ChatboxPreview = ({
     setMessages(prev => prev.filter(msg => !(msg.type === 'ui' && msg.ui_type === 'email')));
   };
 
-  const handleEmailSubmit = (e: React.FormEvent, email) => {
+  const handleEmailSubmit = (e: React.FormEvent) => {
     //do something
     e.preventDefault();
+     // Validate email is not empty
+      if (!emailValue.trim()) {
+        toast({
+          title: "Email Required",
+          description: "Please enter your email address",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailValue.trim())) {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Send the email as a user message
+      sendMessage(emailValue.trim());
+      
+      // Clear the email input
+      setEmailValue('');
+      
+      // Remove the email UI message to unlock main input
+      setMessages(prev => prev.filter(msg => !(msg.type === 'ui' && msg.ui_type === 'email')));
+      
+     
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -1134,12 +1166,15 @@ export const ChatboxPreview = ({
                   {/* Yes/No UI Component working one*/}
                   {message.type === 'ui' && message.ui_type === 'email' && (
                     <div className="flex flex-col gap-3 justify-center animate-fade-in">
-                      <form onSubmit={(e) => handleEmailSubmit} className='relative'>
+                      <form onSubmit={handleEmailSubmit} className='relative'>
                         <Input
                         variant='modern'
                         placeholder='email'
                         size='sm'
                         type='email'
+                        value={emailValue}
+                        onChange={(e) => setEmailValue(e.target.value)}
+                        required
                         />
                         <ModernButton 
                           type="submit" 
@@ -1147,6 +1182,7 @@ export const ChatboxPreview = ({
                           variant='ghost'
                           className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
                           iconOnly
+                          disabled={!emailValue.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)}
                         >
                           <Send className="h-4 w-4" color={primaryColor}/>
                         </ModernButton>
