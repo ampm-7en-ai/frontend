@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Input } from '@/components/ui/input';
@@ -61,7 +60,7 @@ const HubspotIntegration = () => {
     checkHubspotStatus();
   }, []);
 
-  // Listen for OAuth callback success from URL params (handled by parent IntegrationsPage)
+  // Listen for OAuth callback success
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
@@ -184,12 +183,7 @@ const HubspotIntegration = () => {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      // Create callback URL with integration-specific parameters
-      const callbackUrl = `${window.location.origin}/integrations?integration=hubspot&status=success`;
-      
-      const response = await integrationApi.hubspot.getAuthUrl({
-        callback_url: callbackUrl
-      });
+      const response = await integrationApi.hubspot.getAuthUrl();
 
       if (!response.ok) {
         throw new Error(`Failed to get auth URL: ${response.status}`);
