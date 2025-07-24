@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { getAccessToken, getApiUrl } from '@/utils/api-config';
 
 export const GuidelinesPanel = () => {
   const { state, updateAgentData } = useBuilder();
@@ -187,9 +188,10 @@ export const GuidelinesPanel = () => {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await fetch('/api/users/upload-file/', {
+      const response = await fetch(getApiUrl('users/upload-file/'), {
         method: 'POST',
         body: formData,
+        headers: {"Authorization": `Bearer ${getAccessToken()}` }
       });
       
       if (!response.ok) {
