@@ -96,8 +96,8 @@
       }
 
       this.isConnecting = true;
-      // Fix WebSocket URL construction
-      const url = this.wsUrl + '/ws/chat/' + this.agentId;
+      // Fix WebSocket URL construction - use the base URL and append the path
+      const url = `${this.wsUrl}/ws/chat`;
       console.log('Connecting to WebSocket:', url);
       
       try {
@@ -108,6 +108,12 @@
           this.isConnecting = false;
           this.reconnectAttempts = 0;
           this.emit('connectionChange', true);
+          
+          // Send initial connection message with agent ID
+          this.socket.send(JSON.stringify({
+            type: 'connect',
+            agentId: this.agentId
+          }));
         };
         
         this.socket.onmessage = (event) => {
@@ -208,6 +214,7 @@
         const message = {
           type: isEmail ? 'email_message' : 'message',
           content: content,
+          agentId: this.agentId,
           timestamp: new Date().toISOString()
         };
         
@@ -723,20 +730,19 @@
         onclick: () => this.toggleChat()
       });
 
-      // Fix avatar rendering in button
+      // Avatar/Icon in button
       if (this.config.avatarUrl) {
         const avatar = createElement('img', null, {
           src: this.config.avatarUrl,
           alt: this.config.chatbotName,
           style: 'width: 24px; height: 24px; border-radius: 50%; object-fit: cover;' + (hasText ? ' margin-right: 8px;' : ''),
-          onerror: () => {
-            // Fallback to emoji if image fails to load
-            avatar.style.display = 'none';
+          onerror: function() {
+            this.style.display = 'none';
             const fallback = createElement('span', null, {
               innerHTML: '🤖',
               style: hasText ? 'margin-right: 8px;' : ''
             });
-            this.button.insertBefore(fallback, avatar.nextSibling);
+            this.parentNode.appendChild(fallback);
           }
         });
         this.button.appendChild(avatar);
@@ -780,9 +786,8 @@
         const avatarImg = createElement('img', null, {
           src: this.config.avatarUrl,
           alt: this.config.chatbotName,
-          onerror: () => {
-            // Fallback to emoji if image fails to load
-            avatar.innerHTML = '🤖';
+          onerror: function() {
+            this.parentNode.innerHTML = '🤖';
           }
         });
         avatar.appendChild(avatarImg);
@@ -923,7 +928,7 @@
         rows: 1
       });
       
-      // Fix enter key handling
+      // Fix enter key handling and auto-resize
       this.input.addEventListener('input', () => this.adjustTextareaHeight());
       this.input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -1057,9 +1062,8 @@
           const avatarImg = createElement('img', null, {
             src: this.config.avatarUrl,
             alt: 'Bot',
-            onerror: () => {
-              // Fallback to emoji if image fails to load
-              avatar.innerHTML = '🤖';
+            onerror: function() {
+              this.parentNode.innerHTML = '🤖';
             }
           });
           avatar.appendChild(avatarImg);
@@ -1100,9 +1104,8 @@
           const avatarImg = createElement('img', null, {
             src: this.config.avatarUrl,
             alt: 'Bot',
-            onerror: () => {
-              // Fallback to emoji if image fails to load
-              avatar.innerHTML = '🤖';
+            onerror: function() {
+              this.parentNode.innerHTML = '🤖';
             }
           });
           avatar.appendChild(avatarImg);
