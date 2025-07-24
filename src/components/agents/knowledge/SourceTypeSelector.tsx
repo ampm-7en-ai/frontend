@@ -81,6 +81,11 @@ interface SourceTypeSelectorProps {
   isScrapingUrls: boolean;
   scrapedUrls: ScrapedUrl[];
   toggleUrlSelection: (url: string) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  sortOrder: 'asc' | 'desc';
+  handleSortToggle: () => void;
+  handleRefreshFiles: () => void;
 }
 
 interface SourceConfig {
@@ -128,7 +133,12 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
   fetchGoogleDriveData,
   isScrapingUrls,
   scrapedUrls,
-  toggleUrlSelection
+  toggleUrlSelection,
+  searchQuery,
+  setSearchQuery,
+  sortOrder,
+  handleSortToggle,
+  handleRefreshFiles
 }) => {
   const navigate = useNavigate();
   const [urlSearchQuery, setUrlSearchQuery] = useState('');
@@ -180,10 +190,9 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
 
   const handleRefreshUrls = () => {
     if (url) {
-      // This would typically call a function passed as prop to re-scrape URLs
-      // For now, we'll use the existing scraping logic if available
+      // Call the same endpoint as the import checkbox - trigger scraping
+      setImportAllPages(true);
       console.log('Refreshing URLs for:', url);
-      // You would call the scraping function here
     }
   };
 
@@ -250,7 +259,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={handleRefreshUrls}
-                      disabled={isScrapingUrls}
+                      disabled={isScrapingUrls || !url}
                       className="h-8 px-3"
                       type="button"
                     >
