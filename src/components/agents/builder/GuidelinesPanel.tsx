@@ -17,6 +17,7 @@ import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 
 export const GuidelinesPanel = () => {
   const { state, updateAgentData } = useBuilder();
@@ -24,6 +25,7 @@ export const GuidelinesPanel = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { prompts, isLoading: promptsLoading } = useAgentPrompts(true);
   const { modelOptionsForDropdown, isLoading: modelsLoading } = useAIModels();
+  const { toast } = useToast();
   
   // Store user's custom prompts per agent type
   const [userPromptsByType, setUserPromptsByType] = useState<Record<string, string>>({});
@@ -31,6 +33,9 @@ export const GuidelinesPanel = () => {
   // Modal states
   const [showSystemPromptModal, setShowSystemPromptModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  
+  // Avatar upload states
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   // Get global default model from agent data settings
   const globalDefaultModel = agentData.settings?.response_model;
@@ -105,6 +110,137 @@ export const GuidelinesPanel = () => {
     }
   };
 
+  // Avatar validation function
+  const validateImageFile = async (file: File): Promise<boolean> => {
+    // Check file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select a JPG, PNG, or SVG file.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Check file size (optional, but good practice)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({
+        title: "File too large",
+        description: "Please select a file smaller than 5MB.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Check image dimensions and aspect ratio
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const { width, height } = img;
+        
+        // Check if dimensions are within 500x500
+        if (width > 500 || height > 500) {
+          toast({
+            title: "Image too large",
+            description: "Please select an image with dimensions below 500x500 pixels.",
+            variant: "destructive",
+          });
+          resolve(false);
+          return;
+        }
+        
+        // Check 1:1 aspect ratio (allow small tolerance)
+        const aspectRatio = width / height;
+        if (Math.abs(aspectRatio - 1) > 0.1) {
+          toast({
+            title: "Invalid aspect ratio",
+            description: "Please select an image with a 1:1 aspect ratio (square).",
+            variant: "destructive",
+          });
+          resolve(false);
+          return;
+        }
+        
+        resolve(true);
+      };
+      
+      img.onerror = () => {
+        toast({
+          title: "Invalid image",
+          description: "The selected file is not a valid image.",
+          variant: "destructive",
+        });
+        resolve(false);
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  // Upload avatar file function
+  const uploadAvatarFile = async (file: File) => {
+    setIsUploadingAvatar(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch('/api/users/upload-file/', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+      
+      const result = await response.json();
+      
+      if (result.status === 'success' && result.data?.url) {
+        updateAgentData({ 
+          avatar: result.data.url,
+          avatarUrl: result.data.url,
+          avatarType: 'custom'
+        });
+        
+        toast({
+          title: "Avatar uploaded successfully",
+          description: "Your avatar has been updated.",
+        });
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload avatar. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  // Enhanced image upload handler with validation and upload
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Start validation and upload immediately
+    const isValid = await validateImageFile(file);
+    if (isValid) {
+      await uploadAvatarFile(file);
+    }
+
+    // Reset the input so the same file can be selected again if needed
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const fontOptions = [
     { value: 'Inter', label: 'Inter' },
     { value: 'Arial', label: 'Arial' },
@@ -144,35 +280,6 @@ export const GuidelinesPanel = () => {
         { value: 'general-assistant', label: 'General assistant', description: 'General Purpose AI Assistant' },
         { value: 'customer-support', label: 'Customer support agent', description: 'Helps with customer inquiries' }
       ];
-
-  // Enhanced image upload handler with base64 conversion
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      try {
-        // Convert file to base64
-        const base64String = await fileToBase64(file);
-        
-        updateAgentData({ 
-          avatar: base64String,
-          avatarUrl: base64String,
-          avatarType: 'custom'
-        });
-      } catch (error) {
-        console.error('Error converting image to base64:', error);
-      }
-    }
-  };
-
-  // Helper function to convert file to base64
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
-  };
 
   const addGuideline = (type: 'dos' | 'donts') => {
     const newGuidelines = { ...agentData.guidelines };
@@ -535,19 +642,24 @@ export const GuidelinesPanel = () => {
                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Avatar Image</Label>
                      <div className="mt-1.5 space-y-3">
                        {(agentData.avatar || agentData.avatarUrl) && (
-                         <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-700">
+                         <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-700">
                            <img 
                              src={agentData.avatar || agentData.avatarUrl} 
                              alt="Avatar preview" 
                              className="w-full h-full object-cover"
                            />
+                           {isUploadingAvatar && (
+                             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                               <LoadingSpinner size="sm" />
+                             </div>
+                           )}
                          </div>
                        )}
                        <div className="flex gap-2">
                          <input
                            ref={fileInputRef}
                            type="file"
-                           accept="image/*"
+                           accept="image/jpeg,image/jpg,image/png,image/svg+xml"
                            onChange={handleImageUpload}
                            className="hidden"
                          />
@@ -555,10 +667,15 @@ export const GuidelinesPanel = () => {
                            type="button"
                            variant="outline"
                            onClick={() => fileInputRef.current?.click()}
+                           disabled={isUploadingAvatar}
                            className="flex items-center gap-2 h-10 rounded-xl border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                          >
-                           <Upload className="h-4 w-4" />
-                           Upload Image
+                           {isUploadingAvatar ? (
+                             <LoadingSpinner size="sm" />
+                           ) : (
+                             <Upload className="h-4 w-4" />
+                           )}
+                           {isUploadingAvatar ? 'Uploading...' : 'Upload Image'}
                          </Button>
                          {(agentData.avatar || agentData.avatarUrl) && (
                            <Button
