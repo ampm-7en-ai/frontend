@@ -270,6 +270,7 @@ const HubspotIntegration = () => {
       <IntegrationStatusBadge
         isVisible={showSuccessBadge}
         integrationName="HubSpot"
+        status="success"
         onClose={() => setShowSuccessBadge(false)}
       />
 
