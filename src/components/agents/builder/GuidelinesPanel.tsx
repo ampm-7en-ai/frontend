@@ -575,12 +575,12 @@ export const GuidelinesPanel = () => {
                    </div>
                    
                    <div>
-                     <Label htmlFor="welcomeMessage" className="text-sm font-medium text-gray-700 dark:text-gray-300">Welcome Message</Label>
+                     <Label htmlFor="welcomeMessage" className="text-sm font-medium text-gray-700 dark:text-gray-300">Disclaimer Message</Label>
                      <Textarea
                        id="welcomeMessage"
                        value={agentData.welcomeMessage}
                        onChange={(e) => updateAgentData({ welcomeMessage: e.target.value })}
-                       placeholder="Enter welcome message"
+                       placeholder="Enter your message"
                        className="mt-1.5 min-h-[80px] rounded-xl border-gray-200 dark:border-gray-700"
                      />
                    </div>
