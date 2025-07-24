@@ -14,7 +14,6 @@ import { useNotifications } from '@/context/NotificationContext';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { agentApi } from '@/utils/api-config';
-import { useTrainingStatus } from '@/context/TrainingStatusContext';
 
 const AgentBuilderContent = () => {
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
@@ -26,7 +25,6 @@ const AgentBuilderContent = () => {
   const { addNotification } = useNotifications();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { setTrainingCompleteCallback } = useTrainingStatus();
 
   // Helper function to format knowledge sources
   const formatKnowledgeSources = (knowledgeSources: any[]) => {
@@ -88,19 +86,6 @@ const AgentBuilderContent = () => {
       console.error('❌ Error refetching agent data:', error);
     }
   };
-
-  // Register the refetch callback when component mounts
-  useEffect(() => {
-    const agentId = state.agentData.id?.toString();
-    if (agentId) {
-      setTrainingCompleteCallback((completedAgentId: string) => {
-        if (completedAgentId === agentId) {
-          console.log('🔄 Training completed, refetching agent data for:', agentId);
-          refetchAgentData(agentId);
-        }
-      });
-    }
-  }, [state.agentData.id, setTrainingCompleteCallback]);
 
   // Check for untrained knowledge sources - Updated to check status field
   useEffect(() => {
@@ -169,8 +154,11 @@ const AgentBuilderContent = () => {
       );
       
       if (success) {
-        console.log('✅ Training successful, agent data will be refetched via callback');
+        console.log('✅ Training successful, manually refetching agent data');
         
+        // Manually refetch agent data from API
+        await refetchAgentData(agentId);
+
         addNotification({
           title: 'Training Complete',
           message: `Agent "${state.agentData.name}" training completed successfully.`,
