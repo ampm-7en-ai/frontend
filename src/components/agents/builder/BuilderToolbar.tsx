@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBuilder } from './BuilderContext';
@@ -80,37 +79,6 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
       }));
   };
 
-  // Function to refresh agent data from API
-  const refreshAgentData = async () => {
-    if (!agentData.id) return;
-    
-    try {
-      console.log('🔄 Refreshing agent data from API...');
-      
-      const response = await agentApi.getById(agentData.id.toString());
-      if (!response.ok) {
-        throw new Error(`Failed to fetch agent: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      const freshAgentData = result.data;
-      
-      console.log('✅ Fetched fresh agent data:', freshAgentData);
-
-      // Update the agent data with fresh knowledge sources
-      const updatedKnowledgeSources = formatKnowledgeSources(freshAgentData.knowledge_sources || []);
-      
-      updateAgentData({
-        knowledgeSources: updatedKnowledgeSources
-      });
-
-      console.log('✅ Updated agent data with fresh knowledge sources:', updatedKnowledgeSources);
-
-    } catch (error) {
-      console.error('❌ Error refreshing agent data:', error);
-    }
-  };
-
   const handleTrainKnowledge = async () => {
     if (!agentData.id) return;
     
@@ -175,12 +143,9 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
       );
       
       if (success) {
-        console.log('✅ Training successful from toolbar, refreshing agent data');
+        console.log('✅ Training successful from toolbar, refreshing agent data via callback');
 
-        // Refresh agent data from API instead of page refresh
-        await refreshAgentData();
-
-        // Call external refresh function if provided
+        // Use the callback function instead of doing our own refresh
         if (onAgentDataRefresh) {
           await onAgentDataRefresh();
         }
