@@ -196,6 +196,18 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
     }
   };
 
+  // Handle select all URLs functionality
+  const handleSelectAllUrls = (checked: boolean) => {
+    filteredScrapedUrls.forEach(urlData => {
+      if (urlData.selected !== checked) {
+        toggleUrlSelection(urlData.url);
+      }
+    });
+  };
+
+  const areAllUrlsSelected = filteredScrapedUrls.length > 0 && filteredScrapedUrls.every(urlData => urlData.selected);
+  const areSomeUrlsSelected = filteredScrapedUrls.some(urlData => urlData.selected);
+
   const renderSourceTypeContent = () => {
     switch (sourceType) {
       case 'url':
@@ -246,6 +258,21 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                     Found URLs ({scrapedUrls.filter(u => u.selected).length} selected)
                   </Label>
                   <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="select-all-urls"
+                        checked={areAllUrlsSelected}
+                        ref={(ref) => {
+                          if (ref) {
+                            ref.indeterminate = areSomeUrlsSelected && !areAllUrlsSelected;
+                          }
+                        }}
+                        onCheckedChange={(checked) => handleSelectAllUrls(checked === true)}
+                      />
+                      <Label htmlFor="select-all-urls" className="text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+                        All
+                      </Label>
+                    </div>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
