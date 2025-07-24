@@ -23,10 +23,10 @@
       // Transform API response to expected format
       const config = {
         agentId: data.agentId || agentId,
-        primaryColor: data.primaryColor || '#9b87f5',
+        primaryColor: data.primaryColor || '#1e52f1',
         secondaryColor: data.secondaryColor || '#ffffff',
-        fontFamily: data.fontFamily || 'Helvetica',
-        chatbotName: data.chatbotName || 'Assistant',
+        fontFamily: data.fontFamily || 'Inter, system-ui, sans-serif',
+        chatbotName: data.chatbotName || 'Help Center',
         welcomeMessage: data.welcomeMessage || '',
         buttonText: data.buttonText || '',
         position: data.position || 'bottom-right',
@@ -77,7 +77,7 @@
     return element;
   }
 
-  // WebSocket Service - Updated to match ChatWebSocketService.ts exactly
+  // WebSocket Service - Exact match with ChatWebSocketService.ts
   class ChatWebSocketService {
     constructor(agentId, wsUrl) {
       this.agentId = agentId;
@@ -97,7 +97,6 @@
       }
 
       this.isConnecting = true;
-      // Updated URL to match ChatWebSocketService.ts format
       const url = `${this.wsUrl}/ws/chat/${this.agentId}/`;
       console.log('Connecting to WebSocket:', url);
       
@@ -118,7 +117,6 @@
             const data = JSON.parse(event.data);
             console.log('WebSocket parsed message:', data);
             
-            // Handle message exactly like ChatWebSocketService.ts
             this.handleMessage(data);
           } catch (error) {
             console.error('Error parsing WebSocket message:', error);
@@ -130,7 +128,6 @@
           this.isConnecting = false;
           this.emit('connectionChange', false);
           
-          // Only attempt reconnect for certain close codes
           if (event.code !== 1000 && event.code !== 1001) {
             this.handleReconnect();
           }
@@ -153,21 +150,17 @@
       console.log('Full data:', JSON.stringify(data, null, 2));
       console.log('Data type:', data.type);
       
-      // Handle UI messages (like yes_no) that don't have content
       if (data.type === 'ui' && data.ui_type) {
         const messageTimestamp = this.extractTimestamp(data);
         const messageId = `${data.type}-${data.ui_type}-${messageTimestamp}`;
         
-        // Skip if we've already processed this message
         if (this.processedMessageIds.has(messageId)) {
           console.log('Skipping duplicate UI message:', messageId);
           return;
         }
         
-        // Add to processed messages
         this.processedMessageIds.add(messageId);
         
-        // Emit the UI message event
         this.emit('uiMessage', {
           type: data.type,
           ui_type: data.ui_type,
@@ -178,37 +171,30 @@
         return;
       }
       
-      // Extract message content based on the response format
       const messageContent = data.content || '';
       const messageType = data.type || 'bot_response';
       const messageTimestamp = this.extractTimestamp(data);
       
-      // Skip if not a valid message (except for UI messages)
       if (!messageContent && data.type !== 'ui') {
         console.log('Skipping message without content');
         return;
       }
       
-      // Generate a consistent ID for deduplication
       const messageId = `${messageContent}-${messageTimestamp}`;
       
-      // Skip if we've already processed this message
       if (this.processedMessageIds.has(messageId)) {
         console.log('Skipping duplicate message:', messageId);
         return;
       }
       
-      // Add to processed messages
       this.processedMessageIds.add(messageId);
       
-      // Limit the size of the set to prevent memory issues
       if (this.processedMessageIds.size > 100) {
         this.processedMessageIds = new Set(
           Array.from(this.processedMessageIds).slice(-50)
         );
       }
       
-      // Handle different message types
       switch (data.type) {
         case 'email_request':
           this.emit('emailRequest', data.content || 'Please provide your email address:');
@@ -228,7 +214,6 @@
           this.emit('typingEnd');
           break;
         default:
-          // Handle generic messages
           if (data.content) {
             this.emit('message', {
               content: data.content,
@@ -241,7 +226,6 @@
     }
 
     extractTimestamp(data) {
-      // Check multiple possible locations for timestamp
       const possibleTimestamps = [
         data.timestamp,
         data.created_at,
@@ -267,7 +251,6 @@
         }
       }
       
-      // Fallback to current time
       return new Date().toISOString();
     }
 
@@ -330,12 +313,12 @@
     }
   }
 
-  // Updated CSS Styles to match ChatboxPreview exactly
+  // CSS Styles - Exact match with image design
   const styles = `
     .chat-widget-container {
       position: fixed;
       z-index: 10000;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
     }
     
     .chat-widget-container.bottom-right {
@@ -362,7 +345,7 @@
       color: white;
       font-weight: 500;
       font-size: 14px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1e52f1 0%, #0d47a1 100%);
     }
     
     .chat-button:hover {
@@ -381,7 +364,7 @@
     .chat-window {
       width: 380px;
       height: 600px;
-      background: white;
+      background: #ffffff;
       border-radius: 12px;
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
       display: flex;
@@ -417,7 +400,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1e52f1 0%, #0d47a1 100%);
+      border-radius: 12px 12px 0 0;
     }
     
     .chat-header-info {
@@ -436,6 +420,7 @@
       justify-content: center;
       font-size: 18px;
       overflow: hidden;
+      position: relative;
     }
     
     .chat-avatar img {
@@ -445,25 +430,45 @@
       object-fit: cover;
     }
     
+    .chat-avatar::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 12px;
+      height: 12px;
+      background: #4caf50;
+      border: 2px solid white;
+      border-radius: 50%;
+    }
+    
     .chat-header-text h3 {
       margin: 0;
       font-size: 16px;
       font-weight: 600;
+      color: white;
     }
     
     .chat-header-text p {
       margin: 0;
       font-size: 12px;
       opacity: 0.9;
+      color: rgba(255, 255, 255, 0.9);
     }
     
+    .chat-header-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .chat-minimize,
     .chat-close {
       background: none;
       border: none;
       color: white;
-      font-size: 24px;
+      font-size: 18px;
       cursor: pointer;
-      padding: 4px;
+      padding: 6px;
       opacity: 0.8;
       transition: opacity 0.2s;
       width: 32px;
@@ -471,10 +476,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      border-radius: 4px;
     }
     
+    .chat-minimize:hover,
     .chat-close:hover {
       opacity: 1;
+      background: rgba(255, 255, 255, 0.1);
     }
     
     .chat-messages {
@@ -485,6 +493,17 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
+    }
+    
+    .ai-disclaimer {
+      font-size: 12px;
+      color: #64748b;
+      font-style: italic;
+      text-align: center;
+      margin-bottom: 16px;
+      padding: 8px;
+      background: rgba(100, 116, 139, 0.1);
+      border-radius: 6px;
     }
     
     .message {
@@ -526,6 +545,7 @@
     }
     
     .message.user .message-content {
+      background: linear-gradient(135deg, #1e52f1 0%, #0d47a1 100%);
       color: white;
       margin-left: auto;
     }
@@ -551,8 +571,8 @@
     }
     
     .welcome-message {
-      background: rgba(59, 130, 246, 0.1);
-      border: 1px solid rgba(59, 130, 246, 0.2);
+      background: rgba(30, 82, 241, 0.1);
+      border: 1px solid rgba(30, 82, 241, 0.2);
       border-radius: 8px;
       padding: 16px;
       margin-bottom: 16px;
@@ -646,12 +666,12 @@
     }
     
     .email-input:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      border-color: #1e52f1;
+      box-shadow: 0 0 0 3px rgba(30, 82, 241, 0.1);
     }
     
     .email-submit-button {
-      background: #3b82f6;
+      background: #1e52f1;
       border: none;
       border-radius: 6px;
       padding: 8px 16px;
@@ -663,7 +683,7 @@
     }
     
     .email-submit-button:hover:not(:disabled) {
-      background: #2563eb;
+      background: #0d47a1;
     }
     
     .email-submit-button:disabled {
@@ -773,15 +793,16 @@
       max-height: 100px;
       min-height: 40px;
       transition: border-color 0.2s;
+      font-family: inherit;
     }
     
     .chat-input:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      border-color: #1e52f1;
+      box-shadow: 0 0 0 3px rgba(30, 82, 241, 0.1);
     }
     
     .chat-send-button {
-      background: #3b82f6;
+      background: #1e52f1;
       border: none;
       border-radius: 50%;
       width: 40px;
@@ -796,7 +817,7 @@
     }
     
     .chat-send-button:hover:not(:disabled) {
-      background: #2563eb;
+      background: #0d47a1;
       transform: scale(1.05);
     }
     
@@ -833,7 +854,7 @@
     }
   `;
 
-  // Chat Widget Class - Updated to match ChatboxPreview exactly
+  // Chat Widget Class
   class ChatWidget {
     constructor(config) {
       this.config = config;
@@ -877,11 +898,9 @@
       const buttonClass = hasText ? 'chat-button with-text' : 'chat-button';
       
       this.button = createElement('button', buttonClass, {
-        style: `background: linear-gradient(135deg, ${this.config.primaryColor}, ${adjustColor(this.config.primaryColor, -30)})`,
         onclick: () => this.toggleChat()
       });
 
-      // Avatar/Icon in button
       if (this.config.avatarUrl) {
         const avatar = createElement('img', null, {
           src: this.config.avatarUrl,
@@ -926,9 +945,7 @@
     }
 
     createHeader() {
-      const header = createElement('div', 'chat-header', {
-        style: `background: linear-gradient(135deg, ${this.config.primaryColor}, ${adjustColor(this.config.primaryColor, -30)})`
-      });
+      const header = createElement('div', 'chat-header');
 
       const headerInfo = createElement('div', 'chat-header-info');
       
@@ -953,18 +970,34 @@
       headerInfo.appendChild(avatar);
       headerInfo.appendChild(headerText);
 
+      const buttonsContainer = createElement('div', 'chat-header-buttons');
+      
+      const minimizeButton = createElement('button', 'chat-minimize', {
+        innerHTML: '−',
+        onclick: () => this.minimizeChat()
+      });
+      
       const closeButton = createElement('button', 'chat-close', {
         innerHTML: '×',
         onclick: () => this.toggleChat()
       });
 
+      buttonsContainer.appendChild(minimizeButton);
+      buttonsContainer.appendChild(closeButton);
+
       header.appendChild(headerInfo);
-      header.appendChild(closeButton);
+      header.appendChild(buttonsContainer);
       this.chatWindow.appendChild(header);
     }
 
     createMessages() {
       this.messagesContainer = createElement('div', 'chat-messages');
+      
+      // Add AI disclaimer
+      const disclaimer = createElement('div', 'ai-disclaimer', {
+        innerHTML: 'This is an ai agent. It may make mistakes.'
+      });
+      this.messagesContainer.appendChild(disclaimer);
       
       // Add welcome message if present
       if (this.config.welcomeMessage) {
@@ -1011,21 +1044,24 @@
         onclick: () => this.restartConversation()
       });
       
-      this.messagesContainer.insertBefore(restartButton, this.messagesContainer.firstChild);
+      this.messagesContainer.insertBefore(restartButton, this.messagesContainer.firstChild.nextSibling);
       this.restartButtonElement = restartButton;
     }
 
     restartConversation() {
-      // Clear messages
       this.messages = [];
       this.messagesContainer.innerHTML = '';
       
-      // Reset state
       this.isEmailRequested = false;
       this.emailValue = '';
       this.setTyping(false);
       
-      // Recreate welcome message and suggestions
+      // Add AI disclaimer
+      const disclaimer = createElement('div', 'ai-disclaimer', {
+        innerHTML: 'This is an ai agent. It may make mistakes.'
+      });
+      this.messagesContainer.appendChild(disclaimer);
+      
       if (this.config.welcomeMessage) {
         const welcomeDiv = createElement('div', 'welcome-message', {
           innerHTML: this.config.welcomeMessage
@@ -1037,7 +1073,6 @@
         this.createSuggestions();
       }
       
-      // Send restart signal to server
       if (this.chatService && this.chatService.socket && this.chatService.socket.readyState === WebSocket.OPEN) {
         this.chatService.socket.send(JSON.stringify({
           type: 'restart',
@@ -1080,7 +1115,6 @@
       this.messagesContainer.appendChild(emailContainer);
       this.emailContainer = emailContainer;
       
-      // Focus the email input
       setTimeout(() => this.emailInput.focus(), 100);
     }
 
@@ -1089,17 +1123,14 @@
       
       if (!this.emailValue.trim()) return;
       
-      // Validate email format
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailPattern.test(this.emailValue)) {
         alert('Please enter a valid email address');
         return;
       }
       
-      // Send email as message
       this.sendMessage(this.emailValue, true);
       
-      // Clear email input and remove container
       this.emailValue = '';
       if (this.emailContainer) {
         this.emailContainer.remove();
@@ -1130,7 +1161,6 @@
     }
 
     handleYesNoClick(response, data) {
-      // Send response to server
       if (this.chatService && this.chatService.socket && this.chatService.socket.readyState === WebSocket.OPEN) {
         this.chatService.socket.send(JSON.stringify({
           type: 'ui_response',
@@ -1141,13 +1171,11 @@
         }));
       }
       
-      // Remove yes/no buttons
       if (this.yesNoContainer) {
         this.yesNoContainer.remove();
         this.yesNoContainer = null;
       }
       
-      // Add user response message
       this.addMessage(response === 'yes' ? 'Yes' : 'No', 'user');
     }
 
@@ -1162,7 +1190,6 @@
         rows: 1
       });
       
-      // Auto-resize textarea
       this.input.addEventListener('input', () => this.adjustTextareaHeight());
       this.input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -1173,8 +1200,7 @@
 
       this.sendButton = createElement('button', 'chat-send-button', {
         type: 'submit',
-        innerHTML: '➤',
-        style: `background: ${this.config.primaryColor}`
+        innerHTML: '➤'
       });
 
       form.appendChild(this.input);
@@ -1196,6 +1222,7 @@
 
     toggleChat() {
       this.isOpen = !this.isOpen;
+      this.isMinimized = false;
       
       if (this.isOpen) {
         this.chatWindow.classList.remove('hidden');
@@ -1204,6 +1231,20 @@
         }
       } else {
         this.chatWindow.classList.add('hidden');
+      }
+    }
+
+    minimizeChat() {
+      this.isMinimized = !this.isMinimized;
+      
+      if (this.isMinimized) {
+        this.chatWindow.style.height = '60px';
+        this.messagesContainer.style.display = 'none';
+        this.chatWindow.querySelector('.chat-input-container').style.display = 'none';
+      } else {
+        this.chatWindow.style.height = '600px';
+        this.messagesContainer.style.display = 'flex';
+        this.chatWindow.querySelector('.chat-input-container').style.display = 'block';
       }
     }
 
@@ -1220,7 +1261,6 @@
         this.addMessage(message.content, message.type || 'bot');
         this.setTyping(false);
         
-        // Show restart button after first bot message
         if (!this.restartButtonElement && this.messages.length > 0) {
           this.createRestartButton();
         }
@@ -1282,16 +1322,12 @@
     }
 
     sendMessage(content, isEmail = false) {
-      // Add user message to UI
       this.addMessage(content, 'user');
       
-      // Send message via WebSocket
       this.chatService.sendMessage(content, isEmail);
       
-      // Show typing indicator
       this.setTyping(true);
       
-      // Hide suggestions after first message
       if (this.suggestionsElement) {
         this.suggestionsElement.classList.add('hidden');
       }
@@ -1300,7 +1336,6 @@
     addMessage(content, type) {
       const messageDiv = createElement('div', 'message ' + type);
       
-      // Add avatar for bot messages
       if (type === 'bot') {
         const avatar = createElement('div', 'message-avatar');
         if (this.config.avatarUrl) {
@@ -1322,14 +1357,9 @@
         innerHTML: this.parseMarkdown(content)
       });
 
-      if (type === 'user') {
-        messageContent.style.background = `linear-gradient(135deg, ${this.config.primaryColor}, ${adjustColor(this.config.primaryColor, -30)})`;
-      }
-
       messageDiv.appendChild(messageContent);
       this.messagesContainer.appendChild(messageDiv);
       
-      // Store message
       this.messages.push({
         content: content,
         type: type,
@@ -1340,7 +1370,6 @@
     }
 
     parseMarkdown(text) {
-      // Basic markdown parsing
       return text
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
@@ -1351,7 +1380,6 @@
     setTyping(isTyping, systemMessage = '') {
       this.isTyping = isTyping;
       
-      // Remove existing typing indicator
       const existingIndicator = this.messagesContainer.querySelector('.typing-indicator');
       if (existingIndicator) {
         existingIndicator.remove();
@@ -1376,13 +1404,11 @@
         
         const dotsContainer = createElement('div', 'typing-dots');
         
-        // Add typing dots
         for (let i = 0; i < 3; i++) {
           const dot = createElement('div', 'typing-dot');
           dotsContainer.appendChild(dot);
         }
         
-        // Add system message if provided
         if (systemMessage) {
           const messageSpan = createElement('span', null, {
             innerHTML: systemMessage,
