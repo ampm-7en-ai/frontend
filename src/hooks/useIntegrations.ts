@@ -2,6 +2,21 @@
 import { useEffect } from 'react';
 import { useIntegrationStore } from '@/store/integrationStore';
 
+// Define the integration metadata
+const INTEGRATION_METADATA: Record<string, { name: string; type: string; logo?: string }> = {
+  hubspot: { name: 'HubSpot', type: 'ticketing', logo: '/integrations/hubspot.png' },
+  zendesk: { name: 'Zendesk', type: 'ticketing', logo: '/integrations/zendesk.png' },
+  freshdesk: { name: 'Freshdesk', type: 'ticketing', logo: '/integrations/freshdesk.png' },
+  salesforce: { name: 'Salesforce Service Cloud', type: 'ticketing', logo: '/integrations/salesforce.png' },
+  zoho: { name: 'Zoho Desk', type: 'ticketing', logo: '/integrations/zoho.png' },
+  slack: { name: 'Slack', type: 'communication', logo: '/integrations/slack.png' },
+  whatsapp: { name: 'WhatsApp', type: 'communication', logo: '/integrations/whatsapp.png' },
+  messenger: { name: 'Messenger', type: 'communication', logo: '/integrations/messenger.png' },
+  instagram: { name: 'Instagram', type: 'communication', logo: '/integrations/instagram.png' },
+  googledrive: { name: 'Google Drive', type: 'productivity', logo: '/integrations/googledrive.png' },
+  zapier: { name: 'Zapier', type: 'automation', logo: '/integrations/zapier.png' }
+};
+
 export const useIntegrations = () => {
   const {
     integrations,
@@ -31,7 +46,12 @@ export const useIntegrations = () => {
   const getIntegrationsByType = (type: string) => {
     return Object.entries(integrations)
       .filter(([_, integration]) => integration.type === type)
-      .map(([id, integration]) => ({ id, ...integration }));
+      .map(([id, integration]) => ({
+        id,
+        ...integration,
+        ...INTEGRATION_METADATA[id]
+      }))
+      .filter(integration => integration.name); // Only include known integrations
   };
 
   // Get connected ticketing providers (for backward compatibility)

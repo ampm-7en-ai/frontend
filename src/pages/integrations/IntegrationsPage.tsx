@@ -59,13 +59,16 @@ const IntegrationsPage = () => {
   const { toast } = useToast();
   
   const { 
-    ticketingProviders, 
-    communicationProviders, 
-    productivityProviders, 
-    automationProviders,
+    getIntegrationsByType, 
     isLoading,
     error 
   } = useIntegrations();
+
+  // Get integrations by type using the correct method
+  const ticketingProviders = getIntegrationsByType('ticketing');
+  const communicationProviders = getIntegrationsByType('communication');
+  const productivityProviders = getIntegrationsByType('productivity');
+  const automationProviders = getIntegrationsByType('automation');
 
   // Handle URL-based integration selection and success detection
   useEffect(() => {
