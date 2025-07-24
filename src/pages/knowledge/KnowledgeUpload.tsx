@@ -111,6 +111,11 @@ const KnowledgeUpload: React.FC = () => {
     }
   };
 
+  // Filter third party providers to show only connected ones
+  const availableThirdPartyProviders = Object.entries(thirdPartyProviders).filter(([id, provider]) =>
+    connectedStorageIntegrations.some(integration => integration.id === provider.id)
+  );
+
   useEffect(() => {
     setFiles([]);
     setUrl('');
