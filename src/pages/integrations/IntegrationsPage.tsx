@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import ModernButton from '@/components/dashboard/ModernButton';
@@ -13,6 +14,7 @@ import ZohoIntegration from '@/components/integrations/ZohoIntegration';
 import SalesforceIntegration from '@/components/integrations/SalesforceIntegration';
 import HubspotIntegration from '@/components/integrations/HubspotIntegration';
 import GoogleDriveIntegration from '@/components/integrations/GoogleDriveIntegration';
+import { IntegrationStatusBadge } from '@/components/ui/integration-status-badge';
 import { ArrowLeft, Star } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { initFacebookSDK } from '@/utils/facebookSDK';
@@ -30,6 +32,8 @@ const IntegrationsPage = () => {
   const [isDisconnectingGoogleDrive, setIsDisconnectingGoogleDrive] = useState(false);
   const [googleAuthUrl, setGoogleAuthUrl] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showSuccessBadge, setShowSuccessBadge] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
 
   // Use the centralized integration store
@@ -43,6 +47,51 @@ const IntegrationsPage = () => {
     defaultProvider,
     forceRefresh
   } = useIntegrations();
+
+  // Handle integration selection with tracking
+  const handleIntegrationSelect = (integrationId: string) => {
+    setSelectedIntegration(integrationId);
+    // Store the integration being configured in localStorage
+    localStorage.setItem('lastConfiguredIntegration', integrationId);
+  };
+
+  // Check for success status and show badge
+  useEffect(() => {
+    const status = searchParams.get('status');
+    if (status === 'success') {
+      const lastConfigured = localStorage.getItem('lastConfiguredIntegration');
+      if (lastConfigured) {
+        setShowSuccessBadge(true);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+          setShowSuccessBadge(false);
+        }, 5000);
+        
+        // Clean up URL parameter and localStorage
+        searchParams.delete('status');
+        setSearchParams(searchParams);
+        localStorage.removeItem('lastConfiguredIntegration');
+        
+        // Refresh integrations to get updated status
+        forceRefresh();
+      }
+    }
+  }, [searchParams, setSearchParams, forceRefresh]);
+
+  // Get integration info for success badge
+  const getIntegrationInfo = () => {
+    const lastConfigured = localStorage.getItem('lastConfiguredIntegration');
+    if (!lastConfigured) return null;
+    
+    const integration = integrationsList.find(i => i.id === lastConfigured);
+    return integration || null;
+  };
+
+  const handleSuccessBadgeClose = () => {
+    setShowSuccessBadge(false);
+    localStorage.removeItem('lastConfiguredIntegration');
+  };
 
   const handleSetAsDefault = async (providerId: string) => {
     setIsSettingDefault(providerId);
@@ -418,7 +467,7 @@ const IntegrationsPage = () => {
             variant="outline" 
             size="sm"
             className="w-full sm:w-auto"
-            onClick={() => setSelectedIntegration(integration.id)}
+            onClick={() => handleIntegrationSelect(integration.id)}
           >
             Configure Integration
           </ModernButton>
@@ -460,7 +509,7 @@ const IntegrationsPage = () => {
         variant="outline" 
         size="sm"
         className="w-full sm:w-auto"
-        onClick={() => setSelectedIntegration(integration.id)}
+        onClick={() => handleIntegrationSelect(integration.id)}
       >
         Configure Integration
       </ModernButton>
@@ -479,8 +528,20 @@ const IntegrationsPage = () => {
     );
   }
 
+  const integrationInfo = getIntegrationInfo();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      {/* Integration Success Badge */}
+      {integrationInfo && (
+        <IntegrationStatusBadge
+          isVisible={showSuccessBadge}
+          integrationName={integrationInfo.name}
+          integrationLogo={integrationInfo.logo}
+          onClose={handleSuccessBadgeClose}
+        />
+      )}
+
       <div className="container mx-auto py-8 px-4 max-w-5xl pt-12">
         {selectedIntegration ? (
           <div className="space-y-6">
