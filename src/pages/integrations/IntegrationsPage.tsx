@@ -24,7 +24,10 @@ import { useIntegrations } from '@/hooks/useIntegrations';
 import { ModernModal } from '@/components/ui/modern-modal';
 
 const IntegrationsPage = () => {
-  const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedIntegration, setSelectedIntegration] = useState<string | null>(
+    searchParams.get('integration') || null
+  );
   const [isFacebookInitialized, setIsFacebookInitialized] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [isSettingDefault, setIsSettingDefault] = useState<string | null>(null);
@@ -33,7 +36,6 @@ const IntegrationsPage = () => {
   const [googleAuthUrl, setGoogleAuthUrl] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSuccessBadge, setShowSuccessBadge] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
 
   // Use the centralized integration store
@@ -48,11 +50,25 @@ const IntegrationsPage = () => {
     forceRefresh
   } = useIntegrations();
 
-  // Handle integration selection with tracking
+  // Handle integration selection with URL persistence
   const handleIntegrationSelect = (integrationId: string) => {
     setSelectedIntegration(integrationId);
+    // Update URL parameter to persist selection
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('integration', integrationId);
+    setSearchParams(newSearchParams);
+    
     // Store the integration being configured in localStorage
     localStorage.setItem('lastConfiguredIntegration', integrationId);
+  };
+
+  // Handle going back to integrations list
+  const handleBackToIntegrations = () => {
+    setSelectedIntegration(null);
+    // Remove integration parameter from URL
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.delete('integration');
+    setSearchParams(newSearchParams);
   };
 
   // Check for success status and show badge
@@ -69,8 +85,9 @@ const IntegrationsPage = () => {
         }, 5000);
         
         // Clean up URL parameter and localStorage
-        searchParams.delete('status');
-        setSearchParams(searchParams);
+        const newSearchParams = new URLSearchParams(searchParams);
+        newSearchParams.delete('status');
+        setSearchParams(newSearchParams);
         localStorage.removeItem('lastConfiguredIntegration');
         
         // Refresh integrations to get updated status
@@ -548,7 +565,7 @@ const IntegrationsPage = () => {
             <div className="flex items-center gap-4 mb-6">
               <ModernButton 
                 variant="outline" 
-                onClick={() => setSelectedIntegration(null)}
+                onClick={handleBackToIntegrations}
                 icon={ArrowLeft}
                 className="shadow-sm"
               >
