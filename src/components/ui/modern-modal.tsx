@@ -81,20 +81,7 @@ export const ModernModal = ({
 
         <div className={cn(
           'flex-1',
-          fixedFooter && 'overflow-auto',
-          // Beautiful scrollbar styling
-          '[&::-webkit-scrollbar]:w-2',
-          '[&::-webkit-scrollbar-track]:bg-slate-100/50 [&::-webkit-scrollbar-track]:dark:bg-slate-800/50',
-          '[&::-webkit-scrollbar-track]:rounded-full',
-          '[&::-webkit-scrollbar-thumb]:bg-slate-300/80 [&::-webkit-scrollbar-thumb]:dark:bg-slate-600/80',
-          '[&::-webkit-scrollbar-thumb]:rounded-full',
-          '[&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent',
-          '[&::-webkit-scrollbar-thumb]:bg-clip-padding',
-          '[&::-webkit-scrollbar-thumb]:hover:bg-slate-400/80 [&::-webkit-scrollbar-thumb]:dark:hover:bg-slate-500/80',
-          '[&::-webkit-scrollbar-thumb]:transition-colors',
-          // Firefox scrollbar styling
-          'scrollbar-thin scrollbar-track-slate-100/50 scrollbar-thumb-slate-300/80',
-          'dark:scrollbar-track-slate-800/50 dark:scrollbar-thumb-slate-600/80'
+          fixedFooter && 'overflow-auto'
         )}>
           {children}
         </div>
