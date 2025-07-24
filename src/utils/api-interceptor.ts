@@ -1,5 +1,45 @@
-
 import { getApiUrl, getAuthHeaders } from './api-config';
+
+// Integration endpoints that should not trigger user logout on 401
+const INTEGRATION_ENDPOINTS = [
+  'zoho/orgs/',
+  'zoho/departments/',
+  'zoho/contacts/',
+  'zoho/status/',
+  'zoho/connect/',
+  'zoho/auth/',
+  'zoho/config/',
+  'hubspot/status/',
+  'hubspot/connect/',
+  'hubspot/pipelines/',
+  'salesforce/status/',
+  'salesforce/connect/',
+  'salesforce/auth/',
+  'zendesk/status/',
+  'zendesk/connect/',
+  'ticketing/zendesk-integrations/',
+  'freshdesk/status/',
+  'freshdesk/connect/',
+  'ticketing/freshdesk-integrations/',
+  'drive/files/',
+  'drive/unlink/',
+  'drive/add-to-agent-folder/',
+  'slack/status/',
+  'slack/connect/',
+  'whatsapp/status/',
+  'whatsapp/connect/',
+  'messenger/status/',
+  'messenger/connect/',
+  'instagram/status/',
+  'instagram/connect/',
+  'zapier/status/',
+  'zapier/connect/'
+];
+
+// Helper function to check if URL is an integration endpoint
+const isIntegrationEndpoint = (url: string): boolean => {
+  return INTEGRATION_ENDPOINTS.some(endpoint => url.includes(endpoint));
+};
 
 // JWT token decoder utility
 const decodeJWT = (token: string) => {
@@ -170,9 +210,21 @@ export const apiRequest = async (
   
   // Handle 401 responses
   if (response.status === 401 && authRequired) {
-    console.log('Received 401, attempting token refresh...');
+    console.log('Received 401, checking if integration endpoint...');
     
-    // Try to refresh token if not already refreshing
+    // Check if this is an integration endpoint
+    const isIntegration = isIntegrationEndpoint(url);
+    
+    if (isIntegration) {
+      console.log('401 from integration endpoint, not triggering logout');
+      // For integration endpoints, return the 401 response without triggering logout
+      // This allows integration components to handle the authentication failure appropriately
+      return response;
+    }
+    
+    console.log('401 from user endpoint, attempting token refresh...');
+    
+    // Try to refresh token if not already refreshing (only for non-integration endpoints)
     if (!isRefreshing) {
       isRefreshing = true;
       const newToken = await refreshAccessToken();
