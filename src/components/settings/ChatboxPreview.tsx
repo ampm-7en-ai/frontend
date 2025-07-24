@@ -32,6 +32,8 @@ interface ChatboxPreviewProps {
   suggestions: string[];
   avatarSrc?: string;
   className?: string;
+  onMinimize?: () => void;
+  showFloatingButton?: boolean;
 }
 
 const fallbackSuggestions = [
@@ -60,7 +62,9 @@ export const ChatboxPreview: React.FC<ChatboxPreviewProps> = ({
   position,
   suggestions,
   avatarSrc,
-  className
+  className,
+  onMinimize,
+  showFloatingButton = true
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [query, setQuery] = useState<string>('');
@@ -392,7 +396,10 @@ export const ChatboxPreview: React.FC<ChatboxPreviewProps> = ({
                 )}
               </button>
               <button 
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  onMinimize?.();
+                }}
                 className="p-1 rounded-full hover:bg-opacity-80 transition-colors"
                 style={{ backgroundColor: `${primaryColor}20` }}
               >
@@ -598,20 +605,22 @@ export const ChatboxPreview: React.FC<ChatboxPreviewProps> = ({
       )}
 
       {/* Chat Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110"
-        style={{
-          backgroundColor: primaryColor,
-          color: 'white'
-        }}
-      >
-        {isOpen ? (
-          <X size={24} />
-        ) : (
-          <Bot size={24} />
-        )}
-      </button>
+      {showFloatingButton && (
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110"
+          style={{
+            backgroundColor: primaryColor,
+            color: 'white'
+          }}
+        >
+          {isOpen ? (
+            <X size={24} />
+          ) : (
+            <Bot size={24} />
+          )}
+        </button>
+      )}
     </div>
   );
 };
