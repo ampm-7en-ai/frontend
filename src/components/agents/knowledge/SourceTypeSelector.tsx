@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -6,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Globe, FileText, Table, AlignLeft, ExternalLink, Upload, X } from 'lucide-react';
+import { Globe, FileText, Table, AlignLeft, ExternalLink, Upload, X, Link, Loader2 } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import { useNavigate } from 'react-router-dom';
@@ -36,6 +35,12 @@ interface GoogleDriveFile {
   webViewLink: string;
   createdTime: string;
   modifiedTime: string;
+}
+
+interface ScrapedUrl {
+  url: string;
+  title: string;
+  selected: boolean;
 }
 
 interface SourceTypeSelectorProps {
@@ -73,6 +78,9 @@ interface SourceTypeSelectorProps {
   getFileIcon: (mimeType: string) => React.ReactNode;
   toggleFileSelection: (fileName: string) => void;
   fetchGoogleDriveData?: () => void;
+  isScrapingUrls: boolean;
+  scrapedUrls: ScrapedUrl[];
+  toggleUrlSelection: (url: string) => void;
 }
 
 interface SourceConfig {
@@ -117,7 +125,10 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
   handleDrop,
   getFileIcon,
   toggleFileSelection,
-  fetchGoogleDriveData
+  fetchGoogleDriveData,
+  isScrapingUrls,
+  scrapedUrls,
+  toggleUrlSelection
 }) => {
   const navigate = useNavigate();
 
@@ -195,11 +206,53 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                 id="import-all" 
                 checked={importAllPages} 
                 onCheckedChange={(checked) => setImportAllPages(checked === true)}
+                disabled={isScrapingUrls}
               />
-              <Label htmlFor="import-all" className="text-sm font-medium cursor-pointer text-slate-700 dark:text-slate-300">
+              <Label htmlFor="import-all" className="text-sm font-medium cursor-pointer text-slate-700 dark:text-slate-300 flex items-center gap-2">
                 Import all linked pages from this domain
+                {isScrapingUrls && <Loader2 className="h-4 w-4 animate-spin" />}
               </Label>
             </div>
+
+            {scrapedUrls.length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Found URLs ({scrapedUrls.filter(u => u.selected).length} selected)
+                </Label>
+                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl max-h-[300px] overflow-y-auto transition-colors duration-200">
+                  {scrapedUrls.map((urlData, index) => (
+                    <div key={urlData.url} className={`flex items-center justify-between p-3 ${index > 0 ? 'border-t border-slate-100 dark:border-slate-700' : ''}`}>
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <Checkbox
+                          id={`url-${index}`}
+                          checked={urlData.selected}
+                          onCheckedChange={() => toggleUrlSelection(urlData.url)}
+                        />
+                        <div className="w-8 h-8 bg-blue-50 dark:bg-blue-950/50 rounded-lg flex items-center justify-center transition-colors duration-200">
+                          <Link className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{urlData.title}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{urlData.url}</p>
+                        </div>
+                      </div>
+                      <ModernButton
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(urlData.url, '_blank')}
+                        type="button"
+                        className="ml-2"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </ModernButton>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Select the URLs you want to include in your knowledge base. You can uncheck any URLs you don't want to import.
+                </p>
+              </div>
+            )}
           </div>
         );
 

@@ -39,6 +39,12 @@ interface GoogleDriveFile {
   modifiedTime: string;
 }
 
+interface ScrapedUrl {
+  url: string;
+  title: string;
+  selected: boolean;
+}
+
 interface AddSourcesModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -59,7 +65,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   const [sourceType, setSourceType] = useState<SourceType>('url');
   const [isUploading, setIsUploading] = useState(false);
   const [url, setUrl] = useState('');
-  const [importAllPages, setImportAllPages] = useState(true);
+  const [importAllPages, setImportAllPages] = useState(false);
   const [plainText, setPlainText] = useState('');
   const [selectedProvider, setSelectedProvider] = useState<ThirdPartyProvider | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -68,6 +74,8 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const [googleDriveFiles, setGoogleDriveFiles] = useState<GoogleDriveFile[]>([]);
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
+  const [isScrapingUrls, setIsScrapingUrls] = useState(false);
+  const [scrapedUrls, setScrapedUrls] = useState<ScrapedUrl[]>([]);
 
   // Use centralized integration management
   const { getIntegrationsByType } = useIntegrations();
@@ -127,7 +135,76 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     setSelectedProvider(null);
     setSelectedFiles([]);
     setValidationErrors({});
+    setScrapedUrls([]);
+    setImportAllPages(false);
   }, [sourceType]);
+
+  const scrapeUrls = async (baseUrl: string) => {
+    setIsScrapingUrls(true);
+    try {
+      const response = await apiRequest(`${BASE_URL}knowledge/scrape-urls/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          base_url: baseUrl
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to scrape URLs');
+      }
+
+      const data = await response.json();
+      const urls = data.urls || [];
+      
+      // Transform the response to our ScrapedUrl format
+      const scrapedUrlsData: ScrapedUrl[] = urls.map((urlData: any) => ({
+        url: urlData.url || urlData,
+        title: urlData.title || urlData.url || urlData,
+        selected: true
+      }));
+
+      setScrapedUrls(scrapedUrlsData);
+      
+      toast({
+        title: "URLs scraped successfully",
+        description: `Found ${scrapedUrlsData.length} URLs from the website`,
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error scraping URLs:', error);
+      toast({
+        title: "Error",
+        description: "Failed to scrape URLs from the website",
+        variant: "destructive"
+      });
+      setImportAllPages(false);
+    } finally {
+      setIsScrapingUrls(false);
+    }
+  };
+
+  const handleImportAllPagesChange = async (checked: boolean) => {
+    setImportAllPages(checked);
+    
+    if (checked && url) {
+      await scrapeUrls(url);
+    } else if (!checked) {
+      setScrapedUrls([]);
+    }
+  };
+
+  const toggleUrlSelection = (urlToToggle: string) => {
+    setScrapedUrls(prev => 
+      prev.map(urlData => 
+        urlData.url === urlToToggle 
+          ? { ...urlData, selected: !urlData.selected }
+          : urlData
+      )
+    );
+  };
 
   const fetchGoogleDriveData = async () => {
     setIsLoadingGoogleDriveFiles(true);
@@ -237,7 +314,12 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
 
     switch (sourceType) {
       case 'url':
-        formData.append('url', url);
+        if (importAllPages && scrapedUrls.length > 0) {
+          const selectedUrls = scrapedUrls.filter(urlData => urlData.selected).map(urlData => urlData.url);
+          formData.append('urls', JSON.stringify(selectedUrls));
+        } else {
+          formData.append('url', url);
+        }
         formData.append('crawl_all_pages', importAllPages.toString());
         break;
 
@@ -290,9 +372,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     try {
       let response;
 
-      // Handle Google Drive files differently
       if (sourceType === 'thirdParty' && selectedProvider === 'googleDrive') {
-        // Use the specialized Google Drive endpoint
         const promises = selectedFiles.map(fileName => {
           const file = googleDriveFiles.find(f => f.name === fileName);
           if (file) {
@@ -302,9 +382,8 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
         }).filter(Boolean);
 
         const results = await Promise.all(promises);
-        response = results[0]; // Use first result for success callback
+        response = results[0];
       } else {
-        // Use the regular knowledge source endpoint for all other cases
         response = await createKnowledgeSource();
       }
       
@@ -335,7 +414,6 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     setIsConnecting(true);
 
     if (provider === 'googleDrive') {
-      // Fetch real Google Drive files
       fetchGoogleDriveData();
       setIsConnecting(false);
       
@@ -345,7 +423,6 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
         variant: "success"
       });
     } else {
-      // Keep existing mock data for other providers
       setTimeout(() => {
         setIsConnecting(false);
 
@@ -470,7 +547,6 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
       }
     >
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Source Name */}
         <div className="space-y-3">
           <Label htmlFor="document-name" className="text-sm font-medium text-slate-700 dark:text-slate-300">Source Name *</Label>
           <Input 
@@ -487,7 +563,6 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
           )}
         </div>
 
-        {/* Source Type Selector */}
         <SourceTypeSelector
           sourceType={sourceType}
           setSourceType={setSourceType}
@@ -498,7 +573,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
           plainText={plainText}
           setPlainText={setPlainText}
           importAllPages={importAllPages}
-          setImportAllPages={setImportAllPages}
+          setImportAllPages={handleImportAllPagesChange}
           selectedProvider={selectedProvider}
           setSelectedProvider={setSelectedProvider}
           selectedFiles={selectedFiles}
@@ -523,6 +598,9 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
           getFileIcon={getFileIcon}
           toggleFileSelection={toggleFileSelection}
           fetchGoogleDriveData={fetchGoogleDriveData}
+          isScrapingUrls={isScrapingUrls}
+          scrapedUrls={scrapedUrls}
+          toggleUrlSelection={toggleUrlSelection}
         />
       </form>
     </ModernModal>
