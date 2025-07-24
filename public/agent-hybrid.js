@@ -29,7 +29,7 @@
         buttonText: data.buttonText || '',
         position: data.position || 'bottom-right',
         avatarUrl: data.avatarUrl || '',
-        previewUrl: `${window.location.origin}/chat/preview/${agentId}`
+        previewUrl: `https://staging.7en.ai/chat/preview/${agentId}`
       };
       
       console.log('Fetched config:', config);
@@ -75,41 +75,59 @@
     }
     
     .chat-button {
-      width: 60px;
-      height: 60px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       border: none;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      transition: all 0.2s ease;
       color: white;
-      font-weight: 500;
-      font-size: 14px;
-      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+      font-size: 24px;
+      background: var(--primary-color);
+      position: relative;
+      outline: none;
     }
     
     .chat-button:hover {
       transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+    
+    .chat-button:active {
+      transform: scale(0.95);
     }
     
     .chat-button.with-text {
       width: auto;
       min-width: 140px;
-      padding: 12px 20px;
-      border-radius: 25px;
+      height: 56px;
+      padding: 0 24px;
+      border-radius: 28px;
       gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .chat-button-icon {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
     
     .chat-popup {
       width: 380px;
       height: 600px;
       background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
       position: absolute;
       bottom: 80px;
       right: 0;
@@ -124,13 +142,9 @@
       transform-origin: bottom left;
     }
     
-    .chat-popup.minimized {
-      height: 60px;
-    }
-    
     @keyframes chatPopupOpen {
       from {
-        transform: scale(0.9);
+        transform: scale(0.95);
         opacity: 0;
       }
       to {
@@ -139,114 +153,19 @@
       }
     }
     
-    .chat-header {
-      padding: 16px 20px;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-      border-radius: 12px 12px 0 0;
-      height: 60px;
-      box-sizing: border-box;
-    }
-    
-    .chat-header-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    
-    .chat-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      overflow: hidden;
-      position: relative;
-    }
-    
-    .chat-avatar img {
+    .chat-iframe-container {
       width: 100%;
       height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-    
-    .chat-avatar::after {
-      content: '';
-      position: absolute;
-      bottom: 2px;
-      right: 2px;
-      width: 12px;
-      height: 12px;
-      background: #4caf50;
-      border: 2px solid white;
-      border-radius: 50%;
-    }
-    
-    .chat-header-text h3 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 600;
-      color: white;
-    }
-    
-    .chat-header-text p {
-      margin: 0;
-      font-size: 12px;
-      opacity: 0.9;
-      color: rgba(255, 255, 255, 0.9);
-    }
-    
-    .chat-header-buttons {
-      display: flex;
-      gap: 8px;
-    }
-    
-    .chat-minimize,
-    .chat-close {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
-      padding: 6px;
-      opacity: 0.8;
-      transition: opacity 0.2s;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-    }
-    
-    .chat-minimize:hover,
-    .chat-close:hover {
-      opacity: 1;
-      background: rgba(255, 255, 255, 0.1);
-    }
-    
-    .chat-iframe-container {
-      flex: 1;
-      height: calc(100% - 60px);
       position: relative;
       overflow: hidden;
-    }
-    
-    .chat-iframe-container.hidden {
-      display: none;
+      border-radius: 16px;
     }
     
     .chat-iframe {
       width: 100%;
       height: 100%;
       border: none;
+      border-radius: 16px;
       background: #f8fafc;
     }
     
@@ -300,7 +219,6 @@
     constructor(config) {
       this.config = config;
       this.isOpen = false;
-      this.isMinimized = false;
       this.isIframeLoaded = false;
       
       this.init();
@@ -315,26 +233,8 @@
     injectStyles() {
       const styleElement = createElement('style', null, {
         innerHTML: styles.replace(/var\(--primary-color\)/g, this.config.primaryColor)
-                         .replace(/var\(--primary-dark\)/g, this.adjustColor(this.config.primaryColor, -30))
       });
       document.head.appendChild(styleElement);
-    }
-
-    adjustColor(color, amount) {
-      try {
-        const hex = color.replace('#', '');
-        const r = parseInt(hex.substring(0, 2), 16);
-        const g = parseInt(hex.substring(2, 4), 16);
-        const b = parseInt(hex.substring(4, 6), 16);
-        
-        const newR = Math.max(0, Math.min(255, r + amount));
-        const newG = Math.max(0, Math.min(255, g + amount));
-        const newB = Math.max(0, Math.min(255, b + amount));
-        
-        return '#' + newR.toString(16).padStart(2, '0') + newG.toString(16).padStart(2, '0') + newB.toString(16).padStart(2, '0');
-      } catch (e) {
-        return color;
-      }
     }
 
     createWidget() {
@@ -354,28 +254,13 @@
         onclick: () => this.toggleChat()
       });
 
-      if (this.config.avatarUrl) {
-        const avatar = createElement('img', null, {
-          src: this.config.avatarUrl,
-          alt: this.config.chatbotName,
-          style: 'width: 24px; height: 24px; border-radius: 50%; object-fit: cover;' + (hasText ? ' margin-right: 8px;' : ''),
-          onerror: function() {
-            this.style.display = 'none';
-            const fallback = createElement('span', null, {
-              innerHTML: '🤖',
-              style: hasText ? 'margin-right: 8px;' : ''
-            });
-            this.parentNode.appendChild(fallback);
-          }
-        });
-        this.button.appendChild(avatar);
-      } else {
-        const icon = createElement('span', null, {
-          innerHTML: '🤖',
-          style: hasText ? 'margin-right: 8px;' : ''
-        });
-        this.button.appendChild(icon);
-      }
+      // Chat icon SVG
+      const chatIcon = createElement('svg', 'chat-button-icon', {
+        innerHTML: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12H5a2.5 2.5 0 0 0-2.5 2.5V20a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-7.5a.5.5 0 0 0-.5-.5Z"/><path d="M16 12h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2v4l-4-4H8a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h2V8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4Z"/>',
+        viewBox: '0 0 24 24'
+      });
+      
+      this.button.appendChild(chatIcon);
 
       if (hasText) {
         const text = createElement('span', null, {
@@ -389,57 +274,8 @@
 
     createPopup() {
       this.popup = createElement('div', 'chat-popup ' + this.config.position + ' hidden');
-      
-      this.createHeader();
       this.createIframeContainer();
-      
       this.container.appendChild(this.popup);
-    }
-
-    createHeader() {
-      const header = createElement('div', 'chat-header');
-
-      const headerInfo = createElement('div', 'chat-header-info');
-      
-      const avatar = createElement('div', 'chat-avatar');
-      if (this.config.avatarUrl) {
-        const avatarImg = createElement('img', null, {
-          src: this.config.avatarUrl,
-          alt: this.config.chatbotName,
-          onerror: function() {
-            this.parentNode.innerHTML = '🤖';
-          }
-        });
-        avatar.appendChild(avatarImg);
-      } else {
-        avatar.innerHTML = '🤖';
-      }
-      
-      const headerText = createElement('div', 'chat-header-text', {
-        innerHTML: `<h3>${this.config.chatbotName}</h3><p>Online</p>`
-      });
-
-      headerInfo.appendChild(avatar);
-      headerInfo.appendChild(headerText);
-
-      const buttonsContainer = createElement('div', 'chat-header-buttons');
-      
-      const minimizeButton = createElement('button', 'chat-minimize', {
-        innerHTML: '−',
-        onclick: () => this.toggleMinimize()
-      });
-      
-      const closeButton = createElement('button', 'chat-close', {
-        innerHTML: '×',
-        onclick: () => this.toggleChat()
-      });
-
-      buttonsContainer.appendChild(minimizeButton);
-      buttonsContainer.appendChild(closeButton);
-
-      header.appendChild(headerInfo);
-      header.appendChild(buttonsContainer);
-      this.popup.appendChild(header);
     }
 
     createIframeContainer() {
@@ -482,12 +318,9 @@
 
     toggleChat() {
       this.isOpen = !this.isOpen;
-      this.isMinimized = false;
       
       if (this.isOpen) {
         this.popup.classList.remove('hidden');
-        this.popup.classList.remove('minimized');
-        this.iframeContainer.classList.remove('hidden');
         
         // Ensure iframe is loaded when opening
         if (!this.isIframeLoaded && this.iframe.src !== this.config.previewUrl) {
@@ -495,18 +328,6 @@
         }
       } else {
         this.popup.classList.add('hidden');
-      }
-    }
-
-    toggleMinimize() {
-      this.isMinimized = !this.isMinimized;
-      
-      if (this.isMinimized) {
-        this.popup.classList.add('minimized');
-        this.iframeContainer.classList.add('hidden');
-      } else {
-        this.popup.classList.remove('minimized');
-        this.iframeContainer.classList.remove('hidden');
       }
     }
   }
