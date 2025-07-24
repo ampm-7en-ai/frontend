@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface ChatbotConfig {
   agentId: string;
@@ -47,13 +48,27 @@ const ChatPreview = () => {
     }
   }, [agentId]);
 
+  // Add iframe-specific styles and behavior
+  useEffect(() => {
+    // Prevent parent window scrolling when in iframe
+    if (window.parent !== window) {
+      document.body.style.overflow = 'hidden';
+    }
+    
+    // Signal parent that iframe is ready
+    window.parent.postMessage({ type: 'iframe-ready' }, '*');
+    
+    return () => {
+      if (window.parent !== window) {
+        document.body.style.overflow = 'auto';
+      }
+    };
+  }, []);
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="inline-block animate-spin h-8 w-8 border-4 border-border rounded-full border-t-primary"></div>
-          <p className="mt-4 text-muted-foreground">Loading chatbox...</p>
-        </div>
+        <LoadingSpinner size="md" text="Loading chatbox..." />
       </div>
     );
   }
@@ -70,8 +85,8 @@ const ChatPreview = () => {
   }
 
   return (
-    <div className="h-screen bg-background p-2 md:p-4 flex items-center justify-center">
-      <div className="w-full max-w-3xl h-full max-h-[calc(100vh-2rem)] flex flex-col">
+    <div className="h-screen bg-background overflow-hidden">
+      <div className="w-full h-full">
         <ChatboxPreview
           agentId={config.agentId}
           primaryColor={config.primaryColor}
