@@ -154,14 +154,19 @@ const AgentBuilderContent = () => {
       );
       
       if (success) {
-        console.log('✅ Training successful, manually refetching agent data');
+        console.log('✅ Training successful, refreshing builder page');
         
         // Manually refetch agent data from API
         await refetchAgentData(agentId);
 
+        // Refresh the entire page after successful training
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+
         addNotification({
           title: 'Training Complete',
-          message: `Agent "${state.agentData.name}" training completed successfully.`,
+          message: `Agent "${state.agentData.name}" training completed successfully. Page will refresh shortly.`,
           type: 'training_completed',
           agentId,
           agentName: state.agentData.name
