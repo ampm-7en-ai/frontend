@@ -62,6 +62,12 @@ interface GoogleDriveFile {
   modifiedTime: string;
 }
 
+interface ScrapedUrl {
+  url: string;
+  title: string;
+  selected: boolean;
+}
+
 const KnowledgeUpload = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -119,7 +125,7 @@ const KnowledgeUpload = () => {
   const [sourceType, setSourceType] = useState<SourceType>('url');
   const [isUploading, setIsUploading] = useState(false);
   const [url, setUrl] = useState('');
-  const [importAllPages, setImportAllPages] = useState(true);
+  const [importAllPages, setImportAllPages] = useState(false);
   const [plainText, setPlainText] = useState('');
   const [selectedProvider, setSelectedProvider] = useState<ThirdPartyProvider | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -128,6 +134,8 @@ const KnowledgeUpload = () => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [googleDriveFiles, setGoogleDriveFiles] = useState<GoogleDriveFile[]>([]);
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
+  const [isScrapingUrls, setIsScrapingUrls] = useState(false);
+  const [scrapedUrls, setScrapedUrls] = useState<ScrapedUrl[]>([]);
 
   // Use centralized integration management
   const { getIntegrationsByType, getIntegrationStatus } = useIntegrations();
@@ -227,7 +235,77 @@ const KnowledgeUpload = () => {
     setSelectedProvider(null);
     setSelectedFiles([]);
     setValidationErrors({});
+    setScrapedUrls([]);
+    setImportAllPages(false);
   }, [sourceType]);
+
+  const scrapeUrls = async (baseUrl: string) => {
+    setIsScrapingUrls(true);
+    try {
+      const response = await fetch(`${BASE_URL}knowledge/scrape-urls/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${user?.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          base_url: baseUrl
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to scrape URLs');
+      }
+
+      const data = await response.json();
+      const urls = data.urls || [];
+      
+      // Transform the URLs to the expected format
+      const transformedUrls: ScrapedUrl[] = urls.map((urlItem: any) => ({
+        url: urlItem.url || urlItem,
+        title: urlItem.title || urlItem.url || urlItem,
+        selected: true // Default to selected
+      }));
+
+      setScrapedUrls(transformedUrls);
+      
+      showToast({
+        title: "URLs Scraped",
+        description: `Found ${transformedUrls.length} URLs from the website`,
+        variant: "success"
+      });
+    } catch (error) {
+      console.error('Error scraping URLs:', error);
+      showToast({
+        title: "Error",
+        description: "Failed to scrape URLs. Please try again.",
+        variant: "error"
+      });
+      setImportAllPages(false);
+    } finally {
+      setIsScrapingUrls(false);
+    }
+  };
+
+  const handleImportAllPagesChange = (checked: boolean) => {
+    setImportAllPages(checked);
+    
+    if (checked && url) {
+      scrapeUrls(url);
+    } else if (!checked) {
+      setScrapedUrls([]);
+    }
+  };
+
+  const toggleUrlSelection = (urlToToggle: string) => {
+    setScrapedUrls(prev => 
+      prev.map(urlData => 
+        urlData.url === urlToToggle 
+          ? { ...urlData, selected: !urlData.selected }
+          : urlData
+      )
+    );
+  };
 
   const fetchGoogleDriveData = async () => {
     setIsLoadingGoogleDriveFiles(true);
@@ -467,7 +545,13 @@ const KnowledgeUpload = () => {
 
         switch (sourceType) {
           case 'url':
-            payload.url = url;
+            if (importAllPages && scrapedUrls.length > 0) {
+              // Submit selected URLs
+              const selectedUrls = scrapedUrls.filter(urlData => urlData.selected).map(urlData => urlData.url);
+              payload.urls = selectedUrls;
+            } else {
+              payload.url = url;
+            }
             break;
           case 'plainText':
             payload.plain_text = plainText;
@@ -828,7 +912,7 @@ const KnowledgeUpload = () => {
                   plainText={plainText}
                   setPlainText={setPlainText}
                   importAllPages={importAllPages}
-                  setImportAllPages={setImportAllPages}
+                  setImportAllPages={handleImportAllPagesChange}
                   selectedProvider={selectedProvider}
                   setSelectedProvider={setSelectedProvider}
                   selectedFiles={selectedFiles}
@@ -853,6 +937,9 @@ const KnowledgeUpload = () => {
                   getFileIcon={getFileIcon}
                   toggleFileSelection={toggleFileSelection}
                   fetchGoogleDriveData={fetchGoogleDriveData}
+                  isScrapingUrls={isScrapingUrls}
+                  scrapedUrls={scrapedUrls}
+                  toggleUrlSelection={toggleUrlSelection}
                 />
                 
                 {/* Actions */}
