@@ -54,7 +54,10 @@ const AgentBuilderContent = () => {
   };
 
   // Function to manually refetch agent data from API
-  const refetchAgentData = async (agentId: string) => {
+  const refetchAgentData = async () => {
+    const agentId = state.agentData.id?.toString();
+    if (!agentId) return;
+
     try {
       console.log('🔄 Manually refetching agent data for ID:', agentId);
       
@@ -154,19 +157,14 @@ const AgentBuilderContent = () => {
       );
       
       if (success) {
-        console.log('✅ Training successful, refreshing builder page');
+        console.log('✅ Training successful, refreshing agent data');
         
-        // Manually refetch agent data from API
-        await refetchAgentData(agentId);
-
-        // Refresh the entire page after successful training
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        // Manually refetch agent data from API instead of page refresh
+        await refetchAgentData();
 
         addNotification({
           title: 'Training Complete',
-          message: `Agent "${state.agentData.name}" training completed successfully. Page will refresh shortly.`,
+          message: `Agent "${state.agentData.name}" training completed successfully.`,
           type: 'training_completed',
           agentId,
           agentName: state.agentData.name
@@ -221,7 +219,10 @@ const AgentBuilderContent = () => {
       />
       
       {/* Top Toolbar */}
-      <BuilderToolbar onTrainingStateChange={setIsTraining} />
+      <BuilderToolbar 
+        onTrainingStateChange={setIsTraining} 
+        onAgentDataRefresh={refetchAgentData}
+      />
       
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Knowledge Base */}

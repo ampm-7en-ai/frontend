@@ -20,13 +20,16 @@ import { useToast } from '@/hooks/use-toast';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
 import CleanupDialog from '@/components/agents/CleanupDialog';
+import { agentApi } from '@/utils/api-config';
 
 interface BuilderToolbarProps {
   onTrainingStateChange?: (isTraining: boolean) => void;
+  onAgentDataRefresh?: () => Promise<void>;
 }
 
 export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
-  onTrainingStateChange
+  onTrainingStateChange,
+  onAgentDataRefresh
 }) => {
   const navigate = useNavigate();
   const { state, saveAgent, deleteAgent, setCanvasMode, updateAgentData } = useBuilder();
@@ -48,6 +51,64 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
       source.trainingStatus === 'deleted' || 
       source.trainingStatus === 'failed'
     );
+  };
+
+  // Helper function to format knowledge sources
+  const formatKnowledgeSources = (knowledgeSources: any[]) => {
+    if (!knowledgeSources || !Array.isArray(knowledgeSources)) return [];
+    
+    return knowledgeSources
+      .filter(ks => ks && ks.training_status !== 'deleted')
+      .map(ks => ({
+        id: ks.id,
+        name: ks.title || 'Untitled Source',
+        type: ks.type || 'unknown',
+        size: ks.metadata?.file_size || 'N/A',
+        lastUpdated: ks.metadata?.upload_date ? new Date(ks.metadata.upload_date).toLocaleDateString('en-GB') : 'N/A',
+        status: ks.status || 'active',
+        trainingStatus: ks.training_status || ks.status || 'idle',
+        linkBroken: false,
+        knowledge_sources: [],
+        metadata: {
+          ...ks.metadata,
+          url: ks.file || ks.url,
+          created_at: ks.metadata?.upload_date,
+          last_updated: ks.updated_at
+        },
+        url: ks.file || ks.url,
+        title: ks.title
+      }));
+  };
+
+  // Function to refresh agent data from API
+  const refreshAgentData = async () => {
+    if (!agentData.id) return;
+    
+    try {
+      console.log('🔄 Refreshing agent data from API...');
+      
+      const response = await agentApi.getById(agentData.id.toString());
+      if (!response.ok) {
+        throw new Error(`Failed to fetch agent: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      const freshAgentData = result.data;
+      
+      console.log('✅ Fetched fresh agent data:', freshAgentData);
+
+      // Update the agent data with fresh knowledge sources
+      const updatedKnowledgeSources = formatKnowledgeSources(freshAgentData.knowledge_sources || []);
+      
+      updateAgentData({
+        knowledgeSources: updatedKnowledgeSources
+      });
+
+      console.log('✅ Updated agent data with fresh knowledge sources:', updatedKnowledgeSources);
+
+    } catch (error) {
+      console.error('❌ Error refreshing agent data:', error);
+    }
   };
 
   const handleTrainKnowledge = async () => {
@@ -114,27 +175,23 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
       );
       
       if (success) {
-        console.log('✅ Training successful from toolbar, refreshing builder page');
+        console.log('✅ Training successful from toolbar, refreshing agent data');
 
-        // Refresh the entire page after successful training
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        // Refresh agent data from API instead of page refresh
+        await refreshAgentData();
+
+        // Call external refresh function if provided
+        if (onAgentDataRefresh) {
+          await onAgentDataRefresh();
+        }
 
         addNotification({
           title: 'Training Complete',
-          message: `Agent "${agentData.name}" training completed successfully. Page will refresh shortly.`,
+          message: `Agent "${agentData.name}" training completed successfully.`,
           type: 'training_completed',
           agentId: agentData.id.toString(),
           agentName: agentData.name
         });
-
-        const updatedSources = agentData.knowledgeSources.map(source => ({
-          ...source,
-          trainingStatus: 'Active' as const
-        }));
-        
-        updateAgentData({ knowledgeSources: updatedSources });
       } else {
         addNotification({
           title: 'Training Failed',
@@ -220,15 +277,6 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
             Playground
           </ModernButton>
           
-          {/* <ModernButton
-            variant="ghost"
-            size="sm"
-            icon={Trash2}
-            onClick={() => setShowDeleteDialog(true)}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
-          >
-            Delete
-          </ModernButton> */}
           <ModernButton
             variant="ghost"
             size="sm"
