@@ -367,7 +367,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                 onChange={(e) => {
                   setUrl(e.target.value);
                   if (validationErrors.url) {
-                    setValidationErrors(prev => ({ ...prev, url: undefined }));
+                    setValidationErrors({ ...validationErrors, url: undefined });
                   }
                 }}
                 className={validationErrors.url ? 'border-red-500 dark:border-red-400' : ''}
@@ -539,7 +539,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
               onChange={(e) => {
                 setPlainText(e.target.value);
                 if (validationErrors.plainText) {
-                  setValidationErrors(prev => ({ ...prev, plainText: undefined }));
+                  setValidationErrors({ ...validationErrors, plainText: undefined });
                 }
               }}
               className={`min-h-[200px] resize-none ${validationErrors.plainText ? 'border-red-500 dark:border-red-400' : ''}`}
