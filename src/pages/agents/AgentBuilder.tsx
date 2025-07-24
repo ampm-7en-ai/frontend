@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { BuilderProvider, useBuilder } from '@/components/agents/builder/BuilderContext';
 import { BuilderToolbar } from '@/components/agents/builder/BuilderToolbar';
 import { BuilderSidebar } from '@/components/agents/builder/BuilderSidebar';
-import GuidelinesPanel from '@/components/agents/builder/GuidelinesPanel';
+import { GuidelinesPanel } from '@/components/agents/builder/GuidelinesPanel';
 import { InteractiveCanvas } from '@/components/agents/builder/InteractiveCanvas';
 import { TrainingAlertBadge } from '@/components/ui/training-alert-badge';
 import { UntrainedSourcesAlert } from '@/components/agents/builder/UntrainedSourcesAlert';
