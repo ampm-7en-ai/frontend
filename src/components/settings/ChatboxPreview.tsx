@@ -39,10 +39,6 @@ interface ChatboxPreviewProps {
   showFloatingButton?: boolean;
   initiallyMinimized?: boolean;
   canvasMode?: boolean;
-  emailRequired?: boolean;
-  emailPlaceholder?: string;
-  emailMessage?: string;
-  collectEmail?: boolean;
 }
 
 export const ChatboxPreview = ({
@@ -61,11 +57,7 @@ export const ChatboxPreview = ({
   onRestart,
   showFloatingButton = false,
   initiallyMinimized = false,
-  canvasMode = false,
-  emailRequired = false,
-  emailPlaceholder = '',
-  emailMessage = '',
-  collectEmail = false
+  canvasMode = false
 }: ChatboxPreviewProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
