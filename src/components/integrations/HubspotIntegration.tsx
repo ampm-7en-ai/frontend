@@ -191,22 +191,8 @@ const HubspotIntegration = () => {
 
       const result = await response.json();
       if (result.status === 'success' && result.data.auth_url) {
-        // Open OAuth window
-        const authWindow = window.open(
-          result.data.auth_url,
-          'hubspot-oauth',
-          'width=600,height=600,scrollbars=yes,resizable=yes'
-        );
-
-        // Monitor the OAuth window
-        const checkClosed = setInterval(() => {
-          if (authWindow?.closed) {
-            clearInterval(checkClosed);
-            setIsConnecting(false);
-            // Check status after window closes
-            setTimeout(() => checkHubspotStatus(), 1000);
-          }
-        }, 1000);
+        // Redirect to auth URL in current tab
+        window.location.href = result.data.auth_url;
       }
     } catch (error) {
       console.error('Error getting auth URL:', error);

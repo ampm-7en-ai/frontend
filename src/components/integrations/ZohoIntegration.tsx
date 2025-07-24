@@ -342,16 +342,8 @@ const ZohoIntegration = () => {
       console.log('Zoho auth URL response:', result);
 
       if (result.status === 'success' && result.data?.auth_url) {
-        window.open(result.data.auth_url, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
-        
-        toast({
-          title: "Authentication Started",
-          description: "Please complete the authentication in the new window that opened.",
-        });
-        
-        setTimeout(() => {
-          checkZohoStatus();
-        }, 3000);
+        // Redirect to auth URL in current tab
+        window.location.href = result.data.auth_url;
       } else {
         throw new Error('No auth URL received');
       }
@@ -362,7 +354,6 @@ const ZohoIntegration = () => {
         description: error instanceof Error ? error.message : "Failed to initiate Zoho Desk connection. Please try again.",
         variant: "destructive"
       });
-    } finally {
       setIsConnecting(false);
     }
   };
@@ -738,7 +729,7 @@ const ZohoIntegration = () => {
             View Documentation
           </ModernButton>
         </div>
-      </div>
+      }
 
       {/* Features Overview */}
       <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
