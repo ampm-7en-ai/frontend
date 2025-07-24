@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
-import { IntegrationStatusBadge } from '@/components/ui/integration-status-badge';
 import { integrationApi } from '@/utils/api-config';
 
 interface HubspotStatus {
@@ -49,38 +48,13 @@ const HubspotIntegration = () => {
   const [pipelineData, setPipelineData] = useState<PipelineData | null>(null);
   const [selectedPipelineId, setSelectedPipelineId] = useState('');
   const [selectedStageId, setSelectedStageId] = useState('');
-  const [showSuccessBadge, setShowSuccessBadge] = useState(false);
-  const [oauthWindow, setOauthWindow] = useState<Window | null>(null);
+  const [accessToken, setAccessToken] = useState('');
   const { toast } = useToast();
 
   // Check HubSpot connection status on component mount
   useEffect(() => {
     checkHubspotStatus();
   }, []);
-
-  // Monitor OAuth window for completion
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (oauthWindow && !oauthWindow.closed) {
-      interval = setInterval(() => {
-        if (oauthWindow.closed) {
-          // OAuth window was closed, check if integration was successful
-          setTimeout(() => {
-            checkHubspotStatus();
-          }, 1000);
-          setOauthWindow(null);
-          setIsConnecting(false);
-        }
-      }, 1000);
-    }
-
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [oauthWindow]);
 
   const checkHubspotStatus = async () => {
     setIsCheckingStatus(true);
@@ -93,16 +67,7 @@ const HubspotIntegration = () => {
 
       const result = await response.json();
       if (result.status === 'success') {
-        const wasConnected = hubspotStatus?.is_connected || false;
         setHubspotStatus(result.data);
-        
-        // Show success badge if connection status changed from disconnected to connected
-        if (!wasConnected && result.data.is_connected) {
-          setShowSuccessBadge(true);
-          setTimeout(() => {
-            setShowSuccessBadge(false);
-          }, 5000);
-        }
       }
     } catch (error) {
       console.error('Error checking HubSpot status:', error);
@@ -191,43 +156,42 @@ const HubspotIntegration = () => {
     }
   };
 
-  const handleOAuthConnect = async () => {
+  const handleConnect = async () => {
+    if (!accessToken) {
+      toast({
+        title: "Missing Access Token",
+        description: "Please enter your HubSpot private app access token.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsConnecting(true);
     try {
-      const response = await integrationApi.hubspot.getAuthUrl();
+      const response = await integrationApi.hubspot.connect({
+        access_token: accessToken
+      });
 
       if (!response.ok) {
-        throw new Error(`Failed to get OAuth URL: ${response.status}`);
+        throw new Error(`Failed to connect HubSpot: ${response.status}`);
       }
 
       const result = await response.json();
-      if (result.status === 'success' && result.data.auth_url) {
-        // Open OAuth URL in a new window
-        const popup = window.open(
-          result.data.auth_url,
-          'hubspot-oauth',
-          'width=600,height=700,scrollbars=yes,resizable=yes'
-        );
-        
-        if (popup) {
-          setOauthWindow(popup);
-          toast({
-            title: "Authentication Started",
-            description: "Please complete the authentication in the popup window.",
-          });
-        } else {
-          throw new Error('Failed to open OAuth popup window');
-        }
-      } else {
-        throw new Error('No OAuth URL received from server');
+      if (result.status === 'success') {
+        setHubspotStatus({ is_connected: true, ...result.data });
+        toast({
+          title: "Successfully Connected",
+          description: "HubSpot CRM has been connected.",
+        });
       }
     } catch (error) {
-      console.error('Error starting OAuth flow:', error);
+      console.error('Error connecting HubSpot:', error);
       toast({
         title: "Connection Failed",
-        description: "Unable to start HubSpot OAuth flow. Please try again.",
+        description: "Unable to connect to HubSpot. Please check your access token.",
         variant: "destructive"
       });
+    } finally {
       setIsConnecting(false);
     }
   };
@@ -261,10 +225,6 @@ const HubspotIntegration = () => {
     }
   };
 
-  const handleSuccessBadgeClose = () => {
-    setShowSuccessBadge(false);
-  };
-
   const isConnected = hubspotStatus?.is_connected || false;
   const selectedPipeline = pipelineData?.pipelines.find(p => p.pipelineId === selectedPipelineId);
   const stageOptions = selectedPipeline?.stages.map(stage => ({
@@ -293,13 +253,7 @@ const HubspotIntegration = () => {
 
   return (
     <div className="space-y-8">
-      {/* Integration Success Badge */}
-      <IntegrationStatusBadge
-        isVisible={showSuccessBadge}
-        integrationName="HubSpot"
-        integrationLogo="https://img.logo.dev/hubspot.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true"
-        onClose={handleSuccessBadgeClose}
-      />
+      
 
       {/* Current Configuration Cards */}
       {isConnected && hubspotStatus && (
@@ -443,11 +397,42 @@ const HubspotIntegration = () => {
                   </li>
                 </ul>
               </div>
+              
+              <div>
+                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-3">Prerequisites</h4>
+                <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-warning"></div>
+                    <span>You need a HubSpot account with CRM access</span>
+                  </li>
+                  <li className="flex gap-2 items-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-warning"></div>
+                    <span>A private app must be created with proper scopes</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="hubspot-token" className="text-sm font-medium">Private App Access Token</Label>
+                <Input
+                  id="hubspot-token"
+                  type="password"
+                  placeholder="pat-na1-..."
+                  value={accessToken}
+                  onChange={(e) => setAccessToken(e.target.value)}
+                  className="font-mono"
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-500">
+                  Get this from your HubSpot private app settings
+                </p>
+              </div>
             </div>
             
             <div className="flex gap-3 pt-2">
               <ModernButton 
-                onClick={handleOAuthConnect}
+                onClick={handleConnect}
                 disabled={isConnecting}
                 variant="primary"
               >
@@ -455,7 +440,7 @@ const HubspotIntegration = () => {
               </ModernButton>
               <ModernButton 
                 variant="outline" 
-                onClick={() => window.open('https://developers.hubspot.com/docs/api/oauth/quickstart-guide', '_blank')}
+                onClick={() => window.open('https://developers.hubspot.com/docs/api/private-apps', '_blank')}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Setup Guide
@@ -490,8 +475,8 @@ const HubspotIntegration = () => {
             </ModernButton>
           ) : (
             <ModernButton 
-              onClick={handleOAuthConnect}
-              disabled={isConnecting}
+              onClick={handleConnect}
+              disabled={isConnecting || !accessToken}
               variant="primary"
             >
               {isConnecting ? "Connecting..." : "Connect HubSpot"}
@@ -499,7 +484,7 @@ const HubspotIntegration = () => {
           )}
           <ModernButton 
             variant="outline" 
-            onClick={() => window.open('https://developers.hubspot.com/docs/api/oauth/quickstart-guide', '_blank')}
+            onClick={() => window.open('https://developers.hubspot.com/docs/api/private-apps', '_blank')}
             size="sm"
           >
             <ExternalLink className="h-4 w-4 mr-2" />
