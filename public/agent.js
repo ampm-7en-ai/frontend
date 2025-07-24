@@ -1,30 +1,45 @@
-
 (function() {
   'use strict';
 
-  // Configuration parser
-  function parseConfig() {
+  // Configuration fetcher
+  async function fetchConfig() {
     const script = document.currentScript || document.querySelector('script[data-agent-id]');
-    const config = {
-      agentId: script?.getAttribute('data-agent-id') || '',
-      primaryColor: script?.getAttribute('data-primary-color') || '#9b87f5',
-      secondaryColor: script?.getAttribute('data-secondary-color') || '#ffffff',
-      chatbotName: script?.getAttribute('data-chatbot-name') || 'Assistant',
-      welcomeMessage: script?.getAttribute('data-welcome-message') || '',
-      buttonText: script?.getAttribute('data-button-text') || '',
-      position: script?.getAttribute('data-position') || 'bottom-right',
-      suggestions: script?.getAttribute('data-suggestions')?.split(',').map(s => s.trim()).filter(Boolean) || [],
-      avatarUrl: script?.getAttribute('data-avatar-url') || '',
-      apiUrl: script?.getAttribute('data-api-url') || 'https://api-staging.7en.ai',
-      wsUrl: script?.getAttribute('data-ws-url') || 'wss://api-staging.7en.ai'
-    };
+    const agentId = script?.getAttribute('data-agent-id') || '';
     
-    if (!config.agentId) {
+    if (!agentId) {
       console.error('ChatWidget: data-agent-id is required');
       return null;
     }
-    
-    return config;
+
+    try {
+      const response = await fetch(`https://api-staging.7en.ai/api/chatbot-config?agentId=${agentId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Transform API response to expected format
+      const config = {
+        agentId: data.agentId || agentId,
+        primaryColor: data.primaryColor || '#9b87f5',
+        secondaryColor: data.secondaryColor || '#ffffff',
+        fontFamily: data.fontFamily || 'Helvetica',
+        chatbotName: data.chatbotName || 'Assistant',
+        welcomeMessage: data.welcomeMessage || '',
+        buttonText: data.buttonText || '',
+        position: data.position || 'bottom-right',
+        suggestions: data.suggestions || [],
+        avatarUrl: data.avatarUrl || '',
+        apiUrl: 'https://api-staging.7en.ai',
+        wsUrl: 'wss://api-staging.7en.ai'
+      };
+      
+      return config;
+    } catch (error) {
+      console.error('ChatWidget: Failed to fetch config:', error);
+      return null;
+    }
   }
 
   // Utility functions
@@ -105,7 +120,10 @@
               this.processedMessages = new Set(Array.from(this.processedMessages).slice(-25));
             }
             
-            if (data.type === 'system_message') {
+            // Handle email request from bot
+            if (data.type === 'email_request') {
+              this.emit('emailRequest', data.message || 'Please provide your email address:');
+            } else if (data.type === 'system_message') {
               this.emit('typingStart', data.content);
             } else {
               this.emit('typingEnd');
@@ -143,10 +161,10 @@
       }
     }
 
-    sendMessage(content) {
+    sendMessage(content, isEmail = false) {
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
         this.socket.send(JSON.stringify({
-          type: 'user_message',
+          type: isEmail ? 'email_message' : 'user_message',
           content: content,
           timestamp: new Date().toISOString()
         }));
@@ -389,6 +407,53 @@
       transform: translateY(-1px);
     }
     
+    .email-input-container {
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .email-input-form {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .email-input {
+      flex: 1;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+    
+    .email-input:focus {
+      border-color: #3b82f6;
+    }
+    
+    .email-submit-button {
+      background: #3b82f6;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .email-submit-button:hover:not(:disabled) {
+      background: #2563eb;
+    }
+    
+    .email-submit-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
     .typing-indicator {
       display: flex;
       align-items: center;
@@ -532,6 +597,8 @@
       this.isTyping = false;
       this.isConnected = false;
       this.chatService = null;
+      this.isEmailRequested = false;
+      this.emailValue = '';
       
       this.init();
     }
@@ -664,6 +731,62 @@
       this.suggestionsElement = suggestionsDiv;
     }
 
+    createEmailInput() {
+      const emailContainer = createElement('div', 'email-input-container');
+      
+      const form = createElement('form', 'email-input-form', {
+        onsubmit: (e) => this.handleEmailSubmit(e)
+      });
+
+      this.emailInput = createElement('input', 'email-input', {
+        type: 'email',
+        placeholder: 'Enter your email address...',
+        value: this.emailValue,
+        oninput: (e) => this.emailValue = e.target.value,
+        required: true
+      });
+
+      const submitButton = createElement('button', 'email-submit-button', {
+        type: 'submit',
+        innerHTML: 'Send'
+      });
+
+      form.appendChild(this.emailInput);
+      form.appendChild(submitButton);
+      emailContainer.appendChild(form);
+      
+      this.messagesContainer.appendChild(emailContainer);
+      this.emailContainer = emailContainer;
+      
+      // Focus the email input
+      setTimeout(() => this.emailInput.focus(), 100);
+    }
+
+    handleEmailSubmit(e) {
+      e.preventDefault();
+      
+      if (!this.emailValue.trim()) return;
+      
+      // Validate email format
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(this.emailValue)) {
+        alert('Please enter a valid email address');
+        return;
+      }
+      
+      // Send email as message
+      this.sendMessage(this.emailValue, true);
+      
+      // Clear email input and remove container
+      this.emailValue = '';
+      if (this.emailContainer) {
+        this.emailContainer.remove();
+        this.emailContainer = null;
+      }
+      
+      this.isEmailRequested = false;
+    }
+
     createInput() {
       const inputContainer = createElement('div', 'chat-input-container');
       
@@ -705,7 +828,9 @@
       
       if (this.isOpen) {
         this.chatWindow.classList.remove('hidden');
-        this.input.focus();
+        if (!this.isEmailRequested) {
+          this.input.focus();
+        }
       } else {
         this.chatWindow.classList.add('hidden');
       }
@@ -721,6 +846,13 @@
 
       this.chatService.on('message', (message) => {
         this.addMessage(message.content, 'bot');
+        this.setTyping(false);
+      });
+
+      this.chatService.on('emailRequest', (message) => {
+        this.addMessage(message, 'bot');
+        this.isEmailRequested = true;
+        this.createEmailInput();
         this.setTyping(false);
       });
 
@@ -748,6 +880,9 @@
 
     handleSubmit(e) {
       e.preventDefault();
+      
+      if (this.isEmailRequested) return;
+      
       const message = this.input.value.trim();
       if (message && this.isConnected) {
         this.sendMessage(message);
@@ -756,9 +891,9 @@
       }
     }
 
-    sendMessage(content) {
+    sendMessage(content, isEmail = false) {
       this.addMessage(content, 'user');
-      this.chatService.sendMessage(content);
+      this.chatService.sendMessage(content, isEmail);
       this.setTyping(true);
       
       // Hide suggestions after first message
@@ -829,8 +964,8 @@
   }
 
   // Initialize widget when DOM is ready
-  function initWidget() {
-    const config = parseConfig();
+  async function initWidget() {
+    const config = await fetchConfig();
     if (config) {
       new ChatWidget(config);
     }
