@@ -185,16 +185,17 @@
     
     .chat-popup {
       width: 384px;
-      height: 600px;
+      height: 700px;
       background: #ffffff;
       border-radius: 20px 20px 20px 20px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      box-shadow: none;
       position: absolute;
       bottom: 84px;
       right: 0;
       transform-origin: bottom right;
       animation: chatPopupOpen 0.3s ease-out;
-      overflow: hidden;
+      overflow: visible;
+      padding:0;
     }
     
     .chat-popup.bottom-left {
@@ -229,6 +230,7 @@
       border-radius: 20px 20px 20px 20px;
       background: #f8fafc;
     }
+   
     
     .chat-loading {
       position: absolute;

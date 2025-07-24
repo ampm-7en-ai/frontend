@@ -992,9 +992,9 @@ export const ChatboxPreview = ({
       style={{ 
         fontFamily: fontFamily,
         height: '100%',
-        boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${primaryColor}20, 0 8px 32px ${primaryColor}15`,
+        boxShadow: `0`,
         border: `1px solid ${primaryColor}10`,
-        transformOrigin: showFloatingButton ? (position === 'bottom-left' ? 'bottom left' : 'bottom right') : 'center'
+        transformOrigin: showFloatingButton ? (position === 'bottom-left' ? 'bottom left' : 'bottom right') : 'center',
       }}
     >
       {/* Header */}

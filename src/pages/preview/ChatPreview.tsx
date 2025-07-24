@@ -90,7 +90,7 @@ const ChatPreview = () => {
 
   return (
     <div className="h-screen bg-background overflow-hidden">
-      <div className="w-full h-full">
+      <div className="w-full h-full p-0">
         <ChatboxPreview
           agentId={config.agentId}
           primaryColor={config.primaryColor}
@@ -106,7 +106,7 @@ const ChatPreview = () => {
           emailPlaceholder={config.emailPlaceholder || "Enter your email"}
           emailMessage={config.emailMessage || "Please provide your email to continue"}
           collectEmail={config.collectEmail || false}
-          className="w-full h-full"
+          className="w-full h-full p-0"
         />
       </div>
     </div>
