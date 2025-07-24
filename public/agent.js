@@ -1,3 +1,4 @@
+
 (function() {
   'use strict';
 
@@ -75,7 +76,7 @@
     return element;
   }
 
-  // WebSocket Service
+  // WebSocket Service aligned with ChatboxPreview
   class ChatWebSocketService {
     constructor(agentId, wsUrl) {
       this.agentId = agentId;
@@ -94,57 +95,94 @@
       }
 
       this.isConnecting = true;
+      // Use the same URL format as ChatboxPreview
       const url = `${this.wsUrl}/ws/chat/${this.agentId}`;
       
       try {
         this.socket = new WebSocket(url);
         
         this.socket.onopen = () => {
+          console.log('WebSocket connection established');
           this.isConnecting = false;
           this.reconnectAttempts = 0;
           this.emit('connectionChange', true);
         };
         
         this.socket.onmessage = (event) => {
+          console.log('WebSocket raw message received:', event.data);
+          
           try {
             const data = JSON.parse(event.data);
-            const messageId = data.id || `${data.type}-${Date.now()}`;
+            console.log('WebSocket parsed message:', data);
+            
+            // Generate message ID for deduplication
+            const messageId = data.id || `${data.type}-${data.content || ''}-${Date.now()}`;
             
             if (this.processedMessages.has(messageId)) {
+              console.log('Skipping duplicate message:', messageId);
               return;
             }
             
             this.processedMessages.add(messageId);
             
+            // Clean up old entries
             if (this.processedMessages.size > 50) {
               this.processedMessages = new Set(Array.from(this.processedMessages).slice(-25));
             }
             
-            // Handle email request from bot
-            if (data.type === 'email_request') {
-              this.emit('emailRequest', data.message || 'Please provide your email address:');
-            } else if (data.type === 'system_message') {
-              this.emit('typingStart', data.content);
-            } else {
-              this.emit('typingEnd');
-              this.emit('message', data);
+            // Handle different message types like ChatboxPreview
+            switch (data.type) {
+              case 'email_request':
+                this.emit('emailRequest', data.content || 'Please provide your email address:');
+                break;
+              case 'bot_response':
+                this.emit('message', {
+                  content: data.content,
+                  type: 'bot',
+                  timestamp: data.timestamp || new Date().toISOString()
+                });
+                this.emit('typingEnd');
+                break;
+              case 'typing_start':
+                this.emit('typingStart', data.content);
+                break;
+              case 'typing_end':
+                this.emit('typingEnd');
+                break;
+              default:
+                // Handle generic messages
+                if (data.content) {
+                  this.emit('message', {
+                    content: data.content,
+                    type: data.type || 'bot',
+                    timestamp: data.timestamp || new Date().toISOString()
+                  });
+                }
+                break;
             }
           } catch (error) {
-            console.error('Error parsing message:', error);
+            console.error('Error parsing WebSocket message:', error);
           }
         };
         
-        this.socket.onclose = () => {
+        this.socket.onclose = (event) => {
+          console.log('WebSocket connection closed:', event.code, event.reason);
           this.isConnecting = false;
           this.emit('connectionChange', false);
-          this.handleReconnect();
+          
+          // Only attempt reconnect for certain close codes
+          if (event.code !== 1000 && event.code !== 1001) {
+            this.handleReconnect();
+          }
         };
         
         this.socket.onerror = (error) => {
+          console.error('WebSocket error:', error);
           this.isConnecting = false;
           this.emit('error', 'Connection error');
         };
       } catch (error) {
+        console.error('Failed to create WebSocket connection:', error);
         this.isConnecting = false;
         this.emit('error', 'Failed to create connection');
       }
@@ -155,19 +193,28 @@
         this.reconnectAttempts++;
         const timeout = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 10000);
         
+        console.log(`Attempting to reconnect in ${timeout}ms... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+        
         setTimeout(() => {
           this.connect();
         }, timeout);
       }
     }
 
+    // Use the same message format as ChatboxPreview
     sendMessage(content, isEmail = false) {
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-        this.socket.send(JSON.stringify({
-          type: isEmail ? 'email_message' : 'user_message',
+        const message = {
+          type: isEmail ? 'email_message' : 'message',
           content: content,
           timestamp: new Date().toISOString()
-        }));
+        };
+        
+        console.log('Sending message:', message);
+        this.socket.send(JSON.stringify(message));
+      } else {
+        console.error('WebSocket not connected');
+        this.emit('error', 'Connection not available');
       }
     }
 
@@ -179,20 +226,29 @@
     }
 
     emit(eventName, data) {
+      console.log(`Emitting event '${eventName}':`, data);
       if (this.listeners[eventName]) {
-        this.listeners[eventName].forEach(callback => callback(data));
+        this.listeners[eventName].forEach(callback => {
+          try {
+            callback(data);
+          } catch (error) {
+            console.error(`Error in event callback for '${eventName}':`, error);
+          }
+        });
       }
     }
 
     disconnect() {
       if (this.socket) {
-        this.socket.close();
+        this.socket.close(1000, 'Normal closure');
         this.socket = null;
       }
+      this.isConnecting = false;
+      this.reconnectAttempts = 0;
     }
   }
 
-  // CSS Styles
+  // Updated CSS Styles to match ChatboxPreview
   const styles = `
     .chat-widget-container {
       position: fixed;
@@ -332,15 +388,18 @@
     .chat-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 20px;
-      background: #f9fafb;
+      padding: 16px;
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
     
     .message {
-      margin-bottom: 16px;
       display: flex;
       align-items: flex-start;
       gap: 8px;
+      max-width: 100%;
     }
     
     .message.user {
@@ -353,12 +412,13 @@
       border-radius: 18px;
       font-size: 14px;
       line-height: 1.4;
+      word-wrap: break-word;
     }
     
     .message.bot .message-content {
       background: white;
-      border: 1px solid #e5e7eb;
-      color: #374151;
+      border: 1px solid #e2e8f0;
+      color: #1e293b;
     }
     
     .message.user .message-content {
@@ -377,48 +437,60 @@
       font-style: italic;
     }
     
-    .suggestions {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    .suggestions-container {
       margin-bottom: 16px;
     }
     
     .suggestion-label {
       font-size: 12px;
-      color: #6b7280;
+      color: #64748b;
       font-weight: 500;
       margin-bottom: 8px;
     }
     
+    .suggestions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
     .suggestion-button {
       background: white;
-      border: 1px solid rgba(59, 130, 246, 0.2);
+      border: 1px solid #e2e8f0;
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px 12px;
       text-align: left;
       cursor: pointer;
       font-size: 13px;
       transition: all 0.2s;
+      color: #475569;
     }
     
     .suggestion-button:hover {
-      background: #f3f4f6;
+      background: #f1f5f9;
+      border-color: #cbd5e1;
       transform: translateY(-1px);
     }
     
     .email-input-container {
-      background: #f3f4f6;
-      border: 1px solid #e5e7eb;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
       border-radius: 8px;
-      padding: 12px;
+      padding: 16px;
       margin-bottom: 16px;
+    }
+    
+    .email-input-label {
+      font-size: 14px;
+      color: #374151;
+      margin-bottom: 8px;
+      display: block;
     }
     
     .email-input-form {
       display: flex;
       gap: 8px;
-      align-items: center;
+      align-items: flex-end;
     }
     
     .email-input {
@@ -428,10 +500,12 @@
       padding: 8px 12px;
       font-size: 14px;
       outline: none;
+      transition: border-color 0.2s;
     }
     
     .email-input:focus {
       border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
     
     .email-submit-button {
@@ -442,6 +516,7 @@
       color: white;
       cursor: pointer;
       font-size: 14px;
+      font-weight: 500;
       transition: all 0.2s;
     }
     
@@ -458,34 +533,35 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 16px;
+      margin-bottom: 8px;
     }
     
     .typing-avatar {
-      width: 24px;
-      height: 24px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
-      background: #e5e7eb;
+      background: #e2e8f0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 14px;
     }
     
     .typing-dots {
       background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 8px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 12px 16px;
       display: flex;
       gap: 4px;
+      align-items: center;
     }
     
     .typing-dot {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: #9ca3af;
+      background: #94a3b8;
       animation: typingDot 1.4s infinite;
     }
     
@@ -503,7 +579,7 @@
         opacity: 0.4;
       }
       30% {
-        transform: translateY(-8px);
+        transform: translateY(-4px);
         opacity: 1;
       }
     }
@@ -511,7 +587,7 @@
     .chat-input-container {
       padding: 16px;
       background: white;
-      border-top: 1px solid #e5e7eb;
+      border-top: 1px solid #e2e8f0;
     }
     
     .chat-input-form {
@@ -524,30 +600,33 @@
       flex: 1;
       border: 1px solid #d1d5db;
       border-radius: 20px;
-      padding: 8px 16px;
+      padding: 10px 16px;
       font-size: 14px;
       resize: none;
       outline: none;
-      max-height: 100px;
-      min-height: 36px;
+      max-height: 120px;
+      min-height: 40px;
+      transition: border-color 0.2s;
     }
     
     .chat-input:focus {
       border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
     
     .chat-send-button {
       background: #3b82f6;
       border: none;
       border-radius: 50%;
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       color: white;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.2s;
+      font-size: 16px;
     }
     
     .chat-send-button:hover:not(:disabled) {
@@ -638,11 +717,22 @@
         const avatar = createElement('img', null, {
           src: this.config.avatarUrl,
           alt: this.config.chatbotName,
-          style: 'width: 24px; height: 24px; border-radius: 50%;'
+          style: 'width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;'
         });
         this.button.appendChild(avatar);
       } else {
-        this.button.innerHTML = hasText ? `💬 ${this.config.buttonText}` : '💬';
+        const icon = createElement('span', null, {
+          innerHTML: '💬',
+          style: hasText ? 'margin-right: 8px;' : ''
+        });
+        this.button.appendChild(icon);
+      }
+
+      if (hasText) {
+        const text = createElement('span', null, {
+          innerHTML: this.config.buttonText
+        });
+        this.button.appendChild(text);
       }
 
       this.container.appendChild(this.button);
@@ -703,7 +793,7 @@
         this.messagesContainer.appendChild(welcomeDiv);
       }
 
-      // Add suggestions if present and no messages
+      // Add suggestions if present
       if (this.config.suggestions.length > 0) {
         this.createSuggestions();
       }
@@ -712,13 +802,15 @@
     }
 
     createSuggestions() {
-      const suggestionsDiv = createElement('div', 'suggestions');
+      const suggestionsContainer = createElement('div', 'suggestions-container');
       
       const label = createElement('div', 'suggestion-label', {
         innerHTML: 'Suggested questions:'
       });
-      suggestionsDiv.appendChild(label);
+      suggestionsContainer.appendChild(label);
 
+      const suggestionsDiv = createElement('div', 'suggestions');
+      
       this.config.suggestions.forEach(suggestion => {
         const button = createElement('button', 'suggestion-button', {
           innerHTML: suggestion,
@@ -727,12 +819,18 @@
         suggestionsDiv.appendChild(button);
       });
 
-      this.messagesContainer.appendChild(suggestionsDiv);
-      this.suggestionsElement = suggestionsDiv;
+      suggestionsContainer.appendChild(suggestionsDiv);
+      this.messagesContainer.appendChild(suggestionsContainer);
+      this.suggestionsElement = suggestionsContainer;
     }
 
     createEmailInput() {
       const emailContainer = createElement('div', 'email-input-container');
+      
+      const label = createElement('label', 'email-input-label', {
+        innerHTML: 'Please provide your email address:'
+      });
+      emailContainer.appendChild(label);
       
       const form = createElement('form', 'email-input-form', {
         onsubmit: (e) => this.handleEmailSubmit(e)
@@ -748,7 +846,7 @@
 
       const submitButton = createElement('button', 'email-submit-button', {
         type: 'submit',
-        innerHTML: 'Send'
+        innerHTML: 'Submit'
       });
 
       form.appendChild(this.emailInput);
@@ -795,9 +893,15 @@
       });
 
       this.input = createElement('textarea', 'chat-input', {
-        placeholder: 'Type your message...',
+        placeholder: this.isConnected ? 'Type your message...' : 'Connecting...',
         rows: 1,
-        oninput: () => this.adjustTextareaHeight()
+        oninput: () => this.adjustTextareaHeight(),
+        onkeydown: (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            this.handleSubmit(e);
+          }
+        }
       });
 
       this.sendButton = createElement('button', 'chat-send-button', {
@@ -820,7 +924,7 @@
 
     adjustTextareaHeight() {
       this.input.style.height = 'auto';
-      this.input.style.height = Math.min(this.input.scrollHeight, 100) + 'px';
+      this.input.style.height = Math.min(this.input.scrollHeight, 120) + 'px';
     }
 
     toggleChat() {
@@ -842,10 +946,11 @@
       this.chatService.on('connectionChange', (connected) => {
         this.isConnected = connected;
         this.updateConnectionStatus();
+        this.updateInputPlaceholder();
       });
 
       this.chatService.on('message', (message) => {
-        this.addMessage(message.content, 'bot');
+        this.addMessage(message.content, message.type || 'bot');
         this.setTyping(false);
       });
 
@@ -866,6 +971,7 @@
 
       this.chatService.on('error', (error) => {
         console.error('Chat error:', error);
+        this.updateConnectionStatus();
       });
 
       this.chatService.connect();
@@ -875,6 +981,12 @@
       const statusText = this.chatWindow.querySelector('.chat-header-text p');
       if (statusText) {
         statusText.textContent = this.isConnected ? 'Online' : 'Connecting...';
+      }
+    }
+
+    updateInputPlaceholder() {
+      if (this.input) {
+        this.input.placeholder = this.isConnected ? 'Type your message...' : 'Connecting...';
       }
     }
 
@@ -892,8 +1004,13 @@
     }
 
     sendMessage(content, isEmail = false) {
+      // Add user message to UI
       this.addMessage(content, 'user');
+      
+      // Send message via WebSocket
       this.chatService.sendMessage(content, isEmail);
+      
+      // Show typing indicator
       this.setTyping(true);
       
       // Hide suggestions after first message
@@ -904,6 +1021,16 @@
 
     addMessage(content, type) {
       const messageDiv = createElement('div', `message ${type}`);
+      
+      // Add avatar for bot messages
+      if (type === 'bot') {
+        const avatar = createElement('div', 'typing-avatar', {
+          innerHTML: this.config.avatarUrl ? 
+            `<img src="${this.config.avatarUrl}" alt="Bot" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">` : 
+            '🤖'
+        });
+        messageDiv.appendChild(avatar);
+      }
       
       const messageContent = createElement('div', 'message-content', {
         innerHTML: content
@@ -932,20 +1059,24 @@
         const typingDiv = createElement('div', 'typing-indicator');
         
         const avatar = createElement('div', 'typing-avatar', {
-          style: `background: ${this.config.primaryColor}`,
-          innerHTML: '🤖'
+          innerHTML: this.config.avatarUrl ? 
+            `<img src="${this.config.avatarUrl}" alt="Bot" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">` : 
+            '🤖'
         });
         
         const dotsContainer = createElement('div', 'typing-dots');
+        
+        // Add typing dots
         for (let i = 0; i < 3; i++) {
           const dot = createElement('div', 'typing-dot');
           dotsContainer.appendChild(dot);
         }
         
+        // Add system message if provided
         if (systemMessage) {
           const messageSpan = createElement('span', null, {
             innerHTML: systemMessage,
-            style: 'font-size: 12px; color: #6b7280; margin-left: 8px;'
+            style: 'font-size: 12px; color: #64748b; margin-left: 8px;'
           });
           dotsContainer.appendChild(messageSpan);
         }
