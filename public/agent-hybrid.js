@@ -117,7 +117,7 @@
       outline: none;
       overflow: hidden;
       border: 4px solid rgba(255, 255, 255, 0.3);
-      box-shadow: none;
+      box-shadow: none !important;
     }
     
     .chat-button.with-text {
@@ -126,6 +126,7 @@
       height: auto;
       gap: 8px;
       font-size: 14px;
+      box-shadow: none !important;
     }
     
     .chat-button.icon-only {
@@ -133,14 +134,17 @@
       width: 64px;
       height: 64px;
       padding: 0;
+      box-shadow: none !important;
     }
     
     .chat-button:hover {
       transform: scale(1.1);
+      box-shadow: none !important;
     }
     
     .chat-button:active {
       transform: scale(0.95);
+      box-shadow: none !important;
     }
     
     .chat-button-gradient-overlay {
@@ -149,6 +153,7 @@
       background: linear-gradient(90deg, rgba(255, 255, 255, 0.2), transparent);
       opacity: 0;
       transition: opacity 0.3s ease;
+      box-shadow: none !important;
     }
     
     .chat-button:hover .chat-button-gradient-overlay {
@@ -188,7 +193,7 @@
       height: 700px;
       background: #ffffff;
       border-radius: 20px 20px 20px 20px;
-      box-shadow: none;
+      box-shadow: none !important;
       position: absolute;
       bottom: 84px;
       right: 0;
@@ -222,7 +227,7 @@
       position: relative;
       overflow: hidden;
       border-radius: 20px 20px 20px 20px;
-      box-shadow: none;
+      box-shadow: none !important;
       border: none;
     }
     
@@ -232,7 +237,7 @@
       border: none;
       border-radius: 20px 20px 20px 20px;
       background: #f8fafc;
-      box-shadow: none;
+      box-shadow: none !important;
     }
     
     .chat-loading {
@@ -271,7 +276,7 @@
         bottom: 84px;
         right: 20px;
         left: 20px;
-        box-shadow: none;
+        box-shadow: none !important;
       }
       
       .chat-popup.bottom-left {
@@ -308,12 +313,33 @@
           .replace(/var\(--font-family\)/g, this.config.fontFamily)
       });
       
-      // Add dynamic styles for button - removed box-shadow
+      // Add dynamic styles for button - completely removed all shadows
       const dynamicStyle = createElement('style', null, {
         innerHTML: `
           .chat-button {
             background: linear-gradient(135deg, ${this.config.primaryColor}, ${adjustedPrimaryColor}) !important;
             font-family: ${this.config.fontFamily} !important;
+            box-shadow: none !important;
+          }
+          .chat-button:hover {
+            box-shadow: none !important;
+          }
+          .chat-button:active {
+            box-shadow: none !important;
+          }
+          .chat-button:focus {
+            box-shadow: none !important;
+          }
+          .chat-popup {
+            box-shadow: none !important;
+          }
+          .chat-iframe-container {
+            box-shadow: none !important;
+          }
+          .chat-iframe {
+            box-shadow: none !important;
+          }
+          * {
             box-shadow: none !important;
           }
         `

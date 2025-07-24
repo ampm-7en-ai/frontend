@@ -59,6 +59,25 @@ const ChatPreview = () => {
       document.body.style.overflow = 'hidden';
     }
     
+    // Add styles to remove any potential shadows
+    const style = document.createElement('style');
+    style.textContent = `
+      * {
+        box-shadow: none !important;
+      }
+      body {
+        box-shadow: none !important;
+      }
+      .chat-container,
+      .chat-preview,
+      .chatbox-preview {
+        box-shadow: none !important;
+        border: none !important;
+        outline: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
     // Signal parent that iframe is ready
     window.parent.postMessage({ type: 'iframe-ready' }, '*');
     
@@ -66,6 +85,7 @@ const ChatPreview = () => {
       if (window.parent !== window) {
         document.body.style.overflow = 'auto';
       }
+      document.head.removeChild(style);
     };
   }, []);
 
@@ -80,7 +100,7 @@ const ChatPreview = () => {
   if (error || !config) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <div className="text-center max-w-md mx-auto p-6 bg-card rounded-lg shadow-md">
+        <div className="text-center max-w-md mx-auto p-6 bg-card rounded-lg">
           <h2 className="text-2xl font-bold text-destructive mb-2">Error</h2>
           <p className="text-muted-foreground">{error || 'Failed to load chatbot configuration'}</p>
         </div>
@@ -89,8 +109,8 @@ const ChatPreview = () => {
   }
 
   return (
-    <div className="h-screen bg-background overflow-hidden">
-      <div className="w-full h-full p-0">
+    <div className="h-screen bg-background overflow-hidden" style={{ boxShadow: 'none' }}>
+      <div className="w-full h-full p-0" style={{ boxShadow: 'none' }}>
         <ChatboxPreview
           agentId={config.agentId}
           primaryColor={config.primaryColor}
@@ -107,6 +127,7 @@ const ChatPreview = () => {
           emailMessage={config.emailMessage || "Please provide your email to continue"}
           collectEmail={config.collectEmail || false}
           className="w-full h-full p-0"
+          style={{ boxShadow: 'none', border: 'none' }}
         />
       </div>
     </div>
