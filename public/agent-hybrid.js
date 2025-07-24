@@ -56,12 +56,43 @@
     return element;
   }
 
+  // Helper function to adjust color brightness
+  function adjustColor(color, amount) {
+    try {
+      const hex = color.replace('#', '');
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      
+      const newR = Math.max(0, Math.min(255, r + amount));
+      const newG = Math.max(0, Math.min(255, g + amount));
+      const newB = Math.max(0, Math.min(255, b + amount));
+      
+      return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+    } catch (e) {
+      return color;
+    }
+  }
+
+  // Helper function to convert hex to rgba
+  function hexToRgba(hex, alpha = 1) {
+    try {
+      const cleanHex = hex.replace('#', '');
+      const r = parseInt(cleanHex.substring(0, 2), 16);
+      const g = parseInt(cleanHex.substring(2, 4), 16);
+      const b = parseInt(cleanHex.substring(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    } catch (e) {
+      return 'rgba(59, 130, 246, 0.5)';
+    }
+  }
+
   // CSS Styles for the shell
   const styles = `
     .chat-widget-container {
       position: fixed;
       z-index: 10000;
-      font-family: Inter, system-ui, -apple-system, sans-serif;
+      font-family: var(--font-family);
     }
     
     .chat-widget-container.bottom-right {
@@ -75,41 +106,61 @@
     }
     
     .chat-button {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
       border: none;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
       color: white;
-      font-size: 24px;
-      background: var(--primary-color);
+      font-weight: 500;
       position: relative;
       outline: none;
+      overflow: hidden;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .chat-button.with-text {
+      border-radius: 40px;
+      padding: 16px 24px;
+      height: auto;
+      gap: 8px;
+      font-size: 14px;
+    }
+    
+    .chat-button.icon-only {
+      border-radius: 50%;
+      width: 64px;
+      height: 64px;
+      padding: 0;
     }
     
     .chat-button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      transform: scale(1.1);
     }
     
     .chat-button:active {
       transform: scale(0.95);
     }
     
-    .chat-button.with-text {
-      width: auto;
-      min-width: 140px;
-      height: 56px;
-      padding: 0 24px;
-      border-radius: 28px;
+    .chat-button-gradient-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.2), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .chat-button:hover .chat-button-gradient-overlay {
+      opacity: 1;
+    }
+    
+    .chat-button-content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
       gap: 8px;
-      font-size: 14px;
-      font-weight: 500;
     }
     
     .chat-button-icon {
@@ -122,14 +173,24 @@
       stroke-linejoin: round;
     }
     
+    .chat-button.icon-only .chat-button-icon {
+      width: 24px;
+      height: 24px;
+    }
+    
+    .chat-avatar {
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    
     .chat-popup {
-      width: 380px;
+      width: 384px;
       height: 600px;
       background: #ffffff;
-      border-radius: 16px;
+      border-radius: 20px 20px 20px 20px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
       position: absolute;
-      bottom: 80px;
+      bottom: 84px;
       right: 0;
       transform-origin: bottom right;
       animation: chatPopupOpen 0.3s ease-out;
@@ -158,14 +219,14 @@
       height: 100%;
       position: relative;
       overflow: hidden;
-      border-radius: 16px;
+      border-radius: 20px 20px 20px 20px;
     }
     
     .chat-iframe {
       width: 100%;
       height: 100%;
       border: none;
-      border-radius: 16px;
+      border-radius: 20px 20px 20px 20px;
       background: #f8fafc;
     }
     
@@ -202,7 +263,7 @@
       .chat-popup {
         width: calc(100vw - 40px);
         height: calc(100vh - 100px);
-        bottom: 80px;
+        bottom: 84px;
         right: 20px;
         left: 20px;
       }
@@ -231,10 +292,29 @@
     }
 
     injectStyles() {
+      const primaryColorRgba = hexToRgba(this.config.primaryColor, 0.3);
+      const primaryColorRgbaLight = hexToRgba(this.config.primaryColor, 0.15);
+      const adjustedPrimaryColor = adjustColor(this.config.primaryColor, -30);
+      
       const styleElement = createElement('style', null, {
-        innerHTML: styles.replace(/var\(--primary-color\)/g, this.config.primaryColor)
+        innerHTML: styles
+          .replace(/var\(--primary-color\)/g, this.config.primaryColor)
+          .replace(/var\(--font-family\)/g, this.config.fontFamily)
       });
+      
+      // Add dynamic styles for button
+      const dynamicStyle = createElement('style', null, {
+        innerHTML: `
+          .chat-button {
+            background: linear-gradient(135deg, ${this.config.primaryColor}, ${adjustedPrimaryColor}) !important;
+            box-shadow: 0 10px 30px ${primaryColorRgba}, 0 5px 15px ${primaryColorRgbaLight} !important;
+            font-family: ${this.config.fontFamily} !important;
+          }
+        `
+      });
+      
       document.head.appendChild(styleElement);
+      document.head.appendChild(dynamicStyle);
     }
 
     createWidget() {
@@ -248,27 +328,45 @@
 
     createButton() {
       const hasText = this.config.buttonText && this.config.buttonText.trim();
-      const buttonClass = hasText ? 'chat-button with-text' : 'chat-button';
+      const buttonClass = hasText ? 'chat-button with-text' : 'chat-button icon-only';
       
       this.button = createElement('button', buttonClass, {
         onclick: () => this.toggleChat()
       });
 
-      // Chat icon SVG
-      const chatIcon = createElement('svg', 'chat-button-icon', {
-        innerHTML: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12H5a2.5 2.5 0 0 0-2.5 2.5V20a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-7.5a.5.5 0 0 0-.5-.5Z"/><path d="M16 12h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2v4l-4-4H8a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h2V8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4Z"/>',
-        viewBox: '0 0 24 24'
-      });
-      
-      this.button.appendChild(chatIcon);
+      // Create gradient overlay
+      const gradientOverlay = createElement('div', 'chat-button-gradient-overlay');
+      this.button.appendChild(gradientOverlay);
 
+      // Create content container
+      const contentContainer = createElement('div', 'chat-button-content');
+
+      // Add avatar or MessageSquare icon
+      if (this.config.avatarUrl) {
+        const avatar = createElement('img', 'chat-avatar', {
+          src: this.config.avatarUrl,
+          alt: this.config.chatbotName,
+          style: hasText ? 'width: 24px; height: 24px;' : 'width: 56px; height: 56px;'
+        });
+        contentContainer.appendChild(avatar);
+      } else {
+        // MessageSquare icon as SVG (converted from Lucide)
+        const iconSvg = createElement('svg', 'chat-button-icon', {
+          innerHTML: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/><path d="M15.8 11.9c0 .6-.4 1-1 1s-1-.4-1-1 .4-1 1-1 1 .4 1 1z"/><path d="M9.8 11.9c0 .6-.4 1-1 1s-1-.4-1-1 .4-1 1-1 1 .4 1 1z"/>',
+          viewBox: '0 0 24 24'
+        });
+        contentContainer.appendChild(iconSvg);
+      }
+
+      // Add text if provided
       if (hasText) {
         const text = createElement('span', null, {
           innerHTML: this.config.buttonText
         });
-        this.button.appendChild(text);
+        contentContainer.appendChild(text);
       }
 
+      this.button.appendChild(contentContainer);
       this.container.appendChild(this.button);
     }
 
