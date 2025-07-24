@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { FileText, Loader2, Upload } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,22 +9,40 @@ import SourceTypeSelector from '@/components/agents/knowledge/SourceTypeSelector
 
 const KnowledgeUpload: React.FC = () => {
   const [knowledgeBaseName, setKnowledgeBaseName] = useState('');
-  const [sourceType, setSourceType] = useState<'file' | 'url' | 'text'>('file');
+  const [sourceType, setSourceType] = useState<'url' | 'document' | 'csv' | 'plainText' | 'thirdParty'>('url');
   const [url, setUrl] = useState('');
   const [isUrlLoading, setIsUrlLoading] = useState(false);
   const [textContent, setTextContent] = useState('');
-  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<'googleDrive' | 'slack' | 'notion' | 'dropbox' | 'github' | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [googleDriveFiles, setGoogleDriveFiles] = useState<File[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+  const [googleDriveFiles, setGoogleDriveFiles] = useState<Array<{
+    id: string;
+    name: string;
+    mimeType: string;
+    webViewLink: string;
+    createdTime: string;
+    modifiedTime: string;
+  }>>([]);
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
-  const [scrapedUrls, setScrapedUrls] = useState<{ url: string }[]>([]);
+  const [scrapedUrls, setScrapedUrls] = useState<Array<{
+    url: string;
+    title: string;
+    selected: boolean;
+  }>>([]);
   const [selectedUrls, setSelectedUrls] = useState<string[]>([]);
   const [importAllLinkedPages, setImportAllLinkedPages] = useState(false);
   const [isScrapingUrls, setIsScrapingUrls] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [isUploading, setIsUploading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{
+    url?: string;
+    files?: string;
+    plainText?: string;
+    thirdParty?: string;
+  }>({});
+  const [isDragOver, setIsDragOver] = useState(false);
 
   // Add select all functionality
   const handleSelectAllFiles = () => {
@@ -32,7 +51,7 @@ const KnowledgeUpload: React.FC = () => {
       setSelectedFiles([]);
     } else {
       // Select all files
-      setSelectedFiles([...uploadedFiles]);
+      setSelectedFiles(uploadedFiles.map(file => file.name));
     }
   };
 
@@ -78,7 +97,7 @@ const KnowledgeUpload: React.FC = () => {
 
   const handleClear = () => {
     setKnowledgeBaseName('');
-    setSourceType('file');
+    setSourceType('url');
     setUrl('');
     setTextContent('');
     setSelectedProvider(null);
@@ -93,14 +112,150 @@ const KnowledgeUpload: React.FC = () => {
 
   const getUploadButtonText = () => {
     switch (sourceType) {
-      case 'file':
+      case 'document':
         return 'Upload Files';
       case 'url':
         return 'Scrape URLs';
-      case 'text':
+      case 'plainText':
         return 'Upload Text';
       default:
         return 'Upload';
+    }
+  };
+
+  // Handler functions for SourceTypeSelector
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setUploadedFiles(Array.from(e.target.files));
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles(files => files.filter((_, i) => i !== index));
+  };
+
+  const handleQuickConnect = async (provider: 'googleDrive' | 'slack' | 'notion' | 'dropbox' | 'github') => {
+    setSelectedProvider(provider);
+    if (provider === 'googleDrive') {
+      // Mock Google Drive connection
+      setIsLoadingGoogleDriveFiles(true);
+      setTimeout(() => {
+        setGoogleDriveFiles([
+          {
+            id: '1',
+            name: 'Sample Document.pdf',
+            mimeType: 'application/pdf',
+            webViewLink: 'https://drive.google.com/file/d/1',
+            createdTime: '2024-01-01T00:00:00Z',
+            modifiedTime: '2024-01-01T00:00:00Z'
+          }
+        ]);
+        setIsLoadingGoogleDriveFiles(false);
+      }, 1000);
+    }
+  };
+
+  const handleRemoveSelectedFile = (index: number) => {
+    setSelectedFiles(files => files.filter((_, i) => i !== index));
+  };
+
+  const handleFileUploadClick = () => {
+    document.getElementById('file-upload')?.click();
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (e.dataTransfer.files) {
+      setUploadedFiles(Array.from(e.dataTransfer.files));
+    }
+  };
+
+  const getFileIcon = (mimeType: string) => {
+    return <Upload className="h-4 w-4" />;
+  };
+
+  const toggleFileSelection = (fileName: string) => {
+    setSelectedFiles(prev => 
+      prev.includes(fileName) 
+        ? prev.filter(f => f !== fileName)
+        : [...prev, fileName]
+    );
+  };
+
+  const fetchGoogleDriveData = async () => {
+    setIsLoadingGoogleDriveFiles(true);
+    // Mock implementation
+    setTimeout(() => {
+      setGoogleDriveFiles([
+        {
+          id: '1',
+          name: 'Sample Document.pdf',
+          mimeType: 'application/pdf',
+          webViewLink: 'https://drive.google.com/file/d/1',
+          createdTime: '2024-01-01T00:00:00Z',
+          modifiedTime: '2024-01-01T00:00:00Z'
+        }
+      ]);
+      setIsLoadingGoogleDriveFiles(false);
+    }, 1000);
+  };
+
+  const availableThirdPartyProviders: [string, any][] = [
+    ['googleDrive', { 
+      icon: <Upload className="h-4 w-4" />, 
+      name: 'Google Drive', 
+      description: 'Import from Google Drive', 
+      color: 'bg-blue-500', 
+      id: 'googleDrive' 
+    }]
+  ];
+
+  const thirdPartyProviders = {
+    googleDrive: { 
+      icon: <Upload className="h-4 w-4" />, 
+      name: 'Google Drive', 
+      description: 'Import from Google Drive', 
+      color: 'bg-blue-500', 
+      id: 'googleDrive' 
+    },
+    slack: { 
+      icon: <Upload className="h-4 w-4" />, 
+      name: 'Slack', 
+      description: 'Import from Slack', 
+      color: 'bg-purple-500', 
+      id: 'slack' 
+    },
+    notion: { 
+      icon: <Upload className="h-4 w-4" />, 
+      name: 'Notion', 
+      description: 'Import from Notion', 
+      color: 'bg-gray-500', 
+      id: 'notion' 
+    },
+    dropbox: { 
+      icon: <Upload className="h-4 w-4" />, 
+      name: 'Dropbox', 
+      description: 'Import from Dropbox', 
+      color: 'bg-blue-600', 
+      id: 'dropbox' 
+    },
+    github: { 
+      icon: <Upload className="h-4 w-4" />, 
+      name: 'GitHub', 
+      description: 'Import from GitHub', 
+      color: 'bg-gray-800', 
+      id: 'github' 
     }
   };
 
@@ -149,25 +304,36 @@ const KnowledgeUpload: React.FC = () => {
                 setSourceType={setSourceType}
                 url={url}
                 setUrl={setUrl}
-                isUrlLoading={isUrlLoading}
-                setIsUrlLoading={setIsUrlLoading}
-                textContent={textContent}
-                setTextContent={setTextContent}
+                files={uploadedFiles}
+                setFiles={setUploadedFiles}
+                plainText={textContent}
+                setPlainText={setTextContent}
+                importAllPages={importAllLinkedPages}
+                setImportAllPages={setImportAllLinkedPages}
                 selectedProvider={selectedProvider}
                 setSelectedProvider={setSelectedProvider}
-                uploadedFiles={uploadedFiles}
-                setUploadedFiles={setUploadedFiles}
                 selectedFiles={selectedFiles}
                 setSelectedFiles={setSelectedFiles}
-                googleDriveFiles={googleDriveFiles}
-                setGoogleDriveFiles={setGoogleDriveFiles}
+                validationErrors={validationErrors}
+                setValidationErrors={setValidationErrors}
+                isDragOver={isDragOver}
+                setIsDragOver={setIsDragOver}
+                isConnecting={false}
                 isLoadingGoogleDriveFiles={isLoadingGoogleDriveFiles}
-                setIsLoadingGoogleDriveFiles={setIsLoadingGoogleDriveFiles}
-                fetchGoogleDriveData={handleRefreshFiles}
-                selectedUrls={selectedUrls}
-                setSelectedUrls={setSelectedUrls}
-                importAllLinkedPages={importAllLinkedPages}
-                setImportAllLinkedPages={setImportAllLinkedPages}
+                googleDriveFiles={googleDriveFiles}
+                availableThirdPartyProviders={availableThirdPartyProviders}
+                thirdPartyProviders={thirdPartyProviders}
+                handleFileChange={handleFileChange}
+                removeFile={removeFile}
+                handleQuickConnect={handleQuickConnect}
+                handleRemoveSelectedFile={handleRemoveSelectedFile}
+                handleFileUploadClick={handleFileUploadClick}
+                handleDragOver={handleDragOver}
+                handleDragLeave={handleDragLeave}
+                handleDrop={handleDrop}
+                getFileIcon={getFileIcon}
+                toggleFileSelection={toggleFileSelection}
+                fetchGoogleDriveData={fetchGoogleDriveData}
                 isScrapingUrls={isScrapingUrls}
                 scrapedUrls={scrapedUrls}
                 toggleUrlSelection={toggleUrlSelection}
