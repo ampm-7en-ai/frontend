@@ -164,12 +164,13 @@ export const ConfigurationPanel = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Start validation and upload immediately
     const isValid = await validateImageFile(file);
     if (isValid) {
       await uploadAvatarFile(file);
     }
 
-    // Reset the input
+    // Reset the input so the same file can be selected again if needed
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -360,12 +361,19 @@ export const ConfigurationPanel = () => {
               <div className="space-y-1">
                 <Label className="text-xs font-medium">Avatar</Label>
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={agentData.avatar} alt={agentData.name} />
-                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                      {agentData.name.charAt(0).toUpperCase() || 'A'}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={agentData.avatar} alt={agentData.name} />
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                        {agentData.name.charAt(0).toUpperCase() || 'A'}
+                      </AvatarFallback>
+                    </Avatar>
+                    {isUploadingAvatar && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                        <LoadingSpinner size="sm" />
+                      </div>
+                    )}
+                  </div>
                   <div className="flex-1">
                     <input
                       ref={fileInputRef}
