@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBuilder } from './BuilderContext';
@@ -53,6 +52,8 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
   const handleTrainKnowledge = async () => {
     if (!agentData.id) return;
     
+    console.log('🚀 TOOLBAR: Starting training process for agent:', agentData.id);
+    
     if (agentData.knowledgeSources.length === 0) {
       toast({
         title: "No sources selected",
@@ -103,8 +104,8 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
         }
       });
 
-      console.log('Extracted knowledge source IDs:', knowledgeSourceIds);
-      console.log('Extracted website URLs:', websiteUrls);
+      console.log('🔧 TOOLBAR: Extracted knowledge source IDs:', knowledgeSourceIds);
+      console.log('🔧 TOOLBAR: Extracted website URLs:', websiteUrls);
 
       const success = await AgentTrainingService.trainAgent(
         agentData.id.toString(), 
@@ -113,13 +114,10 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
         websiteUrls
       );
       
+      console.log('🎯 TOOLBAR: Training service returned success:', success);
+      
       if (success) {
-        console.log('✅ Training successful from toolbar, refreshing builder page');
-
-        // Refresh the entire page after successful training
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        console.log('✅ TOOLBAR: Training successful, preparing page refresh');
 
         addNotification({
           title: 'Training Complete',
@@ -135,7 +133,23 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
         }));
         
         updateAgentData({ knowledgeSources: updatedSources });
+
+        // Add a more obvious success toast
+        toast({
+          title: "Training Complete!",
+          description: "Refreshing page in 2 seconds...",
+          variant: "default"
+        });
+
+        // Refresh the entire page after successful training
+        console.log('🔄 TOOLBAR: Scheduling page refresh in 2 seconds');
+        setTimeout(() => {
+          console.log('🔄 TOOLBAR: Executing page refresh now');
+          window.location.reload();
+        }, 2000);
+
       } else {
+        console.log('❌ TOOLBAR: Training failed');
         addNotification({
           title: 'Training Failed',
           message: `Agent "${agentData.name}" training has failed.`,
@@ -145,7 +159,7 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
         });
       }
     } catch (error) {
-      console.error("Error training agent:", error);
+      console.error("❌ TOOLBAR: Error training agent:", error);
       
       addNotification({
         title: 'Training Failed',
@@ -155,6 +169,7 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
         agentName: agentData.name
       });
     } finally {
+      console.log('🏁 TOOLBAR: Training process finished, resetting state');
       setIsTraining(false);
       onTrainingStateChange?.(false);
     }
@@ -220,15 +235,6 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
             Playground
           </ModernButton>
           
-          {/* <ModernButton
-            variant="ghost"
-            size="sm"
-            icon={Trash2}
-            onClick={() => setShowDeleteDialog(true)}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
-          >
-            Delete
-          </ModernButton> */}
           <ModernButton
             variant="ghost"
             size="sm"
