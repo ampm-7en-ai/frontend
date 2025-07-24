@@ -1,723 +1,328 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import ModernButton from '@/components/dashboard/ModernButton';
-import WhatsAppIntegration from '@/components/integrations/WhatsAppIntegration';
-import SlackIntegration from '@/components/integrations/SlackIntegration';
-import InstagramIntegration from '@/components/integrations/InstagramIntegration';
-import MessengerIntegration from '@/components/integrations/MessengerIntegration';
-import ZapierIntegration from '@/components/integrations/ZapierIntegration';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { 
+  Settings, 
+  Search, 
+  Filter, 
+  CheckCircle, 
+  AlertCircle, 
+  ExternalLink,
+  MessageSquare,
+  Zap,
+  Database,
+  Mail,
+  Phone,
+  Globe,
+  ArrowLeft,
+  Shield,
+  Building
+} from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { IntegrationStatusBadge } from '@/components/ui/integration-status-badge';
+import { useIntegrations } from '@/hooks/useIntegrations';
+
+// Import individual integration components
+import HubspotIntegration from '@/components/integrations/HubspotIntegration';
 import ZendeskIntegration from '@/components/integrations/ZendeskIntegration';
 import FreshdeskIntegration from '@/components/integrations/FreshdeskIntegration';
-import ZohoIntegration from '@/components/integrations/ZohoIntegration';
 import SalesforceIntegration from '@/components/integrations/SalesforceIntegration';
-import HubspotIntegration from '@/components/integrations/HubspotIntegration';
+import ZohoIntegration from '@/components/integrations/ZohoIntegration';
+import SlackIntegration from '@/components/integrations/SlackIntegration';
+import WhatsAppIntegration from '@/components/integrations/WhatsAppIntegration';
+import MessengerIntegration from '@/components/integrations/MessengerIntegration';
+import InstagramIntegration from '@/components/integrations/InstagramIntegration';
 import GoogleDriveIntegration from '@/components/integrations/GoogleDriveIntegration';
-import { IntegrationStatusBadge } from '@/components/ui/integration-status-badge';
-import { ArrowLeft, Star } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
-import { initFacebookSDK } from '@/utils/facebookSDK';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
-import { useIntegrations } from '@/hooks/useIntegrations';
-import { ModernModal } from '@/components/ui/modern-modal';
+import ZapierIntegration from '@/components/integrations/ZapierIntegration';
+
+interface Integration {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  status: string;
+  logo?: string;
+}
 
 const IntegrationsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedIntegration, setSelectedIntegration] = useState<string | null>(
-    searchParams.get('integration') || null
-  );
-  const [isFacebookInitialized, setIsFacebookInitialized] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-  const [isSettingDefault, setIsSettingDefault] = useState<string | null>(null);
-  const [isConnectingGoogleDrive, setIsConnectingGoogleDrive] = useState(false);
-  const [isDisconnectingGoogleDrive, setIsDisconnectingGoogleDrive] = useState(false);
-  const [googleAuthUrl, setGoogleAuthUrl] = useState<string | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null);
   const [showSuccessBadge, setShowSuccessBadge] = useState(false);
   const { toast } = useToast();
-
-  // Use the centralized integration store
-  const {
-    integrations,
-    isLoading: isLoadingStatuses,
-    error,
-    getIntegrationStatus,
-    updateIntegrationStatus,
-    setDefaultProvider: updateDefaultProvider,
-    defaultProvider,
-    forceRefresh
+  
+  const { 
+    ticketingProviders, 
+    communicationProviders, 
+    productivityProviders, 
+    automationProviders,
+    isLoading,
+    error 
   } = useIntegrations();
 
-  // Handle integration selection with URL persistence
+  // Handle URL-based integration selection and success detection
+  useEffect(() => {
+    const integration = searchParams.get('integration');
+    const status = searchParams.get('status');
+    
+    if (integration) {
+      setSelectedIntegration(integration);
+    }
+    
+    // Handle OAuth success callback
+    if (status === 'success' && integration) {
+      setShowSuccessBadge(true);
+      
+      // Send success message to the integration component
+      window.postMessage({
+        type: `${integration.toUpperCase()}_OAUTH_SUCCESS`,
+        integration
+      }, window.location.origin);
+      
+      // Remove status from URL after processing
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('status');
+      setSearchParams(newSearchParams, { replace: true });
+      
+      // Hide success badge after 5 seconds
+      setTimeout(() => setShowSuccessBadge(false), 5000);
+    }
+  }, [searchParams, setSearchParams]);
+
+  // Update URL when integration is selected
   const handleIntegrationSelect = (integrationId: string) => {
     setSelectedIntegration(integrationId);
-    // Update URL parameter to persist selection
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set('integration', integrationId);
-    setSearchParams(newSearchParams);
-    
-    // Store the integration being configured in localStorage
-    localStorage.setItem('lastConfiguredIntegration', integrationId);
+    setSearchParams({ integration: integrationId });
   };
 
-  // Handle going back to integrations list
-  const handleBackToIntegrations = () => {
+  // Handle back to list
+  const handleBackToList = () => {
     setSelectedIntegration(null);
-    // Remove integration parameter from URL
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.delete('integration');
-    setSearchParams(newSearchParams);
+    setSearchParams({});
   };
 
-  // Check for success status and show badge
-  useEffect(() => {
-    const status = searchParams.get('status');
-    if (status === 'success') {
-      const lastConfigured = localStorage.getItem('lastConfiguredIntegration');
-      if (lastConfigured) {
-        setShowSuccessBadge(true);
-        
-        // Auto-dismiss after 5 seconds
-        setTimeout(() => {
-          setShowSuccessBadge(false);
-        }, 5000);
-        
-        // Clean up URL parameter and localStorage
-        const newSearchParams = new URLSearchParams(searchParams);
-        newSearchParams.delete('status');
-        setSearchParams(newSearchParams);
-        localStorage.removeItem('lastConfiguredIntegration');
-        
-        // Refresh integrations to get updated status
-        forceRefresh();
-      }
-    }
-  }, [searchParams, setSearchParams, forceRefresh]);
-
-  // Get integration info for success badge
-  const getIntegrationInfo = () => {
-    const lastConfigured = localStorage.getItem('lastConfiguredIntegration');
-    if (!lastConfigured) return null;
-    
-    const integration = integrationsList.find(i => i.id === lastConfigured);
-    return integration || null;
-  };
-
-  const handleSuccessBadgeClose = () => {
-    setShowSuccessBadge(false);
-    localStorage.removeItem('lastConfiguredIntegration');
-  };
-
-  const handleSetAsDefault = async (providerId: string) => {
-    setIsSettingDefault(providerId);
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("No access token available");
-      }
-
-      const response = await fetch(getApiUrl('default-ticketing-provider/'), {
-        method: 'POST',
-        headers: getAuthHeaders(token),
-        body: JSON.stringify({
-          provider: providerId
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to set default provider: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Default provider set:', result);
-
-      // Update the store
-      updateDefaultProvider(providerId);
-      
-      toast({
-        title: "Success",
-        description: result.message || "Default ticketing provider updated.",
-      });
-    } catch (error) {
-      console.error('Error setting default provider:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to set default provider. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSettingDefault(null);
-    }
-  };
-
-  const handleGoogleDriveConnect = async () => {
-    setIsConnectingGoogleDrive(true);
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("No access token available");
-      }
-
-      const response = await fetch(getApiUrl('auth/google/url/'), {
-        method: 'GET',
-        headers: getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to get Google auth URL: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Google auth URL response:', result);
-
-      if (result.auth_url) {
-        // Open auth URL in new browser window
-        window.open(result.auth_url, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
-        
-        // Show success message
-        toast({
-          title: "Authentication Started",
-          description: "Please complete the authentication in the new window that opened.",
-        });
-        
-        // Refresh integration statuses after a delay to check if connection was successful
-        setTimeout(() => {
-          forceRefresh();
-        }, 3000);
-      } else {
-        throw new Error('No auth URL received');
-      }
-    } catch (error) {
-      console.error('Error getting Google auth URL:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to initiate Google Drive connection. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsConnectingGoogleDrive(false);
-    }
-  };
-
-  const handleGoogleDriveDisconnect = async () => {
-    setIsDisconnectingGoogleDrive(true);
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        throw new Error("No access token available");
-      }
-
-      const response = await fetch(getApiUrl('drive/unlink/'), {
-        method: 'POST',
-        headers: getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to disconnect Google Drive: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Google Drive disconnect response:', result);
-
-      // Update the store
-      updateIntegrationStatus('google_drive', 'not_connected');
-
-      toast({
-        title: "Success",
-        description: result.message || "Google Drive disconnected successfully.",
-      });
-    } catch (error) {
-      console.error('Error disconnecting Google Drive:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to disconnect Google Drive. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsDisconnectingGoogleDrive(false);
-    }
-  };
-
-  const handleAuthModalClose = () => {
-    setShowAuthModal(false);
-    setGoogleAuthUrl(null);
-    forceRefresh();
-  };
-
-  useEffect(() => {
-    const initFacebook = async () => {
-      try {
-        await initFacebookSDK();
-        setIsFacebookInitialized(true);
-      } catch (error) {
-        console.error("Error initializing Facebook SDK:", error);
-        toast({
-          title: "Facebook SDK Error",
-          description: "Failed to initialize Facebook SDK. Some features may not work properly.",
-          variant: "destructive"
-        });
-      } finally {
-        setInitialLoadComplete(true);
-      }
-    };
-
-    if (!initialLoadComplete) {
-      initFacebook();
-    }
-  }, [toast]);
-
-  const integrationsList = [
-    {
-      id: 'whatsapp',
-      name: 'WhatsApp Business',
-      description: 'Connect your AI Agent with WhatsApp Business API to reach your customers where they are.',
-      logo: 'https://img.logo.dev/whatsapp.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: getIntegrationStatus('whatsapp'),
-      category: 'Messaging',
-      type: 'messaging'
-    },
-    {
-      id: 'messenger',
-      name: 'Facebook Messenger',
-      description: 'Connect your AI Agent with Facebook Messenger to automate customer conversations.',
-      logo: 'https://img.logo.dev/facebook.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: getIntegrationStatus('messenger'),
-      category: 'Messaging',
-      type: 'messaging'
-    },
-    {
-      id: 'slack',
-      name: 'Slack',
-      description: 'Connect your AI Agent with Slack to engage with your team and customers.',
-      logo: 'https://img.logo.dev/slack.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: getIntegrationStatus('slack'),
-      category: 'Communication',
-      type: 'communication'
-    },
-    {
-      id: 'instagram',
-      name: 'Instagram',
-      description: 'Connect your AI Agent with Instagram to respond to DMs automatically.',
-      logo: 'https://img.logo.dev/instagram.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: getIntegrationStatus('instagram'),
-      category: 'Social Media',
-      type: 'social'
-    },
-    {
-      id: 'zapier',
-      name: 'Zapier',
-      description: 'Connect your AI Agent with thousands of apps through Zapier automation.',
-      logo: 'https://img.logo.dev/zapier.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: getIntegrationStatus('zapier'),
-      category: 'Automation',
-      type: 'automation'
-    },
-    {
-      id: 'zendesk',
-      name: 'Zendesk',
-      description: 'Connect your AI Agent with Zendesk to automate ticket management and customer support.',
-      logo: 'https://img.logo.dev/zendesk.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: getIntegrationStatus('zendesk'),
-      category: 'Support',
-      type: 'ticketing'
-    },
-    {
-      id: 'freshdesk',
-      name: 'Freshdesk',
-      description: 'Connect your AI Agent with Freshdesk to automate ticket management and customer support.',
-      logo: 'https://img.logo.dev/freshdesk.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: getIntegrationStatus('freshdesk'),
-      category: 'Support',
-      type: 'ticketing'
-    },
-    {
-      id: 'zoho',
-      name: 'Zoho Desk',
-      description: 'Connect your AI Agent with Zoho Desk to streamline customer support and ticket handling.',
-      logo: 'https://img.logo.dev/zoho.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: getIntegrationStatus('zoho'),
-      category: 'Support',
-      type: 'ticketing'
-    },
-    {
-      id: 'salesforce',
-      name: 'Salesforce Service Cloud',
-      description: 'Connect your AI Agent with Salesforce to enhance customer service and case management.',
-      logo: 'https://img.logo.dev/salesforce.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: getIntegrationStatus('salesforce'),
-      category: 'CRM & Support',
-      type: 'ticketing'
-    },
-    {
-      id: 'hubspot',
-      name: 'HubSpot Service Hub',
-      description: 'Connect your AI Agent with HubSpot to automate customer support and ticketing workflows.',
-      logo: 'https://img.logo.dev/hubspot.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: getIntegrationStatus('hubspot'),
-      category: 'CRM & Support',
-      type: 'ticketing'
-    },
-    {
-      id: 'google_drive',
-      name: 'Google Drive',
-      description: 'Connect your AI Agent with Google Drive to access and manage your documents and files.',
-      logo: 'https://img.logo.dev/google.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
-      status: getIntegrationStatus('google_drive'),
-      category: 'Storage',
-      type: 'storage'
-    },
+  const allIntegrations: Integration[] = [
+    ...ticketingProviders.map(provider => ({
+      id: provider.id,
+      name: provider.name,
+      description: `Connect ${provider.name} to streamline customer support.`,
+      category: 'ticketing',
+      status: provider.status,
+      logo: provider.logo
+    })),
+    ...communicationProviders.map(provider => ({
+      id: provider.id,
+      name: provider.name,
+      description: `Integrate ${provider.name} for seamless communication workflows.`,
+      category: 'communication',
+      status: provider.status,
+      logo: provider.logo
+    })),
+    ...productivityProviders.map(provider => ({
+      id: provider.id,
+      name: provider.name,
+      description: `Enhance productivity with ${provider.name} integration.`,
+      category: 'productivity',
+      status: provider.status,
+      logo: provider.logo
+    })),
+    ...automationProviders.map(provider => ({
+      id: provider.id,
+      name: provider.name,
+      description: `Automate tasks with ${provider.name} integration.`,
+      category: 'automation',
+      status: provider.status,
+      logo: provider.logo
+    }))
   ];
 
-  const groupedIntegrations = integrationsList.reduce((acc, integration) => {
-    if (!acc[integration.category]) {
-      acc[integration.category] = [];
-    }
-    acc[integration.category].push(integration);
-    return acc;
-  }, {} as Record<string, typeof integrationsList>);
+  const filteredIntegrations = allIntegrations.filter(integration => {
+    const searchTermLower = searchTerm.toLowerCase();
+    const matchesSearch =
+      integration.name.toLowerCase().includes(searchTermLower) ||
+      integration.description.toLowerCase().includes(searchTermLower);
 
-  const renderIntegrationComponent = (integrationId: string) => {
-    switch (integrationId) {
-      case 'whatsapp':
-        return <WhatsAppIntegration shouldCheckStatus={initialLoadComplete} />;
-      case 'slack':
-        return <SlackIntegration />;
-      case 'instagram':
-        return <InstagramIntegration />;
-      case 'messenger':
-        return <MessengerIntegration />;
-      case 'zapier':
-        return <ZapierIntegration />;
-      case 'zendesk':
-        return <ZendeskIntegration />;
-      case 'freshdesk':
-        return <FreshdeskIntegration />;
-      case 'zoho':
-        return <ZohoIntegration />;
-      case 'salesforce':
-        return <SalesforceIntegration />;
-      case 'hubspot':
-        return <HubspotIntegration />;
-      case 'google_drive':
-        return <GoogleDriveIntegration />;
-      default:
-        return null;
+    const matchesCategory =
+      selectedCategory === 'all' || integration.category === selectedCategory;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  const renderIntegrationConfig = (integrationId: string) => {
+    const integrationComponents: Record<string, React.ComponentType> = {
+      hubspot: HubspotIntegration,
+      zendesk: ZendeskIntegration,
+      freshdesk: FreshdeskIntegration,
+      salesforce: SalesforceIntegration,
+      zoho: ZohoIntegration,
+      slack: SlackIntegration,
+      whatsapp: WhatsAppIntegration,
+      messenger: MessengerIntegration,
+      instagram: InstagramIntegration,
+      googledrive: GoogleDriveIntegration,
+      zapier: ZapierIntegration
+    };
+
+    const Component = integrationComponents[integrationId];
+    if (!Component) {
+      return <div>Integration configuration not found</div>;
     }
+
+    return <Component />;
   };
 
-  const getStatusBadge = (status: string) => {
-    if (status === 'connected') {
-      return (
-        <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400">
-          Connected
-        </Badge>
-      );
-    }
+  const categoryFilters = [
+    { id: 'all', label: 'All' },
+    { id: 'ticketing', label: 'Ticketing' },
+    { id: 'communication', label: 'Communication' },
+    { id: 'productivity', label: 'Productivity' },
+    { id: 'automation', label: 'Automation' }
+  ];
+
+  if (isLoading) {
     return (
-      <Badge variant="outline" className="text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50 dark:border-slate-600 dark:text-slate-400">
-        Not connected
-      </Badge>
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner size="lg" text="Loading integrations..." />
+      </div>
     );
-  };
+  }
 
-  const getDefaultBadge = (integrationId: string) => {
-    if (defaultProvider === integrationId) {
-      return (
-        <Badge 
-          variant="outline" 
-          className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400 cursor-pointer"
-          onClick={() => handleSetAsDefault(integrationId)}
-        >
-          <Star className="h-3 w-3 mr-1 fill-current" />
-          Default
-        </Badge>
-      );
-    }
-    
-    if (integrationId !== defaultProvider) {
-      return (
-        <Badge 
-          variant="outline" 
-          className={`text-gray-600 border-gray-200 bg-gray-50 dark:bg-gray-900/20 dark:border-gray-800 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900/30 ${
-            isSettingDefault === integrationId ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-          onClick={() => {
-            if (isSettingDefault !== integrationId) {
-              handleSetAsDefault(integrationId);
-            }
-          }}
-        >
-          <Star className="h-3 w-3 mr-1" />
-          {isSettingDefault === integrationId ? 'Setting...' : 'Set as Default'}
-        </Badge>
-      );
-    }
-    
-    return null;
-  };
-
-  const getConnectButton = (integration: any) => {
-    if (integration.id === 'google_drive') {
-      const isConnected = integration.status === 'connected';
-      const isLoading = isConnected ? isDisconnectingGoogleDrive : isConnectingGoogleDrive;
-      
-      return (
-        <ModernButton 
-          variant="outline" 
-          size="sm"
-          className="w-full sm:w-auto"
-          onClick={isConnected ? handleGoogleDriveDisconnect : handleGoogleDriveConnect}
-          disabled={isLoading}
-        >
-          {isLoading ? (isConnected ? 'Disconnecting...' : 'Connecting...') : (isConnected ? 'Disconnect' : 'Connect')}
-        </ModernButton>
-      );
-    }
-    
-    // For ticketing integrations, show both Configure and Set as Default buttons
-    if (integration.type === 'ticketing' && integration.status === 'connected') {
-      return (
-        <div className="flex gap-2 flex-wrap">
-          <ModernButton 
-            variant="outline" 
-            size="sm"
-            className="w-full sm:w-auto"
-            onClick={() => handleIntegrationSelect(integration.id)}
-          >
-            Configure Integration
-          </ModernButton>
-          {defaultProvider !== integration.id && (
-            <ModernButton 
-              variant="outline" 
-              size="sm"
-              className={`w-full sm:w-auto ${
-                isSettingDefault === integration.id ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-              onClick={() => {
-                if (isSettingDefault !== integration.id) {
-                  handleSetAsDefault(integration.id);
-                }
-              }}
-              disabled={isSettingDefault === integration.id}
-            >
-              <Star className="h-3 w-3 mr-1" />
-              {isSettingDefault === integration.id ? 'Setting...' : 'Set as Default'}
-            </ModernButton>
-          )}
-          {defaultProvider === integration.id && (
-            <ModernButton 
-              variant="outline" 
-              size="sm"
-              className="w-full sm:w-auto text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400"
-              disabled
-            >
-              <Star className="h-3 w-3 mr-1 fill-current" />
-              Default
-            </ModernButton>
-          )}
-        </div>
-      );
-    }
-    
+  if (error) {
     return (
-      <ModernButton 
-        variant="outline" 
-        size="sm"
-        className="w-full sm:w-auto"
-        onClick={() => handleIntegrationSelect(integration.id)}
-      >
-        Configure Integration
-      </ModernButton>
-    );
-  };
-
-  if (isLoadingStatuses) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        <div className="container mx-auto py-8 px-4 max-w-5xl pt-12">
-          <div className="flex items-center justify-center h-64">
-            <LoadingSpinner size="lg" text="Loading integrations..." />
-          </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Error loading integrations</h2>
+          <p className="text-gray-600">{error}</p>
         </div>
       </div>
     );
   }
 
-  const integrationInfo = getIntegrationInfo();
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Integration Success Badge */}
-      {integrationInfo && (
-        <IntegrationStatusBadge
-          isVisible={showSuccessBadge}
-          integrationName={integrationInfo.name}
-          integrationLogo={integrationInfo.logo}
-          onClose={handleSuccessBadgeClose}
-        />
-      )}
+    <div className="space-y-6">
+      {/* URL-based Success Badge */}
+      <IntegrationStatusBadge
+        isVisible={showSuccessBadge}
+        integrationName={selectedIntegration ? 
+          allIntegrations.find(i => i.id === selectedIntegration)?.name || 'Integration' : 
+          'Integration'
+        }
+        onClose={() => setShowSuccessBadge(false)}
+      />
 
-      <div className="container mx-auto py-8 px-4 max-w-5xl pt-12">
-        {selectedIntegration ? (
-          <div className="space-y-6">
-            <div className="flex items-center gap-4 mb-6">
-              <ModernButton 
-                variant="outline" 
-                onClick={handleBackToIntegrations}
-                icon={ArrowLeft}
-                className="shadow-sm"
-              >
-                Back to Integrations
-              </ModernButton>
-            </div>
-            
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-              <div className="border-b border-slate-200 dark:border-slate-700 p-6">
-                <div className="flex items-center gap-4">
-                  {(() => {
-                    const integration = integrationsList.find(i => i.id === selectedIntegration);
-                    return (
-                      <>
-                        <div 
-                          className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shadow-sm"
-                          style={{
-                            padding: '0',
-                            height: 'auto',
-                            width: 'auto',
-                            borderRadius: '14px',
-                            overflow: 'hidden'
-                          }}
-                        >
-                          <img 
-                            src={integration?.logo} 
-                            alt={integration?.name}
-                            className="w-16 h-16 object-contain"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-1">
-                            {integration?.name}
-                          </h1>
-                          <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                            {integration?.description}
-                          </p>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          {integration && getStatusBadge(integration.status)}
-                          {integration && integration.type === 'ticketing' && integration.status === 'connected' && getDefaultBadge(integration.id)}
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
+      {/* Integration Configuration View */}
+      {selectedIntegration ? (
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBackToList}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Integrations
+            </Button>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Building className="h-5 w-5 text-blue-600" />
               </div>
-              <div className="p-8">
-                {renderIntegrationComponent(selectedIntegration)}
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {allIntegrations.find(i => i.id === selectedIntegration)?.name} Integration
+                </h1>
+                <p className="text-gray-600">
+                  Configure and manage your {allIntegrations.find(i => i.id === selectedIntegration)?.name} integration
+                </p>
               </div>
             </div>
           </div>
-        ) : (
-          <div className="space-y-8">
-            
-            <div className="space-y-8">
-              {Object.entries(groupedIntegrations).map(([category, categoryIntegrations]) => (
-                <section key={category} className="space-y-6">
-                  <div className="mb-6 pl-2">
-                    <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">{category}</h2>
-                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                      {category === 'Messaging' && 'Connect with popular messaging platforms to reach your customers where they are.'}
-                      {category === 'Communication' && 'Integrate with communication tools to streamline team collaboration.'}
-                      {category === 'Social Media' && 'Connect with social media platforms to automate customer interactions.'}
-                      {category === 'Automation' && 'Connect with automation tools to create powerful workflows.'}
-                      {category === 'Support' && 'Integrate with customer support platforms to enhance your helpdesk operations.'}
-                      {category === 'CRM & Support' && 'Connect with CRM and enterprise support platforms for comprehensive customer management.'}
-                      {category === 'Storage' && 'Connect with cloud storage platforms to access and manage your files and documents.'}
-                    </p>
-                  </div>
-                  
-                  <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
-                      {categoryIntegrations.map((integration) => (
-                        <Card key={integration.id} className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl border border-slate-200/50 dark:border-slate-600/50 shadow-none hover:shadow-sm transition-shadow">
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-4">
-                              <div 
-                                className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shadow-sm flex-shrink-0"
-                                style={{
-                                  padding: '0',
-                                  height: 'auto',
-                                  width: 'auto',
-                                  borderRadius: '12px',
-                                  overflow: 'hidden'
-                                }}
-                              >
-                                <img 
-                                  src={integration.logo} 
-                                  alt={integration.name}
-                                  className="w-12 h-12 object-contain"
-                                />
-                              </div>
-                              
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between mb-2">
-                                  <h3 className="font-semibold text-base text-slate-900 dark:text-slate-100 truncate">
-                                    {integration.name}
-                                  </h3>
-                                  <div className="flex flex-col gap-1 items-end ml-2 flex-shrink-0">
-                                    {getStatusBadge(integration.status)}
-                                  </div>
-                                </div>
-                                
-                                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-3 line-clamp-2">
-                                  {integration.description}
-                                </p>
-                                
-                                {getConnectButton(integration)}
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            {renderIntegrationConfig(selectedIntegration)}
+          </div>
+        </div>
+      ) : (
+        // Integration List View
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-bold text-gray-900">Integrations</h1>
+              <p className="text-gray-600">Connect and manage integrations to enhance your workflow</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Search integrations..."
+                  className="pl-10 pr-3 py-2 rounded-md border border-gray-200 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="relative">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  Filters
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <Tabs defaultValue="all" className="space-y-4">
+            <TabsList>
+              {categoryFilters.map(filter => (
+                <TabsTrigger
+                  key={filter.id}
+                  value={filter.id}
+                  onClick={() => setSelectedCategory(filter.id)}
+                  className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md text-sm font-medium px-4 py-2 focus:outline-none"
+                >
+                  {filter.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {filteredIntegrations.map(integration => (
+                <Card key={integration.id} className="shadow-sm hover:shadow-md transition-shadow duration-200">
+                  <CardHeader className="space-y-1">
+                    <CardTitle className="text-lg font-semibold flex items-center justify-between">
+                      {integration.name}
+                      {integration.status === 'connected' && (
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm text-gray-600">
+                    {integration.description}
+                    <div className="mt-4 flex items-center justify-between">
+                      <Badge className="bg-blue-100 text-blue-600 rounded-full px-3 py-1 text-xs font-medium">
+                        {integration.category}
+                      </Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleIntegrationSelect(integration.id)}
+                      >
+                        Connect
+                      </Button>
                     </div>
-                  </div>
-                </section>
+                  </CardContent>
+                </Card>
               ))}
             </div>
-          </div>
-        )}
-      </div>
-
-      <ModernModal
-        open={showAuthModal}
-        onOpenChange={handleAuthModalClose}
-        title="Connect Google Drive"
-        description="Complete the authentication process in the window below to connect your Google Drive account."
-        size="4xl"
-        fixedFooter
-        footer={
-          <ModernButton 
-            variant="outline" 
-            onClick={handleAuthModalClose}
-          >
-            Close
-          </ModernButton>
-        }
-      >
-        <div className="w-full h-[600px] border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-          {googleAuthUrl && (
-            <iframe
-              src={googleAuthUrl}
-              className="w-full h-full"
-              title="Google Drive Authentication"
-              onLoad={() => {
-                console.log('Google auth iframe loaded');
-              }}
-            />
-          )}
+          </Tabs>
         </div>
-      </ModernModal>
+      )}
     </div>
   );
 };

@@ -60,7 +60,7 @@ const HubspotIntegration = () => {
     checkHubspotStatus();
   }, []);
 
-  // Listen for OAuth callback success
+  // Listen for OAuth callback success from URL params (handled by parent IntegrationsPage)
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
@@ -183,7 +183,12 @@ const HubspotIntegration = () => {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      const response = await integrationApi.hubspot.getAuthUrl();
+      // Create callback URL with integration-specific parameters
+      const callbackUrl = `${window.location.origin}/integrations?integration=hubspot&status=success`;
+      
+      const response = await integrationApi.hubspot.getAuthUrl({
+        callback_url: callbackUrl
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to get auth URL: ${response.status}`);
