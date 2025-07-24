@@ -34,6 +34,10 @@ interface ChatboxPreviewProps {
   className?: string;
   suggestions?: string[];
   avatarSrc?: string;
+  emailRequired?: boolean;
+  emailPlaceholder?: string;
+  emailMessage?: string;
+  collectEmail?: boolean;
   onMinimize?: () => void;
   onRestart?: () => void;
   showFloatingButton?: boolean;
@@ -53,6 +57,10 @@ export const ChatboxPreview = ({
   className,
   suggestions = [],
   avatarSrc,
+  emailRequired = false,
+  emailPlaceholder = "Enter your email",
+  emailMessage = "Please provide your email to continue",
+  collectEmail = false,
   onMinimize,
   onRestart,
   showFloatingButton = false,
@@ -260,10 +268,8 @@ export const ChatboxPreview = ({
   };
 
   const handleEmailSubmit = (e: React.FormEvent) => {
-    //do something
     e.preventDefault();
-     // Validate email is not empty
-      if (!emailValue.trim()) {
+     if (!emailValue.trim()) {
         toast({
           title: "Email Required",
           description: "Please enter your email address",
@@ -291,8 +297,6 @@ export const ChatboxPreview = ({
       
       // Remove the email UI message to unlock main input
       setMessages(prev => prev.filter(msg => !(msg.type === 'ui' && msg.ui_type === 'email')));
-      
-     
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -672,7 +676,44 @@ export const ChatboxPreview = ({
                             </div>
                           )}
                           
-                          
+                          {/* Yes/No UI Component working one*/}
+                          {message.type === 'ui' && message.ui_type === 'email' && (
+                            <div className="flex flex-col gap-3 justify-center animate-fade-in">
+                              <form onSubmit={handleEmailSubmit} className='relative'>
+                                <Input
+                                variant='modern'
+                                placeholder={emailPlaceholder}
+                                size='sm'
+                                type='email'
+                                value={emailValue}
+                                onChange={(e) => setEmailValue(e.target.value)}
+                                required
+                                />
+                                <ModernButton 
+                                  type="submit" 
+                                  size="sm" 
+                                  variant='ghost'
+                                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                                  iconOnly
+                                  disabled={!emailValue.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)}
+                                >
+                                  <Send className="h-4 w-4" color={primaryColor}/>
+                                </ModernButton>
+                              </form>
+                              <ModernButton
+                                onClick={() => handleYesNoClick('no_thanks')}
+                                variant="ghost"
+                                className="font-medium border-2 w-auto"
+                                style={{ 
+                                  borderColor: primaryColor,
+                                  color: primaryColor,
+                                  backgroundColor: 'white'
+                                }}
+                              >
+                                No Thanks
+                              </ModernButton>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -1163,13 +1204,12 @@ export const ChatboxPreview = ({
                     </div>
                   )}
                   
-                  {/* Yes/No UI Component working one*/}
                   {message.type === 'ui' && message.ui_type === 'email' && (
                     <div className="flex flex-col gap-3 justify-center animate-fade-in">
                       <form onSubmit={handleEmailSubmit} className='relative'>
                         <Input
                         variant='modern'
-                        placeholder='email'
+                        placeholder={emailPlaceholder}
                         size='sm'
                         type='email'
                         value={emailValue}
