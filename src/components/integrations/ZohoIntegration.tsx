@@ -729,7 +729,7 @@ const ZohoIntegration = () => {
             View Documentation
           </ModernButton>
         </div>
-      }
+      </div>
 
       {/* Features Overview */}
       <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
