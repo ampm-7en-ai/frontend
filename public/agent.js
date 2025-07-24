@@ -36,6 +36,7 @@
         wsUrl: 'wss://api-staging.7en.ai'
       };
       
+      console.log('Fetched config:', config);
       return config;
     } catch (error) {
       console.error('ChatWidget: Failed to fetch config:', error);
@@ -55,7 +56,7 @@
       const newG = Math.max(0, Math.min(255, g + amount));
       const newB = Math.max(0, Math.min(255, b + amount));
       
-      return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+      return '#' + newR.toString(16).padStart(2, '0') + newG.toString(16).padStart(2, '0') + newB.toString(16).padStart(2, '0');
     } catch (e) {
       return color;
     }
@@ -76,7 +77,7 @@
     return element;
   }
 
-  // WebSocket Service aligned with ChatboxPreview
+  // WebSocket Service
   class ChatWebSocketService {
     constructor(agentId, wsUrl) {
       this.agentId = agentId;
@@ -95,8 +96,9 @@
       }
 
       this.isConnecting = true;
-      // Use the same URL format as ChatboxPreview
-      const url = `${this.wsUrl}/ws/chat/${this.agentId}`;
+      // Fix WebSocket URL construction
+      const url = this.wsUrl + '/ws/chat/' + this.agentId;
+      console.log('Connecting to WebSocket:', url);
       
       try {
         this.socket = new WebSocket(url);
@@ -116,7 +118,7 @@
             console.log('WebSocket parsed message:', data);
             
             // Generate message ID for deduplication
-            const messageId = data.id || `${data.type}-${data.content || ''}-${Date.now()}`;
+            const messageId = data.id || (data.type + '-' + (data.content || '') + '-' + Date.now());
             
             if (this.processedMessages.has(messageId)) {
               console.log('Skipping duplicate message:', messageId);
@@ -130,7 +132,7 @@
               this.processedMessages = new Set(Array.from(this.processedMessages).slice(-25));
             }
             
-            // Handle different message types like ChatboxPreview
+            // Handle different message types
             switch (data.type) {
               case 'email_request':
                 this.emit('emailRequest', data.content || 'Please provide your email address:');
@@ -193,7 +195,7 @@
         this.reconnectAttempts++;
         const timeout = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 10000);
         
-        console.log(`Attempting to reconnect in ${timeout}ms... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+        console.log('Attempting to reconnect in ' + timeout + 'ms... (' + this.reconnectAttempts + '/' + this.maxReconnectAttempts + ')');
         
         setTimeout(() => {
           this.connect();
@@ -201,7 +203,6 @@
       }
     }
 
-    // Use the same message format as ChatboxPreview
     sendMessage(content, isEmail = false) {
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
         const message = {
@@ -226,13 +227,13 @@
     }
 
     emit(eventName, data) {
-      console.log(`Emitting event '${eventName}':`, data);
+      console.log('Emitting event \'' + eventName + '\':', data);
       if (this.listeners[eventName]) {
         this.listeners[eventName].forEach(callback => {
           try {
             callback(data);
           } catch (error) {
-            console.error(`Error in event callback for '${eventName}':`, error);
+            console.error('Error in event callback for \'' + eventName + '\':', error);
           }
         });
       }
@@ -349,6 +350,7 @@
       align-items: center;
       justify-content: center;
       font-size: 18px;
+      overflow: hidden;
     }
     
     .chat-avatar img {
@@ -545,6 +547,14 @@
       align-items: center;
       justify-content: center;
       font-size: 14px;
+      overflow: hidden;
+    }
+    
+    .typing-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
     }
     
     .typing-dots {
@@ -696,7 +706,7 @@
     }
 
     createWidget() {
-      this.container = createElement('div', `chat-widget-container ${this.config.position}`);
+      this.container = createElement('div', 'chat-widget-container ' + this.config.position);
       
       this.createButton();
       this.createChatWindow();
@@ -709,20 +719,30 @@
       const buttonClass = hasText ? 'chat-button with-text' : 'chat-button';
       
       this.button = createElement('button', buttonClass, {
-        style: `background: linear-gradient(135deg, ${this.config.primaryColor}, ${adjustColor(this.config.primaryColor, -30)})`,
+        style: 'background: linear-gradient(135deg, ' + this.config.primaryColor + ', ' + adjustColor(this.config.primaryColor, -30) + ')',
         onclick: () => this.toggleChat()
       });
 
+      // Fix avatar rendering in button
       if (this.config.avatarUrl) {
         const avatar = createElement('img', null, {
           src: this.config.avatarUrl,
           alt: this.config.chatbotName,
-          style: 'width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;'
+          style: 'width: 24px; height: 24px; border-radius: 50%; object-fit: cover;' + (hasText ? ' margin-right: 8px;' : ''),
+          onerror: () => {
+            // Fallback to emoji if image fails to load
+            avatar.style.display = 'none';
+            const fallback = createElement('span', null, {
+              innerHTML: '🤖',
+              style: hasText ? 'margin-right: 8px;' : ''
+            });
+            this.button.insertBefore(fallback, avatar.nextSibling);
+          }
         });
         this.button.appendChild(avatar);
       } else {
         const icon = createElement('span', null, {
-          innerHTML: '💬',
+          innerHTML: '🤖',
           style: hasText ? 'margin-right: 8px;' : ''
         });
         this.button.appendChild(icon);
@@ -739,7 +759,7 @@
     }
 
     createChatWindow() {
-      this.chatWindow = createElement('div', `chat-window ${this.config.position} hidden`);
+      this.chatWindow = createElement('div', 'chat-window ' + this.config.position + ' hidden');
       
       this.createHeader();
       this.createMessages();
@@ -750,23 +770,28 @@
 
     createHeader() {
       const header = createElement('div', 'chat-header', {
-        style: `background: linear-gradient(135deg, ${this.config.primaryColor}, ${adjustColor(this.config.primaryColor, -30)})`
+        style: 'background: linear-gradient(135deg, ' + this.config.primaryColor + ', ' + adjustColor(this.config.primaryColor, -30) + ')'
       });
 
       const headerInfo = createElement('div', 'chat-header-info');
       
       const avatar = createElement('div', 'chat-avatar');
       if (this.config.avatarUrl) {
-        avatar.innerHTML = `<img src="${this.config.avatarUrl}" alt="${this.config.chatbotName}">`;
+        const avatarImg = createElement('img', null, {
+          src: this.config.avatarUrl,
+          alt: this.config.chatbotName,
+          onerror: () => {
+            // Fallback to emoji if image fails to load
+            avatar.innerHTML = '🤖';
+          }
+        });
+        avatar.appendChild(avatarImg);
       } else {
         avatar.innerHTML = '🤖';
       }
       
       const headerText = createElement('div', 'chat-header-text', {
-        innerHTML: `
-          <h3>${this.config.chatbotName}</h3>
-          <p>${this.isConnected ? 'Online' : 'Connecting...'}</p>
-        `
+        innerHTML: '<h3>' + this.config.chatbotName + '</h3><p>' + (this.isConnected ? 'Online' : 'Connecting...') + '</p>'
       });
 
       headerInfo.appendChild(avatar);
@@ -832,16 +857,18 @@
       });
       emailContainer.appendChild(label);
       
-      const form = createElement('form', 'email-input-form', {
-        onsubmit: (e) => this.handleEmailSubmit(e)
-      });
+      const form = createElement('form', 'email-input-form');
+      form.addEventListener('submit', (e) => this.handleEmailSubmit(e));
 
       this.emailInput = createElement('input', 'email-input', {
         type: 'email',
         placeholder: 'Enter your email address...',
         value: this.emailValue,
-        oninput: (e) => this.emailValue = e.target.value,
         required: true
+      });
+      
+      this.emailInput.addEventListener('input', (e) => {
+        this.emailValue = e.target.value;
       });
 
       const submitButton = createElement('button', 'email-submit-button', {
@@ -888,26 +915,27 @@
     createInput() {
       const inputContainer = createElement('div', 'chat-input-container');
       
-      const form = createElement('form', 'chat-input-form', {
-        onsubmit: (e) => this.handleSubmit(e)
-      });
+      const form = createElement('form', 'chat-input-form');
+      form.addEventListener('submit', (e) => this.handleSubmit(e));
 
       this.input = createElement('textarea', 'chat-input', {
         placeholder: this.isConnected ? 'Type your message...' : 'Connecting...',
-        rows: 1,
-        oninput: () => this.adjustTextareaHeight(),
-        onkeydown: (e) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            this.handleSubmit(e);
-          }
+        rows: 1
+      });
+      
+      // Fix enter key handling
+      this.input.addEventListener('input', () => this.adjustTextareaHeight());
+      this.input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          this.handleSubmit(e);
         }
       });
 
       this.sendButton = createElement('button', 'chat-send-button', {
         type: 'submit',
         innerHTML: '➤',
-        style: `background: ${this.config.primaryColor}`
+        style: 'background: ' + this.config.primaryColor
       });
 
       form.appendChild(this.input);
@@ -1020,15 +1048,24 @@
     }
 
     addMessage(content, type) {
-      const messageDiv = createElement('div', `message ${type}`);
+      const messageDiv = createElement('div', 'message ' + type);
       
       // Add avatar for bot messages
       if (type === 'bot') {
-        const avatar = createElement('div', 'typing-avatar', {
-          innerHTML: this.config.avatarUrl ? 
-            `<img src="${this.config.avatarUrl}" alt="Bot" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">` : 
-            '🤖'
-        });
+        const avatar = createElement('div', 'typing-avatar');
+        if (this.config.avatarUrl) {
+          const avatarImg = createElement('img', null, {
+            src: this.config.avatarUrl,
+            alt: 'Bot',
+            onerror: () => {
+              // Fallback to emoji if image fails to load
+              avatar.innerHTML = '🤖';
+            }
+          });
+          avatar.appendChild(avatarImg);
+        } else {
+          avatar.innerHTML = '🤖';
+        }
         messageDiv.appendChild(avatar);
       }
       
@@ -1037,7 +1074,7 @@
       });
 
       if (type === 'user') {
-        messageContent.style.background = `linear-gradient(135deg, ${this.config.primaryColor}, ${adjustColor(this.config.primaryColor, -30)})`;
+        messageContent.style.background = 'linear-gradient(135deg, ' + this.config.primaryColor + ', ' + adjustColor(this.config.primaryColor, -30) + ')';
       }
 
       messageDiv.appendChild(messageContent);
@@ -1058,11 +1095,20 @@
       if (isTyping) {
         const typingDiv = createElement('div', 'typing-indicator');
         
-        const avatar = createElement('div', 'typing-avatar', {
-          innerHTML: this.config.avatarUrl ? 
-            `<img src="${this.config.avatarUrl}" alt="Bot" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">` : 
-            '🤖'
-        });
+        const avatar = createElement('div', 'typing-avatar');
+        if (this.config.avatarUrl) {
+          const avatarImg = createElement('img', null, {
+            src: this.config.avatarUrl,
+            alt: 'Bot',
+            onerror: () => {
+              // Fallback to emoji if image fails to load
+              avatar.innerHTML = '🤖';
+            }
+          });
+          avatar.appendChild(avatarImg);
+        } else {
+          avatar.innerHTML = '🤖';
+        }
         
         const dotsContainer = createElement('div', 'typing-dots');
         
