@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Input } from '@/components/ui/input';
@@ -10,6 +9,7 @@ import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { IntegrationStatusBadge } from '@/components/ui/integration-status-badge';
 import { integrationApi } from '@/utils/api-config';
+import { useIntegrations } from '@/hooks/useIntegrations';
 
 interface HubspotStatus {
   is_connected: boolean;
@@ -51,6 +51,9 @@ const HubspotIntegration = () => {
   const [selectedStageId, setSelectedStageId] = useState('');
   const [showSuccessBadge, setShowSuccessBadge] = useState(false);
   const { toast } = useToast();
+  
+  // Use the integration store to update global state
+  const { updateIntegrationStatus, forceRefresh } = useIntegrations();
 
   // Check HubSpot connection status on component mount
   useEffect(() => {
@@ -85,9 +88,13 @@ const HubspotIntegration = () => {
       const result = await response.json();
       if (result.status === 'success') {
         setHubspotStatus(result.data);
+        // Update the integration store with the current status
+        updateIntegrationStatus('hubspot', result.data.is_connected ? 'connected' : 'not_connected');
       }
     } catch (error) {
       console.error('Error checking HubSpot status:', error);
+      // Update store to show disconnected state on error
+      updateIntegrationStatus('hubspot', 'not_connected');
     } finally {
       setIsCheckingStatus(false);
     }
@@ -224,6 +231,10 @@ const HubspotIntegration = () => {
       const result = await response.json();
       if (result.status === 'success') {
         setHubspotStatus({ is_connected: false });
+        // Update the integration store immediately
+        updateIntegrationStatus('hubspot', 'not_connected');
+        // Force refresh to get latest data
+        forceRefresh();
         toast({
           title: "Successfully Unlinked",
           description: "HubSpot integration has been disconnected.",
@@ -375,8 +386,6 @@ const HubspotIntegration = () => {
           )}
         </div>
       )}
-
-      
 
       {/* Connection Management */}
       <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
