@@ -36,6 +36,7 @@ const IntegrationsPage = () => {
   const [googleAuthUrl, setGoogleAuthUrl] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSuccessBadge, setShowSuccessBadge] = useState(false);
+  const [successIntegrationInfo, setSuccessIntegrationInfo] = useState<{name: string, logo: string} | null>(null);
   const { toast } = useToast();
 
   // Use the centralized integration store
@@ -74,9 +75,15 @@ const IntegrationsPage = () => {
   // Check for success status and show badge
   useEffect(() => {
     const status = searchParams.get('status');
-    if (status === 'success') {
-      const lastConfigured = localStorage.getItem('lastConfiguredIntegration');
-      if (lastConfigured) {
+    const integrationParam = searchParams.get('integration');
+    
+    if (status === 'success' && integrationParam) {
+      const integration = integrationsList.find(i => i.id === integrationParam);
+      if (integration) {
+        setSuccessIntegrationInfo({
+          name: integration.name,
+          logo: integration.logo
+        });
         setShowSuccessBadge(true);
         
         // Auto-dismiss after 5 seconds
@@ -84,11 +91,10 @@ const IntegrationsPage = () => {
           setShowSuccessBadge(false);
         }, 5000);
         
-        // Clean up URL parameter and localStorage
+        // Clean up URL parameter
         const newSearchParams = new URLSearchParams(searchParams);
         newSearchParams.delete('status');
         setSearchParams(newSearchParams);
-        localStorage.removeItem('lastConfiguredIntegration');
         
         // Refresh integrations to get updated status
         forceRefresh();
@@ -96,18 +102,9 @@ const IntegrationsPage = () => {
     }
   }, [searchParams, setSearchParams, forceRefresh]);
 
-  // Get integration info for success badge
-  const getIntegrationInfo = () => {
-    const lastConfigured = localStorage.getItem('lastConfiguredIntegration');
-    if (!lastConfigured) return null;
-    
-    const integration = integrationsList.find(i => i.id === lastConfigured);
-    return integration || null;
-  };
-
   const handleSuccessBadgeClose = () => {
     setShowSuccessBadge(false);
-    localStorage.removeItem('lastConfiguredIntegration');
+    setSuccessIntegrationInfo(null);
   };
 
   const handleSetAsDefault = async (providerId: string) => {
@@ -545,16 +542,14 @@ const IntegrationsPage = () => {
     );
   }
 
-  const integrationInfo = getIntegrationInfo();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Integration Success Badge */}
-      {integrationInfo && (
+      {successIntegrationInfo && (
         <IntegrationStatusBadge
           isVisible={showSuccessBadge}
-          integrationName={integrationInfo.name}
-          integrationLogo={integrationInfo.logo}
+          integrationName={successIntegrationInfo.name}
+          integrationLogo={successIntegrationInfo.logo}
           onClose={handleSuccessBadgeClose}
         />
       )}
