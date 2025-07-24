@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBuilder } from './BuilderContext';
@@ -100,7 +101,7 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
     // Update knowledge sources to show "training" status immediately
     const updatedKnowledgeSources = agentData.knowledgeSources.map(source => ({
       ...source,
-      trainingStatus: 'training'
+      trainingStatus: 'training' as const
     }));
     
     updateAgentData({ knowledgeSources: updatedKnowledgeSources });
