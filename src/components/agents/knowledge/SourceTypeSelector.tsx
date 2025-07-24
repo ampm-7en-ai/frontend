@@ -262,11 +262,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                       <Checkbox
                         id="select-all-urls"
                         checked={areAllUrlsSelected}
-                        ref={(ref) => {
-                          if (ref) {
-                            ref.indeterminate = areSomeUrlsSelected && !areAllUrlsSelected;
-                          }
-                        }}
+                        indeterminate={areSomeUrlsSelected && !areAllUrlsSelected}
                         onCheckedChange={(checked) => handleSelectAllUrls(checked === true)}
                       />
                       <Label htmlFor="select-all-urls" className="text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
