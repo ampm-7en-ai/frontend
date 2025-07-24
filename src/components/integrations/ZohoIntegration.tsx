@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
@@ -527,49 +526,58 @@ const ZohoIntegration = () => {
               <div className="space-y-6">
                 {/* Authentication Error Alert */}
                 {errors.isAuthError && (
-                  <ModernAlert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <ModernAlertDescription>
-                      <div className="flex items-center justify-between">
-                        <span>Your Zoho authentication has expired. Please reconnect to continue.</span>
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-red-800 dark:text-red-200 mb-2">
+                          Authentication Required
+                        </p>
+                        <p className="text-sm text-red-700 dark:text-red-300 mb-3">
+                          Your Zoho authentication has expired. Please reconnect to continue.
+                        </p>
                         <ModernButton
                           variant="outline"
                           size="sm"
                           onClick={handleConnect}
                           disabled={isConnecting}
+                          className="bg-white dark:bg-slate-800 border-red-300 dark:border-red-600 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30"
                         >
                           {isConnecting ? 'Reconnecting...' : 'Reconnect'}
                         </ModernButton>
                       </div>
-                    </ModernAlertDescription>
-                  </ModernAlert>
+                    </div>
+                  </div>
                 )}
 
                 <div>
-                  <Label className="text-sm font-medium mb-2 block">Organization</Label>
+                  <Label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">Organization</Label>
                   {loadingStates.organizations ? (
-                    <div className="flex items-center gap-2 p-3 border rounded-xl bg-slate-50 dark:bg-slate-700/50">
+                    <div className="flex items-center gap-2 p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50">
                       <LoadingSpinner size="sm" />
                       <span className="text-sm text-slate-600 dark:text-slate-400">Loading organizations...</span>
                     </div>
                   ) : errors.organizations ? (
                     <div className="space-y-2">
-                      <ModernAlert variant="destructive">
-                        <AlertTriangle className="h-4 w-4" />
-                        <ModernAlertDescription>
-                          <div className="flex items-center justify-between">
-                            <span>{errors.organizations}</span>
+                      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                        <div className="flex items-start gap-3">
+                          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
+                              {errors.organizations}
+                            </p>
                             <ModernButton
                               variant="outline"
                               size="sm"
                               onClick={() => handleRetryFetch('organizations')}
                               icon={RefreshCw}
+                              className="bg-white dark:bg-slate-800 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30"
                             >
                               Retry
                             </ModernButton>
                           </div>
-                        </ModernAlertDescription>
-                      </ModernAlert>
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <ModernDropdown
@@ -583,30 +591,33 @@ const ZohoIntegration = () => {
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium mb-2 block">Department</Label>
+                  <Label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">Department</Label>
                   {loadingStates.departments ? (
-                    <div className="flex items-center gap-2 p-3 border rounded-xl bg-slate-50 dark:bg-slate-700/50">
+                    <div className="flex items-center gap-2 p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50">
                       <LoadingSpinner size="sm" />
                       <span className="text-sm text-slate-600 dark:text-slate-400">Loading departments...</span>
                     </div>
                   ) : errors.departments ? (
                     <div className="space-y-2">
-                      <ModernAlert variant="destructive">
-                        <AlertTriangle className="h-4 w-4" />
-                        <ModernAlertDescription>
-                          <div className="flex items-center justify-between">
-                            <span>{errors.departments}</span>
+                      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                        <div className="flex items-start gap-3">
+                          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
+                              {errors.departments}
+                            </p>
                             <ModernButton
                               variant="outline"
                               size="sm"
                               onClick={() => handleRetryFetch('departments')}
                               icon={RefreshCw}
+                              className="bg-white dark:bg-slate-800 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30"
                             >
                               Retry
                             </ModernButton>
                           </div>
-                        </ModernAlertDescription>
-                      </ModernAlert>
+                        </div>
+                      </div>
                     </div>
                   ) : selectedOrgId ? (
                     <ModernDropdown
@@ -617,37 +628,40 @@ const ZohoIntegration = () => {
                       disabled={errors.isAuthError}
                     />
                   ) : (
-                    <div className="p-3 border rounded-xl bg-slate-50 dark:bg-slate-700/50 text-sm text-slate-500 dark:text-slate-400">
+                    <div className="p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-sm text-slate-500 dark:text-slate-400">
                       Please select an organization first
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium mb-2 block">Primary Contact</Label>
+                  <Label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">Primary Contact</Label>
                   {loadingStates.contacts ? (
-                    <div className="flex items-center gap-2 p-3 border rounded-xl bg-slate-50 dark:bg-slate-700/50">
+                    <div className="flex items-center gap-2 p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50">
                       <LoadingSpinner size="sm" />
                       <span className="text-sm text-slate-600 dark:text-slate-400">Loading contacts...</span>
                     </div>
                   ) : errors.contacts ? (
                     <div className="space-y-2">
-                      <ModernAlert variant="destructive">
-                        <AlertTriangle className="h-4 w-4" />
-                        <ModernAlertDescription>
-                          <div className="flex items-center justify-between">
-                            <span>{errors.contacts}</span>
+                      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                        <div className="flex items-start gap-3">
+                          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
+                              {errors.contacts}
+                            </p>
                             <ModernButton
                               variant="outline"
                               size="sm"
                               onClick={() => handleRetryFetch('contacts')}
                               icon={RefreshCw}
+                              className="bg-white dark:bg-slate-800 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30"
                             >
                               Retry
                             </ModernButton>
                           </div>
-                        </ModernAlertDescription>
-                      </ModernAlert>
+                        </div>
+                      </div>
                     </div>
                   ) : selectedOrgId ? (
                     <ModernDropdown
@@ -658,7 +672,7 @@ const ZohoIntegration = () => {
                       disabled={errors.isAuthError}
                     />
                   ) : (
-                    <div className="p-3 border rounded-xl bg-slate-50 dark:bg-slate-700/50 text-sm text-slate-500 dark:text-slate-400">
+                    <div className="p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-sm text-slate-500 dark:text-slate-400">
                       Please select an organization first
                     </div>
                   )}
