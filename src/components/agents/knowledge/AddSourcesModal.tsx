@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -77,6 +76,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
   const [isScrapingUrls, setIsScrapingUrls] = useState(false);
   const [scrapedUrls, setScrapedUrls] = useState<ScrapedUrl[]>([]);
+  const [lastScrapedUrl, setLastScrapedUrl] = useState<string>('');
 
   // Use centralized integration management
   const { getIntegrationsByType } = useIntegrations();
@@ -138,6 +138,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     setValidationErrors({});
     setScrapedUrls([]);
     setImportAllPages(false);
+    setLastScrapedUrl('');
   }, [sourceType]);
 
   const scrapeUrls = async (baseUrl: string) => {
@@ -168,6 +169,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
       }));
 
       setScrapedUrls(scrapedUrlsData);
+      setLastScrapedUrl(baseUrl);
       
       toast({
         title: "URLs scraped successfully",
@@ -191,7 +193,10 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     setImportAllPages(checked);
     
     if (checked && url) {
-      await scrapeUrls(url);
+      // Only scrape if URL is different from last scraped URL
+      if (url !== lastScrapedUrl) {
+        await scrapeUrls(url);
+      }
     } else if (!checked) {
       setScrapedUrls([]);
     }
