@@ -18,12 +18,14 @@ interface TrainingStatusContextType {
   completeTraining: (agentId: string, success: boolean, error?: string) => void;
   getTrainingProcess: (agentId: string) => TrainingProcess | undefined;
   isTraining: (agentId: string) => boolean;
+  setTrainingCompleteCallback: (callback: (agentId: string) => void) => void;
 }
 
 const TrainingStatusContext = createContext<TrainingStatusContextType | undefined>(undefined);
 
 export const TrainingStatusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [trainingProcesses, setTrainingProcesses] = useState<TrainingProcess[]>([]);
+  const [trainingCompleteCallback, setTrainingCompleteCallback] = useState<((agentId: string) => void) | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -62,6 +64,11 @@ export const TrainingStatusProvider: React.FC<{ children: React.ReactNode }> = (
           description: `Agent "${process.agentName}" training has completed successfully.`,
           variant: 'default',
         });
+        
+        // Call the callback to refetch agent data
+        if (trainingCompleteCallback) {
+          trainingCompleteCallback(agentId);
+        }
       } else {
         toast({
           title: 'Training Failed',
@@ -84,6 +91,10 @@ export const TrainingStatusProvider: React.FC<{ children: React.ReactNode }> = (
     return !!process && (process.status === 'pending' || process.status === 'training');
   };
 
+  const setTrainingCompleteCallbackWrapper = (callback: (agentId: string) => void) => {
+    setTrainingCompleteCallback(() => callback);
+  };
+
   return (
     <TrainingStatusContext.Provider value={{
       trainingProcesses,
@@ -91,6 +102,7 @@ export const TrainingStatusProvider: React.FC<{ children: React.ReactNode }> = (
       completeTraining,
       getTrainingProcess,
       isTraining,
+      setTrainingCompleteCallback: setTrainingCompleteCallbackWrapper,
     }}>
       {children}
     </TrainingStatusContext.Provider>
