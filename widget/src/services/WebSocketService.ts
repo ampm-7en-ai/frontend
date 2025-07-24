@@ -6,7 +6,7 @@ export class WebSocketService {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private handlers: any = {};
-  private isConnected = false;
+  private isConnectedState = false;
 
   constructor(url: string) {
     this.url = url;
@@ -18,7 +18,7 @@ export class WebSocketService {
       
       this.ws.onopen = () => {
         console.log('WebSocket connected');
-        this.isConnected = true;
+        this.isConnectedState = true;
         this.reconnectAttempts = 0;
         this.handlers.onConnectionChange?.(true);
       };
@@ -34,7 +34,7 @@ export class WebSocketService {
 
       this.ws.onclose = () => {
         console.log('WebSocket disconnected');
-        this.isConnected = false;
+        this.isConnectedState = false;
         this.handlers.onConnectionChange?.(false);
         this.attemptReconnect();
       };
@@ -76,11 +76,11 @@ export class WebSocketService {
       this.ws.close();
       this.ws = null;
     }
-    this.isConnected = false;
+    this.isConnectedState = false;
   }
 
   isConnected(): boolean {
-    return this.isConnected;
+    return this.isConnectedState;
   }
 
   on(handlers: {
