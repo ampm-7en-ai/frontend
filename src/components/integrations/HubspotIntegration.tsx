@@ -376,69 +376,7 @@ const HubspotIntegration = () => {
         </div>
       )}
 
-      {/* Connection Setup */}
-      {!isConnected && (
-        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Building className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Connect HubSpot CRM</h3>
-          </div>
-          <p className="text-slate-600 dark:text-slate-400 mb-6">
-            Integrate with HubSpot CRM to sync customer data and enhance sales workflows.
-          </p>
-
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-3">Integration Benefits</h4>
-                <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-                  <li className="flex gap-2 items-center">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                    <span>Automatic contact and lead synchronization</span>
-                  </li>
-                  <li className="flex gap-2 items-center">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                    <span>Sales pipeline and deal tracking</span>
-                  </li>
-                  <li className="flex gap-2 items-center">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                    <span>Marketing automation workflows</span>
-                  </li>
-                  <li className="flex gap-2 items-center">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                    <span>Customer interaction history</span>
-                  </li>
-                  <li className="flex gap-2 items-center">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                    <span>Advanced reporting and analytics</span>
-                  </li>
-                  <li className="flex gap-2 items-center">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                    <span>Email marketing integration</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            
-            <div className="flex gap-3 pt-2">
-              <ModernButton 
-                onClick={handleConnect}
-                disabled={isConnecting}
-                variant="primary"
-              >
-                {isConnecting ? "Connecting..." : "Connect with HubSpot"}
-              </ModernButton>
-              <ModernButton 
-                variant="outline" 
-                onClick={() => window.open('https://developers.hubspot.com/docs/api/oauth-quickstart-guide', '_blank')}
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                OAuth Guide
-              </ModernButton>
-            </div>
-          </div>
-        </div>
-      )}
+      
 
       {/* Connection Management */}
       <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
