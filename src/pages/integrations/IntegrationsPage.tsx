@@ -35,8 +35,8 @@ const IntegrationsPage = () => {
   const [isDisconnectingGoogleDrive, setIsDisconnectingGoogleDrive] = useState(false);
   const [googleAuthUrl, setGoogleAuthUrl] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showSuccessBadge, setShowSuccessBadge] = useState(false);
-  const [successIntegrationInfo, setSuccessIntegrationInfo] = useState<{name: string, logo: string} | null>(null);
+  const [showStatusBadge, setShowStatusBadge] = useState(false);
+  const [statusBadgeInfo, setStatusBadgeInfo] = useState<{name: string, logo: string, status: 'success' | 'failed'} | null>(null);
   const { toast } = useToast();
 
   // Use the centralized integration store
@@ -72,23 +72,24 @@ const IntegrationsPage = () => {
     setSearchParams(newSearchParams);
   };
 
-  // Check for success status and show badge
+  // Check for status and show appropriate badge
   useEffect(() => {
     const status = searchParams.get('status');
     const integrationParam = searchParams.get('integration');
     
-    if (status === 'success' && integrationParam) {
+    if ((status === 'success' || status === 'failed') && integrationParam) {
       const integration = integrationsList.find(i => i.id === integrationParam);
       if (integration) {
-        setSuccessIntegrationInfo({
+        setStatusBadgeInfo({
           name: integration.name,
-          logo: integration.logo
+          logo: integration.logo,
+          status: status as 'success' | 'failed'
         });
-        setShowSuccessBadge(true);
+        setShowStatusBadge(true);
         
         // Auto-dismiss after 5 seconds
         setTimeout(() => {
-          setShowSuccessBadge(false);
+          setShowStatusBadge(false);
         }, 5000);
         
         // Clean up URL parameter
@@ -102,9 +103,9 @@ const IntegrationsPage = () => {
     }
   }, [searchParams, setSearchParams, forceRefresh]);
 
-  const handleSuccessBadgeClose = () => {
-    setShowSuccessBadge(false);
-    setSuccessIntegrationInfo(null);
+  const handleStatusBadgeClose = () => {
+    setShowStatusBadge(false);
+    setStatusBadgeInfo(null);
   };
 
   const handleSetAsDefault = async (providerId: string) => {
@@ -544,13 +545,14 @@ const IntegrationsPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Integration Success Badge */}
-      {successIntegrationInfo && (
+      {/* Integration Status Badge */}
+      {statusBadgeInfo && (
         <IntegrationStatusBadge
-          isVisible={showSuccessBadge}
-          integrationName={successIntegrationInfo.name}
-          integrationLogo={successIntegrationInfo.logo}
-          onClose={handleSuccessBadgeClose}
+          isVisible={showStatusBadge}
+          integrationName={statusBadgeInfo.name}
+          integrationLogo={statusBadgeInfo.logo}
+          status={statusBadgeInfo.status}
+          onClose={handleStatusBadgeClose}
         />
       )}
 
