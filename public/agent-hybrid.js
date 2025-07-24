@@ -1,4 +1,3 @@
-
 (function() {
   'use strict';
 
@@ -118,6 +117,7 @@
       outline: none;
       overflow: hidden;
       border: 4px solid rgba(255, 255, 255, 0.3);
+      box-shadow: none;
     }
     
     .chat-button.with-text {
@@ -195,7 +195,8 @@
       transform-origin: bottom right;
       animation: chatPopupOpen 0.3s ease-out;
       overflow: visible;
-      padding:0;
+      padding: 0;
+      border: none;
     }
     
     .chat-popup.bottom-left {
@@ -221,6 +222,8 @@
       position: relative;
       overflow: hidden;
       border-radius: 20px 20px 20px 20px;
+      box-shadow: none;
+      border: none;
     }
     
     .chat-iframe {
@@ -229,8 +232,8 @@
       border: none;
       border-radius: 20px 20px 20px 20px;
       background: #f8fafc;
+      box-shadow: none;
     }
-   
     
     .chat-loading {
       position: absolute;
@@ -268,6 +271,7 @@
         bottom: 84px;
         right: 20px;
         left: 20px;
+        box-shadow: none;
       }
       
       .chat-popup.bottom-left {
@@ -304,13 +308,13 @@
           .replace(/var\(--font-family\)/g, this.config.fontFamily)
       });
       
-      // Add dynamic styles for button
+      // Add dynamic styles for button - removed box-shadow
       const dynamicStyle = createElement('style', null, {
         innerHTML: `
           .chat-button {
             background: linear-gradient(135deg, ${this.config.primaryColor}, ${adjustedPrimaryColor}) !important;
-            box-shadow: 0 10px 30px ${primaryColorRgba}, 0 5px 15px ${primaryColorRgbaLight} !important;
             font-family: ${this.config.fontFamily} !important;
+            box-shadow: none !important;
           }
         `
       });
