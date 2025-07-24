@@ -36,7 +36,7 @@ const IntegrationsPage = () => {
   const [googleAuthUrl, setGoogleAuthUrl] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showStatusBadge, setShowStatusBadge] = useState(false);
-  const [statusBadgeInfo, setStatusBadgeInfo] = useState<{name: string, logo: string, status: 'success' | 'failed'} | null>(null);
+  const [statusBadgeInfo, setStatusBadgeInfo] = useState<{name: string, status: 'success' | 'failed'} | null>(null);
   const { toast } = useToast();
 
   // Use the centralized integration store
@@ -82,7 +82,6 @@ const IntegrationsPage = () => {
       if (integration) {
         setStatusBadgeInfo({
           name: integration.name,
-          logo: integration.logo,
           status: status as 'success' | 'failed'
         });
         setShowStatusBadge(true);
@@ -550,7 +549,6 @@ const IntegrationsPage = () => {
         <IntegrationStatusBadge
           isVisible={showStatusBadge}
           integrationName={statusBadgeInfo.name}
-          integrationLogo={statusBadgeInfo.logo}
           status={statusBadgeInfo.status}
           onClose={handleStatusBadgeClose}
         />
