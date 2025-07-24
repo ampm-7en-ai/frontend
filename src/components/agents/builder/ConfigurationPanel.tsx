@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,12 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Upload, X, Plus, Palette, MessageSquare, Brain, Settings } from 'lucide-react';
+import { Upload, X, Plus, Palette, MessageSquare, Brain, Settings, Camera, ImageIcon } from 'lucide-react';
 import KnowledgeTrainingStatus from '@/components/agents/knowledge/KnowledgeTrainingStatus';
 import DeploymentDialog from '@/components/agents/DeploymentDialog';
 import { useAIModels } from '@/hooks/useAIModels';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useFloatingToast } from '@/context/FloatingToastContext';
 
 const agentTypes = [
   'Customer Support',
@@ -35,10 +37,143 @@ export const ConfigurationPanel = () => {
   const { state, updateAgentData } = useBuilder();
   const { agentData, isLoading } = state;
   const [isDeploymentOpen, setIsDeploymentOpen] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const { allModelOptions, isLoading: isLoadingModels } = useAIModels();
+  const { showToast } = useFloatingToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Show skeleton loading state during initial load
   const showSkeleton = isLoading;
+
+  const validateImageFile = (file: File): Promise<boolean> => {
+    return new Promise((resolve) => {
+      // Check file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml'];
+      if (!allowedTypes.includes(file.type)) {
+        showToast({
+          title: 'Invalid file type',
+          description: 'Please select a JPG, PNG, or SVG file.',
+          variant: 'error'
+        });
+        resolve(false);
+        return;
+      }
+
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showToast({
+          title: 'File too large',
+          description: 'Please select a file smaller than 5MB.',
+          variant: 'error'
+        });
+        resolve(false);
+        return;
+      }
+
+      // For SVG files, we can't check dimensions easily, so we'll allow them
+      if (file.type === 'image/svg+xml') {
+        resolve(true);
+        return;
+      }
+
+      // Check dimensions for raster images
+      const img = new Image();
+      img.onload = () => {
+        const { width, height } = img;
+        
+        // Check if dimensions are below 500x500
+        if (width > 500 || height > 500) {
+          showToast({
+            title: 'Image too large',
+            description: 'Please select an image with dimensions below 500x500 pixels.',
+            variant: 'error'
+          });
+          resolve(false);
+          return;
+        }
+
+        // Check if aspect ratio is 1:1 (allow small tolerance)
+        const aspectRatio = width / height;
+        if (Math.abs(aspectRatio - 1) > 0.1) {
+          showToast({
+            title: 'Invalid aspect ratio',
+            description: 'Please select an image with a 1:1 aspect ratio (square).',
+            variant: 'error'
+          });
+          resolve(false);
+          return;
+        }
+
+        resolve(true);
+      };
+
+      img.onerror = () => {
+        showToast({
+          title: 'Invalid image',
+          description: 'Please select a valid image file.',
+          variant: 'error'
+        });
+        resolve(false);
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const uploadAvatarFile = async (file: File) => {
+    setIsUploadingAvatar(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/users/upload-file/', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+      
+      if (result.status === 'success' && result.data?.url) {
+        updateAgentData({ avatar: result.data.url });
+        showToast({
+          title: 'Avatar uploaded',
+          description: 'Your avatar has been successfully uploaded.',
+          variant: 'success'
+        });
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error('Avatar upload failed:', error);
+      showToast({
+        title: 'Upload failed',
+        description: 'Failed to upload avatar. Please try again.',
+        variant: 'error'
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const isValid = await validateImageFile(file);
+    if (isValid) {
+      await uploadAvatarFile(file);
+    }
+
+    // Reset the input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleSuggestionChange = (index: number, value: string) => {
     const newSuggestions = [...agentData.suggestions];
@@ -219,6 +354,51 @@ export const ConfigurationPanel = () => {
                     </SelectContent>
                   </Select>
                 )}
+              </div>
+
+              {/* Avatar Upload Section */}
+              <div className="space-y-1">
+                <Label className="text-xs font-medium">Avatar</Label>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={agentData.avatar} alt={agentData.name} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                      {agentData.name.charAt(0).toUpperCase() || 'A'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/svg+xml"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploadingAvatar}
+                      className="h-8 text-xs hover:bg-blue-50 hover:border-blue-300 backdrop-blur-sm bg-white/70 border-gray-200/50 rounded-xl"
+                    >
+                      {isUploadingAvatar ? (
+                        <>
+                          <LoadingSpinner size="sm" className="mr-1" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Camera className="h-3 w-3 mr-1" />
+                          Upload Avatar
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-gray-500 mt-1">
+                      JPG, PNG, SVG • Max 500×500px • 1:1 ratio
+                    </p>
+                  </div>
+                </div>
               </div>
             </AccordionContent>
           </AccordionItem>
