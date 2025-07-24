@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBuilder } from './BuilderContext';
@@ -113,9 +114,16 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
       );
       
       if (success) {
+        console.log('✅ Training successful from toolbar, refreshing builder page');
+
+        // Refresh the entire page after successful training
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+
         addNotification({
           title: 'Training Complete',
-          message: `Agent "${agentData.name}" training has completed successfully.`,
+          message: `Agent "${agentData.name}" training completed successfully. Page will refresh shortly.`,
           type: 'training_completed',
           agentId: agentData.id.toString(),
           agentName: agentData.name
