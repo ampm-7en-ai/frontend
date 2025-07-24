@@ -1,87 +1,155 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-import { ModernInput } from '@/components/ui/modern-input';
-import { ArrowUp, ArrowRight, Moon, Sun, User, ArrowLeft, Bot, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ArrowUp, ArrowRight, Moon, Sun, User, ArrowLeft, Bot } from 'lucide-react';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { BASE_URL } from '@/utils/api-config';
+
+interface ChatbotConfig {
+  agentId: string;
+  primaryColor: string;
+  secondaryColor: string;
+  fontFamily: string;
+  chatbotName: string;
+  welcomeMessage: string;
+  buttonText: string;
+  position: 'bottom-right' | 'bottom-left';
+  suggestions: string[];
+  avatarUrl?: string;
+}
+
+interface SearchResult {
+  id: string;
+  title: string;
+  content: string;
+  timestamp: string;
+  type?: string;
+}
 
 interface ChatMessage {
   id: string;
   content: string;
-  type: 'user' | 'bot_response' | 'system_message' | 'ui';
+  type: 'user' | 'bot_response' | 'system_message';
   timestamp: string;
-  ui_type?: string;
-  session_id?: string;
 }
 
+const fallbackSuggestions = [];
+
+const thinkingMessages = [
+  "Thinking...",
+  "Searching knowledge base...",
+  "Processing your question...",
+  "Connecting to agent...",
+  "Analyzing information...",
+  "Finding relevant answers..."
+];
+
+// Enhanced mode system for better state management
+type AssistantMode = 'initial' | 'suggestions' | 'chat';
+
 const SearchAssistant = () => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const { agentId } = useParams<{ agentId: string }>();
+  const [searchParams] = useSearchParams();
+  const isPopupMode = searchParams.get('type') === 'popup';
+  
+  // Core configuration and loading states
+  const [config, setConfig] = useState<ChatbotConfig | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Enhanced state management with single mode
+  const [mode, setMode] = useState<AssistantMode>('initial');
   const [query, setQuery] = useState<string>('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [thinkingMessage, setThinkingMessage] = useState<string>("Thinking...");
-  const [hasInteracted, setHasInteracted] = useState<boolean>(false);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
-  const [emailInput, setEmailInput] = useState<string>('');
-  const [activeUIMessage, setActiveUIMessage] = useState<ChatMessage | null>(null);
   
+  // WebSocket and connectivity
+  const [isConnected, setIsConnected] = useState<boolean>(false);
   const chatServiceRef = useRef<ChatWebSocketService | null>(null);
   const thinkingIntervalRef = useRef<number | null>(null);
+  
+  // Refs and theme
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme } = useAppTheme();
   const { toast } = useToast();
+  
+  // Theme state for component
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('dark');
 
+  // Use system theme preference as initial value
   useEffect(() => {
+    // Use the theme from context if available, otherwise detect from system
     if (theme === 'light' || theme === 'dark') {
       setCurrentTheme(theme);
     } else {
+      // Detect system preference
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       setCurrentTheme(prefersDark ? 'dark' : 'light');
     }
   }, [theme]);
 
+  // Toggle theme
   const toggleTheme = () => {
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     setCurrentTheme(newTheme);
     setTheme(newTheme);
   };
 
+  // Fetch the chatbot configuration
   useEffect(() => {
-    const agentId = 'default_agent';
+    const fetchConfig = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${BASE_URL}chatbot-config?agentId=${agentId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch config: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setConfig(data);
+        document.title = `${data.chatbotName} - AI Assistant`;
+        
+        // We don't automatically add the welcome message now
+        // Instead, we'll show it after the first interaction or if the user clicks a suggestion
+      } catch (err) {
+        console.error('Error fetching chatbot config:', err);
+        setError('Failed to load assistant configuration');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (agentId) {
+      fetchConfig();
+    }
+  }, [agentId]);
+
+  // Initialize WebSocket connection once on component mount
+  useEffect(() => {
+    if (!agentId) return;
 
     console.log("Initializing ChatWebSocketService with agent ID:", agentId);
     
-    chatServiceRef.current = new ChatWebSocketService(agentId, "search");
+    chatServiceRef.current = new ChatWebSocketService(agentId, "chat");
     
     chatServiceRef.current.on({
       onMessage: (message) => {
         console.log("Received message:", message);
-        
-        // Handle UI messages
-        if (message.type === 'ui') {
-          const uiMessage: ChatMessage = {
-            id: `ui-${Date.now()}`,
-            content: '',
-            type: 'ui',
-            timestamp: message.timestamp,
-            ui_type: message.ui_type,
-            session_id: message.session_id
-          };
-          
-          setChatHistory(prev => [...prev, uiMessage]);
-          setActiveUIMessage(uiMessage);
-          clearThinkingInterval();
-          setIsProcessing(false);
-          return;
-        }
         
         // Handle system messages for thinking states
         if (message.type === 'system_message') {
@@ -92,7 +160,6 @@ const SearchAssistant = () => {
         // For regular messages, stop the thinking animation
         clearThinkingInterval();
         setIsProcessing(false);
-        setActiveUIMessage(null);
         
         // Add the bot response to chat history
         const newMessage: ChatMessage = {
@@ -120,7 +187,6 @@ const SearchAssistant = () => {
         });
         setIsProcessing(false);
         setIsConnected(false);
-        setActiveUIMessage(null);
       },
       onConnectionChange: (status) => {
         console.log("Connection status changed:", status);
@@ -128,10 +194,12 @@ const SearchAssistant = () => {
         if (!status) {
           clearThinkingInterval();
           setIsProcessing(false);
-          setActiveUIMessage(null);
         }
       }
     });
+    
+    // Connect once on component mount
+    chatServiceRef.current.connect();
     
     return () => {
       console.log("Cleaning up ChatWebSocketService");
@@ -141,35 +209,27 @@ const SearchAssistant = () => {
         chatServiceRef.current = null;
       }
     };
-  }, [toast]);
+  }, [agentId, toast]);
 
+  // Auto-scroll to bottom when chat history changes
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current && (mode === 'chat' || !isPopupMode)) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end'
+      });
     }
-  }, [chatHistory.length, isProcessing]);
+  }, [chatHistory, isProcessing, mode, isPopupMode]);
 
   const startThinkingAnimation = () => {
+    // Clear any existing interval
     clearThinkingInterval();
     
+    // Start rotating through thinking messages
     let messageIndex = 0;
     const intervalId = window.setInterval(() => {
-      messageIndex = (messageIndex + 1) % [
-        "Thinking...",
-        "Searching knowledge base...",
-        "Processing your question...",
-        "Connecting to agent...",
-        "Analyzing information...",
-        "Finding relevant answers..."
-      ].length;
-      setThinkingMessage([
-        "Thinking...",
-        "Searching knowledge base...",
-        "Processing your question...",
-        "Connecting to agent...",
-        "Analyzing information...",
-        "Finding relevant answers..."
-      ][messageIndex].toLowerCase());
+      messageIndex = (messageIndex + 1) % thinkingMessages.length;
+      setThinkingMessage(thinkingMessages[messageIndex].toLowerCase());
     }, 3000);
     
     thinkingIntervalRef.current = intervalId;
@@ -182,11 +242,14 @@ const SearchAssistant = () => {
     }
   };
 
+  // Enhanced search handling with mode transitions
   const handleSearch = useCallback(() => {
     if (!query.trim()) return;
 
-    setHasInteracted(true);
+    // Transition to chat mode
+    setMode('chat');
     
+    // Add user message immediately
     const userQueryCopy = query;
     const newUserMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -233,8 +296,9 @@ const SearchAssistant = () => {
     }
   };
 
+  // Enhanced suggestion selection with smooth transitions
   const handleSelectExample = useCallback((question: string) => {
-    setHasInteracted(true);
+    setMode('chat');
     
     const newUserMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -259,245 +323,900 @@ const SearchAssistant = () => {
     }
   }, [toast]);
 
-  // New functions for UI handling
-  const handleEmailSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (emailInput.trim() && isValidEmail(emailInput)) {
-      sendUIResponse(emailInput.trim());
-      setEmailInput('');
+  // Enhanced input interaction with mode-based logic
+  const handleInputClick = useCallback(() => {
+    if (mode === 'initial') {
+      setMode('suggestions');
     }
-  };
+  }, [mode]);
 
-  const handleEmailKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleEmailSubmit(e);
+  // Enhanced reset functionality with clean state transitions
+  const handleBackToInitial = useCallback(() => {
+    setMode('initial');
+    setChatHistory([]);
+    setQuery('');
+    setIsProcessing(false);
+    clearThinkingInterval();
+    
+    // Clean disconnect and reconnect WebSocket for fresh state
+    if (chatServiceRef.current) {
+      chatServiceRef.current.disconnect();
+      setTimeout(() => {
+        if (chatServiceRef.current) {
+          chatServiceRef.current.connect();
+        }
+      }, 100);
     }
-  };
+  }, []);
 
-  const handleNoThanks = () => {
-    sendUIResponse('No thanks');
-  };
-
-  const sendUIResponse = (message: string) => {
-    const newUserMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      content: message,
-      type: 'user',
-      timestamp: new Date().toISOString()
+  // Enhanced click outside handling with mode-based logic
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isPopupMode && containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        if (mode === 'chat') {
+          // Complete reset when leaving chat mode
+          setMode('initial');
+          setChatHistory([]);
+          setQuery('');
+          setIsProcessing(false);
+          clearThinkingInterval();
+          
+          // Clean WebSocket state
+          if (chatServiceRef.current) {
+            chatServiceRef.current.disconnect();
+            setTimeout(() => {
+              if (chatServiceRef.current) {
+                chatServiceRef.current.connect();
+              }
+            }, 100);
+          }
+        } else if (mode === 'suggestions') {
+          setMode('initial');
+        }
+      }
     };
-    
-    setChatHistory(prev => [...prev, newUserMessage]);
-    setActiveUIMessage(null);
-    setIsProcessing(true);
-    
-    if (chatServiceRef.current?.isConnected()) {
-      startThinkingAnimation();
-      chatServiceRef.current.sendMessage(message);
-    }
-  };
 
-  const isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isPopupMode, mode]);
 
+  // Determine which suggestions to use (from config or fallback)
+  const suggestions = config?.suggestions && config.suggestions.length > 0 
+    ? config.suggestions 
+    : fallbackSuggestions;
+
+  // Primary brand colors
+  const primaryColor = config?.primaryColor || '#9b87f5';
+  const secondaryColor = config?.secondaryColor || '#7E69AB';
+  const isDarkTheme = currentTheme === 'dark';
+  
+  // Theme-based colors
+  const bgColor = isDarkTheme ? '#1A1F2C' : '#FFFFFF';
+  const textColor = isDarkTheme ? '#FFFFFF' : '#1A1F2C';
+  const inputBgColor = isDarkTheme ? '#2a2a2a' : '#F5F6F7';
+  const inputBorderColor = `${primaryColor}40`;
+  const cardBgColor = isDarkTheme ? '#2a2a2a' : '#FFFFFF';
+  const borderColor = isDarkTheme ? `${primaryColor}40` : '#E1E4E8';
+  const codeBackgroundColor = isDarkTheme ? '#2d2d2d' : '#f6f6f6';
+  const codeTextColor = isDarkTheme ? '#e0e0e0' : '#333333';
+  const inlineCodeBg = isDarkTheme ? '#3a3a3a' : '#f0f0f0';
+  const linkColor = isDarkTheme ? '#D6BCFA' : '#7559da';
+  const strongTagColor = isDarkTheme ? '#D6BCFA' : primaryColor;
+
+  if (loading) {
+    return (
+      <div 
+        className="flex h-screen items-center justify-center text-white"
+        style={{ backgroundColor: bgColor, color: textColor }}
+      >
+        <div className="text-center">
+          <LoadingSpinner size="lg" text="Loading assistant..." />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !config) {
+    return (
+      <div 
+        className="flex h-screen items-center justify-center text-white"
+        style={{ backgroundColor: bgColor, color: textColor }}
+      >
+        <div className="text-center max-w-md mx-auto p-6 rounded-lg shadow-md"
+          style={{ backgroundColor: isDarkTheme ? '#2a2a2a' : '#F5F6F7' }}
+        >
+          <h2 className="text-2xl font-bold text-red-500 mb-2">Error</h2>
+          <p>{error || 'Failed to load assistant configuration'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Enhanced popup layout with progressive disclosure
+  if (isPopupMode) {
+    return (
+      <div 
+        className="h-screen flex items-center justify-center p-4"
+        style={{ 
+          fontFamily: config.fontFamily || 'Inter',
+          background: isDarkTheme 
+            ? `linear-gradient(to right, #1A1F2C, #232838)` 
+            : `linear-gradient(to right, #FFFFFF, #F5F6F7)`,
+          color: textColor,
+          borderColor: borderColor
+        }}
+        
+      >
+        {/* Main floating container with enhanced transitions */}
+        <div 
+          ref={containerRef}
+          className={`relative transition-all duration-700 ease-out ${
+            mode === 'chat'
+              ? 'w-full max-w-4xl h-[70vh] rounded-2xl shadow-2xl border animate-scale-in' 
+              : mode === 'suggestions'
+              ? 'w-full max-w-lg rounded-3xl shadow-2xl border animate-fade-in p-[5px]'
+              : 'w-full max-w-lg animate-fade-in'
+          }`}
+          style={{
+            backgroundColor: mode !== 'initial' ? cardBgColor : 'transparent',
+            borderColor: mode !== 'initial' ? borderColor : 'transparent',
+            transform: mode === 'chat' ? 'scale(1.02)' : 'scale(1)',
+          }}
+        >
+          {/* Enhanced header with theme toggle - only visible in chat mode */}
+          {mode === 'chat' && (
+            <div className="flex items-center justify-between p-4 border-b animate-fade-in"
+              style={{ borderColor: borderColor }}
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBackToInitial}
+                className="flex items-center gap-2 hover-scale transition-all duration-200"
+                style={{ 
+                  color: textColor,
+                  backgroundColor: currentTheme === 'dark' ? `${primaryColor}30` : `${primaryColor}10`,
+                }}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="text-sm">Back</span>
+              </Button>
+              
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-center">{config.chatbotName}</span>
+                <button 
+                  onClick={toggleTheme} 
+                  className="p-2 rounded-full hover-scale transition-all duration-200"
+                  style={{ backgroundColor: `${primaryColor}20` }}
+                >
+                  {currentTheme === 'dark' ? (
+                    <Sun size={16} style={{ color: textColor }} />
+                  ) : (
+                    <Moon size={16} style={{ color: textColor }} />
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Enhanced chat content area with smooth transitions */}
+          {mode === 'chat' && (
+            <div className="flex flex-col animate-fade-in" style={{ height: 'calc(100% - 4rem)' }}>
+              {/* Chat history with enhanced scrolling */}
+              <div className="flex-1 overflow-hidden min-h-0">
+                <ScrollArea className="h-full" ref={chatScrollRef}>
+                  <div className="p-6 space-y-5">
+                    {chatHistory.map((message, index) => {
+                      if (message.type === 'user') {
+                        return (
+                          <div key={message.id} className="flex items-start gap-2">
+                            <Avatar className="h-8 w-8 mt-1">
+                              <AvatarFallback className="bg-gray-200 dark:bg-gray-800">
+                                <User className="h-4 w-4" />
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="pl-[10px] pt-[8px]">
+                              <p className="text-sm font-semibold" style={{ color: isDarkTheme ? '#fff' : '#333333' }}>
+                                {message.content}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      } else if (message.type === 'bot_response') {
+                        return (
+                          <div key={message.id} className="flex items-start gap-2">
+                            <Avatar className="h-8 w-8 mt-1" style={{
+                              backgroundColor: primaryColor
+                            }}>
+                              {config.avatarUrl ? (
+                                <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                              ) : null}
+                              <AvatarFallback style={{
+                                backgroundColor: primaryColor
+                              }}>
+                                <Bot className="h-4 w-4 text-white" />
+                              </AvatarFallback>
+                            </Avatar>
+
+                            <div className="flex-1 pl-[10px] pt-[5px]">
+                              <div className="prose prose-sm max-w-none break-words" style={{ 
+                                color: isDarkTheme ? '#bdbdbd' : '#333333',
+                              }}>
+                                <ReactMarkdown
+                                  components={{
+                                    code({ node, className, children, ...props }) {
+                                      const match = /language-(\w+)/.exec(className || '');
+                                      const language = match ? match[1] : '';
+                                      
+                                      const isInline = !match && children.toString().split('\n').length === 1;
+                                      
+                                      if (isInline) {
+                                        return (
+                                          <code
+                                            className="px-1 py-0.5 rounded font-mono text-xs"
+                                            style={{ 
+                                              backgroundColor: inlineCodeBg,
+                                              color: codeTextColor
+                                            }}
+                                            {...props}
+                                          >
+                                            {children}
+                                          </code>
+                                        );
+                                      }
+                                      
+                                      return (
+                                        <div className="my-2">
+                                          <pre
+                                            className="p-3 rounded overflow-x-auto text-xs"
+                                            style={{ 
+                                              backgroundColor: codeBackgroundColor,
+                                              color: codeTextColor
+                                            }}
+                                          >
+                                            <code className={className} {...props}>
+                                              {children}
+                                            </code>
+                                          </pre>
+                                        </div>
+                                      );
+                                    },
+                                    p({ children }) {
+                                      return <p className="mb-2 text-sm leading-relaxed">{children}</p>;
+                                    },
+                                    ul({ children }) {
+                                      return <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>;
+                                    },
+                                    ol({ children }) {
+                                      return <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>;
+                                    },
+                                    li({ children }) {
+                                      return <li className="text-sm">{children}</li>;
+                                    },
+                                    h1({ children }) {
+                                      return <h1 className="text-lg font-bold mb-2" style={{ color: primaryColor }}>{children}</h1>;
+                                    },
+                                    h2({ children }) {
+                                      return <h2 className="text-base font-bold mb-2" style={{ color: primaryColor }}>{children}</h2>;
+                                    },
+                                    h3({ children }) {
+                                      return <h3 className="text-sm font-bold mb-2" style={{ color: primaryColor }}>{children}</h3>;
+                                    },
+                                    a({ href, children }) {
+                                      return (
+                                        <a 
+                                          href={href} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="underline hover:no-underline transition-all duration-200"
+                                          style={{ color: linkColor }}
+                                        >
+                                          {children}
+                                        </a>
+                                      );
+                                    },
+                                    strong({ children }) {
+                                      return <strong style={{ color: strongTagColor }}>{children}</strong>;
+                                    }
+                                  }}
+                                >
+                                  {message.content}
+                                </ReactMarkdown>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })}
+
+                    {/* Enhanced thinking/loading indicator with better animations */}
+                    {isProcessing && (
+                      <div className="flex items-start gap-2 animate-fade-in" style={{ color: textColor }}>
+                        <Avatar className="h-8 w-8 mt-1" style={{
+                          backgroundColor: primaryColor
+                        }}>
+                          {config.avatarUrl ? (
+                            <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                          ) : null}
+                          <AvatarFallback style={{
+                            backgroundColor: primaryColor
+                          }}>
+                            <Bot className="h-4 w-4 text-white" />
+                          </AvatarFallback>
+                        </Avatar>
+
+                        <div className="flex flex-col gap-2 pl-[10px] pt-[5px]">
+                          <div className="flex items-center">
+                            <div className="mr-3 flex items-center">
+                              <div 
+                                className="w-2 h-2 rounded-full mr-1 animate-pulse"
+                                style={{ backgroundColor: primaryColor }}
+                              ></div>
+                              <div 
+                                className="w-2 h-2 rounded-full mr-1 animate-pulse"
+                                style={{ 
+                                  backgroundColor: primaryColor,
+                                  animationDelay: '0.2s'
+                                }}
+                              ></div>
+                              <div 
+                                className="w-2 h-2 rounded-full animate-pulse"
+                                style={{ 
+                                  backgroundColor: primaryColor,
+                                  animationDelay: '0.4s'
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                          <p className="text-xs opacity-70 animate-pulse" style={{ color: textColor }}>
+                            {thinkingMessage}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Invisible div for auto-scroll anchor */}
+                    <div ref={messagesEndRef} />
+                  </div>
+                </ScrollArea>
+              </div>
+
+              {/* Enhanced input bar with better styling and animations */}
+              <div className="flex-shrink-0 border-t p-4 animate-fade-in"
+                style={{
+                  borderColor: borderColor,
+                  backgroundColor: `${primaryColor}05`
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 relative">
+                    <Input
+                      ref={inputRef}
+                      type="text"
+                      placeholder={`Ask ${config.chatbotName}...`}
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      className="pr-12 py-3 text-base border-2 focus:ring-2 transition-all duration-300 shadow-sm"
+                      style={{
+                        backgroundColor: inputBgColor,
+                        borderColor: inputBorderColor,
+                        color: textColor,
+                        borderRadius: '16px'
+                      }}
+                      disabled={isProcessing}
+                    />
+                    <Button
+                      onClick={handleSearch}
+                      disabled={!query.trim() || isProcessing}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full p-0 hover-scale transition-all duration-200 shadow-md"
+                      style={{
+                        backgroundColor: primaryColor,
+                        borderColor: primaryColor
+                      }}
+                    >
+                      {isProcessing ? (
+                        <LoadingSpinner size="sm" />
+                      ) : (
+                        <ArrowUp className="h-4 w-4 text-white" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Enhanced initial/suggestions interface with progressive disclosure */}
+          {mode !== 'chat' && (
+            <div className="relative">
+              {/* Input container with enhanced transitions */}
+              <div 
+                className={`relative transition-all duration-700 ease-out ${
+                  mode === 'suggestions' ? 'rounded-3xl border animate-scale-in border-none shadow-none' : 'animate-fade-in'
+                }`}
+                style={{
+                  backgroundColor: mode === 'suggestions' ? cardBgColor : 'transparent',
+                  borderColor: mode === 'suggestions' ? borderColor : 'transparent'
+                }}
+              >
+                {/* Enhanced search input with better responsive design */}
+                <div className="relative">
+                  <Input
+                    ref={inputRef}
+                    type="text"
+                    placeholder={`Ask ${config.chatbotName}...`}
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    onClick={handleInputClick}
+                    className={`pr-16 py-6 text-xl focus:ring-2 transition-all duration-700 ease-out rounded-full ${
+                      mode === 'suggestions' 
+                        ? 'border-0 bg-transparent' 
+                        : 'shadow-xl hover-scale border-2'
+                    }`}
+                    style={{
+                      backgroundColor: mode === 'suggestions' ? 'transparent' : inputBgColor,
+                      borderColor: mode === 'suggestions' ? 'transparent' : inputBorderColor,
+                      color: textColor,
+                      fontSize: '1.25rem'
+                    }}
+                    disabled={isProcessing}
+                  />
+                  <Button
+                    onClick={handleSearch}
+                    disabled={!query.trim() || isProcessing}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 h-9 w-9 rounded-full p-0 shadow-lg hover-scale transition-all duration-300 -mr-[8px]"
+                    style={{
+                      backgroundColor: primaryColor,
+                      borderColor: primaryColor
+                    }}
+                  >
+                     {isProcessing ? (
+                       <LoadingSpinner size="sm" />
+                     ) : mode === 'suggestions' ? (
+                       <ArrowRight className="h-5 w-5 text-white" />
+                     ) : (
+                       <ArrowUp className="h-5 w-5 text-white" />
+                     )}
+                  </Button>
+                </div>
+
+                {/* Enhanced suggestions dropdown with staggered animations */}
+                {mode === 'suggestions' && (
+                  <div 
+                    className="border-t-0 rounded-b-3xl overflow-hidden animate-fade-in"
+                    style={{
+                      backgroundColor: cardBgColor,
+                      borderColor: borderColor
+                    }}
+                  >
+                    {suggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSelectExample(suggestion)}
+                        className="w-full px-6 py-4 text-left border-b last:border-b-0 transition-all duration-300 ease-out text-sm hover-scale"
+                        style={{
+                          backgroundColor: 'transparent',
+                          borderColor: `${borderColor}30`,
+                          color: textColor,
+                          animationDelay: `${index * 100}ms`
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = `${primaryColor}12`;
+                          e.currentTarget.style.transform = 'translateX(4px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.transform = 'translateX(0)';
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="leading-relaxed font-medium">{suggestion}</span>
+                          <ArrowUp 
+                            className="h-4 w-4 transform rotate-45 opacity-40 transition-all duration-300"
+                            style={{ color: primaryColor }}
+                          />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Enhanced loading overlay with better visual feedback */}
+              {isProcessing && mode === 'suggestions' && (
+                <div className="absolute inset-0 bg-black bg-opacity-30 rounded-3xl flex items-center justify-center transition-all duration-500 animate-fade-in backdrop-blur-sm">
+                  <div className="rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-4 animate-scale-in"
+                    style={{
+                      backgroundColor: cardBgColor,
+                      color: textColor,
+                      border: `1px solid ${borderColor}`
+                    }}
+                  >
+                    <LoadingSpinner size="md" />
+                    <div className="text-center">
+                      <p className="text-sm font-medium animate-pulse">{thinkingMessage}</p>
+                      <p className="text-xs opacity-70 mt-1">Preparing your answer...</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Normal layout for regular mode
   return (
-    <div className="flex flex-col h-screen bg-background overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border bg-card">
+    <div 
+      className="min-h-screen flex flex-col h-screen overflow-hidden"
+      style={{ 
+        fontFamily: config.fontFamily || 'Inter',
+        backgroundColor: bgColor,
+        color: textColor
+      }}
+    >
+      {/* Header with theme toggle - Fixed */}
+      <header 
+        className="p-3 flex items-center justify-between border-b sticky top-0 z-10"
+        style={{ 
+          borderColor: borderColor,
+          background: isDarkTheme 
+            ? `linear-gradient(to right, #1A1F2C, #232838)` 
+            : `linear-gradient(to right, #FFFFFF, #F5F6F7)`
+        }}
+      >
         <div className="flex items-center gap-2">
-          <Avatar className="h-6 w-6" style={{ backgroundColor: '#6366f1' }}>
-            <AvatarFallback style={{ backgroundColor: '#6366f1' }}>
-              <Bot className="h-3 w-3 text-white" />
+          <Avatar className="h-8 w-8" style={{
+            backgroundColor: primaryColor
+          }}>
+            {config.avatarUrl ? (
+              <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+            ) : null}
+            <AvatarFallback style={{
+              backgroundColor: primaryColor
+            }}>
+              <Bot className="h-4 w-4 text-white" />
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm font-medium text-foreground">Search Assistant</span>
+          <span className="ml-2 font-medium text-sm">{config.chatbotName || 'AI Assistant'}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={toggleTheme} 
-            className="p-2 rounded-full hover:bg-accent transition-colors"
-          >
-            {currentTheme === 'dark' ? (
-              <Sun size={16} className="text-foreground" />
+        <button 
+          onClick={toggleTheme} 
+          className="p-1.5 rounded-full"
+          style={{ backgroundColor: `${primaryColor}30` }}
+        >
+          {currentTheme === 'dark' ? (
+            <Sun size={16} color={textColor} />
+          ) : (
+            <Moon size={16} color={textColor} />
+          )}
+        </button>
+      </header>
+
+      {/* Main content - Scrollable */}
+      <main className="flex-1 overflow-hidden flex flex-col" style={{ backgroundColor: isDarkTheme ? '#1A1F2C' : '#FFFFFF' }}>
+        <ScrollArea 
+          className="flex-grow"
+          style={{ height: 'calc(100vh - 98px)' }} // Adjust based on header and input area heights
+        >
+          <div className="p-4">
+            {chatHistory.length === 0 ? (
+              <div>
+                <div className="mb-4">
+                  <h2 className="font-medium mb-2 text-sm" style={{ color: primaryColor }}>Examples</h2>
+                  <div className="space-y-2">
+                    {suggestions.map((question, index) => (
+                      <div 
+                        key={index}
+                        onClick={() => handleSelectExample(question)}
+                        className="p-2 rounded hover:cursor-pointer flex items-center gap-2 text-sm transition-colors"
+                        style={{ 
+                          backgroundColor: isDarkTheme ? 'rgba(120, 120, 128, 0.2)' : 'rgba(120, 120, 128, 0.1)',
+                          color: textColor
+                        }}
+                      >
+                        <span>{question}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             ) : (
-              <Moon size={16} className="text-foreground" />
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Chat Content */}
-      <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full">
-          <div className="p-4 space-y-4 max-w-4xl mx-auto">
-            {/* Welcome message */}
-            {!hasInteracted && (
-              <div className="flex items-start gap-2">
-                <Avatar className="h-6 w-6 mt-1" style={{ backgroundColor: '#6366f1' }}>
-                  <AvatarFallback style={{ backgroundColor: '#6366f1' }}>
-                    <Bot className="h-3 w-3 text-white" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 text-sm text-foreground">
-                  Hi! I'm your search assistant. I can help you find information, answer questions, and assist with various tasks. What would you like to know?
-                </div>
-              </div>
-            )}
-
-            {/* Chat messages */}
-            {chatHistory.map((message, index) => {
-              if (message.type === 'user') {
-                return (
-                  <div key={message.id} className="flex items-start gap-2 justify-end">
-                    <div className="max-w-[80%] p-3 rounded-lg text-sm bg-primary text-primary-foreground">
-                      {message.content}
-                    </div>
-                    <Avatar className="h-6 w-6 mt-1">
-                      <AvatarFallback className="bg-muted">
-                        <User className="h-3 w-3" />
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
-                );
-              } else if (message.type === 'bot_response') {
-                return (
-                  <div key={message.id} className="flex items-start gap-2">
-                    <Avatar className="h-6 w-6 mt-1" style={{ backgroundColor: '#6366f1' }}>
-                      <AvatarFallback style={{ backgroundColor: '#6366f1' }}>
-                        <Bot className="h-3 w-3 text-white" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 text-sm prose prose-sm max-w-none text-foreground">
-                      <ReactMarkdown>{message.content}</ReactMarkdown>
-                    </div>
-                  </div>
-                );
-              } else if (message.type === 'ui' && message.ui_type === 'email') {
-                return (
-                  <div key={message.id} className="flex items-start gap-2">
-                    <Avatar className="h-6 w-6 mt-1" style={{ backgroundColor: '#6366f1' }}>
-                      <AvatarFallback style={{ backgroundColor: '#6366f1' }}>
-                        <Bot className="h-3 w-3 text-white" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 space-y-3">
-                      <p className="text-sm text-foreground">
-                        Please enter your email address:
-                      </p>
-                      <form onSubmit={handleEmailSubmit} className="space-y-2">
-                        <ModernInput
-                          type="email"
-                          placeholder="Enter your email"
-                          value={emailInput}
-                          onChange={(e) => setEmailInput(e.target.value)}
-                          onKeyPress={handleEmailKeyPress}
-                          className="text-sm"
-                          variant="modern"
-                          required
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            type="submit"
-                            size="sm"
-                            disabled={!isValidEmail(emailInput)}
-                            style={{ backgroundColor: '#6366f1' }}
-                            className="text-white"
-                          >
-                            Submit
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={handleNoThanks}
-                            style={{ borderColor: '#6366f1', color: '#6366f1' }}
-                          >
-                            No thanks
-                          </Button>
+              <div className="flex flex-col space-y-5 mb-4">
+                {/* Render chat history */}
+                {chatHistory.map((message, index) => {
+                  if (message.type === 'user') {
+                    return (
+                      <div key={message.id} className="flex items-start gap-2">
+                        <Avatar className="h-8 w-8 mt-1">
+                          <AvatarFallback className="bg-gray-200 dark:bg-gray-800">
+                            <User className="h-4 w-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="pl-[10px] pt-[8px]">
+                          <p className="text-sm font-semibold" style={{ color: isDarkTheme ? '#fff' : '#333333' }}>
+                            {message.content}
+                          </p>
                         </div>
-                      </form>
+                      </div>
+                    );
+                  } else if (message.type === 'bot_response') {
+                    return (
+                      <div key={message.id} className="flex items-start gap-2">
+                        <Avatar className="h-8 w-8 mt-1" style={{
+                          backgroundColor: primaryColor
+                        }}>
+                          {config.avatarUrl ? (
+                            <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                          ) : null}
+                          <AvatarFallback style={{
+                            backgroundColor: primaryColor
+                          }}>
+                            <Bot className="h-4 w-4 text-white" />
+                          </AvatarFallback>
+                        </Avatar>
+
+                        <div className="flex-1 pl-[10px] pt-[5px]">
+                          <div className="prose prose-sm max-w-none break-words" style={{ 
+                            color: isDarkTheme ? '#bdbdbd' : '#333333',
+                          }}>
+                            <ReactMarkdown
+                              components={{
+                                code({ node, className, children, ...props }) {
+                                  const match = /language-(\w+)/.exec(className || '');
+                                  const language = match ? match[1] : '';
+                                  
+                                  // Check if inline code
+                                  const isInline = !match && children.toString().split('\n').length === 1;
+                                  
+                                  if (isInline) {
+                                    return (
+                                      <code
+                                        className="px-1 py-0.5 rounded font-mono text-xs"
+                                        style={{ 
+                                          backgroundColor: isDarkTheme ? inlineCodeBg : '#f0f0f0',
+                                          color: isDarkTheme ? primaryColor : '#333333' 
+                                        }}
+                                        {...props}
+                                      >
+                                        {children}
+                                      </code>
+                                    );
+                                  }
+
+                                  return (
+                                    <div className="relative mt-2">
+                                      {language && (
+                                        <div 
+                                          className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono"
+                                          style={{ 
+                                            backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                                            color: isDarkTheme ? '#fff': "#000",
+                                          }}
+                                        >
+                                          {language}
+                                        </div>
+                                      )}
+                                      <pre 
+                                        className="!mt-0 rounded overflow-x-auto text-xs"
+                                        style={{ 
+                                          backgroundColor: isDarkTheme ? '#2d2d2d' : '#f6f6f6',
+                                          padding: '8px',
+                                          color: isDarkTheme ? '#e0e0e0' : '#333333',
+                                          border: isDarkTheme ? '1px solid #444' : '1px solid #e0e0e0'
+                                        }}
+                                      >
+                                        <code className="block font-mono" {...props}>
+                                          {children}
+                                        </code>
+                                      </pre>
+                                    </div>
+                                  );
+                                },
+                                a({ node, href, children, ...props }) {
+                                  return (
+                                    <a 
+                                      href={href} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer" 
+                                      style={{ color: linkColor, textDecoration: 'underline' }}
+                                      {...props}
+                                    >
+                                      {children}
+                                    </a>
+                                  );
+                                },
+                                ul({ node, children, ...props }) {
+                                  return (
+                                    <ul className="list-disc pl-5 my-2 space-y-1" {...props}>
+                                      {children}
+                                    </ul>
+                                  );
+                                },
+                                ol({ node, children, ...props }) {
+                                  return (
+                                    <ol className="list-decimal pl-5 my-2 space-y-1" {...props}>
+                                      {children}
+                                    </ol>
+                                  );
+                                },
+                                li({ node, children, ...props }) {
+                                  return (
+                                    <li className="mb-1" {...props}>
+                                      {children}
+                                    </li>
+                                  );
+                                },
+                                strong({ node, children, ...props }) {
+                                  return (
+                                    <strong 
+                                      style={{ color: strongTagColor, fontWeight: 'bold' }}
+                                      {...props}
+                                    >
+                                      {children}
+                                    </strong>
+                                  );
+                                },
+                                blockquote({ node, children, ...props }) {
+                                  return (
+                                    <blockquote 
+                                      style={{ 
+                                        borderLeftColor: primaryColor,
+                                        borderLeftWidth: '4px',
+                                        paddingLeft: '1rem',
+                                        fontStyle: 'italic',
+                                        margin: '1rem 0'
+                                      }} 
+                                      {...props}
+                                    >
+                                      {children}
+                                    </blockquote>
+                                  );
+                                }
+                              }}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  return null; // For system messages or any other types
+                })}
+                
+                {/* Show loading indicator after the last message when waiting for a response */}
+                {isProcessing && (
+                  <div className="flex items-start gap-2">
+                    <Avatar className="h-8 w-8 mt-1" style={{
+                      backgroundColor: primaryColor
+                    }}>
+                      {config.avatarUrl ? (
+                        <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                      ) : null}
+                      <AvatarFallback style={{
+                        backgroundColor: primaryColor
+                      }}>
+                        <Bot className="h-4 w-4 text-white" />
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex flex-col gap-2 pl-[10px] pt-[5px]">
+                      <div className="flex items-center">
+                        <div className="mr-3 flex items-center">
+                          <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse"></div>
+                          <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 animate-pulse delay-100"></div>
+                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-200"></div>
+                        </div>
+                      </div>
+                      <p className="text-xs opacity-70">{thinkingMessage}</p>
                     </div>
                   </div>
-                );
-              }
-              return null;
-            })}
+                )}
 
-            {/* Thinking indicator */}
-            {isProcessing && (
-              <div className="flex items-start gap-2">
-                <Avatar className="h-6 w-6 mt-1" style={{ backgroundColor: '#6366f1' }}>
-                  <AvatarFallback style={{ backgroundColor: '#6366f1' }}>
-                    <Bot className="h-3 w-3 text-white" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 rounded-full animate-pulse bg-primary"></div>
-                    <div className="w-2 h-2 rounded-full animate-pulse bg-primary" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-2 h-2 rounded-full animate-pulse bg-primary" style={{ animationDelay: '0.4s' }}></div>
+                {/* Always show suggestion chips after conversation if hasInteracted is true */}
+                {chatHistory.length > 0 && !isProcessing && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {suggestions.slice(0, 3).filter(Boolean).map((suggestion, index) => (
+                      <button
+                        key={`follow-${index}`}
+                        onClick={() => handleSelectExample(suggestion)}
+                        className="text-xs px-3 py-1.5 rounded-full transition-all"
+                        style={{ 
+                          border: `1px solid ${primaryColor}30`,
+                          backgroundColor: `${primaryColor}08`,
+                          color: isDarkTheme ? '#e0e0e0' : '#333333'
+                        }}
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
                   </div>
-                  <span className="text-xs opacity-70 text-muted-foreground">
-                    {thinkingMessage}
-                  </span>
-                </div>
+                )}
+                
+                {/* Invisible div for auto-scroll anchor */}
+                <div ref={messagesEndRef} />
               </div>
             )}
-
-            {/* Suggestions */}
-            {!hasInteracted && !isProcessing && (
-              <div className="space-y-2">
-                {[
-                  "How can I help you today?",
-                  "What information are you looking for?",
-                  "Ask me anything!"
-                ].map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSelectExample(suggestion)}
-                    className="w-full text-left text-sm p-3 rounded-lg border border-border hover:bg-accent transition-colors text-foreground"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
+      </main>
+      
+      {/* Input section - Fixed */}
+      <div 
+        className="border-t p-3 sticky bottom-0 z-10"
+        style={{ 
+          borderColor: borderColor,
+          background: isDarkTheme 
+            ? `linear-gradient(to right, #1A1F2C, #232838)` 
+            : `linear-gradient(to right, #FFFFFF, #F5F6F7)`
+        }}
+      >
+        <div className="relative">
+          <Input
+            ref={inputRef}
+            className="py-2 pr-10 rounded-md text-sm"
+            placeholder={`Ask ${config.chatbotName} a question...`}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyPress}
+            disabled={isProcessing}
+            style={{ 
+              backgroundColor: isDarkTheme ? '#333333' : '#f0f0f0',
+              color: textColor,
+              border: 'none'
+            }}
+          />
+          <Button 
+            className={`absolute right-1 top-1/2 transform -translate-y-1/2 w-8 h-8 p-0 rounded-full ${!query.trim() ? 'hidden' : ''}`}
+            style={{ backgroundColor: primaryColor }}
+            disabled={isProcessing || !query.trim()}
+            onClick={handleSearch}
+          >
+            {isProcessing ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <ArrowUp size={16} />
+            )}
+          </Button>
+        </div>
       </div>
 
-      {/* Input Area */}
-      <div className="p-4 border-t border-border bg-card">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative">
-            <Input
-              ref={inputRef}
-              type="text"
-              placeholder="Ask your question..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="pr-10 text-sm"
-              disabled={isProcessing || !!activeUIMessage}
+      {/* Hidden Modal Components */}
+      <div className="hidden">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button>Open Search Assistant</Button>
+          </DialogTrigger>
+          <DialogContent className="w-full max-w-4xl p-0">
+            <iframe 
+              src={`/chat/assistant/${agentId}`} 
+              className="w-full h-[600px] border-0" 
+              title="Search Assistant"
             />
-            <Button
-              onClick={handleSearch}
-              disabled={!query.trim() || isProcessing || !!activeUIMessage}
-              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 rounded-full p-0"
-              style={{ backgroundColor: '#6366f1' }}
-            >
-              {isProcessing ? (
-                <LoadingSpinner size="sm" />
-              ) : (
-                <ArrowUp className="h-3 w-3 text-white" />
-              )}
-            </Button>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
+
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button>Open Search Sidebar</Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="p-0 w-full sm:max-w-md">
+            <iframe 
+              src={`/chat/assistant/${agentId}`} 
+              className="w-full h-full border-0" 
+              title="Search Assistant"
+            />
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );
