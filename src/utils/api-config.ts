@@ -1,4 +1,3 @@
-
 /**
  * API configuration constants
  */
@@ -251,6 +250,10 @@ export const integrationApi = {
     getStatus: () => integrationApi.getStatus('hubspot'),
     connect: (data: any) => integrationApi.connect('hubspot', data),
     unlink: () => integrationApi.unlink('hubspot'),
+    getAuthUrl: async () => {
+      const response = await apiGet(getApiUrl('hubspot/auth/'));
+      return response;
+    },
     getPipelines: async () => {
       const response = await apiGet(getApiUrl('hubspot/pipelines/'));
       return response;
