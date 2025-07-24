@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -157,12 +158,12 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
       }
 
       const data = await response.json();
-      const urls = data.urls || [];
+      const urls = data.data?.urls || data.urls || [];
       
       // Transform the response to our ScrapedUrl format
-      const scrapedUrlsData: ScrapedUrl[] = urls.map((urlData: any) => ({
-        url: urlData.url || urlData,
-        title: urlData.title || urlData.url || urlData,
+      const scrapedUrlsData: ScrapedUrl[] = urls.map((urlItem: any) => ({
+        url: urlItem.url || urlItem,
+        title: urlItem.title || urlItem.url || urlItem,
         selected: true
       }));
 

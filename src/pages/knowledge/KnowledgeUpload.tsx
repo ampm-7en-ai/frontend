@@ -258,7 +258,7 @@ const KnowledgeUpload = () => {
       }
 
       const data = await response.json();
-      const urls = data.urls || [];
+      const urls = data.data?.urls || data.urls || [];
       
       // Transform the URLs to the expected format
       const transformedUrls: ScrapedUrl[] = urls.map((urlItem: any) => ({
