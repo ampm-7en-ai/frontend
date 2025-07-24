@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 interface IntegrationStatusBadgeProps {
   isVisible: boolean;
   integrationName: string;
-  integrationLogo?: string;
   status: 'success' | 'failed';
   onClose: () => void;
   className?: string;
@@ -15,7 +14,6 @@ interface IntegrationStatusBadgeProps {
 export const IntegrationStatusBadge: React.FC<IntegrationStatusBadgeProps> = ({
   isVisible,
   integrationName,
-  integrationLogo,
   status,
   onClose,
   className
@@ -50,16 +48,6 @@ export const IntegrationStatusBadge: React.FC<IntegrationStatusBadgeProps> = ({
               <AlertCircle className="h-4 w-4 text-white" />
             )}
           </div>
-          
-          {integrationLogo && (
-            <div className="flex-shrink-0">
-              <img 
-                src={integrationLogo} 
-                alt={integrationName}
-                className="w-6 h-6 object-contain rounded"
-              />
-            </div>
-          )}
           
           <div className="flex-1">
             <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
