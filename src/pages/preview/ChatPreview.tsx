@@ -59,21 +59,38 @@ const ChatPreview = () => {
       document.body.style.overflow = 'hidden';
     }
     
-    // Add styles to remove any potential shadows
+    // Add comprehensive styles to remove all shadows and borders
     const style = document.createElement('style');
     style.textContent = `
-      * {
+      *, *::before, *::after {
         box-shadow: none !important;
+        -webkit-box-shadow: none !important;
+        -moz-box-shadow: none !important;
       }
       body {
         box-shadow: none !important;
+        -webkit-box-shadow: none !important;
+        -moz-box-shadow: none !important;
       }
       .chat-container,
       .chat-preview,
-      .chatbox-preview {
+      .chatbox-preview,
+      .chat-widget,
+      .chat-bubble,
+      .chat-button,
+      .chat-popup,
+      .chat-iframe-container,
+      .chat-iframe,
+      [class*="chat"],
+      [class*="widget"],
+      [class*="bubble"] {
         box-shadow: none !important;
+        -webkit-box-shadow: none !important;
+        -moz-box-shadow: none !important;
         border: none !important;
         outline: none !important;
+        filter: none !important;
+        -webkit-filter: none !important;
       }
     `;
     document.head.appendChild(style);
@@ -109,8 +126,8 @@ const ChatPreview = () => {
   }
 
   return (
-    <div className="h-screen bg-background overflow-hidden" style={{ boxShadow: 'none' }}>
-      <div className="w-full h-full p-0" style={{ boxShadow: 'none' }}>
+    <div className="h-screen bg-background overflow-hidden">
+      <div className="w-full h-full p-0">
         <ChatboxPreview
           agentId={config.agentId}
           primaryColor={config.primaryColor}
@@ -127,7 +144,6 @@ const ChatPreview = () => {
           emailMessage={config.emailMessage || "Please provide your email to continue"}
           collectEmail={config.collectEmail || false}
           className="w-full h-full p-0"
-          style={{ boxShadow: 'none', border: 'none' }}
         />
       </div>
     </div>
