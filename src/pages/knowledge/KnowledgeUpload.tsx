@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -136,6 +135,8 @@ const KnowledgeUpload = () => {
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
   const [isScrapingUrls, setIsScrapingUrls] = useState(false);
   const [scrapedUrls, setScrapedUrls] = useState<ScrapedUrl[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // Use centralized integration management
   const { getIntegrationsByType, getIntegrationStatus } = useIntegrations();
@@ -844,6 +845,16 @@ const KnowledgeUpload = () => {
     );
   };
 
+  const handleSortToggle = () => {
+    setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
+  const handleRefreshFiles = () => {
+    if (selectedProvider === 'googleDrive') {
+      fetchGoogleDriveData();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-200 p-8">
       <div className="max-w-4xl mx-auto p-6">
@@ -940,6 +951,11 @@ const KnowledgeUpload = () => {
                   isScrapingUrls={isScrapingUrls}
                   scrapedUrls={scrapedUrls}
                   toggleUrlSelection={toggleUrlSelection}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  sortOrder={sortOrder}
+                  handleSortToggle={handleSortToggle}
+                  handleRefreshFiles={handleRefreshFiles}
                 />
                 
                 {/* Actions */}
