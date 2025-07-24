@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,7 @@ import { fetchGoogleDriveFiles, BASE_URL, getAccessToken, addGoogleDriveFileToAg
 import { apiRequest } from '@/utils/api-interceptor';
 import SourceTypeSelector from './SourceTypeSelector';
 import { ModernModal } from '@/components/ui/modern-modal';
-import { Table, FileText, RefreshCw, ArrowUpDown, Search } from 'lucide-react';
+import { Table, FileText } from 'lucide-react';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 type ThirdPartyProvider = 'googleDrive' | 'slack' | 'notion' | 'dropbox' | 'github';
@@ -76,8 +77,6 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
   const [isScrapingUrls, setIsScrapingUrls] = useState(false);
   const [scrapedUrls, setScrapedUrls] = useState<ScrapedUrl[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // Use centralized integration management
   const { getIntegrationsByType } = useIntegrations();
@@ -139,8 +138,6 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     setValidationErrors({});
     setScrapedUrls([]);
     setImportAllPages(false);
-    setSearchQuery('');
-    setSortOrder('asc');
   }, [sourceType]);
 
   const scrapeUrls = async (baseUrl: string) => {
@@ -226,32 +223,6 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
       setIsLoadingGoogleDriveFiles(false);
     }
   };
-
-  const handleRefreshFiles = () => {
-    if (selectedProvider === 'googleDrive') {
-      fetchGoogleDriveData();
-    }
-  };
-
-  const handleSortToggle = () => {
-    setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-  };
-
-  // Filter and sort files based on search query and sort order
-  const filteredAndSortedFiles = React.useMemo(() => {
-    let filtered = googleDriveFiles;
-    
-    if (searchQuery) {
-      filtered = filtered.filter(file => 
-        file.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    
-    return filtered.sort((a, b) => {
-      const comparison = a.name.localeCompare(b.name);
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
-  }, [googleDriveFiles, searchQuery, sortOrder]);
 
   const validateForm = (): boolean => {
     const errors: ValidationErrors = {};
@@ -614,7 +585,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
           setIsDragOver={setIsDragOver}
           isConnecting={isConnecting}
           isLoadingGoogleDriveFiles={isLoadingGoogleDriveFiles}
-          googleDriveFiles={filteredAndSortedFiles}
+          googleDriveFiles={googleDriveFiles}
           availableThirdPartyProviders={availableThirdPartyProviders}
           thirdPartyProviders={thirdPartyProviders}
           handleFileChange={handleFileChange}
@@ -631,11 +602,6 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
           isScrapingUrls={isScrapingUrls}
           scrapedUrls={scrapedUrls}
           toggleUrlSelection={toggleUrlSelection}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          sortOrder={sortOrder}
-          handleSortToggle={handleSortToggle}
-          handleRefreshFiles={handleRefreshFiles}
         />
       </form>
     </ModernModal>
