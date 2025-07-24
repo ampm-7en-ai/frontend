@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernInput } from '@/components/ui/modern-input';
 import { Button } from '@/components/ui/button';
+import { Input } from '../ui/input';
 
 interface Message {
   type: string;
@@ -78,12 +79,12 @@ export const ChatboxPreview = ({
 
   // Check if input should be disabled (when there's a pending yes/no question)
   const shouldDisableInput = messages.some(msg => 
-    msg.type === 'ui' && msg.ui_type === 'yes_no'
+    msg.type === 'ui' && msg.ui_type === 'email'
   );
 
   // Get the latest yes/no message for displaying buttons
   const latestYesNoMessage = messages.slice().reverse().find(msg => 
-    msg.type === 'ui' && msg.ui_type === 'yes_no'
+    msg.type === 'ui' && msg.ui_type === 'email'
   );
 
   // Updated scroll effect to only scroll the message container, not the entire tab
@@ -251,10 +252,15 @@ export const ChatboxPreview = ({
     }
   };
 
-  const handleYesNoClick = (response: 'Yes' | 'No') => {
+  const handleYesNoClick = (response: 'Yes' | 'no_thanks') => {
     sendMessage(response);
     // Remove the yes/no message from the list to re-enable input
-    setMessages(prev => prev.filter(msg => !(msg.type === 'ui' && msg.ui_type === 'yes_no')));
+    setMessages(prev => prev.filter(msg => !(msg.type === 'ui' && msg.ui_type === 'email')));
+  };
+
+  const handleEmailSubmit = (e: React.FormEvent, email) => {
+    //do something
+    e.preventDefault();
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -634,35 +640,7 @@ export const ChatboxPreview = ({
                             </div>
                           )}
                           
-                          {/* Yes/No UI Component */}
-                          {message.type === 'ui' && message.ui_type === 'yes_no' && (
-                            <div className="flex gap-3 justify-center animate-fade-in">
-                              <ModernButton
-                                onClick={() => handleYesNoClick('Yes')}
-                                variant="outline"
-                                className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 border-2"
-                                style={{ 
-                                  borderColor: primaryColor,
-                                  color: primaryColor,
-                                  backgroundColor: 'white'
-                                }}
-                              >
-                                Yes
-                              </ModernButton>
-                              <ModernButton
-                                onClick={() => handleYesNoClick('No')}
-                                variant="outline"
-                                className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 border-2"
-                                style={{ 
-                                  borderColor: primaryColor,
-                                  color: primaryColor,
-                                  backgroundColor: 'white'
-                                }}
-                              >
-                                No
-                              </ModernButton>
-                            </div>
-                          )}
+                          
                         </div>
                       );
                     })}
@@ -1153,32 +1131,37 @@ export const ChatboxPreview = ({
                     </div>
                   )}
                   
-                  {/* Yes/No UI Component */}
-                  {message.type === 'ui' && message.ui_type === 'yes_no' && (
-                    <div className="flex gap-3 justify-center animate-fade-in">
+                  {/* Yes/No UI Component working one*/}
+                  {message.type === 'ui' && message.ui_type === 'email' && (
+                    <div className="flex flex-col gap-3 justify-center animate-fade-in">
+                      <form onSubmit={(e) => handleEmailSubmit} className='relative'>
+                        <Input
+                        variant='modern'
+                        placeholder='email'
+                        size='sm'
+                        type='email'
+                        />
+                        <ModernButton 
+                          type="submit" 
+                          size="sm" 
+                          variant='ghost'
+                          className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                          iconOnly
+                        >
+                          <Send className="h-4 w-4" color={primaryColor}/>
+                        </ModernButton>
+                      </form>
                       <ModernButton
-                        onClick={() => handleYesNoClick('Yes')}
-                        variant="outline"
-                        className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 border-2"
+                        onClick={() => handleYesNoClick('no_thanks')}
+                        variant="ghost"
+                        className="font-medium border-2 w-auto"
                         style={{ 
                           borderColor: primaryColor,
                           color: primaryColor,
                           backgroundColor: 'white'
                         }}
                       >
-                        Yes
-                      </ModernButton>
-                      <ModernButton
-                        onClick={() => handleYesNoClick('No')}
-                        variant="outline"
-                        className="px-8 py-3 rounded-full font-medium transition-all hover:scale-105 border-2"
-                        style={{ 
-                          borderColor: primaryColor,
-                          color: primaryColor,
-                          backgroundColor: 'white'
-                        }}
-                      >
-                        No
+                        No Thanks
                       </ModernButton>
                     </div>
                   )}
