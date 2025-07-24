@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
+import { ModernAlert, ModernAlertDescription } from '@/components/ui/modern-alert';
 import { Label } from '@/components/ui/label';
-import { Building2, ExternalLink, Shield, CheckCircle, Settings, Edit, Save, User, Mail } from 'lucide-react';
+import { Building2, ExternalLink, Shield, CheckCircle, Settings, Edit, Save, User, Mail, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { integrationApi } from '@/utils/api-config';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -38,6 +40,13 @@ interface ZohoContact {
   webUrl: string;
 }
 
+interface ErrorState {
+  organizations: string | null;
+  departments: string | null;
+  contacts: string | null;
+  isAuthError: boolean;
+}
+
 const ZohoIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
@@ -51,6 +60,17 @@ const ZohoIntegration = () => {
   const [selectedOrgId, setSelectedOrgId] = useState<string>('');
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('');
   const [selectedContactId, setSelectedContactId] = useState<string>('');
+  const [loadingStates, setLoadingStates] = useState({
+    organizations: false,
+    departments: false,
+    contacts: false
+  });
+  const [errors, setErrors] = useState<ErrorState>({
+    organizations: null,
+    departments: null,
+    contacts: null,
+    isAuthError: false
+  });
   const { toast } = useToast();
 
   // Check Zoho connection status on component mount
@@ -72,6 +92,22 @@ const ZohoIntegration = () => {
       fetchContacts(selectedOrgId);
     }
   }, [selectedOrgId]);
+
+  // Pre-populate form when entering edit mode
+  useEffect(() => {
+    if (isEditingConfig && zohoStatus) {
+      if (zohoStatus.org_id) {
+        setSelectedOrgId(zohoStatus.org_id);
+      }
+      // We'll set department and contact IDs after fetching the lists
+    }
+  }, [isEditingConfig, zohoStatus]);
+
+  const parseApiError = (error: any, defaultMessage: string): string => {
+    if (error?.message) return error.message;
+    if (typeof error === 'string') return error;
+    return defaultMessage;
+  };
 
   const checkZohoStatus = async () => {
     setIsCheckingStatus(true);
@@ -98,68 +134,145 @@ const ZohoIntegration = () => {
   };
 
   const fetchOrganizations = async () => {
+    setLoadingStates(prev => ({ ...prev, organizations: true }));
+    setErrors(prev => ({ ...prev, organizations: null, isAuthError: false }));
+    
     try {
+      console.log('Fetching Zoho organizations...');
       const response = await integrationApi.zoho.getOrganizations();
 
+      if (response.status === 401) {
+        console.log('401 error fetching organizations - authentication expired');
+        const errorResult = await response.json();
+        const errorMessage = parseApiError(errorResult, 'Your Zoho authentication has expired. Please reconnect to continue.');
+        
+        setErrors(prev => ({ 
+          ...prev, 
+          organizations: errorMessage,
+          isAuthError: true 
+        }));
+        return;
+      }
+
       if (!response.ok) {
-        throw new Error(`Failed to fetch organizations: ${response.status}`);
+        const errorResult = await response.json();
+        const errorMessage = parseApiError(errorResult, `Failed to fetch organizations: ${response.status}`);
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
       if (result.status === 'success') {
-        setOrganizations(result.data.data.map((org: any) => ({
+        const orgs = result.data.data.map((org: any) => ({
           id: org.id.toString(),
           companyName: org.companyName,
           logoURL: org.logoURL,
           portalURL: org.portalURL
-        })));
+        }));
+        setOrganizations(orgs);
+        console.log('Successfully fetched organizations:', orgs.length);
       }
     } catch (error) {
       console.error('Error fetching organizations:', error);
+      const errorMessage = parseApiError(error, 'Failed to load organizations. Please try again.');
+      setErrors(prev => ({ ...prev, organizations: errorMessage }));
+    } finally {
+      setLoadingStates(prev => ({ ...prev, organizations: false }));
     }
   };
 
   const fetchDepartments = async (orgId: string) => {
+    setLoadingStates(prev => ({ ...prev, departments: true }));
+    setErrors(prev => ({ ...prev, departments: null }));
+    
     try {
+      console.log('Fetching departments for org:', orgId);
       const response = await integrationApi.zoho.getDepartments(orgId);
 
+      if (response.status === 401) {
+        const errorResult = await response.json();
+        const errorMessage = parseApiError(errorResult, 'Authentication expired while fetching departments.');
+        setErrors(prev => ({ ...prev, departments: errorMessage, isAuthError: true }));
+        return;
+      }
+
       if (!response.ok) {
-        throw new Error(`Failed to fetch departments: ${response.status}`);
+        const errorResult = await response.json();
+        const errorMessage = parseApiError(errorResult, `Failed to fetch departments: ${response.status}`);
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
       if (result.status === 'success') {
-        setDepartments(result.data.data.map((dept: any) => ({
+        const depts = result.data.data.map((dept: any) => ({
           id: dept.id,
           name: dept.name
-        })));
+        }));
+        setDepartments(depts);
+        
+        // Pre-select department if editing and we have a match
+        if (isEditingConfig && zohoStatus?.department_name) {
+          const matchingDept = depts.find((d: any) => d.name === zohoStatus.department_name);
+          if (matchingDept) {
+            setSelectedDepartmentId(matchingDept.id);
+          }
+        }
       }
     } catch (error) {
       console.error('Error fetching departments:', error);
+      const errorMessage = parseApiError(error, 'Failed to load departments. Please try again.');
+      setErrors(prev => ({ ...prev, departments: errorMessage }));
+    } finally {
+      setLoadingStates(prev => ({ ...prev, departments: false }));
     }
   };
 
   const fetchContacts = async (orgId: string) => {
+    setLoadingStates(prev => ({ ...prev, contacts: true }));
+    setErrors(prev => ({ ...prev, contacts: null }));
+    
     try {
+      console.log('Fetching contacts for org:', orgId);
       const response = await integrationApi.zoho.getContacts(orgId);
 
+      if (response.status === 401) {
+        const errorResult = await response.json();
+        const errorMessage = parseApiError(errorResult, 'Authentication expired while fetching contacts.');
+        setErrors(prev => ({ ...prev, contacts: errorMessage, isAuthError: true }));
+        return;
+      }
+
       if (!response.ok) {
-        throw new Error(`Failed to fetch contacts: ${response.status}`);
+        const errorResult = await response.json();
+        const errorMessage = parseApiError(errorResult, `Failed to fetch contacts: ${response.status}`);
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
       if (result.status === 'success') {
-        setContacts(result.data.data.map((contact: any) => ({
+        const contactsList = result.data.data.map((contact: any) => ({
           id: contact.id,
           firstName: contact.firstName,
           lastName: contact.lastName,
           email: contact.email,
           photoURL: contact.photoURL,
           webUrl: contact.webUrl
-        })));
+        }));
+        setContacts(contactsList);
+        
+        // Pre-select contact if editing and we have a match
+        if (isEditingConfig && zohoStatus?.contact_email) {
+          const matchingContact = contactsList.find((c: any) => c.email === zohoStatus.contact_email);
+          if (matchingContact) {
+            setSelectedContactId(matchingContact.id);
+          }
+        }
       }
     } catch (error) {
       console.error('Error fetching contacts:', error);
+      const errorMessage = parseApiError(error, 'Failed to load contacts. Please try again.');
+      setErrors(prev => ({ ...prev, contacts: errorMessage }));
+    } finally {
+      setLoadingStates(prev => ({ ...prev, contacts: false }));
     }
   };
 
@@ -190,7 +303,9 @@ const ZohoIntegration = () => {
       const response = await integrationApi.zoho.updateConfig(payload);
 
       if (!response.ok) {
-        throw new Error(`Failed to save configuration: ${response.status}`);
+        const errorResult = await response.json();
+        const errorMessage = parseApiError(errorResult, `Failed to save configuration: ${response.status}`);
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
@@ -282,6 +397,33 @@ const ZohoIntegration = () => {
     }
   };
 
+  const handleRetryFetch = (type: 'organizations' | 'departments' | 'contacts') => {
+    switch (type) {
+      case 'organizations':
+        fetchOrganizations();
+        break;
+      case 'departments':
+        if (selectedOrgId) fetchDepartments(selectedOrgId);
+        break;
+      case 'contacts':
+        if (selectedOrgId) fetchContacts(selectedOrgId);
+        break;
+    }
+  };
+
+  const handleEditToggle = () => {
+    setIsEditingConfig(!isEditingConfig);
+    if (!isEditingConfig) {
+      // Clear any previous errors when entering edit mode
+      setErrors({
+        organizations: null,
+        departments: null,
+        contacts: null,
+        isAuthError: false
+      });
+    }
+  };
+
   const isConnected = zohoStatus?.is_connected || false;
 
   const organizationOptions = organizations.map(org => ({
@@ -327,8 +469,6 @@ const ZohoIntegration = () => {
 
   return (
     <div className="space-y-8">
-     
-
       {/* Current Configuration Cards */}
       {isConnected && zohoStatus && (
         <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
@@ -337,7 +477,7 @@ const ZohoIntegration = () => {
             <ModernButton
               variant="outline"
               size="sm"
-              onClick={() => setIsEditingConfig(!isEditingConfig)}
+              onClick={handleEditToggle}
               icon={Edit}
             >
               {isEditingConfig ? 'Cancel' : 'Edit Settings'}
@@ -382,44 +522,149 @@ const ZohoIntegration = () => {
           </div>
 
           {/* Edit Configuration Form */}
-          {isEditingConfig && organizations.length > 0 && (
+          {isEditingConfig && (
             <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
               <div className="space-y-6">
+                {/* Authentication Error Alert */}
+                {errors.isAuthError && (
+                  <ModernAlert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <ModernAlertDescription>
+                      <div className="flex items-center justify-between">
+                        <span>Your Zoho authentication has expired. Please reconnect to continue.</span>
+                        <ModernButton
+                          variant="outline"
+                          size="sm"
+                          onClick={handleConnect}
+                          disabled={isConnecting}
+                        >
+                          {isConnecting ? 'Reconnecting...' : 'Reconnect'}
+                        </ModernButton>
+                      </div>
+                    </ModernAlertDescription>
+                  </ModernAlert>
+                )}
+
                 <div>
                   <Label className="text-sm font-medium mb-2 block">Organization</Label>
-                  <ModernDropdown
-                    value={selectedOrgId}
-                    onValueChange={setSelectedOrgId}
-                    options={organizationOptions}
-                    placeholder="Select your organization..."
-                  />
+                  {loadingStates.organizations ? (
+                    <div className="flex items-center gap-2 p-3 border rounded-xl bg-slate-50 dark:bg-slate-700/50">
+                      <LoadingSpinner size="sm" />
+                      <span className="text-sm text-slate-600 dark:text-slate-400">Loading organizations...</span>
+                    </div>
+                  ) : errors.organizations ? (
+                    <div className="space-y-2">
+                      <ModernAlert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <ModernAlertDescription>
+                          <div className="flex items-center justify-between">
+                            <span>{errors.organizations}</span>
+                            <ModernButton
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRetryFetch('organizations')}
+                              icon={RefreshCw}
+                            >
+                              Retry
+                            </ModernButton>
+                          </div>
+                        </ModernAlertDescription>
+                      </ModernAlert>
+                    </div>
+                  ) : (
+                    <ModernDropdown
+                      value={selectedOrgId}
+                      onValueChange={setSelectedOrgId}
+                      options={organizationOptions}
+                      placeholder="Select your organization..."
+                      disabled={errors.isAuthError}
+                    />
+                  )}
                 </div>
 
-                {departments.length > 0 && (
-                  <div>
-                    <Label className="text-sm font-medium mb-2 block">Department</Label>
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Department</Label>
+                  {loadingStates.departments ? (
+                    <div className="flex items-center gap-2 p-3 border rounded-xl bg-slate-50 dark:bg-slate-700/50">
+                      <LoadingSpinner size="sm" />
+                      <span className="text-sm text-slate-600 dark:text-slate-400">Loading departments...</span>
+                    </div>
+                  ) : errors.departments ? (
+                    <div className="space-y-2">
+                      <ModernAlert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <ModernAlertDescription>
+                          <div className="flex items-center justify-between">
+                            <span>{errors.departments}</span>
+                            <ModernButton
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRetryFetch('departments')}
+                              icon={RefreshCw}
+                            >
+                              Retry
+                            </ModernButton>
+                          </div>
+                        </ModernAlertDescription>
+                      </ModernAlert>
+                    </div>
+                  ) : selectedOrgId ? (
                     <ModernDropdown
                       value={selectedDepartmentId}
                       onValueChange={setSelectedDepartmentId}
                       options={departmentOptions}
                       placeholder="Select department..."
+                      disabled={errors.isAuthError}
                     />
-                  </div>
-                )}
+                  ) : (
+                    <div className="p-3 border rounded-xl bg-slate-50 dark:bg-slate-700/50 text-sm text-slate-500 dark:text-slate-400">
+                      Please select an organization first
+                    </div>
+                  )}
+                </div>
 
-                {contacts.length > 0 && (
-                  <div>
-                    <Label className="text-sm font-medium mb-2 block">Primary Contact</Label>
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Primary Contact</Label>
+                  {loadingStates.contacts ? (
+                    <div className="flex items-center gap-2 p-3 border rounded-xl bg-slate-50 dark:bg-slate-700/50">
+                      <LoadingSpinner size="sm" />
+                      <span className="text-sm text-slate-600 dark:text-slate-400">Loading contacts...</span>
+                    </div>
+                  ) : errors.contacts ? (
+                    <div className="space-y-2">
+                      <ModernAlert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <ModernAlertDescription>
+                          <div className="flex items-center justify-between">
+                            <span>{errors.contacts}</span>
+                            <ModernButton
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRetryFetch('contacts')}
+                              icon={RefreshCw}
+                            >
+                              Retry
+                            </ModernButton>
+                          </div>
+                        </ModernAlertDescription>
+                      </ModernAlert>
+                    </div>
+                  ) : selectedOrgId ? (
                     <ModernDropdown
                       value={selectedContactId}
                       onValueChange={setSelectedContactId}
                       options={contactOptions}
                       placeholder="Select primary contact..."
+                      disabled={errors.isAuthError}
                     />
-                  </div>
-                )}
+                  ) : (
+                    <div className="p-3 border rounded-xl bg-slate-50 dark:bg-slate-700/50 text-sm text-slate-500 dark:text-slate-400">
+                      Please select an organization first
+                    </div>
+                  )}
+                </div>
 
-                {selectedDepartmentId && selectedContactId && (
+                {selectedDepartmentId && selectedContactId && !errors.isAuthError && (
                   <div className="flex justify-end pt-4">
                     <ModernButton 
                       onClick={handleSaveConfiguration}
