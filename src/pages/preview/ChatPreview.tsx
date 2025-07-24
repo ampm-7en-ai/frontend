@@ -15,6 +15,10 @@ interface ChatbotConfig {
   position: 'bottom-right' | 'bottom-left';
   suggestions: string[];
   avatarUrl?: string;
+  emailRequired?: boolean;
+  emailPlaceholder?: string;
+  emailMessage?: string;
+  collectEmail?: boolean;
 }
 
 const ChatPreview = () => {
@@ -98,6 +102,10 @@ const ChatPreview = () => {
           position={config.position}
           suggestions={config.suggestions}
           avatarSrc={config.avatarUrl}
+          emailRequired={config.emailRequired || false}
+          emailPlaceholder={config.emailPlaceholder || "Enter your email"}
+          emailMessage={config.emailMessage || "Please provide your email to continue"}
+          collectEmail={config.collectEmail || false}
           className="w-full h-full"
         />
       </div>
