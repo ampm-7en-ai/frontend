@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ComposedChart } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ComposedChart, Cell } from 'recharts';
 import { Users, Clock, Star, TrendingUp, TrendingDown, Bot, Heart } from 'lucide-react';
 import { AgentPerformanceComparison } from '@/hooks/useAdminDashboard';
 import ModernTabNavigation from './ModernTabNavigation';
@@ -32,7 +32,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
   // Generate performance data using actual API values
   const generatePerformanceData = () => {
     return agentPerformanceComparison.map((agent, index) => ({
-      name: agent.agent_name.substring(0, 8) + (agent.agent_name.length > 8 ? '...' : ''),
+      name: agent.agent_name.length > 12 ? agent.agent_name.substring(0, 12) + '...' : agent.agent_name,
       fullName: agent.agent_name,
       conversations: agent.conversations,
       responseTime: agent.avg_response_time,
@@ -40,6 +40,8 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
       efficiency: agent.efficiency,
       resolved: agent.resolved,
       pending: agent.pending,
+      // Calculate resolution rate percentage
+      resolutionRate: agent.conversations > 0 ? Math.round((agent.resolved / agent.conversations) * 100) : 0,
       // Keep CSAT as original value (0-5 or 0-10 scale)
       csat: agent.csat || 0,
       nps: agent.nps || 0,
@@ -61,7 +63,14 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
 
   // Calculate appropriate chart height based on number of agents
   const getChartHeight = () => {
-    if (activeTab === 'efficiency') {
+    if (activeTab === 'performance') {
+      // For horizontal stacked bars, height should increase with more agents
+      const baseHeight = 300;
+      const barHeight = 40; // Height per agent bar
+      const spacing = 8; // Spacing between bars
+      const calculatedHeight = Math.max(baseHeight, (performanceData.length * (barHeight + spacing)) + 60);
+      return Math.min(calculatedHeight, 600); // Cap at 600px for scrolling
+    } else if (activeTab === 'efficiency') {
       // For horizontal bars, height should increase with more agents
       const baseHeight = 300;
       const additionalHeight = Math.max(0, (performanceData.length - 5) * 25);
@@ -75,61 +84,96 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
     
     if (activeTab === 'performance') {
       return (
-        <ResponsiveContainer width="100%" height={chartHeight}>
-          <BarChart data={performanceData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-            <XAxis 
-              dataKey="name" 
-              tick={{ fontSize: 12, fill: 'currentColor' }}
-              className="text-slate-600 dark:text-slate-400"
-              axisLine={false}
-              tickLine={false}
-              angle={performanceData.length > 10 ? -45 : 0}
-              textAnchor={performanceData.length > 10 ? 'end' : 'middle'}
-              height={performanceData.length > 10 ? 60 : 30}
-            />
-            <YAxis 
-              tick={{ fontSize: 12, fill: 'currentColor' }}
-              className="text-slate-600 dark:text-slate-400"
-              axisLine={false}
-              tickLine={false}
-            />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'hsl(var(--background))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '12px',
-                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                color: 'hsl(var(--foreground))',
-              }}
-              labelFormatter={(label) => {
-                const agent = performanceData.find(a => a.name === label);
-                return agent ? agent.fullName : label;
-              }}
-            />
-            <Bar 
-              dataKey="conversations" 
-              fill="#3b82f6" 
-              radius={[4, 4, 0, 0]}
-              name="Total Conversations"
-              className="hover:fill-blue-700 dark:hover:fill-blue-800"
-            />
-            <Bar 
-              dataKey="resolved" 
-              fill="#10b981" 
-              radius={[4, 4, 0, 0]}
-              name="Resolved"
-              className="hover:fill-green-700 dark:hover:fill-green-800"
-            />
-            <Bar 
-              dataKey="pending" 
-              fill="#f59e0b" 
-              radius={[4, 4, 0, 0]}
-              name="Pending"
-              className="hover:fill-amber-700 dark:hover:fill-amber-800"
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="max-h-[600px] overflow-y-auto">
+          <ResponsiveContainer width="100%" height={chartHeight}>
+            <BarChart 
+              data={performanceData} 
+              layout="vertical"
+              margin={{ top: 10, right: 30, left: 100, bottom: 10 }}
+              barCategoryGap="20%"
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+              <XAxis 
+                type="number"
+                tick={{ fontSize: 12, fill: 'currentColor' }}
+                className="text-slate-600 dark:text-slate-400"
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis 
+                type="category"
+                dataKey="name" 
+                tick={{ fontSize: 11, fill: 'currentColor' }}
+                className="text-slate-600 dark:text-slate-400"
+                axisLine={false}
+                tickLine={false}
+                width={90}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'hsl(var(--background))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                  color: 'hsl(var(--foreground))',
+                  fontSize: '12px'
+                }}
+                labelFormatter={(label) => {
+                  const agent = performanceData.find(a => a.name === label);
+                  return agent ? agent.fullName : label;
+                }}
+                formatter={(value, name, props) => {
+                  const agent = props.payload;
+                  if (name === 'Total Conversations') {
+                    return [
+                      <div key="total" className="space-y-1">
+                        <div className="flex justify-between">
+                          <span>Total:</span>
+                          <span className="font-medium">{agent.conversations}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Resolved:</span>
+                          <span className="font-medium text-green-600">{agent.resolved}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Pending:</span>
+                          <span className="font-medium text-amber-600">{agent.pending}</span>
+                        </div>
+                        <div className="flex justify-between border-t pt-1">
+                          <span>Resolution Rate:</span>
+                          <span className="font-medium">{agent.resolutionRate}%</span>
+                        </div>
+                      </div>,
+                      ''
+                    ];
+                  }
+                  return [value, name];
+                }}
+              />
+              <Bar 
+                dataKey="conversations" 
+                stackId="a"
+                fill="#e2e8f0" 
+                radius={[0, 4, 4, 0]}
+                name="Total Conversations"
+              />
+              <Bar 
+                dataKey="resolved" 
+                stackId="a"
+                fill="#10b981" 
+                radius={[0, 0, 0, 0]}
+                name="Resolved"
+              />
+              <Bar 
+                dataKey="pending" 
+                stackId="a"
+                fill="#f59e0b" 
+                radius={[0, 4, 4, 0]}
+                name="Pending"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       );
     } else if (activeTab === 'efficiency') {
       return (
@@ -290,7 +334,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
         {performanceData.length > 15 && (
           <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-lg p-3">
             <span className="font-medium">Note:</span> Showing {performanceData.length} agents. 
-            {performanceData.length > 20 && " Consider filtering for better readability."}
+            {performanceData.length > 20 && " Chart is scrollable for better readability."}
           </div>
         )}
         
@@ -298,6 +342,24 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
         <div className="overflow-hidden">
           {renderChart()}
         </div>
+
+        {/* Legend for Performance Tab */}
+        {activeTab === 'performance' && (
+          <div className="flex items-center justify-center gap-6 pt-2 border-t border-slate-200 dark:border-slate-700">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-sm bg-slate-300"></div>
+              <span className="text-xs text-slate-600 dark:text-slate-400">Total Conversations</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-sm bg-green-500"></div>
+              <span className="text-xs text-slate-600 dark:text-slate-400">Resolved</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-sm bg-amber-500"></div>
+              <span className="text-xs text-slate-600 dark:text-slate-400">Pending</span>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
