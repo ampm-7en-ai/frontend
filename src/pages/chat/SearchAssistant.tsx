@@ -287,10 +287,6 @@ const SearchAssistant = () => {
         setIsProcessing(true);
         startThinkingAnimation();
         
-        toast({
-          title: "Email submitted",
-          description: "Thank you for providing your email.",
-        });
       } else {
         toast({
           title: "Not connected",
