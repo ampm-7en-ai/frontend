@@ -82,6 +82,7 @@ export const ChatboxPreview = ({
   const restartingRef = useRef(false);
   const messageSequenceRef = useRef<number>(0);
   const [emailValue, setEmailValue] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Internal state for floating button mode
   const [isMinimized, setIsMinimized] = useState(initiallyMinimized);
@@ -252,12 +253,23 @@ export const ChatboxPreview = ({
     }
   };
 
+  const resetTextareaHeight = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = '44px'; // Reset to minimum height
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (inputValue.trim() && !shouldDisableInput) {
       sendMessage(inputValue);
       setInputValue('');
+      // Reset textarea height after submission
+      setTimeout(() => {
+        resetTextareaHeight();
+      }, 0);
     }
   };
 
@@ -820,6 +832,7 @@ export const ChatboxPreview = ({
                 <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
                   <form onSubmit={handleSubmit} className="relative">
                     <Textarea
+                      ref={textareaRef}
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
@@ -1347,6 +1360,7 @@ export const ChatboxPreview = ({
         <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
           <form onSubmit={handleSubmit} className="relative">
             <Textarea
+              ref={textareaRef}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
