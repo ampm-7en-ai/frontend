@@ -152,14 +152,16 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               />
               <Bar 
                 dataKey="resolved" 
+                stackId="a"
                 fill="#10b981" 
-                radius={[4, 4, 4, 4]}
+                radius={[0, 0, 0, 0]}
                 name="Resolved"
               />
               <Bar 
                 dataKey="pending" 
+                stackId="a"
                 fill="#f59e0b" 
-                radius={[4, 4, 4, 4]}
+                radius={[0, 4, 4, 0]}
                 name="Pending"
               />
             </BarChart>
