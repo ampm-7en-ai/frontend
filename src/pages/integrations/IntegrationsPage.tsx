@@ -21,7 +21,6 @@ import { initFacebookSDK } from '@/utils/facebookSDK';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { useIntegrations } from '@/hooks/useIntegrations';
-import { ModernModal } from '@/components/ui/modern-modal';
 
 const IntegrationsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -33,8 +32,6 @@ const IntegrationsPage = () => {
   const [isSettingDefault, setIsSettingDefault] = useState<string | null>(null);
   const [isConnectingGoogleDrive, setIsConnectingGoogleDrive] = useState(false);
   const [isDisconnectingGoogleDrive, setIsDisconnectingGoogleDrive] = useState(false);
-  const [googleAuthUrl, setGoogleAuthUrl] = useState<string | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showStatusBadge, setShowStatusBadge] = useState(false);
   const [statusBadgeInfo, setStatusBadgeInfo] = useState<{name: string, status: 'success' | 'failed'} | null>(null);
   const { toast } = useToast();
@@ -170,19 +167,51 @@ const IntegrationsPage = () => {
       console.log('Google auth URL response:', result);
 
       if (result.auth_url) {
-        // Open auth URL in new browser window
-        window.open(result.auth_url, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+        // Open auth URL in new tab
+        const authWindow = window.open(result.auth_url, '_blank');
         
         // Show success message
         toast({
           title: "Authentication Started",
-          description: "Please complete the authentication in the new window that opened.",
+          description: "Please complete the authentication in the new tab that opened.",
         });
         
-        // Refresh integration statuses after a delay to check if connection was successful
-        setTimeout(() => {
-          forceRefresh();
-        }, 3000);
+        // Listen for messages from the auth tab
+        const messageListener = (event: MessageEvent) => {
+          if (event.origin !== window.location.origin) return;
+          
+          if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
+            console.log('Google auth success received');
+            updateIntegrationStatus('google_drive', 'connected');
+            toast({
+              title: "Success",
+              description: "Google Drive connected successfully!",
+            });
+            window.removeEventListener('message', messageListener);
+          } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
+            console.error('Google auth error:', event.data.error);
+            toast({
+              title: "Authentication Error",
+              description: event.data.error || "Failed to authenticate with Google Drive.",
+              variant: "destructive"
+            });
+            window.removeEventListener('message', messageListener);
+          }
+        };
+        
+        window.addEventListener('message', messageListener);
+        
+        // Clean up listener if auth window is closed
+        const checkClosed = setInterval(() => {
+          if (authWindow?.closed) {
+            clearInterval(checkClosed);
+            window.removeEventListener('message', messageListener);
+            // Refresh integration statuses to check if connection was successful
+            setTimeout(() => {
+              forceRefresh();
+            }, 1000);
+          }
+        }, 1000);
       } else {
         throw new Error('No auth URL received');
       }
@@ -235,12 +264,6 @@ const IntegrationsPage = () => {
     } finally {
       setIsDisconnectingGoogleDrive(false);
     }
-  };
-
-  const handleAuthModalClose = () => {
-    setShowAuthModal(false);
-    setGoogleAuthUrl(null);
-    forceRefresh();
   };
 
   useEffect(() => {
@@ -683,36 +706,6 @@ const IntegrationsPage = () => {
           </div>
         )}
       </div>
-
-      <ModernModal
-        open={showAuthModal}
-        onOpenChange={handleAuthModalClose}
-        title="Connect Google Drive"
-        description="Complete the authentication process in the window below to connect your Google Drive account."
-        size="4xl"
-        fixedFooter
-        footer={
-          <ModernButton 
-            variant="outline" 
-            onClick={handleAuthModalClose}
-          >
-            Close
-          </ModernButton>
-        }
-      >
-        <div className="w-full h-[600px] border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-          {googleAuthUrl && (
-            <iframe
-              src={googleAuthUrl}
-              className="w-full h-full"
-              title="Google Drive Authentication"
-              onLoad={() => {
-                console.log('Google auth iframe loaded');
-              }}
-            />
-          )}
-        </div>
-      </ModernModal>
     </div>
   );
 };
