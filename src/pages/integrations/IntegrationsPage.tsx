@@ -167,51 +167,8 @@ const IntegrationsPage = () => {
       console.log('Google auth URL response:', result);
 
       if (result.auth_url) {
-        // Open auth URL in new tab
-        const authWindow = window.open(result.auth_url, '_blank');
-        
-        // Show success message
-        toast({
-          title: "Authentication Started",
-          description: "Please complete the authentication in the new tab that opened.",
-        });
-        
-        // Listen for messages from the auth tab
-        const messageListener = (event: MessageEvent) => {
-          if (event.origin !== window.location.origin) return;
-          
-          if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
-            console.log('Google auth success received');
-            updateIntegrationStatus('google_drive', 'connected');
-            toast({
-              title: "Success",
-              description: "Google Drive connected successfully!",
-            });
-            window.removeEventListener('message', messageListener);
-          } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
-            console.error('Google auth error:', event.data.error);
-            toast({
-              title: "Authentication Error",
-              description: event.data.error || "Failed to authenticate with Google Drive.",
-              variant: "destructive"
-            });
-            window.removeEventListener('message', messageListener);
-          }
-        };
-        
-        window.addEventListener('message', messageListener);
-        
-        // Clean up listener if auth window is closed
-        const checkClosed = setInterval(() => {
-          if (authWindow?.closed) {
-            clearInterval(checkClosed);
-            window.removeEventListener('message', messageListener);
-            // Refresh integration statuses to check if connection was successful
-            setTimeout(() => {
-              forceRefresh();
-            }, 1000);
-          }
-        }, 1000);
+        // Redirect to auth URL in the same tab
+        window.location.href = result.auth_url;
       } else {
         throw new Error('No auth URL received');
       }
