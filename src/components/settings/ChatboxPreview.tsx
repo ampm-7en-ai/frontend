@@ -1205,7 +1205,7 @@ export const ChatboxPreview = ({
                   )}
                   
                   {message.type === 'ui' && message.ui_type === 'email' && (
-                    <div className="flex flex-col gap-3 justify-center animate-fade-in">
+                    <div className="flex flex-col gap-3 justify-center animate-fade-in rounded-2xl bg-gray-100/50 p-4">
                       <form onSubmit={handleEmailSubmit} className='relative'>
                         <Input
                         variant='modern'
@@ -1232,9 +1232,9 @@ export const ChatboxPreview = ({
                         variant="ghost"
                         className="font-medium border-2 w-auto"
                         style={{ 
-                          borderColor: primaryColor,
+                          border: 'none',
                           color: primaryColor,
-                          backgroundColor: 'white'
+                          backgroundColor: 'transparent'
                         }}
                       >
                         No Thanks
