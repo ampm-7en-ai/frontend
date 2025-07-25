@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -26,6 +25,10 @@ interface ChatbotConfig {
   position: 'bottom-right' | 'bottom-left';
   suggestions: string[];
   avatarUrl?: string;
+  emailRequired?: boolean;
+  emailPlaceholder?: string;
+  emailMessage?: string;
+  collectEmail?: boolean;
 }
 
 interface SearchResult {
@@ -39,8 +42,9 @@ interface SearchResult {
 interface ChatMessage {
   id: string;
   content: string;
-  type: 'user' | 'bot_response' | 'system_message';
+  type: 'user' | 'bot_response' | 'system_message' | 'ui';
   timestamp: string;
+  ui_type?: 'email';
 }
 
 const fallbackSuggestions = [];
@@ -73,6 +77,11 @@ const SearchAssistant = () => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [thinkingMessage, setThinkingMessage] = useState<string>("Thinking...");
+  
+  // Email collection state
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [isEmailSubmitting, setIsEmailSubmitting] = useState<boolean>(false);
+  const [emailSubmitted, setEmailSubmitted] = useState<boolean>(false);
   
   // WebSocket and connectivity
   const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -154,6 +163,23 @@ const SearchAssistant = () => {
         // Handle system messages for thinking states
         if (message.type === 'system_message') {
           setThinkingMessage(`${message.content}`);
+          return;
+        }
+        
+        // Handle UI messages for email collection
+        if (message.type === 'ui' && message.ui_type === 'email') {
+          clearThinkingInterval();
+          setIsProcessing(false);
+          
+          const emailMessage: ChatMessage = {
+            id: `email-${Date.now()}`,
+            content: message.content,
+            type: 'ui',
+            timestamp: message.timestamp,
+            ui_type: 'email'
+          };
+          
+          setChatHistory(prev => [...prev, emailMessage]);
           return;
         }
         
@@ -242,9 +268,86 @@ const SearchAssistant = () => {
     }
   };
 
+  // Handle email submission
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userEmail.trim()) return;
+
+    setIsEmailSubmitting(true);
+    
+    try {
+      if (chatServiceRef.current?.isConnected()) {
+        chatServiceRef.current.sendMessage(userEmail.trim());
+        setEmailSubmitted(true);
+        
+        // Remove the email UI message from chat history
+        setChatHistory(prev => prev.filter(msg => msg.type !== 'ui' || msg.ui_type !== 'email'));
+        
+        // Start processing for the response
+        setIsProcessing(true);
+        startThinkingAnimation();
+        
+        toast({
+          title: "Email submitted",
+          description: "Thank you for providing your email.",
+        });
+      } else {
+        toast({
+          title: "Not connected",
+          description: "Cannot submit email while disconnected",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting email:", error);
+      toast({
+        title: "Submission Error",
+        description: "Failed to submit email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsEmailSubmitting(false);
+    }
+  };
+
+  const handleSkipEmail = () => {
+    // Remove the email UI message from chat history
+    setChatHistory(prev => prev.filter(msg => msg.type !== 'ui' || msg.ui_type !== 'email'));
+    
+    // Continue with the conversation
+    if (chatServiceRef.current?.isConnected()) {
+      chatServiceRef.current.sendMessage('skip_email');
+      setIsProcessing(true);
+      startThinkingAnimation();
+    }
+  };
+
   // Enhanced search handling with mode transitions
   const handleSearch = useCallback(() => {
     if (!query.trim()) return;
+
+    // Check if email collection is required and not submitted
+    if (config?.collectEmail && !emailSubmitted) {
+      // Send the query but expect email collection UI
+      const userQueryCopy = query;
+      const newUserMessage: ChatMessage = {
+        id: `user-${Date.now()}`,
+        content: userQueryCopy,
+        type: 'user',
+        timestamp: new Date().toISOString()
+      };
+      
+      setChatHistory(prev => [...prev, newUserMessage]);
+      setMode('chat');
+      setQuery('');
+      setIsProcessing(true);
+      
+      if (chatServiceRef.current?.isConnected()) {
+        startThinkingAnimation();
+        chatServiceRef.current.sendMessage(userQueryCopy);
+      }
+      return;
+    }
 
     // Transition to chat mode
     setMode('chat');
@@ -287,7 +390,7 @@ const SearchAssistant = () => {
       });
       setIsProcessing(false);
     }
-  }, [query, toast]);
+  }, [query, toast, config?.collectEmail, emailSubmitted]);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -298,6 +401,26 @@ const SearchAssistant = () => {
 
   // Enhanced suggestion selection with smooth transitions
   const handleSelectExample = useCallback((question: string) => {
+    // Check if email collection is required and not submitted
+    if (config?.collectEmail && !emailSubmitted) {
+      const newUserMessage: ChatMessage = {
+        id: `user-${Date.now()}`,
+        content: question,
+        type: 'user',
+        timestamp: new Date().toISOString()
+      };
+      
+      setChatHistory(prev => [...prev, newUserMessage]);
+      setMode('chat');
+      setIsProcessing(true);
+      
+      if (chatServiceRef.current?.isConnected()) {
+        startThinkingAnimation();
+        chatServiceRef.current.sendMessage(question);
+      }
+      return;
+    }
+
     setMode('chat');
     
     const newUserMessage: ChatMessage = {
@@ -321,7 +444,7 @@ const SearchAssistant = () => {
       });
       setIsProcessing(false);
     }
-  }, [toast]);
+  }, [toast, config?.collectEmail, emailSubmitted]);
 
   // Enhanced input interaction with mode-based logic
   const handleInputClick = useCallback(() => {
@@ -336,6 +459,8 @@ const SearchAssistant = () => {
     setChatHistory([]);
     setQuery('');
     setIsProcessing(false);
+    setUserEmail('');
+    setEmailSubmitted(false);
     clearThinkingInterval();
     
     // Clean disconnect and reconnect WebSocket for fresh state
@@ -359,6 +484,8 @@ const SearchAssistant = () => {
           setChatHistory([]);
           setQuery('');
           setIsProcessing(false);
+          setUserEmail('');
+          setEmailSubmitted(false);
           clearThinkingInterval();
           
           // Clean WebSocket state
@@ -624,6 +751,72 @@ const SearchAssistant = () => {
                                 >
                                   {message.content}
                                 </ReactMarkdown>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      } else if (message.type === 'ui' && message.ui_type === 'email') {
+                        return (
+                          <div key={message.id} className="flex items-start gap-2">
+                            <Avatar className="h-8 w-8 mt-1" style={{
+                              backgroundColor: primaryColor
+                            }}>
+                              {config.avatarUrl ? (
+                                <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                              ) : null}
+                              <AvatarFallback style={{
+                                backgroundColor: primaryColor
+                              }}>
+                                <Bot className="h-4 w-4 text-white" />
+                              </AvatarFallback>
+                            </Avatar>
+
+                            <div className="flex-1 pl-[10px] pt-[5px]">
+                              <div className="flex flex-col gap-3 justify-center animate-fade-in rounded-2xl bg-gray-100/50 p-4">
+                                <form onSubmit={handleEmailSubmit} className="relative">
+                                  <Input
+                                    variant="modern"
+                                    placeholder={config.emailPlaceholder || "Enter your email"}
+                                    value={userEmail}
+                                    onChange={(e) => setUserEmail(e.target.value)}
+                                    className="pr-12"
+                                    disabled={isEmailSubmitting}
+                                    style={{
+                                      backgroundColor: inputBgColor,
+                                      borderColor: inputBorderColor,
+                                      color: textColor
+                                    }}
+                                  />
+                                  <Button
+                                    type="submit"
+                                    size="sm"
+                                    disabled={!userEmail.trim() || isEmailSubmitting}
+                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full p-0"
+                                    style={{
+                                      backgroundColor: primaryColor,
+                                      borderColor: primaryColor
+                                    }}
+                                  >
+                                    {isEmailSubmitting ? (
+                                      <LoadingSpinner size="sm" />
+                                    ) : (
+                                      <ArrowUp className="h-4 w-4 text-white" />
+                                    )}
+                                  </Button>
+                                </form>
+                                
+                                <Button
+                                  onClick={handleSkipEmail}
+                                  variant="ghost"
+                                  className="font-medium border-2 w-auto"
+                                  style={{
+                                    border: 'none',
+                                    color: primaryColor,
+                                    backgroundColor: 'transparent'
+                                  }}
+                                >
+                                  No Thanks
+                                </Button>
                               </div>
                             </div>
                           </div>
@@ -1084,6 +1277,72 @@ const SearchAssistant = () => {
                             >
                               {message.content}
                             </ReactMarkdown>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  } else if (message.type === 'ui' && message.ui_type === 'email') {
+                    return (
+                      <div key={message.id} className="flex items-start gap-2">
+                        <Avatar className="h-8 w-8 mt-1" style={{
+                          backgroundColor: primaryColor
+                        }}>
+                          {config.avatarUrl ? (
+                            <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                          ) : null}
+                          <AvatarFallback style={{
+                            backgroundColor: primaryColor
+                          }}>
+                            <Bot className="h-4 w-4 text-white" />
+                          </AvatarFallback>
+                        </Avatar>
+
+                        <div className="flex-1 pl-[10px] pt-[5px]">
+                          <div className="flex flex-col gap-3 justify-center animate-fade-in rounded-2xl bg-gray-100/50 p-4">
+                            <form onSubmit={handleEmailSubmit} className="relative">
+                              <Input
+                                variant="modern"
+                                placeholder={config.emailPlaceholder || "Enter your email"}
+                                value={userEmail}
+                                onChange={(e) => setUserEmail(e.target.value)}
+                                className="pr-12"
+                                disabled={isEmailSubmitting}
+                                style={{
+                                  backgroundColor: inputBgColor,
+                                  borderColor: inputBorderColor,
+                                  color: textColor
+                                }}
+                              />
+                              <Button
+                                type="submit"
+                                size="sm"
+                                disabled={!userEmail.trim() || isEmailSubmitting}
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full p-0"
+                                style={{
+                                  backgroundColor: primaryColor,
+                                  borderColor: primaryColor
+                                }}
+                              >
+                                {isEmailSubmitting ? (
+                                  <LoadingSpinner size="sm" />
+                                ) : (
+                                  <ArrowUp className="h-4 w-4 text-white" />
+                                )}
+                              </Button>
+                            </form>
+                            
+                            <Button
+                              onClick={handleSkipEmail}
+                              variant="ghost"
+                              className="font-medium border-2 w-auto"
+                              style={{
+                                border: 'none',
+                                color: primaryColor,
+                                backgroundColor: 'transparent'
+                              }}
+                            >
+                              No Thanks
+                            </Button>
                           </div>
                         </div>
                       </div>
