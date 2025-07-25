@@ -89,7 +89,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
             <BarChart 
               data={performanceData} 
               layout="vertical"
-              margin={{ top: 10, right: 30, left: 100, bottom: 10 }}
+              margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
               barCategoryGap="20%"
             >
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
@@ -107,7 +107,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
                 className="text-slate-600 dark:text-slate-400"
                 axisLine={false}
                 tickLine={false}
-                width={90}
+                width={70}
               />
               <Tooltip 
                 contentStyle={{ 
@@ -124,22 +124,22 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
                 }}
                 formatter={(value, name, props) => {
                   const agent = props.payload;
-                  if (name === 'Total Conversations') {
+                  if (name === 'Resolved') {
                     return [
-                      <div key="total" className="space-y-1">
-                        <div className="flex justify-between">
-                          <span>Total:</span>
+                      <div key="resolved" className="space-y-1">
+                        <div className="flex justify-between gap-4">
+                          <span>Total Conversations:</span>
                           <span className="font-medium">{agent.conversations}</span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex justify-between gap-4">
                           <span>Resolved:</span>
                           <span className="font-medium text-green-600">{agent.resolved}</span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex justify-between gap-4">
                           <span>Pending:</span>
                           <span className="font-medium text-amber-600">{agent.pending}</span>
                         </div>
-                        <div className="flex justify-between border-t pt-1">
+                        <div className="flex justify-between gap-4 border-t pt-1">
                           <span>Resolution Rate:</span>
                           <span className="font-medium">{agent.resolutionRate}%</span>
                         </div>
@@ -151,24 +151,15 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
                 }}
               />
               <Bar 
-                dataKey="conversations" 
-                stackId="a"
-                fill="#e2e8f0" 
-                radius={[0, 4, 4, 0]}
-                name="Total Conversations"
-              />
-              <Bar 
                 dataKey="resolved" 
-                stackId="a"
                 fill="#10b981" 
-                radius={[0, 0, 0, 0]}
+                radius={[4, 4, 4, 4]}
                 name="Resolved"
               />
               <Bar 
                 dataKey="pending" 
-                stackId="a"
                 fill="#f59e0b" 
-                radius={[0, 4, 4, 0]}
+                radius={[4, 4, 4, 4]}
                 name="Pending"
               />
             </BarChart>
@@ -181,7 +172,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
           <BarChart 
             data={performanceData} 
             layout="vertical"
-            margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
             <XAxis 
@@ -346,10 +337,6 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
         {/* Legend for Performance Tab */}
         {activeTab === 'performance' && (
           <div className="flex items-center justify-center gap-6 pt-2 border-t border-slate-200 dark:border-slate-700">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-sm bg-slate-300"></div>
-              <span className="text-xs text-slate-600 dark:text-slate-400">Total Conversations</span>
-            </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-sm bg-green-500"></div>
               <span className="text-xs text-slate-600 dark:text-slate-400">Resolved</span>
