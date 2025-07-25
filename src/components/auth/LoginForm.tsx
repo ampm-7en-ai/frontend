@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -43,99 +42,118 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     }
   });
 
-  // Listen for OAuth callback success
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
-      
-      if (event.data.type === 'GOOGLE_OAUTH_SUCCESS') {
-        handleGoogleOAuthSuccess(event.data.data);
-      } else if (event.data.type === 'GOOGLE_OAUTH_ERROR') {
-        setIsGoogleLoading(false);
-        toast({
-          title: "Google Sign-In Failed",
-          description: event.data.error || "There was an error signing in with Google. Please try again.",
-          variant: "destructive",
-        });
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
-
-  const handleGoogleOAuthSuccess = async (data: any) => {
-    try {
-      console.log("Google OAuth success data:", data);
-      
-      if (data.access) {
-        const userRole = data.userData.user_role === "admin" ? "admin" : data.userData.user_role;
-        
-        await login(data.userData.username || "Google User", "", {
-          access: data.access,
-          refresh: data.refresh || null,
-          user_id: data.user_id,
-          userData: {
-            username: data.userData.username,
-            email: data.userData.email || "google_user@example.com",
-            avatar: data.userData.avatar,
-            team_role: data.userData.team_role || null,
-            user_role: userRole,
-            permissions: data.userData.permissions || {},
-            is_verified: true
-          }
-        });
-        
-        toast({
-          title: "Login Successful",
-          description: "Welcome back!",
-          variant: "default",
-        });
-        
-        if (userRole === 'superadmin') {
-          navigate('/dashboard/superadmin');
-        } else if (userRole === 'admin') {
-          navigate('/dashboard/admin');
-        } else {
-          navigate('/dashboard');
-        }
-      }
-    } catch (error) {
-      console.error("Google OAuth success handler error:", error);
-      toast({
-        title: "Login Failed",
-        description: "Could not complete Google sign-in. Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGoogleLoading(false);
-    }
-  };
-
   const handleGoogleLogin = async () => {
     try {
       setIsGoogleLoading(true);
       
-      // Create Google OAuth URL
-      const state = Math.random().toString(36).substring(2, 15);
-      const googleAuthUrl = `${GOOGLE_AUTH_CONFIG.AUTH_URI}?` +
-        `client_id=${GOOGLE_AUTH_CONFIG.CLIENT_ID}&` +
-        `redirect_uri=${encodeURIComponent(GOOGLE_AUTH_CONFIG.REDIRECT_URI)}&` +
-        `response_type=code&` +
-        `scope=${encodeURIComponent(GOOGLE_OAUTH_SCOPES)}&` +
-        `state=${state}&` +
-        `access_type=offline&` +
-        `prompt=consent`;
+      const googleAuth = (window as any).google?.accounts?.oauth2;
       
-      console.log("Opening Google OAuth URL:", googleAuthUrl);
+      if (!googleAuth) {
+        toast({
+          title: "Google Sign-In Error",
+          description: "Google authentication is not available. Please try again later.",
+          variant: "destructive",
+        });
+        setIsGoogleLoading(false);
+        return;
+      }
       
-      // Open in new tab
-      window.open(googleAuthUrl, '_blank');
-      
-      toast({
-        title: "Authentication Started",
-        description: "Please complete the authentication in the new tab that opened.",
+      const client = googleAuth.initTokenClient({
+        client_id: GOOGLE_AUTH_CONFIG.CLIENT_ID,
+        scope: GOOGLE_OAUTH_SCOPES,
+        redirect_uri: GOOGLE_AUTH_CONFIG.REDIRECT_URI,
+        callback: async (tokenResponse: any) => {
+          console.log("Google OAuth token response:", tokenResponse);
+          
+          if (tokenResponse.error) {
+            console.error('Google Sign-In error:', tokenResponse.error);
+            toast({
+              title: "Google Sign-In Failed",
+              description: "There was an error signing in with Google. Please try again.",
+              variant: "destructive",
+            });
+            setIsGoogleLoading(false);
+            return;
+          }
+          
+          try {
+            const formData = new FormData();
+            formData.append('sso_token', tokenResponse.access_token);
+            formData.append('provider', 'google');
+            
+            console.log("Sending SSO request to endpoint:", API_ENDPOINTS.SSO_LOGIN);
+            
+            const apiUrl = getApiUrl(API_ENDPOINTS.SSO_LOGIN);
+            console.log("Full API URL:", apiUrl);
+            
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              body: formData,
+            });
+            
+            console.log("SSO login response status:", response.status);
+            
+            const data = await response.json();
+            console.log("Google SSO login response:", data);
+            
+            if (response.ok && data.data.access) {
+              const userRole = data.data.userData.user_role === "admin" ? "admin" : data.data.userData.user_role;
+              
+              await login(data.data.userData.username || "Google User", "", {
+                access: data.data.access,
+                refresh: data.refresh || null,
+                user_id: data.data.user_id,
+                userData: {
+                  username: data.data.userData.username,
+                  email: data.data.userData.email || "google_user@example.com",
+                  avatar: data.data.userData.avatar,
+                  team_role: data.data.userData.team_role || null,
+                  user_role: userRole,
+                  permissions: data.data.userData.permissions || {},
+                  is_verified: true
+                }
+              });
+              
+              toast({
+                title: "Login Successful",
+                description: "Welcome back!",
+                variant: "default",
+              });
+              
+              if (userRole === 'superadmin') {
+                navigate('/dashboard/superadmin');
+              } else if (userRole === 'admin') {
+                navigate('/dashboard/admin');
+              } else {
+                navigate('/dashboard');
+              }
+            } else if (data.error) {
+              toast({
+                title: "Login Failed",
+                description: data.error,
+                variant: "destructive",
+              });
+            } else {
+              toast({
+                title: "Login Failed",
+                description: "An unexpected error occurred. Please try again.",
+                variant: "destructive",
+              });
+            }
+          } catch (error) {
+            console.error("Google SSO login error:", error);
+            toast({
+              title: "Login Failed",
+              description: "Could not complete Google sign-in. Please try again later.",
+              variant: "destructive",
+            });
+          } finally {
+            setIsGoogleLoading(false);
+          }
+        }
       });
+      
+      client.requestAccessToken();
       
     } catch (error) {
       console.error("Google Sign-In initialization error:", error);
@@ -147,6 +165,28 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       setIsGoogleLoading(false);
     }
   };
+
+  useEffect(() => {
+    const loadGoogleScript = () => {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        console.log('Google Identity Services script loaded');
+      };
+      script.onerror = () => {
+        console.error('Error loading Google Identity Services script');
+      };
+      document.head.appendChild(script);
+    };
+    
+    loadGoogleScript();
+    
+    return () => {
+      // Cleanup if needed
+    };
+  }, []);
 
   const handleLogin = async (values: LoginFormValues) => {
     setIsLoggingIn(true);
