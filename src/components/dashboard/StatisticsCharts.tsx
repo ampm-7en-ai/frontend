@@ -24,6 +24,16 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
     { name: 'Week 7', satisfaction: 0, csat: 0, nps: 0 },
   ];
 
+  // Calculate chart height based on data points, similar to AgentPerformanceCard
+  const getChartHeight = () => {
+    const baseHeight = 300;
+    const dataPointHeight = 20; // Height per data point
+    const calculatedHeight = Math.max(baseHeight, satisfactionTrendData.length * dataPointHeight + 100);
+    return Math.min(calculatedHeight, 600); // Cap at 600px for consistency
+  };
+
+  const chartHeight = getChartHeight();
+
   return (
     <Card className="bg-white dark:bg-gray-800/50 border-0 rounded-3xl overflow-hidden h-full">
       <CardHeader className="pb-4">
@@ -39,8 +49,8 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
         </div>
       </CardHeader>
       <CardContent className="flex-1">
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="max-h-[600px] overflow-y-auto">
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <LineChart data={satisfactionTrendData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
               <XAxis 
