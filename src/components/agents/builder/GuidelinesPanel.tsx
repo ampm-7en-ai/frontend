@@ -37,6 +37,7 @@ export const GuidelinesPanel = () => {
   
   // Avatar upload states
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isRemovingAvatar, setIsRemovingAvatar] = useState(false);
 
   // Get global default model from agent data settings
   const globalDefaultModel = agentData.settings?.response_model;
@@ -226,6 +227,50 @@ export const GuidelinesPanel = () => {
     }
   };
 
+  // Remove avatar file function
+  const removeAvatarFile = async (fileUrl: string) => {
+    setIsRemovingAvatar(true);
+    
+    try {
+      const response = await fetch(getApiUrl('users/remove-file/'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getAccessToken()}`
+        },
+        body: JSON.stringify({
+          file_url: fileUrl
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to remove file');
+      }
+      
+      // Update agent data to remove avatar
+      updateAgentData({ 
+        avatar: '', 
+        avatarUrl: '', 
+        avatarType: 'default' 
+      });
+      
+      toast({
+        title: "Avatar removed successfully",
+        description: "Your avatar has been removed.",
+      });
+      
+    } catch (error) {
+      console.error('Avatar removal error:', error);
+      toast({
+        title: "Remove failed",
+        description: "Failed to remove avatar. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRemovingAvatar(false);
+    }
+  };
+
   // Enhanced image upload handler with validation and upload
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -240,6 +285,14 @@ export const GuidelinesPanel = () => {
     // Reset the input so the same file can be selected again if needed
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  // Handle avatar removal
+  const handleRemoveAvatar = async () => {
+    const avatarUrl = agentData.avatar || agentData.avatarUrl;
+    if (avatarUrl) {
+      await removeAvatarFile(avatarUrl);
     }
   };
 
@@ -650,7 +703,7 @@ export const GuidelinesPanel = () => {
                              alt="Avatar preview" 
                              className="w-full h-full object-cover"
                            />
-                           {isUploadingAvatar && (
+                           {(isUploadingAvatar || isRemovingAvatar) && (
                              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                                <LoadingSpinner size="sm" />
                              </div>
@@ -669,7 +722,7 @@ export const GuidelinesPanel = () => {
                            type="button"
                            variant="outline"
                            onClick={() => fileInputRef.current?.click()}
-                           disabled={isUploadingAvatar}
+                           disabled={isUploadingAvatar || isRemovingAvatar}
                            className="flex items-center gap-2 h-10 rounded-xl border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                          >
                            {isUploadingAvatar ? (
@@ -683,10 +736,15 @@ export const GuidelinesPanel = () => {
                            <Button
                              type="button"
                              variant="outline"
-                             onClick={() => updateAgentData({ avatar: '', avatarUrl: '', avatarType: 'default' })}
+                             onClick={handleRemoveAvatar}
+                             disabled={isRemovingAvatar}
                              className="h-10 rounded-xl border-gray-200 dark:border-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
                            >
-                             Remove
+                             {isRemovingAvatar ? (
+                               <LoadingSpinner size="sm" />
+                             ) : (
+                               'Remove'
+                             )}
                            </Button>
                          )}
                        </div>
