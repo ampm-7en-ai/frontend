@@ -24,12 +24,19 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
     { name: 'Week 7', satisfaction: 0, csat: 0, nps: 0 },
   ];
 
-  // Calculate chart height based on data points, similar to AgentPerformanceCard
+  // Calculate chart height based on data density and range, similar to AgentPerformanceCard
   const getChartHeight = () => {
     const baseHeight = 300;
-    const dataPointHeight = 20; // Height per data point
-    const calculatedHeight = Math.max(baseHeight, satisfactionTrendData.length * dataPointHeight + 100);
-    return Math.min(calculatedHeight, 600); // Cap at 600px for consistency
+    const dataPoints = satisfactionTrendData.length;
+    
+    // Calculate height based on number of data points and data density
+    const dataPointHeight = 25; // Height per data point
+    const calculatedHeight = Math.max(baseHeight, dataPoints * dataPointHeight + 80);
+    
+    // Additional height for more data points (similar to performance card logic)
+    const additionalHeight = dataPoints > 7 ? (dataPoints - 7) * 15 : 0;
+    
+    return Math.min(calculatedHeight + additionalHeight, 600); // Cap at 600px for consistency
   };
 
   const chartHeight = getChartHeight();
@@ -49,9 +56,16 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
         </div>
       </CardHeader>
       <CardContent className="flex-1">
+        {satisfactionTrendData.length > 10 && (
+          <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-lg p-3 mb-4">
+            <span className="font-medium">Note:</span> Showing {satisfactionTrendData.length} data points. 
+            {satisfactionTrendData.length > 15 && " Chart is scrollable for better readability."}
+          </div>
+        )}
+        
         <div className="max-h-[600px] overflow-y-auto">
           <ResponsiveContainer width="100%" height={chartHeight}>
-            <LineChart data={satisfactionTrendData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+            <LineChart data={satisfactionTrendData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
               <XAxis 
                 dataKey="name" 
