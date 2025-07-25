@@ -230,3 +230,23 @@ export const updateKnowledgeSourceInAgentCache = (queryClient: any, agentId: str
   
   console.log('✅ Knowledge source updated in agent cache');
 };
+
+// 🔒 SECURITY: Clear user-specific knowledge source caches
+export const clearUserKnowledgeSourceCaches = (queryClient: any) => {
+  console.log('🧹 Clearing user knowledge source caches for security');
+  
+  // Clear all knowledge source related caches
+  queryClient.removeQueries({ 
+    predicate: (query) => {
+      const queryKey = query.queryKey;
+      if (!Array.isArray(queryKey)) return false;
+      
+      return queryKey.some(key => 
+        typeof key === 'string' && 
+        (key.includes('agentKnowledgeSources') || key.includes('knowledgeFolders'))
+      );
+    }
+  });
+  
+  console.log('✅ User knowledge source caches cleared');
+};

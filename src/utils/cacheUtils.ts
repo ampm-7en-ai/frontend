@@ -1,4 +1,6 @@
 
+import { QueryClient } from '@tanstack/react-query';
+
 type CacheEntry<T> = {
   data: T;
   timestamp: number;
@@ -66,4 +68,72 @@ export const clearCache = (): void => {
   Object.keys(cacheStore).forEach(key => {
     delete cacheStore[key];
   });
+};
+
+/**
+ * Clear all React Query caches to prevent cross-user data contamination
+ * This is critical for multi-user applications where different users
+ * should not see each other's cached data
+ */
+export const clearAllReactQueryCaches = (queryClient: QueryClient): void => {
+  console.log('🧹 Clearing all React Query caches to prevent cross-user contamination');
+  
+  // Clear all cached queries
+  queryClient.clear();
+  
+  // Also clear our custom in-memory cache
+  clearCache();
+  
+  console.log('✅ All caches cleared successfully');
+};
+
+/**
+ * Clear user-specific caches (agents, conversations, knowledge sources, etc.)
+ * Use this when you want to clear only user-related data
+ */
+export const clearUserSpecificCaches = (queryClient: QueryClient): void => {
+  console.log('🧹 Clearing user-specific caches');
+  
+  // Clear all user-related query caches
+  const userCacheKeys = [
+    'agents',
+    'conversations',
+    'knowledgeFolders',
+    'admin-dashboard',
+    'billing-config',
+    'businesses',
+    'settings',
+    'integrations',
+    'api-keys',
+    'subscription',
+    'payment-history'
+  ];
+  
+  userCacheKeys.forEach(key => {
+    queryClient.removeQueries({ queryKey: [key] });
+  });
+  
+  // Clear dynamic cache keys that might contain user data
+  queryClient.removeQueries({ 
+    predicate: (query) => {
+      const queryKey = query.queryKey;
+      if (!Array.isArray(queryKey)) return false;
+      
+      // Clear caches that contain user-specific data patterns
+      const userSpecificPatterns = [
+        'agentKnowledgeSources',
+        'chatSessions',
+        'chatMessages',
+        'conversationDetail',
+        'userProfile',
+        'teamMembers'
+      ];
+      
+      return userSpecificPatterns.some(pattern => 
+        queryKey.some(key => typeof key === 'string' && key.includes(pattern))
+      );
+    }
+  });
+  
+  console.log('✅ User-specific caches cleared successfully');
 };

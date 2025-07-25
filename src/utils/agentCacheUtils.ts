@@ -1,3 +1,4 @@
+
 import { Agent } from '@/hooks/useAgentFiltering';
 import { transformAgentCreationResponse, transformAgentData } from './agentTransformUtils';
 
@@ -293,18 +294,19 @@ export const updateKnowledgeFolderWithDetails = (queryClient: any, agentId: stri
   });
 };
 
-// ✨ NEW: Pure cache-first unified update function
+// ✨ UPDATED: Cache-first unified update function with security logging
 export const updateCachesAfterAgentCreation = (queryClient: any, apiResponse: any) => {
-
+  console.log('🔄 Starting cache-first agent creation update (SECURE)');
   
   // Transform the agent data using unified transformer
   const transformedAgent = transformAgentCreationResponse(apiResponse);
   
   if (!transformedAgent) {
+    console.warn('❌ Could not transform agent creation response');
     return;
   }
   
-  
+  console.log('✅ Transformed agent for cache:', transformedAgent);
   
   addAgentToCache(queryClient, transformedAgent);
   

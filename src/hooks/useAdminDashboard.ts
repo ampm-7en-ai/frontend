@@ -85,11 +85,12 @@ async function fetchAdminDashboard(): Promise<AdminDashboardData> {
 }
 
 export function useAdminDashboard() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  
   return useQuery({
-    queryKey: ['admin-dashboard'],
+    queryKey: ['admin-dashboard', user?.id], // 🔒 SECURITY: User-specific cache key
     queryFn: fetchAdminDashboard,
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 60000
   });
 }

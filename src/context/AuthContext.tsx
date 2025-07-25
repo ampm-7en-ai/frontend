@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { getApiUrl, getAuthHeaders, isUserVerified, authApi } from '@/utils/api-config';
+import { clearAllReactQueryCaches, clearUserSpecificCaches } from '@/utils/cacheUtils';
 
 // Define user role types
 export type UserRole = 'USER' | 'SUPERADMIN';
@@ -71,6 +73,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
 
   // Function to get token
   const getToken = (): string | null => {
@@ -90,6 +93,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     });
     window.dispatchEvent(event);
+    
+    // Clear all caches before updating state
+    clearAllReactQueryCaches(queryClient);
     
     // Clear user data and redirect
     setUser(null);
@@ -251,6 +257,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setError(null);
     
     try {
+      // 🔒 SECURITY: Clear all caches before login to ensure fresh start
+      console.log('🧹 Clearing all caches before login for security');
+      clearAllReactQueryCaches(queryClient);
+      
       // If authData is provided, we use it (API response)
       if (authData) {
         const isVerified = authData.userData.is_verified !== false;
@@ -329,11 +339,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = () => {
+    console.log('🚪 User logout initiated');
+    
+    // 🔒 CRITICAL: Clear all React Query caches to prevent cross-user contamination
+    console.log('🧹 Clearing all caches to prevent cross-user data contamination');
+    clearAllReactQueryCaches(queryClient);
+    
+    // Clear user state
     setUser(null);
     setIsAuthenticated(false);
     setNeedsVerification(false);
     setPendingVerificationEmail(null);
+    
+    // Clear localStorage
     localStorage.removeItem('user');
+    
+    console.log('✅ User logout completed with cache clearing');
+    
+    // Navigate to login
     navigate('/login');
   };
 

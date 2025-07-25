@@ -66,29 +66,30 @@ async function updateBillingConfig(configData: UpdateBillingConfigData): Promise
 }
 
 export function useBillingConfig() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   return useQuery({
-    queryKey: ['billing-config'],
+    queryKey: ['billing-config', user?.id], // 🔒 SECURITY: User-specific cache key
     queryFn: fetchBillingConfig,
     staleTime: 60000, // 1 minute
     refetchOnWindowFocus: false,
     retry: 2,
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
   });
 }
 
 export function useUpdateBillingConfig() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: updateBillingConfig,
     onSuccess: (data) => {
       console.log('Billing config update successful:', data);
-      // Update the cache with the new data
-      queryClient.setQueryData(['billing-config'], data);
+      // Update the cache with the new data using user-specific key
+      queryClient.setQueryData(['billing-config', user?.id], data);
       // Optionally refetch to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: ['billing-config'] });
+      queryClient.invalidateQueries({ queryKey: ['billing-config', user?.id] });
     },
     onError: (error) => {
       console.error('Billing config update failed:', error);
