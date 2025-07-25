@@ -24,8 +24,13 @@ import { useIntegrations } from '@/hooks/useIntegrations';
 
 const IntegrationsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const integrationParam = searchParams.get('integration');
+  
+  // Map 'gdrive' to 'google_drive' for backward compatibility
+  const normalizedIntegration = integrationParam === 'gdrive' ? 'google_drive' : integrationParam;
+  
   const [selectedIntegration, setSelectedIntegration] = useState<string | null>(
-    searchParams.get('integration') || null
+    normalizedIntegration || null
   );
   const [isFacebookInitialized, setIsFacebookInitialized] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
@@ -53,7 +58,9 @@ const IntegrationsPage = () => {
     setSelectedIntegration(integrationId);
     // Update URL parameter to persist selection
     const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set('integration', integrationId);
+    // Use 'gdrive' for Google Drive in URL for cleaner appearance
+    const urlParam = integrationId === 'google_drive' ? 'gdrive' : integrationId;
+    newSearchParams.set('integration', urlParam);
     setSearchParams(newSearchParams);
     
     // Store the integration being configured in localStorage
@@ -75,7 +82,9 @@ const IntegrationsPage = () => {
     const integrationParam = searchParams.get('integration');
     
     if ((status === 'success' || status === 'failed') && integrationParam) {
-      const integration = integrationsList.find(i => i.id === integrationParam);
+      // Map 'gdrive' back to 'google_drive' for finding the integration
+      const actualIntegrationId = integrationParam === 'gdrive' ? 'google_drive' : integrationParam;
+      const integration = integrationsList.find(i => i.id === actualIntegrationId);
       if (integration) {
         setStatusBadgeInfo({
           name: integration.name,
