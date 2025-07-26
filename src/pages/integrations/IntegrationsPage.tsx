@@ -53,7 +53,6 @@ const IntegrationsPage = () => {
     forceRefresh
   } = useIntegrations();
 
-  // Handle integration selection with URL persistence
   const handleIntegrationSelect = (integrationId: string) => {
     setSelectedIntegration(integrationId);
     // Update URL parameter to persist selection
@@ -67,7 +66,6 @@ const IntegrationsPage = () => {
     localStorage.setItem('lastConfiguredIntegration', integrationId);
   };
 
-  // Handle going back to integrations list
   const handleBackToIntegrations = () => {
     setSelectedIntegration(null);
     // Remove integration parameter from URL
@@ -76,7 +74,6 @@ const IntegrationsPage = () => {
     setSearchParams(newSearchParams);
   };
 
-  // Check for status and show appropriate badge
   useEffect(() => {
     const status = searchParams.get('status');
     const integrationParam = searchParams.get('integration');
@@ -349,7 +346,7 @@ const IntegrationsPage = () => {
       id: 'google_drive',
       name: 'Google Drive',
       description: 'Connect your AI Agent with Google Drive to access and manage your documents and files.',
-      logo: 'https://img.logo.dev/google.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg',
       status: getIntegrationStatus('google_drive'),
       category: 'Storage',
       type: 'storage'

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { CheckCircle, AlertCircle, HardDrive } from 'lucide-react';
@@ -14,6 +13,8 @@ const GoogleDriveIntegration = () => {
   const [isConnected, setIsConnected] = useState(false);
   const { toast } = useToast();
   const { updateIntegrationStatus, getIntegrationStatus } = useIntegrations();
+
+  const googleDriveIconUrl = 'https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg';
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -122,7 +123,11 @@ const GoogleDriveIntegration = () => {
           {isConnected ? (
             <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
           ) : (
-            <HardDrive className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            <img 
+              src={googleDriveIconUrl} 
+              alt="Google Drive" 
+              className="w-8 h-8"
+            />
           )}
         </div>
         
