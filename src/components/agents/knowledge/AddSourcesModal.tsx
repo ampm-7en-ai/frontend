@@ -377,9 +377,17 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
       setTimeout(() => {
         setIsConnecting(false);
 
+        const providerNames = {
+          googleDrive: "Google Drive",
+          slack: "Slack",
+          notion: "Notion", 
+          dropbox: "Dropbox",
+          github: "GitHub"
+        };
+
         toast({
           title: "Connected Successfully",
-          description: `Connected to ${thirdPartyProviders[provider].name}. Importing common files automatically.`,
+          description: `Connected to ${providerNames[provider]}. Importing common files automatically.`,
           variant: "success"
         });
 
