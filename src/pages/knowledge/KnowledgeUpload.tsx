@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import ModernButton from '@/components/dashboard/ModernButton';
-import { ReloadIcon, Upload, File, Plus, CheckCircle, AlertCircle } from 'lucide-react';
+import { RefreshCw, Upload, File, Plus, CheckCircle, AlertCircle } from 'lucide-react';
 import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -60,7 +60,7 @@ const KnowledgeUpload: React.FC<KnowledgeUploadProps> = ({ agentId, knowledgeId,
   const { toast } = useToast();
   const navigate = useNavigate();
   const { onOpen } = useModal();
-  const { settings } = useSettings();
+  const { data: settings } = useSettings();
   const { addKnowledge, updateKnowledge } = useKnowledge();
   const { getAgent } = useAgent();
   const { addSource } = useSource();
@@ -340,7 +340,7 @@ const KnowledgeUpload: React.FC<KnowledgeUploadProps> = ({ agentId, knowledgeId,
       <div className="flex justify-end space-x-2">
         {knowledgeId && (
           <ModernButton
-            variant="destructive"
+            variant="outline"
             onClick={handleDelete}
             disabled={isLoading}
           >
