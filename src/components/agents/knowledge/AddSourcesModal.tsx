@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useFloatingToast } from '@/context/FloatingToastContext';
-import { useIntegrations } from '@/hooks/useIntegrations';
 import { fetchGoogleDriveFiles, BASE_URL, getAccessToken, addGoogleDriveFileToAgent } from '@/utils/api-config';
 import { apiRequest } from '@/utils/api-interceptor';
 import SourceTypeSelector from './SourceTypeSelector';
@@ -20,14 +19,6 @@ interface ValidationErrors {
   files?: string;
   plainText?: string;
   thirdParty?: string;
-}
-
-interface ThirdPartyConfig {
-  icon: React.ReactNode;
-  name: string;
-  description: string;
-  color: string;
-  id: string;
 }
 
 interface GoogleDriveFile {
@@ -79,57 +70,6 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  // Use centralized integration management
-  const { getIntegrationsByType } = useIntegrations();
-
-  // Get connected storage integrations
-  const connectedStorageIntegrations = getIntegrationsByType('storage').filter(
-    integration => integration.status === 'connected'
-  );
-
-  const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
-    googleDrive: {
-      icon: <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg" alt="Google Drive" className="h-4 w-4" />,
-      name: "Google Drive",
-      description: "Import documents from your Google Drive",
-      color: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
-      id: "google_drive"
-    },
-    slack: {
-      icon: <img src="https://img.logo.dev/slack.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="Slack" className="h-4 w-4" />,
-      name: "Slack",
-      description: "Import conversations and files from Slack",
-      color: "bg-pink-50 text-pink-600 border-pink-200 dark:bg-pink-950/50 dark:text-pink-400 dark:border-pink-800",
-      id: "slack"
-    },
-    notion: {
-      icon: <img src="https://img.logo.dev/notion.so?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="Notion" className="h-4 w-4" />,
-      name: "Notion",
-      description: "Import pages and databases from Notion",
-      color: "bg-gray-50 text-gray-800 border-gray-200 dark:bg-gray-900/50 dark:text-gray-300 dark:border-gray-700",
-      id: "notion"
-    },
-    dropbox: {
-      icon: <img src="https://img.logo.dev/dropbox.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="Dropbox" className="h-4 w-4" />,
-      name: "Dropbox",
-      description: "Import files from your Dropbox",
-      color: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
-      id: "dropbox"
-    },
-    github: {
-      icon: <img src="https://img.logo.dev/github.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="GitHub" className="h-4 w-4" />,
-      name: "GitHub",
-      description: "Import repositories and documentation from GitHub",
-      color: "bg-gray-50 text-gray-800 border-gray-200 dark:bg-gray-900/50 dark:text-gray-300 dark:border-gray-700",
-      id: "github"
-    }
-  };
-
-  // Filter third party providers to show only connected ones
-  const availableThirdPartyProviders = Object.entries(thirdPartyProviders).filter(([id, provider]) =>
-    connectedStorageIntegrations.some(integration => integration.id === provider.id)
-  );
-
   useEffect(() => {
     setFiles([]);
     setUrl('');
@@ -161,7 +101,6 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
       const data = await response.json();
       const urls = data.data?.urls || data.urls || [];
       
-      // Transform the response to our ScrapedUrl format
       const scrapedUrlsData: ScrapedUrl[] = urls.map((urlItem: any) => ({
         url: urlItem.url || urlItem,
         title: urlItem.title || urlItem.url || urlItem,
@@ -597,8 +536,6 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
           isConnecting={isConnecting}
           isLoadingGoogleDriveFiles={isLoadingGoogleDriveFiles}
           googleDriveFiles={googleDriveFiles}
-          availableThirdPartyProviders={availableThirdPartyProviders}
-          thirdPartyProviders={thirdPartyProviders}
           handleFileChange={handleFileChange}
           removeFile={removeFile}
           handleQuickConnect={handleQuickConnect}
