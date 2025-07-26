@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -128,7 +129,7 @@ const ProtectedRoutes = () => {
         
         <Route path="/knowledge" element={<KnowledgeBase />} />
         <Route path="/knowledge/sources/:agentId" element={<FolderSources />} />
-        <Route path="/knowledge/upload/:agentId" element={<KnowledgeUpload agentId={""} />} />
+        <Route path="/knowledge/upload" element={<KnowledgeUpload />} />
         
         <Route path="/help/documentation" element={<Documentation />} />
         <Route path="/help/support" element={<SupportTicket />} />
