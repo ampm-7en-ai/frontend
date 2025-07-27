@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
@@ -23,15 +23,9 @@ interface ChatbotConfig {
 
 const ChatPreview = () => {
   const { agentId } = useParams<{ agentId: string }>();
-  const [searchParams] = useSearchParams();
   const [config, setConfig] = useState<ChatbotConfig | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Extract session parameters from URL
-  const visitorId = searchParams.get('visitorId');
-  const sessionId = searchParams.get('sessionId');
-  const shouldRestore = searchParams.get('restore') === 'true';
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -104,44 +98,13 @@ const ChatPreview = () => {
     // Signal parent that iframe is ready
     window.parent.postMessage({ type: 'iframe-ready' }, '*');
     
-    // Listen for session updates from parent
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
-      
-      const { type, data } = event.data;
-      
-      switch (type) {
-        case 'session-update':
-          console.log('Received session update from parent:', data);
-          // Handle session update logic here
-          break;
-        case 'session-clear':
-          console.log('Received session clear from parent');
-          // Handle session clear logic here
-          break;
-      }
-    };
-    
-    window.addEventListener('message', handleMessage);
-    
     return () => {
       if (window.parent !== window) {
         document.body.style.overflow = 'auto';
       }
       document.head.removeChild(style);
-      window.removeEventListener('message', handleMessage);
     };
   }, []);
-
-  // Function to send session updates to parent
-  const sendSessionUpdateToParent = (sessionData: any) => {
-    if (window.parent !== window) {
-      window.parent.postMessage({
-        type: 'session-updated',
-        data: sessionData
-      }, '*');
-    }
-  };
 
   if (loading) {
     return (
@@ -180,10 +143,6 @@ const ChatPreview = () => {
           emailPlaceholder={config.emailPlaceholder || "Enter your email"}
           emailMessage={config.emailMessage || "Please provide your email to continue"}
           collectEmail={config.collectEmail || false}
-          visitorId={visitorId}
-          sessionId={sessionId}
-          shouldRestore={shouldRestore}
-          onSessionUpdate={sendSessionUpdateToParent}
           className="w-full h-full p-0"
         />
       </div>
