@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
@@ -21,12 +21,118 @@ interface ChatbotConfig {
   collectEmail?: boolean;
 }
 
+interface SessionData {
+  visitorId: string;
+  sessionId: string;
+  lastActivity: number;
+  messages: any[];
+}
+
 const ChatPreview = () => {
   const { agentId } = useParams<{ agentId: string }>();
+  const [searchParams] = useSearchParams();
   const [config, setConfig] = useState<ChatbotConfig | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [sessionData, setSessionData] = useState<SessionData | null>(null);
 
+  // Extract session parameters from URL
+  const visitorId = searchParams.get('visitorId') || generateVisitorId();
+  const sessionId = searchParams.get('sessionId') || generateSessionId();
+
+  // Session management functions
+  const getSessionKey = (agentId: string, visitorId: string) => {
+    return `chat_session_${agentId}_${visitorId}`;
+  };
+
+  const generateVisitorId = () => {
+    return `visitor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  const generateSessionId = () => {
+    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  const loadSessionData = () => {
+    if (!agentId) return null;
+    
+    try {
+      const sessionKey = getSessionKey(agentId, visitorId);
+      const stored = localStorage.getItem(sessionKey);
+      
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const now = Date.now();
+        
+        // Check if session is still valid (24 hours)
+        if (now - parsed.lastActivity < 24 * 60 * 60 * 1000) {
+          return parsed;
+        } else {
+          // Clear expired session
+          localStorage.removeItem(sessionKey);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading session data:', error);
+    }
+    
+    return null;
+  };
+
+  const saveSessionData = (data: SessionData) => {
+    if (!agentId) return;
+    
+    try {
+      const sessionKey = getSessionKey(agentId, visitorId);
+      localStorage.setItem(sessionKey, JSON.stringify(data));
+      
+      // Notify parent window about session update
+      window.parent.postMessage({
+        type: 'session-update',
+        sessionId: data.sessionId,
+        visitorId: data.visitorId,
+        agentId
+      }, '*');
+    } catch (error) {
+      console.error('Error saving session data:', error);
+    }
+  };
+
+  const handleSessionUpdate = (messages: any[]) => {
+    if (!agentId || !sessionData) return;
+    
+    const updatedSession = {
+      ...sessionData,
+      messages,
+      lastActivity: Date.now()
+    };
+    
+    setSessionData(updatedSession);
+    saveSessionData(updatedSession);
+  };
+
+  // Initialize session data
+  useEffect(() => {
+    if (agentId) {
+      const existingSession = loadSessionData();
+      
+      if (existingSession) {
+        setSessionData(existingSession);
+      } else {
+        // Create new session
+        const newSession: SessionData = {
+          visitorId,
+          sessionId,
+          lastActivity: Date.now(),
+          messages: []
+        };
+        setSessionData(newSession);
+        saveSessionData(newSession);
+      }
+    }
+  }, [agentId, visitorId, sessionId]);
+
+  // Fetch config
   useEffect(() => {
     const fetchConfig = async () => {
       try {
@@ -59,7 +165,6 @@ const ChatPreview = () => {
       document.body.style.overflow = 'hidden';
     }
     
-    // Add comprehensive styles to remove all shadows and borders
     const style = document.createElement('style');
     style.textContent = `
       *, *::before, *::after {
@@ -95,7 +200,6 @@ const ChatPreview = () => {
     `;
     document.head.appendChild(style);
     
-    // Signal parent that iframe is ready
     window.parent.postMessage({ type: 'iframe-ready' }, '*');
     
     return () => {
@@ -144,6 +248,10 @@ const ChatPreview = () => {
           emailMessage={config.emailMessage || "Please provide your email to continue"}
           collectEmail={config.collectEmail || false}
           className="w-full h-full p-0"
+          visitorId={sessionData?.visitorId}
+          sessionId={sessionData?.sessionId}
+          shouldRestore={sessionData?.messages.length > 0}
+          onSessionUpdate={handleSessionUpdate}
         />
       </div>
     </div>
