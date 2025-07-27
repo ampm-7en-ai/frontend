@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
@@ -21,58 +21,11 @@ interface ChatbotConfig {
   collectEmail?: boolean;
 }
 
-// Session management utilities
-function generateId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
-}
-
-function getIframeVisitorId(urlParams: URLSearchParams): string {
-  let visitorId = urlParams.get('visitorId');
-  if (!visitorId) {
-    visitorId = localStorage.getItem('iframe_visitor_id');
-    if (!visitorId) {
-      visitorId = generateId();
-      localStorage.setItem('iframe_visitor_id', visitorId);
-    }
-  } else {
-    localStorage.setItem('iframe_visitor_id', visitorId);
-  }
-  return visitorId;
-}
-
-function getIframeSessionId(urlParams: URLSearchParams): string {
-  let sessionId = urlParams.get('sessionId');
-  if (!sessionId) {
-    sessionId = localStorage.getItem('iframe_session_id');
-    if (!sessionId) {
-      sessionId = generateId();
-      localStorage.setItem('iframe_session_id', sessionId);
-    }
-  } else {
-    localStorage.setItem('iframe_session_id', sessionId);
-  }
-  return sessionId;
-}
-
 const ChatPreview = () => {
   const { agentId } = useParams<{ agentId: string }>();
-  const [searchParams] = useSearchParams();
   const [config, setConfig] = useState<ChatbotConfig | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [sessionData, setSessionData] = useState<{
-    visitorId: string;
-    sessionId: string;
-  } | null>(null);
-
-  // Initialize session data
-  useEffect(() => {
-    const visitorId = getIframeVisitorId(searchParams);
-    const sessionId = getIframeSessionId(searchParams);
-    
-    setSessionData({ visitorId, sessionId });
-    console.log('Session data initialized:', { visitorId, sessionId });
-  }, [searchParams]);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -190,8 +143,6 @@ const ChatPreview = () => {
           emailPlaceholder={config.emailPlaceholder || "Enter your email"}
           emailMessage={config.emailMessage || "Please provide your email to continue"}
           collectEmail={config.collectEmail || false}
-          visitorId={sessionData?.visitorId}
-          sessionId={sessionData?.sessionId}
           className="w-full h-full p-0"
         />
       </div>
