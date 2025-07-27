@@ -4,6 +4,7 @@ import { WebSocketService } from './WebSocketService';
 import { WS_BASE_URL } from '@/config/env';
 
 interface ChatMessage {
+  id?: string;
   content: string;
   timestamp: string;
   type: string;
@@ -31,11 +32,20 @@ export class ChatWebSocketService {
   private sessionId: string | null = null;
   private shouldRestore: boolean = false;
   private isRestoringSession: boolean = false;
+  private onSessionUpdate?: (sessionData: any) => void;
   
-  constructor(agentId: string, url: string, visitorId?: string | null, sessionId?: string | null, shouldRestore?: boolean) {
+  constructor(
+    agentId: string, 
+    url: string, 
+    visitorId?: string | null, 
+    sessionId?: string | null, 
+    shouldRestore?: boolean,
+    onSessionUpdate?: (sessionData: any) => void
+  ) {
     this.visitorId = visitorId || null;
     this.sessionId = sessionId || null;
     this.shouldRestore = shouldRestore || false;
+    this.onSessionUpdate = onSessionUpdate;
     
     // Updated URL format using WS_BASE_URL from environment
     this.ws = new WebSocketService(url === "playground" ? 
@@ -140,6 +150,15 @@ export class ChatWebSocketService {
       console.log('Session ID updated from server:', data.session_id);
       this.sessionId = data.session_id;
       this.events.onSessionCreated?.(data.session_id);
+      
+      // Notify parent of session update
+      if (this.onSessionUpdate) {
+        this.onSessionUpdate({
+          sessionId: data.session_id,
+          visitorId: this.visitorId,
+          timestamp: new Date().toISOString()
+        });
+      }
     }
     
     // Handle session restoration messages
@@ -149,6 +168,7 @@ export class ChatWebSocketService {
       
       if (data.messages && Array.isArray(data.messages)) {
         const restoredMessages = data.messages.map((msg: any) => ({
+          id: msg.id,
           content: msg.content || '',
           timestamp: msg.timestamp || new Date().toISOString(),
           type: msg.type || 'bot_response',
@@ -182,6 +202,7 @@ export class ChatWebSocketService {
       
       // Emit the UI message event
       this.events.onMessage?.({
+        id: messageId,
         type: data.type,
         content: '', // UI messages don't need content
         timestamp: messageTimestamp,
@@ -246,6 +267,7 @@ export class ChatWebSocketService {
     
     // Emit the message event
     this.events.onMessage?.({
+      id: data.id || `${messageType}-${Date.now()}`,
       type: messageType,
       content: messageContent,
       timestamp: messageTimestamp,

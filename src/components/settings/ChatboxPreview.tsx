@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,8 @@ interface ChatboxPreviewProps {
   shouldRestore?: boolean;
   onSessionUpdate?: (sessionData: any) => void;
   className?: string;
+  onMinimize?: () => void;
+  showFloatingButton?: boolean;
 }
 
 interface Message {
@@ -55,7 +58,9 @@ export const ChatboxPreview: React.FC<ChatboxPreviewProps> = ({
   sessionId,
   shouldRestore = false,
   onSessionUpdate,
-  className
+  className,
+  onMinimize,
+  showFloatingButton = true
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -78,40 +83,44 @@ export const ChatboxPreview: React.FC<ChatboxPreviewProps> = ({
     if (isOpen && !wsServiceRef.current) {
       wsServiceRef.current = new ChatWebSocketService(
         agentId,
+        "playground",
         visitorId,
         sessionId,
         shouldRestore,
         onSessionUpdate
       );
       
-      wsServiceRef.current.onMessage = (message) => {
-        if (message.type === 'bot_response') {
-          setMessages(prev => [...prev, {
-            id: message.id || `bot-${Date.now()}`,
-            type: 'bot',
-            content: message.content,
-            timestamp: message.timestamp || new Date().toISOString()
-          }]);
+      wsServiceRef.current.on({
+        onMessage: (message) => {
+          if (message.type === 'bot_response') {
+            setMessages(prev => [...prev, {
+              id: message.id || `bot-${Date.now()}`,
+              type: 'bot',
+              content: message.content,
+              timestamp: message.timestamp || new Date().toISOString()
+            }]);
+            setIsTyping(false);
+          } else if (message.type === 'message') {
+            // Handle restored user messages
+            setMessages(prev => [...prev, {
+              id: message.id || `user-${Date.now()}`,
+              type: 'user',
+              content: message.content,
+              timestamp: message.timestamp || new Date().toISOString()
+            }]);
+          }
+        },
+        onConnectionChange: (connected) => {
+          setIsConnected(connected);
+          setIsConnecting(false);
+        },
+        onTypingStart: () => {
+          setIsTyping(true);
+        },
+        onTypingEnd: () => {
           setIsTyping(false);
-        } else if (message.type === 'message') {
-          // Handle restored user messages
-          setMessages(prev => [...prev, {
-            id: message.id || `user-${Date.now()}`,
-            type: 'user',
-            content: message.content,
-            timestamp: message.timestamp || new Date().toISOString()
-          }]);
         }
-      };
-      
-      wsServiceRef.current.onConnectionChange = (connected) => {
-        setIsConnected(connected);
-        setIsConnecting(false);
-      };
-      
-      wsServiceRef.current.onTyping = (typing) => {
-        setIsTyping(typing);
-      };
+      });
       
       setIsConnecting(true);
       wsServiceRef.current.connect();
@@ -169,6 +178,13 @@ export const ChatboxPreview: React.FC<ChatboxPreviewProps> = ({
     }
   };
 
+  const handleMinimize = () => {
+    setIsMinimized(!isMinimized);
+    if (onMinimize) {
+      onMinimize();
+    }
+  };
+
   const chatButtonStyle = {
     backgroundColor: primaryColor,
     fontFamily: fontFamily,
@@ -192,20 +208,22 @@ export const ChatboxPreview: React.FC<ChatboxPreviewProps> = ({
   return (
     <div className={cn("fixed inset-0 pointer-events-none z-50", className)}>
       {/* Chat Button */}
-      <div className={cn(
-        "fixed bottom-4 z-50 pointer-events-auto",
-        position === 'bottom-right' ? 'right-4' : 'left-4'
-      )}>
-        {!isOpen && (
-          <Button
-            onClick={() => setIsOpen(true)}
-            className="rounded-full w-16 h-16 shadow-lg hover:shadow-xl transition-shadow"
-            style={chatButtonStyle}
-          >
-            <MessageCircle className="w-6 h-6" />
-          </Button>
-        )}
-      </div>
+      {showFloatingButton && (
+        <div className={cn(
+          "fixed bottom-4 z-50 pointer-events-auto",
+          position === 'bottom-right' ? 'right-4' : 'left-4'
+        )}>
+          {!isOpen && (
+            <Button
+              onClick={() => setIsOpen(true)}
+              className="rounded-full w-16 h-16 shadow-lg hover:shadow-xl transition-shadow"
+              style={chatButtonStyle}
+            >
+              <MessageCircle className="w-6 h-6" />
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Chat Window */}
       {isOpen && (
@@ -235,7 +253,7 @@ export const ChatboxPreview: React.FC<ChatboxPreviewProps> = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setIsMinimized(!isMinimized)}
+                  onClick={handleMinimize}
                   className="text-white hover:bg-white/20"
                 >
                   {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
