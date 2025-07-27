@@ -1,5 +1,29 @@
+
 (function() {
   'use strict';
+
+  // Session management utilities
+  function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+
+  function getOrCreateVisitorId() {
+    let visitorId = localStorage.getItem('chat_visitor_id');
+    if (!visitorId) {
+      visitorId = generateId();
+      localStorage.setItem('chat_visitor_id', visitorId);
+    }
+    return visitorId;
+  }
+
+  function getOrCreateSessionId() {
+    let sessionId = localStorage.getItem('chat_session_id');
+    if (!sessionId) {
+      sessionId = generateId();
+      localStorage.setItem('chat_session_id', sessionId);
+    }
+    return sessionId;
+  }
 
   // Configuration fetcher
   async function fetchConfig() {
@@ -19,6 +43,10 @@
       
       const data = await response.json();
       
+      // Generate session parameters
+      const visitorId = getOrCreateVisitorId();
+      const sessionId = getOrCreateSessionId();
+      
       const config = {
         agentId: data.agentId || agentId,
         primaryColor: data.primaryColor || '#1e52f1',
@@ -28,7 +56,7 @@
         buttonText: data.buttonText || '',
         position: data.position || 'bottom-right',
         avatarUrl: data.avatarUrl || '',
-        previewUrl: `https://staging.7en.ai/chat/preview/${agentId}`
+        previewUrl: `https://staging.7en.ai/chat/preview/${agentId}?visitorId=${visitorId}&sessionId=${sessionId}`
       };
       
       console.log('Fetched config:', config);

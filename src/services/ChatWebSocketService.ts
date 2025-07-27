@@ -1,4 +1,3 @@
-
 import { string } from 'zod';
 import { WebSocketService } from './WebSocketService';
 import { WS_BASE_URL } from '@/config/env';
@@ -21,12 +20,21 @@ interface ChatWebSocketEvents {
   onConnectionChange?: (status: boolean) => void;
 }
 
+interface SessionOptions {
+  visitorId?: string;
+  sessionId?: string;
+  shouldRestore?: boolean;
+}
+
 export class ChatWebSocketService {
   protected ws: WebSocketService;
   private events: ChatWebSocketEvents = {};
-  private processedMessageIds: Set<string> = new Set(); // Track processed message IDs
+  private processedMessageIds: Set<string> = new Set();
+  private sessionOptions: SessionOptions = {};
   
-  constructor(agentId: string, url: string) {
+  constructor(agentId: string, url: string, sessionOptions: SessionOptions = {}) {
+    this.sessionOptions = sessionOptions;
+    
     // Updated URL format using WS_BASE_URL from environment
     this.ws = new WebSocketService(url === "playground" ? 
       `${WS_BASE_URL}chat-playground/${agentId}/` : 
@@ -37,7 +45,30 @@ export class ChatWebSocketService {
     this.ws.on('typing_start', () => this.events.onTypingStart?.());
     this.ws.on('typing_end', () => this.events.onTypingEnd?.());
     this.ws.on('error', (error) => this.events.onError?.(error));
-    this.ws.on('connection', (data) => this.events.onConnectionChange?.(data.status === 'connected'));
+    this.ws.on('connection', (data) => {
+      const isConnected = data.status === 'connected';
+      this.events.onConnectionChange?.(isConnected);
+      
+      // Send init message with session data when connected (only for preview mode)
+      if (isConnected && this.sessionOptions.visitorId && this.sessionOptions.sessionId) {
+        this.sendInitMessage();
+      }
+    });
+  }
+  
+  private sendInitMessage() {
+    const { visitorId, sessionId, shouldRestore } = this.sessionOptions;
+    
+    if (visitorId && sessionId) {
+      console.log('Sending init message with session data:', { visitorId, sessionId, shouldRestore });
+      this.ws.send({
+        type: 'init',
+        visitorId,
+        sessionId,
+        shouldRestore: shouldRestore || false,
+        timestamp: new Date().toISOString()
+      });
+    }
   }
   
   connect() {
@@ -75,6 +106,29 @@ export class ChatWebSocketService {
     console.log('Data type:', data.type);
     console.log('Data timestamp field:', data.timestamp);
     console.log('Data keys:', Object.keys(data));
+    
+    // Handle session_restored message
+    if (data.type === 'session_restored') {
+      console.log('=== SESSION RESTORED ===');
+      console.log('Previous messages:', data.messages);
+      
+      // Process restored messages
+      if (data.messages && Array.isArray(data.messages)) {
+        data.messages.forEach((msg: any) => {
+          const messageTimestamp = this.extractTimestamp(msg);
+          this.events.onMessage?.({
+            type: msg.type || 'bot_response',
+            content: msg.content || '',
+            timestamp: messageTimestamp,
+            model: msg.model || '',
+            temperature: msg.temperature || 0,
+            prompt: msg.prompt || '',
+            ui_type: msg.ui_type
+          });
+        });
+      }
+      return;
+    }
     
     // Enhanced debugging for bot responses specifically
     if (data.type === 'bot_response') {
