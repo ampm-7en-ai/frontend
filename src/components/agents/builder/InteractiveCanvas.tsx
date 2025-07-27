@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
@@ -128,8 +129,6 @@ export const InteractiveCanvas = () => {
                   suggestions={agentData.suggestions.filter(Boolean)}
                   avatarSrc={agentData.avatar || agentData.avatarUrl}
                   className="w-full h-full shadow-2xl rounded-2xl"
-                  onMinimize={() => setIsChatMinimized(true)}
-                  showFloatingButton={false}
                 />
               )}
             </div>
@@ -265,7 +264,6 @@ export const InteractiveCanvas = () => {
                   suggestions={agentData.suggestions.filter(Boolean)}
                   avatarSrc={agentData.avatar || agentData.avatarUrl}
                   className="w-full h-full shadow-2xl rounded-2xl"
-                  showFloatingButton={false}
                 />
               )}
             </div>
