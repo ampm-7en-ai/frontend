@@ -1,4 +1,5 @@
 
+import { string } from 'zod';
 import { WebSocketService } from './WebSocketService';
 import { WS_BASE_URL } from '@/config/env';
 
@@ -23,63 +24,20 @@ interface ChatWebSocketEvents {
 export class ChatWebSocketService {
   protected ws: WebSocketService;
   private events: ChatWebSocketEvents = {};
-  private processedMessageIds: Set<string> = new Set();
-  private visitorId?: string;
-  private sessionId?: string;
-  private shouldRestore: boolean = false;
-  private onSessionUpdate?: (messages: any[]) => void;
-  private hasInitialized: boolean = false;
+  private processedMessageIds: Set<string> = new Set(); // Track processed message IDs
   
-  constructor(
-    agentId: string, 
-    url: string, 
-    visitorId?: string, 
-    sessionId?: string,
-    shouldRestore: boolean = false,
-    onSessionUpdate?: (messages: any[]) => void
-  ) {
-    this.visitorId = visitorId;
-    this.sessionId = sessionId;
-    this.shouldRestore = shouldRestore;
-    this.onSessionUpdate = onSessionUpdate;
-    
+  constructor(agentId: string, url: string) {
     // Updated URL format using WS_BASE_URL from environment
     this.ws = new WebSocketService(url === "playground" ? 
       `${WS_BASE_URL}chat-playground/${agentId}/` : 
       `${WS_BASE_URL}chat/${agentId}/`);
     
+    // Only listen to 'message' event to avoid duplication
     this.ws.on('message', this.handleMessage.bind(this));
     this.ws.on('typing_start', () => this.events.onTypingStart?.());
     this.ws.on('typing_end', () => this.events.onTypingEnd?.());
     this.ws.on('error', (error) => this.events.onError?.(error));
-    this.ws.on('connection', (data) => {
-      const isConnected = data.status === 'connected';
-      this.events.onConnectionChange?.(isConnected);
-      
-      // Send init message with session data when connected (only for preview with session)
-      if (isConnected && this.visitorId && this.sessionId && !this.hasInitialized) {
-        this.sendInitMessage();
-        this.hasInitialized = true;
-      }
-    });
-  }
-  
-  private sendInitMessage() {
-    if (this.visitorId && this.sessionId) {
-      console.log('Sending init message with session data:', {
-        visitorId: this.visitorId,
-        sessionId: this.sessionId,
-        shouldRestore: this.shouldRestore
-      });
-      
-      this.ws.send({
-        type: 'init',
-        session_id: this.sessionId,
-        visitor_id: this.visitorId,
-        source: 'website_embed',
-        restore: this.shouldRestore
-      });
-    }
+    this.ws.on('connection', (data) => this.events.onConnectionChange?.(data.status === 'connected'));
   }
   
   connect() {
@@ -102,6 +60,7 @@ export class ChatWebSocketService {
     });
   }
   
+  // Allow sending arbitrary data to the WebSocket
   send(data: any) {
     this.ws.send(data);
   }
@@ -114,29 +73,20 @@ export class ChatWebSocketService {
     console.log('=== RAW WebSocket Message ===');
     console.log('Full data:', JSON.stringify(data, null, 2));
     console.log('Data type:', data.type);
+    console.log('Data timestamp field:', data.timestamp);
+    console.log('Data keys:', Object.keys(data));
     
-    // Handle session restoration messages
-    if (data.type === 'session_restored' && data.messages) {
-      console.log('=== Session Restoration ===');
-      console.log('Restored messages:', data.messages);
-      
-      // Process each restored message
-      data.messages.forEach((msg: any, index: number) => {
-        // Add slight delay to maintain order
-        setTimeout(() => {
-          this.events.onMessage?.({
-            type: msg.sender === 'user' ? 'user_message' : 'bot_response',
-            content: msg.content || '',
-            timestamp: msg.timestamp || new Date().toISOString(),
-            model: '',
-            temperature: 0,
-            prompt: '',
-            ui_type: msg.ui_type
-          });
-        }, index * 50);
-      });
-      
-      return;
+    // Enhanced debugging for bot responses specifically
+    if (data.type === 'bot_response') {
+      console.log('=== BOT RESPONSE DEBUGGING ===');
+      console.log('Bot response timestamp fields:');
+      console.log('- data.timestamp:', data.timestamp);
+      console.log('- data.created_at:', data.created_at);
+      console.log('- data.time:', data.time);
+      console.log('- data.datetime:', data.datetime);
+      console.log('- data.sent_at:', data.sent_at);
+      console.log('- data.message?.timestamp:', data.message?.timestamp);
+      console.log('- data.response?.timestamp:', data.response?.timestamp);
     }
     
     // Handle UI messages (like yes_no) that don't have content
@@ -147,16 +97,19 @@ export class ChatWebSocketService {
       console.log('=== UI Message Processing ===');
       console.log('UI message timestamp:', messageTimestamp);
       
+      // Skip if we've already processed this message
       if (this.processedMessageIds.has(messageId)) {
         console.log('Skipping duplicate UI message:', messageId);
         return;
       }
       
+      // Add to processed messages
       this.processedMessageIds.add(messageId);
       
+      // Emit the UI message event
       this.events.onMessage?.({
         type: data.type,
-        content: '',
+        content: '', // UI messages don't need content
         timestamp: messageTimestamp,
         model: '',
         temperature: 0,
@@ -167,7 +120,7 @@ export class ChatWebSocketService {
       return;
     }
     
-    // Extract message content based on the response format
+    // Extract message content based on the new response format
     const messageContent = data.content || '';
     const messageType = data.type || 'bot_response';
     const messageTimestamp = this.extractTimestamp(data);
@@ -177,6 +130,8 @@ export class ChatWebSocketService {
     console.log('Message content:', messageContent);
     console.log('Extracted timestamp:', messageTimestamp);
     
+    // Extract model information correctly from the response
+    // Check different possible locations where the model might be in the response
     const messageModel = data.model || data.config?.response_model || data.response_model || '';
     const messagePrompt = data.prompt || data.system_prompt || '';
     const messageTemperature = data.temperature !== undefined ? Number(data.temperature) : 
@@ -191,15 +146,18 @@ export class ChatWebSocketService {
     // Generate a consistent ID for deduplication
     const messageId = `${messageContent}-${messageTimestamp}`;
     
+    // Skip if we've already processed this message
     if (this.processedMessageIds.has(messageId)) {
       console.log('Skipping duplicate message:', messageId);
       return;
     }
     
+    // Add to processed messages
     this.processedMessageIds.add(messageId);
     
     // Limit the size of the set to prevent memory issues
     if (this.processedMessageIds.size > 100) {
+      // Remove the oldest entries (convert to array, slice, and convert back)
       this.processedMessageIds = new Set(
         Array.from(this.processedMessageIds).slice(-50)
       );
@@ -210,6 +168,7 @@ export class ChatWebSocketService {
     console.log('Message model:', messageModel);
     console.log('Message temperature:', messageTemperature);
     
+    // Emit the message event
     this.events.onMessage?.({
       type: messageType,
       content: messageContent,
@@ -221,6 +180,7 @@ export class ChatWebSocketService {
   }
   
   private extractTimestamp(data: any): string {
+    // Check multiple possible locations for timestamp, including nested objects
     const possibleTimestamps = [
       data.timestamp,
       data.created_at,
@@ -238,6 +198,7 @@ export class ChatWebSocketService {
     
     for (const ts of possibleTimestamps) {
       if (ts) {
+        // Validate timestamp format
         try {
           const date = new Date(ts);
           if (!isNaN(date.getTime())) {
@@ -250,6 +211,7 @@ export class ChatWebSocketService {
       }
     }
     
+    // Fallback to current time if no valid timestamp found
     const fallbackTimestamp = new Date().toISOString();
     console.log('Using fallback timestamp:', fallbackTimestamp);
     return fallbackTimestamp;
