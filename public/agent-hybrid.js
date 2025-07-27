@@ -1,5 +1,80 @@
+
 (function() {
   'use strict';
+
+  // Session Management Configuration
+  const SESSION_CONFIG = {
+    VISITOR_ID_KEY: 'chat_visitor_id',
+    SESSION_KEY_PREFIX: 'chat_session_',
+    SESSION_TIMEOUT: 24 * 60 * 60 * 1000, // 24 hours
+    STORAGE_KEY: 'chat_sessions'
+  };
+
+  // Session Management Functions
+  function generateVisitorId() {
+    return 'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  }
+
+  function getVisitorId() {
+    let visitorId = localStorage.getItem(SESSION_CONFIG.VISITOR_ID_KEY);
+    if (!visitorId) {
+      visitorId = generateVisitorId();
+      localStorage.setItem(SESSION_CONFIG.VISITOR_ID_KEY, visitorId);
+    }
+    return visitorId;
+  }
+
+  function getSessionKey(agentId) {
+    return SESSION_CONFIG.SESSION_KEY_PREFIX + agentId;
+  }
+
+  function getSessionData(agentId) {
+    const key = getSessionKey(agentId);
+    const data = localStorage.getItem(key);
+    if (!data) return null;
+    
+    try {
+      const parsed = JSON.parse(data);
+      if (isSessionExpired(parsed.timestamp)) {
+        removeSessionData(agentId);
+        return null;
+      }
+      return parsed;
+    } catch (e) {
+      console.error('Error parsing session data:', e);
+      return null;
+    }
+  }
+
+  function setSessionData(agentId, sessionId, timestamp = Date.now()) {
+    const key = getSessionKey(agentId);
+    const data = {
+      sessionId,
+      timestamp,
+      visitorId: getVisitorId(),
+      agentId
+    };
+    localStorage.setItem(key, JSON.stringify(data));
+    
+    // Notify other tabs about session update
+    window.dispatchEvent(new CustomEvent('chat-session-update', {
+      detail: { agentId, sessionData: data }
+    }));
+  }
+
+  function removeSessionData(agentId) {
+    const key = getSessionKey(agentId);
+    localStorage.removeItem(key);
+    
+    // Notify other tabs about session removal
+    window.dispatchEvent(new CustomEvent('chat-session-remove', {
+      detail: { agentId }
+    }));
+  }
+
+  function isSessionExpired(timestamp) {
+    return (Date.now() - timestamp) > SESSION_CONFIG.SESSION_TIMEOUT;
+  }
 
   // Configuration fetcher
   async function fetchConfig() {
@@ -18,6 +93,8 @@
       }
       
       const data = await response.json();
+      const visitorId = getVisitorId();
+      const sessionData = getSessionData(agentId);
       
       const config = {
         agentId: data.agentId || agentId,
@@ -28,15 +105,31 @@
         buttonText: data.buttonText || '',
         position: data.position || 'bottom-right',
         avatarUrl: data.avatarUrl || '',
-        previewUrl: `https://staging.7en.ai/chat/preview/${agentId}`
+        visitorId,
+        sessionData,
+        previewUrl: buildPreviewUrl(agentId, visitorId, sessionData)
       };
       
-      console.log('Fetched config:', config);
+      console.log('Fetched config with session data:', config);
       return config;
     } catch (error) {
       console.error('ChatWidget: Failed to fetch config:', error);
       return null;
     }
+  }
+
+  function buildPreviewUrl(agentId, visitorId, sessionData) {
+    const baseUrl = `https://staging.7en.ai/chat/preview/${agentId}`;
+    const params = new URLSearchParams();
+    
+    params.append('visitorId', visitorId);
+    
+    if (sessionData && sessionData.sessionId) {
+      params.append('sessionId', sessionData.sessionId);
+      params.append('restore', 'true');
+    }
+    
+    return `${baseUrl}?${params.toString()}`;
   }
 
   // Utility functions
@@ -294,12 +387,72 @@
       this.isIframeLoaded = false;
       
       this.init();
+      this.setupSessionListeners();
     }
 
     init() {
       this.injectStyles();
       this.createWidget();
       this.preloadIframe();
+    }
+
+    setupSessionListeners() {
+      // Listen for session updates from other tabs
+      window.addEventListener('chat-session-update', (event) => {
+        const { agentId, sessionData } = event.detail;
+        if (agentId === this.config.agentId) {
+          console.log('Session updated in another tab:', sessionData);
+          this.updateSessionInIframe(sessionData);
+        }
+      });
+
+      // Listen for session removal from other tabs
+      window.addEventListener('chat-session-remove', (event) => {
+        const { agentId } = event.detail;
+        if (agentId === this.config.agentId) {
+          console.log('Session removed in another tab');
+          this.clearSessionInIframe();
+        }
+      });
+
+      // Listen for messages from the iframe
+      window.addEventListener('message', (event) => {
+        if (event.origin !== 'https://staging.7en.ai') return;
+        
+        const { type, data } = event.data;
+        
+        switch (type) {
+          case 'session-created':
+            console.log('Session created in iframe:', data);
+            setSessionData(this.config.agentId, data.sessionId);
+            break;
+          case 'session-updated':
+            console.log('Session updated in iframe:', data);
+            setSessionData(this.config.agentId, data.sessionId);
+            break;
+          case 'iframe-ready':
+            console.log('Iframe ready');
+            this.handleIframeLoad();
+            break;
+        }
+      });
+    }
+
+    updateSessionInIframe(sessionData) {
+      if (this.iframe && this.iframe.contentWindow) {
+        this.iframe.contentWindow.postMessage({
+          type: 'session-update',
+          data: sessionData
+        }, 'https://staging.7en.ai');
+      }
+    }
+
+    clearSessionInIframe() {
+      if (this.iframe && this.iframe.contentWindow) {
+        this.iframe.contentWindow.postMessage({
+          type: 'session-clear'
+        }, 'https://staging.7en.ai');
+      }
     }
 
     injectStyles() {
@@ -420,7 +573,7 @@
       });
       this.iframeContainer.appendChild(this.loadingElement);
       
-      // Iframe
+      // Iframe - use the previewUrl from config which includes session parameters
       this.iframe = createElement('iframe', 'chat-iframe hidden', {
         src: this.config.previewUrl,
         title: 'Chat Widget',

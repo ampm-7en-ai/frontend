@@ -19,14 +19,24 @@ interface ChatWebSocketEvents {
   onTypingEnd?: () => void;
   onError?: (error: string) => void;
   onConnectionChange?: (status: boolean) => void;
+  onSessionCreated?: (sessionId: string) => void;
+  onSessionRestored?: (messages: ChatMessage[]) => void;
 }
 
 export class ChatWebSocketService {
   protected ws: WebSocketService;
   private events: ChatWebSocketEvents = {};
-  private processedMessageIds: Set<string> = new Set(); // Track processed message IDs
+  private processedMessageIds: Set<string> = new Set();
+  private visitorId: string | null = null;
+  private sessionId: string | null = null;
+  private shouldRestore: boolean = false;
+  private isRestoringSession: boolean = false;
   
-  constructor(agentId: string, url: string) {
+  constructor(agentId: string, url: string, visitorId?: string | null, sessionId?: string | null, shouldRestore?: boolean) {
+    this.visitorId = visitorId || null;
+    this.sessionId = sessionId || null;
+    this.shouldRestore = shouldRestore || false;
+    
     // Updated URL format using WS_BASE_URL from environment
     this.ws = new WebSocketService(url === "playground" ? 
       `${WS_BASE_URL}chat-playground/${agentId}/` : 
@@ -37,7 +47,36 @@ export class ChatWebSocketService {
     this.ws.on('typing_start', () => this.events.onTypingStart?.());
     this.ws.on('typing_end', () => this.events.onTypingEnd?.());
     this.ws.on('error', (error) => this.events.onError?.(error));
-    this.ws.on('connection', (data) => this.events.onConnectionChange?.(data.status === 'connected'));
+    this.ws.on('connection', (data) => {
+      this.events.onConnectionChange?.(data.status === 'connected');
+      
+      // Send initialization message when connected
+      if (data.status === 'connected') {
+        this.initializeSession();
+      }
+    });
+  }
+  
+  private initializeSession() {
+    console.log('Initializing session with:', {
+      visitorId: this.visitorId,
+      sessionId: this.sessionId,
+      shouldRestore: this.shouldRestore
+    });
+    
+    const initMessage: any = {
+      type: 'init',
+      source: 'website_embed',
+      visitor_id: this.visitorId
+    };
+    
+    // If we have a session ID and should restore, include it in the init message
+    if (this.sessionId && this.shouldRestore) {
+      initMessage.session_id = this.sessionId;
+      this.isRestoringSession = true;
+    }
+    
+    this.ws.send(initMessage);
   }
   
   connect() {
@@ -53,15 +92,35 @@ export class ChatWebSocketService {
   }
   
   sendMessage(content: string) {
-    this.ws.send({
+    const message = {
       type: 'message',
       content,
       timestamp: new Date().toISOString()
-    });
+    };
+    
+    // Include visitor ID and session ID if available
+    if (this.visitorId) {
+      (message as any).visitor_id = this.visitorId;
+    }
+    
+    if (this.sessionId) {
+      (message as any).session_id = this.sessionId;
+    }
+    
+    this.ws.send(message);
   }
   
   // Allow sending arbitrary data to the WebSocket
   send(data: any) {
+    // Include visitor ID in all messages if available
+    if (this.visitorId) {
+      data.visitor_id = this.visitorId;
+    }
+    
+    if (this.sessionId) {
+      data.session_id = this.sessionId;
+    }
+    
     this.ws.send(data);
   }
   
@@ -76,17 +135,32 @@ export class ChatWebSocketService {
     console.log('Data timestamp field:', data.timestamp);
     console.log('Data keys:', Object.keys(data));
     
-    // Enhanced debugging for bot responses specifically
-    if (data.type === 'bot_response') {
-      console.log('=== BOT RESPONSE DEBUGGING ===');
-      console.log('Bot response timestamp fields:');
-      console.log('- data.timestamp:', data.timestamp);
-      console.log('- data.created_at:', data.created_at);
-      console.log('- data.time:', data.time);
-      console.log('- data.datetime:', data.datetime);
-      console.log('- data.sent_at:', data.sent_at);
-      console.log('- data.message?.timestamp:', data.message?.timestamp);
-      console.log('- data.response?.timestamp:', data.response?.timestamp);
+    // Capture session_id from server if provided
+    if (data.session_id && data.session_id !== this.sessionId) {
+      console.log('Session ID updated from server:', data.session_id);
+      this.sessionId = data.session_id;
+      this.events.onSessionCreated?.(data.session_id);
+    }
+    
+    // Handle session restoration messages
+    if (this.isRestoringSession && data.type === 'session_restored') {
+      console.log('Session restoration completed');
+      this.isRestoringSession = false;
+      
+      if (data.messages && Array.isArray(data.messages)) {
+        const restoredMessages = data.messages.map((msg: any) => ({
+          content: msg.content || '',
+          timestamp: msg.timestamp || new Date().toISOString(),
+          type: msg.type || 'bot_response',
+          model: msg.model || '',
+          prompt: msg.prompt || '',
+          temperature: msg.temperature || 0,
+          ui_type: msg.ui_type
+        }));
+        
+        this.events.onSessionRestored?.(restoredMessages);
+      }
+      return;
     }
     
     // Handle UI messages (like yes_no) that don't have content
@@ -120,7 +194,7 @@ export class ChatWebSocketService {
       return;
     }
     
-    // Extract message content based on the new response format
+    // Handle regular messages (including restored ones during session restoration)
     const messageContent = data.content || '';
     const messageType = data.type || 'bot_response';
     const messageTimestamp = this.extractTimestamp(data);
@@ -129,9 +203,9 @@ export class ChatWebSocketService {
     console.log('Message type:', messageType);
     console.log('Message content:', messageContent);
     console.log('Extracted timestamp:', messageTimestamp);
+    console.log('Is restoring session:', this.isRestoringSession);
     
     // Extract model information correctly from the response
-    // Check different possible locations where the model might be in the response
     const messageModel = data.model || data.config?.response_model || data.response_model || '';
     const messagePrompt = data.prompt || data.system_prompt || '';
     const messageTemperature = data.temperature !== undefined ? Number(data.temperature) : 
@@ -143,24 +217,26 @@ export class ChatWebSocketService {
       return;
     }
     
-    // Generate a consistent ID for deduplication
-    const messageId = `${messageContent}-${messageTimestamp}`;
-    
-    // Skip if we've already processed this message
-    if (this.processedMessageIds.has(messageId)) {
-      console.log('Skipping duplicate message:', messageId);
-      return;
-    }
-    
-    // Add to processed messages
-    this.processedMessageIds.add(messageId);
-    
-    // Limit the size of the set to prevent memory issues
-    if (this.processedMessageIds.size > 100) {
-      // Remove the oldest entries (convert to array, slice, and convert back)
-      this.processedMessageIds = new Set(
-        Array.from(this.processedMessageIds).slice(-50)
-      );
+    // During session restoration, don't use deduplication to ensure all messages are restored
+    if (!this.isRestoringSession) {
+      // Generate a consistent ID for deduplication
+      const messageId = `${messageContent}-${messageTimestamp}`;
+      
+      // Skip if we've already processed this message
+      if (this.processedMessageIds.has(messageId)) {
+        console.log('Skipping duplicate message:', messageId);
+        return;
+      }
+      
+      // Add to processed messages
+      this.processedMessageIds.add(messageId);
+      
+      // Limit the size of the set to prevent memory issues
+      if (this.processedMessageIds.size > 100) {
+        this.processedMessageIds = new Set(
+          Array.from(this.processedMessageIds).slice(-50)
+        );
+      }
     }
     
     console.log('=== Final Message Data ===');
