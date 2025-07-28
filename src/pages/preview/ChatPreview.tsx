@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
@@ -26,6 +25,15 @@ const ChatPreview = () => {
   const [config, setConfig] = useState<ChatbotConfig | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Handle session ID storage for preview page only
+  const handleSessionIdReceived = (sessionId: string) => {
+    if (agentId) {
+      const storageKey = `chat_session_${agentId}`;
+      console.log('Storing session ID in localStorage:', sessionId);
+      localStorage.setItem(storageKey, sessionId);
+    }
+  };
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -144,6 +152,7 @@ const ChatPreview = () => {
           emailMessage={config.emailMessage || "Please provide your email to continue"}
           collectEmail={config.collectEmail || false}
           className="w-full h-full p-0"
+          onSessionIdReceived={handleSessionIdReceived}
         />
       </div>
     </div>

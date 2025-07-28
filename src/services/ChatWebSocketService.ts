@@ -19,12 +19,14 @@ interface ChatWebSocketEvents {
   onTypingEnd?: () => void;
   onError?: (error: string) => void;
   onConnectionChange?: (status: boolean) => void;
+  onSessionIdReceived?: (sessionId: string) => void;
 }
 
 export class ChatWebSocketService {
   protected ws: WebSocketService;
   private events: ChatWebSocketEvents = {};
   private processedMessageIds: Set<string> = new Set(); // Track processed message IDs
+  private sessionIdStored: boolean = false; // Track if session ID has been stored
   
   constructor(agentId: string, url: string) {
     // Updated URL format using WS_BASE_URL from environment
@@ -75,6 +77,14 @@ export class ChatWebSocketService {
     console.log('Data type:', data.type);
     console.log('Data timestamp field:', data.timestamp);
     console.log('Data keys:', Object.keys(data));
+    
+    // Check for session_id in bot responses and store it only once
+    if (data.session_id && !this.sessionIdStored && this.events.onSessionIdReceived) {
+      console.log('=== SESSION ID FOUND ===');
+      console.log('Session ID:', data.session_id);
+      this.events.onSessionIdReceived(data.session_id);
+      this.sessionIdStored = true;
+    }
     
     // Enhanced debugging for bot responses specifically
     if (data.type === 'bot_response') {
