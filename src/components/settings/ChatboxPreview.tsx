@@ -43,6 +43,9 @@ interface ChatboxPreviewProps {
   showFloatingButton?: boolean;
   initiallyMinimized?: boolean;
   canvasMode?: boolean;
+  enableSessionStorage?: boolean;
+  onSessionIdReceived?: (sessionId: string) => void;
+  sessionId?: string | null;
 }
 
 export const ChatboxPreview = ({
@@ -65,7 +68,10 @@ export const ChatboxPreview = ({
   onRestart,
   showFloatingButton = false,
   initiallyMinimized = false,
-  canvasMode = false
+  canvasMode = false,
+  enableSessionStorage = false,
+  onSessionIdReceived,
+  sessionId  
 }: ChatboxPreviewProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -203,8 +209,15 @@ export const ChatboxPreview = ({
         setIsInitializing(false);
         if (status) {
           setConnectionError(null);
+          if (enableSessionStorage && sessionId && chatServiceRef.current) {
+            console.log('Sending session initialization:', sessionId);
+            chatServiceRef.current.sendSessionInit(sessionId);
+          }
         }
-      }
+      },
+      ...(enableSessionStorage && onSessionIdReceived && {
+        onSessionIdReceived: onSessionIdReceived
+      })
     });
     
     chatServiceRef.current.connect();
@@ -411,7 +424,10 @@ export const ChatboxPreview = ({
                 restartingRef.current = false;
               }, 1000);
             }
-          }
+          },
+          ...(enableSessionStorage && onSessionIdReceived && {
+            onSessionIdReceived: onSessionIdReceived
+          })
         });
         
         chatServiceRef.current.connect();

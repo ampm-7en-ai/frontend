@@ -26,6 +26,44 @@ const ChatPreview = () => {
   const [config, setConfig] = useState<ChatbotConfig | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  //session id handler
+  // Function to set session ID in localStorage
+    const setStoredSessionId = (agentId: string, sessionId: string): void => {
+      try {
+        localStorage.setItem(`chat_session_${agentId}`, sessionId);
+        console.log('Session ID stored:', sessionId, 'for agent:', agentId);
+      } catch (error) {
+        console.error('Error storing session ID in localStorage:', error);
+      }
+    };
+
+    //get session id
+    const getStoredSessionId = (agentId: string): string | null => {
+      try {
+        return localStorage.getItem(`chat_session_${agentId}`);
+      } catch (error) {
+        console.error('Error getting session ID from localStorage:', error);
+        return null;
+      }
+    };
+
+    const handleSessionIdReceived = (newSessionId: string) => {
+      if (!agentId) return;
+      
+      // Only store if we don't already have a session ID
+      const existingSessionId = getStoredSessionId(agentId);
+      if (!existingSessionId) {
+        setStoredSessionId(agentId, newSessionId);
+        setSessionId(newSessionId);
+        console.log('New session ID stored:', newSessionId);
+      } else {
+        console.log('Session ID already exists, not storing new one. Existing:', existingSessionId, 'New:', newSessionId);
+      }
+    };
+
+
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -49,6 +87,13 @@ const ChatPreview = () => {
 
     if (agentId) {
       fetchConfig();
+
+      //check if session id is stored.
+      const existingSessionId = getStoredSessionId(agentId);
+      if (existingSessionId) {
+        setSessionId(existingSessionId);
+        console.log('Found existing session ID:', existingSessionId);
+      }
     }
   }, [agentId]);
 
@@ -144,6 +189,9 @@ const ChatPreview = () => {
           emailMessage={config.emailMessage || "Please provide your email to continue"}
           collectEmail={config.collectEmail || false}
           className="w-full h-full p-0"
+          sessionId={sessionId}
+          enableSessionStorage={true}
+          onSessionIdReceived={handleSessionIdReceived}
         />
       </div>
     </div>

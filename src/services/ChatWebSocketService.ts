@@ -19,12 +19,14 @@ interface ChatWebSocketEvents {
   onTypingEnd?: () => void;
   onError?: (error: string) => void;
   onConnectionChange?: (status: boolean) => void;
+  onSessionIdReceived?: (sessionId: string) => void;
 }
 
 export class ChatWebSocketService {
   protected ws: WebSocketService;
   private events: ChatWebSocketEvents = {};
   private processedMessageIds: Set<string> = new Set(); // Track processed message IDs
+  private sessionIdReceived: boolean = false; 
   
   constructor(agentId: string, url: string) {
     // Updated URL format using WS_BASE_URL from environment
@@ -60,6 +62,14 @@ export class ChatWebSocketService {
     });
   }
   
+  //send init message 
+  sendSessionInit(sessionId: string) {
+    this.ws.send({
+      type: "session_init",
+      session_id: sessionId
+    });
+  }
+  
   // Allow sending arbitrary data to the WebSocket
   send(data: any) {
     this.ws.send(data);
@@ -70,23 +80,17 @@ export class ChatWebSocketService {
   }
   
   private handleMessage(data: any) {
-    console.log('=== RAW WebSocket Message ===');
-    console.log('Full data:', JSON.stringify(data, null, 2));
-    console.log('Data type:', data.type);
-    console.log('Data timestamp field:', data.timestamp);
-    console.log('Data keys:', Object.keys(data));
+    
     
     // Enhanced debugging for bot responses specifically
     if (data.type === 'bot_response') {
-      console.log('=== BOT RESPONSE DEBUGGING ===');
-      console.log('Bot response timestamp fields:');
-      console.log('- data.timestamp:', data.timestamp);
-      console.log('- data.created_at:', data.created_at);
-      console.log('- data.time:', data.time);
-      console.log('- data.datetime:', data.datetime);
-      console.log('- data.sent_at:', data.sent_at);
-      console.log('- data.message?.timestamp:', data.message?.timestamp);
-      console.log('- data.response?.timestamp:', data.response?.timestamp);
+
+      if (data.session_id && !this.sessionIdReceived && this.events.onSessionIdReceived) {
+        console.log('Session ID found in bot response:', data.session_id);
+        this.sessionIdReceived = true;
+        this.events.onSessionIdReceived(data.session_id);
+      }
+      
     }
     
     // Handle UI messages (like yes_no) that don't have content
@@ -125,10 +129,7 @@ export class ChatWebSocketService {
     const messageType = data.type || 'bot_response';
     const messageTimestamp = this.extractTimestamp(data);
     
-    console.log('=== Regular Message Processing ===');
-    console.log('Message type:', messageType);
-    console.log('Message content:', messageContent);
-    console.log('Extracted timestamp:', messageTimestamp);
+    
     
     // Extract model information correctly from the response
     // Check different possible locations where the model might be in the response
@@ -163,10 +164,6 @@ export class ChatWebSocketService {
       );
     }
     
-    console.log('=== Final Message Data ===');
-    console.log('Final timestamp being sent:', messageTimestamp);
-    console.log('Message model:', messageModel);
-    console.log('Message temperature:', messageTemperature);
     
     // Emit the message event
     this.events.onMessage?.({
