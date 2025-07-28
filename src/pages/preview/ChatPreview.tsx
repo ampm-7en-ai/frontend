@@ -28,42 +28,42 @@ const ChatPreview = () => {
   const [error, setError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
 
-  //session id handler
   // Function to set session ID in localStorage
-    const setStoredSessionId = (agentId: string, sessionId: string): void => {
-      try {
-        localStorage.setItem(`chat_session_${agentId}`, sessionId);
-        console.log('Session ID stored:', sessionId, 'for agent:', agentId);
-      } catch (error) {
-        console.error('Error storing session ID in localStorage:', error);
-      }
-    };
+  const setStoredSessionId = (agentId: string, sessionId: string): void => {
+    try {
+      localStorage.setItem(`chat_session_${agentId}`, sessionId);
+      console.log('✅ Session ID stored:', sessionId, 'for agent:', agentId);
+    } catch (error) {
+      console.error('❌ Error storing session ID in localStorage:', error);
+    }
+  };
 
-    //get session id
-    const getStoredSessionId = (agentId: string): string | null => {
-      try {
-        return localStorage.getItem(`chat_session_${agentId}`);
-      } catch (error) {
-        console.error('Error getting session ID from localStorage:', error);
-        return null;
-      }
-    };
+  // Function to get session ID from localStorage
+  const getStoredSessionId = (agentId: string): string | null => {
+    try {
+      const stored = localStorage.getItem(`chat_session_${agentId}`);
+      console.log('🔍 Retrieved session ID from localStorage:', stored, 'for agent:', agentId);
+      return stored;
+    } catch (error) {
+      console.error('❌ Error getting session ID from localStorage:', error);
+      return null;
+    }
+  };
 
-    const handleSessionIdReceived = (newSessionId: string) => {
-      if (!agentId) return;
-      
-      // Only store if we don't already have a session ID
-      const existingSessionId = getStoredSessionId(agentId);
-      if (!existingSessionId) {
-        setStoredSessionId(agentId, newSessionId);
-        setSessionId(newSessionId);
-        console.log('New session ID stored:', newSessionId);
-      } else {
-        console.log('Session ID already exists, not storing new one. Existing:', existingSessionId, 'New:', newSessionId);
-      }
-    };
-
-
+  // Handle when a new session ID is received from the server
+  const handleSessionIdReceived = (newSessionId: string) => {
+    if (!agentId) {
+      console.log('❌ No agentId available, cannot store session ID');
+      return;
+    }
+    
+    console.log('📨 Session ID received from server:', newSessionId);
+    
+    // Always store the new session ID (this fixes the issue)
+    setStoredSessionId(agentId, newSessionId);
+    setSessionId(newSessionId);
+    console.log('✅ New session ID stored and state updated:', newSessionId);
+  };
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -88,11 +88,13 @@ const ChatPreview = () => {
     if (agentId) {
       fetchConfig();
 
-      //check if session id is stored.
+      // Check if session ID is already stored
       const existingSessionId = getStoredSessionId(agentId);
       if (existingSessionId) {
         setSessionId(existingSessionId);
-        console.log('Found existing session ID:', existingSessionId);
+        console.log('🔄 Using existing session ID:', existingSessionId);
+      } else {
+        console.log('🆕 No existing session ID found, will create new session');
       }
     }
   }, [agentId]);
@@ -104,7 +106,6 @@ const ChatPreview = () => {
       document.body.style.overflow = 'hidden';
     }
     
-    // Add comprehensive styles to remove all shadows and borders
     const style = document.createElement('style');
     style.textContent = `
       *, *::before, *::after {
@@ -140,7 +141,6 @@ const ChatPreview = () => {
     `;
     document.head.appendChild(style);
     
-    // Signal parent that iframe is ready
     window.parent.postMessage({ type: 'iframe-ready' }, '*');
     
     return () => {

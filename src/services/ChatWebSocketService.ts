@@ -1,4 +1,3 @@
-
 import { string } from 'zod';
 import { WebSocketService } from './WebSocketService';
 import { WS_BASE_URL } from '@/config/env';
@@ -25,16 +24,14 @@ interface ChatWebSocketEvents {
 export class ChatWebSocketService {
   protected ws: WebSocketService;
   private events: ChatWebSocketEvents = {};
-  private processedMessageIds: Set<string> = new Set(); // Track processed message IDs
+  private processedMessageIds: Set<string> = new Set();
   private sessionIdReceived: boolean = false; 
   
   constructor(agentId: string, url: string) {
-    // Updated URL format using WS_BASE_URL from environment
     this.ws = new WebSocketService(url === "playground" ? 
       `${WS_BASE_URL}chat-playground/${agentId}/` : 
       `${WS_BASE_URL}chat/${agentId}/`);
     
-    // Only listen to 'message' event to avoid duplication
     this.ws.on('message', this.handleMessage.bind(this));
     this.ws.on('typing_start', () => this.events.onTypingStart?.());
     this.ws.on('typing_end', () => this.events.onTypingEnd?.());
@@ -62,15 +59,15 @@ export class ChatWebSocketService {
     });
   }
   
-  //send init message 
+  // Send session initialization message
   sendSessionInit(sessionId: string) {
+    console.log('📤 Sending session_init with sessionId:', sessionId);
     this.ws.send({
       type: "session_init",
       session_id: sessionId
     });
   }
   
-  // Allow sending arbitrary data to the WebSocket
   send(data: any) {
     this.ws.send(data);
   }
@@ -80,17 +77,13 @@ export class ChatWebSocketService {
   }
   
   private handleMessage(data: any) {
+    console.log('📨 Raw WebSocket message received:', data);
     
-    
-    // Enhanced debugging for bot responses specifically
-    if (data.type === 'bot_response') {
-
-      if (data.session_id && !this.sessionIdReceived && this.events.onSessionIdReceived) {
-        console.log('Session ID found in bot response:', data.session_id);
-        this.sessionIdReceived = true;
-        this.events.onSessionIdReceived(data.session_id);
-      }
-      
+    // Check for session_id in ANY message type
+    if (data.session_id && !this.sessionIdReceived && this.events.onSessionIdReceived) {
+      console.log('🆔 Session ID found in message:', data.session_id, 'Message type:', data.type);
+      this.sessionIdReceived = true;
+      this.events.onSessionIdReceived(data.session_id);
     }
     
     // Handle UI messages (like yes_no) that don't have content
@@ -98,22 +91,16 @@ export class ChatWebSocketService {
       const messageTimestamp = this.extractTimestamp(data);
       const messageId = `${data.type}-${data.ui_type}-${messageTimestamp}`;
       
-      console.log('=== UI Message Processing ===');
-      console.log('UI message timestamp:', messageTimestamp);
-      
-      // Skip if we've already processed this message
       if (this.processedMessageIds.has(messageId)) {
-        console.log('Skipping duplicate UI message:', messageId);
+        console.log('⏭️ Skipping duplicate UI message:', messageId);
         return;
       }
       
-      // Add to processed messages
       this.processedMessageIds.add(messageId);
       
-      // Emit the UI message event
       this.events.onMessage?.({
         type: data.type,
-        content: '', // UI messages don't need content
+        content: '',
         timestamp: messageTimestamp,
         model: '',
         temperature: 0,
@@ -124,46 +111,38 @@ export class ChatWebSocketService {
       return;
     }
     
-    // Extract message content based on the new response format
+    // Extract message content
     const messageContent = data.content || '';
     const messageType = data.type || 'bot_response';
     const messageTimestamp = this.extractTimestamp(data);
     
-    
-    
-    // Extract model information correctly from the response
-    // Check different possible locations where the model might be in the response
     const messageModel = data.model || data.config?.response_model || data.response_model || '';
     const messagePrompt = data.prompt || data.system_prompt || '';
     const messageTemperature = data.temperature !== undefined ? Number(data.temperature) : 
                               data.config?.temperature !== undefined ? Number(data.config.temperature) : 0;
     
-    // Skip if not a valid message (except for UI messages which we handled above)
+    // Skip if not a valid message (except for UI messages)
     if (!messageContent && data.type !== 'ui') {
-      console.log('Skipping message without content');
+      console.log('⏭️ Skipping message without content');
       return;
     }
     
-    // Generate a consistent ID for deduplication
+    // Generate consistent ID for deduplication
     const messageId = `${messageContent}-${messageTimestamp}`;
     
-    // Skip if we've already processed this message
     if (this.processedMessageIds.has(messageId)) {
-      console.log('Skipping duplicate message:', messageId);
+      console.log('⏭️ Skipping duplicate message:', messageId);
       return;
     }
     
-    // Add to processed messages
     this.processedMessageIds.add(messageId);
     
-    // Limit the size of the set to prevent memory issues
+    // Limit set size to prevent memory issues
     if (this.processedMessageIds.size > 100) {
-      // Remove the oldest entries (convert to array, slice, and convert back)
       this.processedMessageIds = new Set(
         Array.from(this.processedMessageIds).slice(-50)
       );
     }
-    
     
     // Emit the message event
     this.events.onMessage?.({
@@ -177,7 +156,6 @@ export class ChatWebSocketService {
   }
   
   private extractTimestamp(data: any): string {
-    // Check multiple possible locations for timestamp, including nested objects
     const possibleTimestamps = [
       data.timestamp,
       data.created_at,
@@ -190,27 +168,20 @@ export class ChatWebSocketService {
       data.response?.created_at
     ];
     
-    console.log('=== Timestamp Extraction ===');
-    console.log('Checking timestamps:', possibleTimestamps);
-    
     for (const ts of possibleTimestamps) {
       if (ts) {
-        // Validate timestamp format
         try {
           const date = new Date(ts);
           if (!isNaN(date.getTime())) {
-            console.log('Valid timestamp found:', ts);
             return ts;
           }
         } catch (error) {
-          console.log('Invalid timestamp format:', ts);
+          console.log('❌ Invalid timestamp format:', ts);
         }
       }
     }
     
-    // Fallback to current time if no valid timestamp found
     const fallbackTimestamp = new Date().toISOString();
-    console.log('Using fallback timestamp:', fallbackTimestamp);
     return fallbackTimestamp;
   }
 }
