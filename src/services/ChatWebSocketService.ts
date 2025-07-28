@@ -11,6 +11,7 @@ interface ChatMessage {
   prompt: string;
   temperature: number;
   ui_type?: string;
+  session_id?: string;
 }
 
 interface ChatWebSocketEvents {
@@ -19,14 +20,18 @@ interface ChatWebSocketEvents {
   onTypingEnd?: () => void;
   onError?: (error: string) => void;
   onConnectionChange?: (status: boolean) => void;
+  onSessionIdReceived?: (sessionId: string) => void;
 }
 
 export class ChatWebSocketService {
   protected ws: WebSocketService;
   private events: ChatWebSocketEvents = {};
-  private processedMessageIds: Set<string> = new Set(); // Track processed message IDs
+  private processedMessageIds: Set<string> = new Set();
+  private sessionIdStored: boolean = false;
+  private agentId: string;
   
   constructor(agentId: string, url: string) {
+    this.agentId = agentId;
     // Updated URL format using WS_BASE_URL from environment
     this.ws = new WebSocketService(url === "playground" ? 
       `${WS_BASE_URL}chat-playground/${agentId}/` : 
@@ -76,6 +81,19 @@ export class ChatWebSocketService {
     console.log('Data timestamp field:', data.timestamp);
     console.log('Data keys:', Object.keys(data));
     
+    // Check for session_id in the response and store it in localStorage (only once)
+    if (data.session_id && !this.sessionIdStored) {
+      console.log('Session ID found in message:', data.session_id);
+      try {
+        localStorage.setItem(`chat_session_${this.agentId}`, data.session_id);
+        this.sessionIdStored = true;
+        console.log('Session ID stored in localStorage for agent:', this.agentId);
+        this.events.onSessionIdReceived?.(data.session_id);
+      } catch (error) {
+        console.error('Failed to store session ID in localStorage:', error);
+      }
+    }
+    
     // Enhanced debugging for bot responses specifically
     if (data.type === 'bot_response') {
       console.log('=== BOT RESPONSE DEBUGGING ===');
@@ -87,6 +105,7 @@ export class ChatWebSocketService {
       console.log('- data.sent_at:', data.sent_at);
       console.log('- data.message?.timestamp:', data.message?.timestamp);
       console.log('- data.response?.timestamp:', data.response?.timestamp);
+      console.log('- data.session_id:', data.session_id);
     }
     
     // Handle UI messages (like yes_no) that don't have content
@@ -114,7 +133,8 @@ export class ChatWebSocketService {
         model: '',
         temperature: 0,
         prompt: '',
-        ui_type: data.ui_type
+        ui_type: data.ui_type,
+        session_id: data.session_id
       });
       
       return;
@@ -167,6 +187,7 @@ export class ChatWebSocketService {
     console.log('Final timestamp being sent:', messageTimestamp);
     console.log('Message model:', messageModel);
     console.log('Message temperature:', messageTemperature);
+    console.log('Message session_id:', data.session_id);
     
     // Emit the message event
     this.events.onMessage?.({
@@ -175,7 +196,8 @@ export class ChatWebSocketService {
       timestamp: messageTimestamp,
       model: messageModel,
       temperature: messageTemperature,
-      prompt: messagePrompt
+      prompt: messagePrompt,
+      session_id: data.session_id
     });
   }
   
