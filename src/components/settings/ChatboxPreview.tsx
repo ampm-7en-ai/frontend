@@ -1,3 +1,4 @@
+
 import React, {
   useState,
   useEffect,
@@ -33,8 +34,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { ModeToggle } from '../ui/mode-toggle';
-import { CircleUserRound, Lightning, MessageSquare, Settings } from 'lucide-react';
+import { CircleUserRound, MessageSquare, Settings } from 'lucide-react';
 import { Separator } from '../ui/separator';
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
