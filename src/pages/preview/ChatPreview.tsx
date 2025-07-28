@@ -106,13 +106,6 @@ const ChatPreview = () => {
     };
   }, []);
 
-  // Handle session ID received from ChatWebSocketService
-  const handleSessionIdReceived = (sessionId: string) => {
-    console.log('Session ID received in ChatPreview:', sessionId);
-    // Session ID is already stored in localStorage by ChatWebSocketService
-    // This callback can be used for additional logic if needed
-  };
-
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -151,7 +144,6 @@ const ChatPreview = () => {
           emailMessage={config.emailMessage || "Please provide your email to continue"}
           collectEmail={config.collectEmail || false}
           className="w-full h-full p-0"
-          onSessionIdReceived={handleSessionIdReceived}
         />
       </div>
     </div>
