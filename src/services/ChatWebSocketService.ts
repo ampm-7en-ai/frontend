@@ -19,12 +19,14 @@ interface ChatWebSocketEvents {
   onTypingEnd?: () => void;
   onError?: (error: string) => void;
   onConnectionChange?: (status: boolean) => void;
+  onSessionIdReceived?: (sessionId: string) => void;
 }
 
 export class ChatWebSocketService {
   protected ws: WebSocketService;
   private events: ChatWebSocketEvents = {};
   private processedMessageIds: Set<string> = new Set(); // Track processed message IDs
+  private sessionIdReceived: boolean = false; // Flag to ensure session ID is only processed once
   
   constructor(agentId: string, url: string) {
     // Updated URL format using WS_BASE_URL from environment
@@ -75,6 +77,16 @@ export class ChatWebSocketService {
     console.log('Data type:', data.type);
     console.log('Data timestamp field:', data.timestamp);
     console.log('Data keys:', Object.keys(data));
+    
+    // Handle session ID extraction if callback is provided and not already processed
+    if (!this.sessionIdReceived && this.events.onSessionIdReceived) {
+      const sessionId = this.extractSessionId(data);
+      if (sessionId) {
+        console.log('Session ID extracted:', sessionId);
+        this.sessionIdReceived = true;
+        this.events.onSessionIdReceived(sessionId);
+      }
+    }
     
     // Enhanced debugging for bot responses specifically
     if (data.type === 'bot_response') {
@@ -177,6 +189,34 @@ export class ChatWebSocketService {
       temperature: messageTemperature,
       prompt: messagePrompt
     });
+  }
+  
+  private extractSessionId(data: any): string | null {
+    // Check multiple possible locations for session ID
+    const possibleSessionIds = [
+      data.session_id,
+      data.sessionId,
+      data.chat_session_id,
+      data.chatSessionId,
+      data.id,
+      data.session?.id,
+      data.chat?.session_id,
+      data.message?.session_id,
+      data.response?.session_id
+    ];
+    
+    console.log('=== Session ID Extraction ===');
+    console.log('Checking session IDs:', possibleSessionIds);
+    
+    for (const sessionId of possibleSessionIds) {
+      if (sessionId && typeof sessionId === 'string' && sessionId.trim()) {
+        console.log('Valid session ID found:', sessionId);
+        return sessionId.trim();
+      }
+    }
+    
+    console.log('No valid session ID found');
+    return null;
   }
   
   private extractTimestamp(data: any): string {
