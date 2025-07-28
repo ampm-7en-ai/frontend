@@ -27,15 +27,6 @@ const ChatPreview = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Session ID handler for localStorage storage
-  const handleSessionIdReceived = (sessionId: string) => {
-    if (agentId) {
-      const storageKey = `chat_session_${agentId}`;
-      console.log('Storing session ID:', sessionId, 'with key:', storageKey);
-      localStorage.setItem(storageKey, sessionId);
-    }
-  };
-
   useEffect(() => {
     const fetchConfig = async () => {
       try {
@@ -152,8 +143,6 @@ const ChatPreview = () => {
           emailPlaceholder={config.emailPlaceholder || "Enter your email"}
           emailMessage={config.emailMessage || "Please provide your email to continue"}
           collectEmail={config.collectEmail || false}
-          enableSessionStorage={true}
-          onSessionIdReceived={handleSessionIdReceived}
           className="w-full h-full p-0"
         />
       </div>
