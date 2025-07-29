@@ -1,204 +1,171 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import React, { useRef, useEffect } from 'react';
+import { Bot, WifiOff, Maximize2 } from 'lucide-react';
+import { Card, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ModelConfigPopover } from './ModelConfigPopover';
+import { Message } from './types';
 import { UserMessage } from './UserMessage';
 import { ModelMessage } from './ModelMessage';
-import { 
-  Settings, 
-  ChevronUp, 
-  ChevronDown,
-  Maximize2,
-  Minimize2
-} from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { getModelDisplay } from '@/constants/modelOptions';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ModelComparisonCardProps {
-  id: string;
+  index: number;
   model: string;
-  config: {
-    temperature: number;
-    maxLength: number;
-    systemPrompt: string;
-  };
-  messages: any[];
-  isLoading: boolean;
-  isSelected: boolean;
-  isExpanded: boolean;
-  isHistoryMode?: boolean;
-  onCellClick: () => void;
-  onModelChange: (model: string) => void;
-  onConfigClick: () => void;
-  onToggleExpand: () => void;
-  renderEmailCollection?: (message: any) => React.ReactNode;
+  temperature: number;
+  maxLength: number;
+  systemPrompt: string;
+  messages: Message[];
+  onModelChange: (value: string) => void;
+  onOpenSystemPrompt: () => void;
+  onUpdateConfig: (field: string, value: any) => void;
+  primaryColor: string;
+  avatarSrc?: string;
+  isConnected?: boolean;
+  className?: string;
+  showExpandButton?: boolean;
+  onExpand?: () => void;
+  isExpanded?: boolean;
 }
 
 export const ModelComparisonCard = ({
-  id,
+  index,
   model,
-  config,
   messages,
-  isLoading,
-  isSelected,
-  isExpanded,
-  isHistoryMode = false,
-  onCellClick,
-  onModelChange,
-  onConfigClick,
-  onToggleExpand,
-  renderEmailCollection
+  primaryColor,
+  avatarSrc,
+  isConnected = true,
+  className = "",
+  showExpandButton = false,
+  onExpand,
+  isExpanded = false
 }: ModelComparisonCardProps) => {
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  // Auto scroll to bottom when new messages arrive
+  const scrollViewportRef = useRef<HTMLDivElement | null>(null);
+  
+  // Store a reference to the scroll viewport when the ScrollArea is mounted
   useEffect(() => {
     if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        scrollViewportRef.current = viewport as HTMLDivElement;
       }
+    }
+  }, []);
+  
+  // Effect to scroll to the bottom when new messages are added
+  useEffect(() => {
+    if (scrollViewportRef.current && messages.length > 0) {
+      setTimeout(() => {
+        if (scrollViewportRef.current) {
+          scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
+        }
+      }, 100);
     }
   }, [messages]);
 
-  const handleConfigUpdate = (field: string, value: any) => {
-    // Config updates are handled by parent component
-    console.log(`Config update: ${field} = ${value}`);
+  const adjustColor = (color: string, amount: number): string => {
+    // Convert hex color to RGB
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    // Adjust the color
+    const newR = Math.max(0, Math.min(255, r + amount));
+    const newG = Math.max(0, Math.min(255, g + amount));
+    const newB = Math.max(0, Math.min(255, b + amount));
+
+    // Convert back to hex
+    return `#${Math.round(newR).toString(16).padStart(2, '0')}${Math.round(newG).toString(16).padStart(2, '0')}${Math.round(newB).toString(16).padStart(2, '0')}`;
   };
 
   return (
-    <Card 
-      className={`
-        relative h-full flex flex-col transition-all duration-300
-        ${isSelected ? 'ring-2 ring-primary shadow-lg' : 'hover:shadow-md'}
-        ${isExpanded ? 'col-span-full row-span-full z-10' : ''}
-      `}
-      onClick={onCellClick}
-    >
-      {/* Card Header */}
-      <CardHeader className="pb-3 border-b bg-card/50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs font-medium">
+    <Card className={`flex flex-col h-[600px] overflow-hidden bg-background border border-border/50 transition-colors ${className}`}>
+      <CardHeader 
+        className="p-4 flex flex-row items-center justify-between space-y-0 pb-3 border-b border-border/30 bg-muted/30"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
+            <Bot className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">
               {getModelDisplay(model)}
-            </Badge>
-            {isLoading && (
-              <div className="flex items-center gap-1">
-                <div className="h-1.5 w-1.5 bg-primary rounded-full animate-bounce" />
-                <div className="h-1.5 w-1.5 bg-primary rounded-full animate-bounce [animation-delay:150ms]" />
-                <div className="h-1.5 w-1.5 bg-primary rounded-full animate-bounce [animation-delay:300ms]" />
-              </div>
-            )}
+            </h3>
+            <p className="text-xs text-muted-foreground">AI Assistant</p>
           </div>
           
-          <div className="flex items-center gap-1">
-            <ModelConfigPopover
-              isOpen={isConfigOpen}
-              onOpenChange={setIsConfigOpen}
-              model={model}
-              config={config}
-              onModelChange={onModelChange}
-              onConfigUpdate={handleConfigUpdate}
-              isHistoryMode={isHistoryMode}
-              trigger={
+          {!isConnected && (
+            <div className="flex items-center gap-1 bg-destructive/10 px-2 py-1 rounded-full border border-destructive/20">
+              <WifiOff size={12} className="text-destructive" />
+              <span className="text-xs text-destructive">Offline</span>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {showExpandButton && onExpand && (
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isHistoryMode) {
-                      onConfigClick();
-                    }
-                  }}
+                  size="icon"
+                  onClick={onExpand}
+                  className="h-8 w-8 hover:bg-muted"
                 >
-                  <Settings className="h-3.5 w-3.5" />
+                  <Maximize2 className="h-4 w-4" />
                 </Button>
-              }
-            />
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleExpand();
-              }}
-            >
-              {isExpanded ? (
-                <Minimize2 className="h-3.5 w-3.5" />
-              ) : (
-                <Maximize2 className="h-3.5 w-3.5" />
-              )}
-            </Button>
-          </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{isExpanded ? 'Minimize' : 'Expand'} model view</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
       </CardHeader>
-
-      {/* Messages Area */}
-      <CardContent className="flex-1 p-0 overflow-hidden">
-        <ScrollArea ref={scrollAreaRef} className="h-full">
-          <div className="p-4 space-y-3">
-            {messages.length === 0 && !isLoading ? (
-              <div className="text-center text-muted-foreground text-sm py-8">
-                No messages yet. Start a conversation to see responses here.
-              </div>
-            ) : (
-              messages.map((message, index) => {
-                // Handle email collection UI messages
-                if (message.type === 'ui' && message.ui_type === 'email' && renderEmailCollection) {
-                  return (
-                    <div key={`${message.id || index}-email`}>
-                      {renderEmailCollection(message)}
-                    </div>
-                  );
-                }
-
-                // Handle regular messages
-                if (message.sender === 'user') {
-                  return (
-                    <UserMessage
-                      key={message.id || index}
-                      content={message.content}
-                      timestamp={message.timestamp}
-                    />
-                  );
-                } else {
-                  return (
-                    <ModelMessage
-                      key={message.id || index}
-                      content={message.content}
-                      model={message.model || model}
-                      timestamp={message.timestamp}
-                      avatarSrc={message.avatarSrc}
-                    />
-                  );
-                }
-              })
-            )}
-            
-            {/* Loading indicator */}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-muted rounded-lg p-3 max-w-[80%]">
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                    <div className="flex items-center gap-1">
-                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" />
-                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:150ms]" />
-                      <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:300ms]" />
-                    </div>
-                    <span>Generating response...</span>
-                  </div>
+                
+      <ScrollArea 
+        ref={scrollAreaRef}
+        className="flex-1 bg-background"
+      >
+        <div className="p-6 space-y-6" ref={messageContainerRef}>
+          {messages.map((message) => {
+            if (message.sender === 'user') {
+              return <UserMessage key={message.id} message={message} />;
+            } else {
+              const messageWithAvatar = message.avatarSrc 
+                ? message 
+                : { ...message, avatarSrc: avatarSrc };
+                
+              return (
+                <ModelMessage 
+                  key={message.id} 
+                  message={messageWithAvatar} 
+                  model={model}
+                  primaryColor={primaryColor}
+                  adjustColor={adjustColor}
+                  temperature={0.7}
+                />
+              );
+            }
+          })}
+          
+          {messages.length === 0 && (
+            <div className="h-full flex items-center justify-center py-16">
+              <div className="text-center text-muted-foreground">
+                <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                  <Bot className="h-8 w-8 text-muted-foreground/50" />
                 </div>
+                <p className="text-sm font-medium mb-1">Ready to assist</p>
+                <p className="text-xs text-muted-foreground/60">Send a message to start the conversation</p>
               </div>
-            )}
-          </div>
-        </ScrollArea>
-      </CardContent>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
     </Card>
   );
 };
