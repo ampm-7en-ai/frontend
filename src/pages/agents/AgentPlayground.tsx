@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Bot, ArrowLeft, User, SendHorizontal } from 'lucide-react';
+import { Bot, ArrowLeft, User, SendHorizontal, Mail } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +17,8 @@ type Message = {
   sender: 'user' | 'agent';
   text: string;
   timestamp: Date;
+  type?: 'ui';
+  ui_type?: 'email';
 };
 
 const AgentPlayground = () => {
@@ -47,7 +48,12 @@ const AgentPlayground = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const chatServiceRef = useRef<ChatWebSocketService | null>(null);
-  
+
+  // Email collection state
+  const [userEmail, setUserEmail] = useState('');
+  const [isEmailSubmitting, setIsEmailSubmitting] = useState(false);
+  const [emailSubmitted, setEmailSubmitted] = useState(false);
+
   useEffect(() => {
     // Fetch agent details when component mounts
     const getAgentDetails = async () => {
@@ -71,7 +77,7 @@ const AgentPlayground = () => {
     
     getAgentDetails();
   }, [agentId, toast]);
-  
+
   useEffect(() => {
     // Initialize chat service when component mounts and agentId is available
     if (agentId) {
@@ -81,6 +87,25 @@ const AgentPlayground = () => {
       chatServiceRef.current.on({
         onMessage: (message) => {
           console.log("Received message:", message);
+          
+          // Handle UI messages (like email collection)
+          if (message.type === 'ui' && message.ui_type === 'email') {
+            setMessages(prev => [
+              ...prev, 
+              {
+                id: Date.now().toString(),
+                sender: 'agent',
+                text: message.content || '',
+                timestamp: new Date(message.timestamp),
+                type: 'ui',
+                ui_type: 'email'
+              }
+            ]);
+            setIsTyping(false);
+            return;
+          }
+          
+          // Handle regular messages
           setMessages(prev => [
             ...prev, 
             {
@@ -140,17 +165,65 @@ const AgentPlayground = () => {
       };
     }
   }, [agentId, toast, agent?.appearance?.welcomeMessage, messages.length, agent]);
-  
+
   useEffect(() => {
     // Scroll to bottom when messages change
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-  
+
   useEffect(() => {
     // Focus the input field when the component mounts
     inputRef.current?.focus();
   }, []);
-  
+
+  // Email submission handlers
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userEmail.trim() || isEmailSubmitting) return;
+    
+    setIsEmailSubmitting(true);
+    
+    try {
+      if (chatServiceRef.current) {
+        // Send email to the WebSocket
+        chatServiceRef.current.sendMessage(`Email: ${userEmail}`);
+        
+        // Remove the email UI message and mark as submitted
+        setMessages(prev => prev.filter(msg => !(msg.type === 'ui' && msg.ui_type === 'email')));
+        setEmailSubmitted(true);
+        setUserEmail('');
+        
+        toast({
+          title: "Email Submitted",
+          description: "Thank you for providing your email address.",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to submit email:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsEmailSubmitting(false);
+    }
+  };
+
+  const handleSkipEmail = () => {
+    // Remove the email UI message and send skip message
+    setMessages(prev => prev.filter(msg => !(msg.type === 'ui' && msg.ui_type === 'email')));
+    
+    if (chatServiceRef.current) {
+      chatServiceRef.current.sendMessage("Skip email collection");
+    }
+    
+    toast({
+      title: "Email Skipped",
+      description: "You can continue the conversation without providing an email.",
+    });
+  };
+
   // Handle sending a message
   const handleSendMessage = () => {
     if (!inputValue.trim() || !isConnected) return;
@@ -183,7 +256,85 @@ const AgentPlayground = () => {
       setIsTyping(false);
     }
   };
-  
+
+  // Email collection UI component
+  const renderEmailCollection = (message: Message) => {
+    return (
+      <div className="flex justify-start">
+        <div className="flex gap-3 max-w-[80%]">
+          <Avatar className="h-8 w-8" style={{
+            backgroundColor: avatarType === 'default' ? primaryColor : 'transparent'
+          }}>
+            {avatarSrc && avatarType === 'custom' ? (
+              <AvatarImage src={avatarSrc} alt={agent.name} className="object-cover" />
+            ) : null}
+            <AvatarFallback style={{
+              backgroundColor: primaryColor
+            }}>
+              <Bot className="h-4 w-4 text-white" />
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="rounded-lg p-4 bg-white border border-gray-200 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <Mail className="h-4 w-4" style={{ color: primaryColor }} />
+              <span className="font-medium text-gray-800">Email Collection</span>
+            </div>
+            
+            <p className="text-sm text-gray-600 mb-4">
+              {message.text || "Would you like to provide your email address for follow-up communication?"}
+            </p>
+            
+            <form onSubmit={handleEmailSubmit} className="space-y-3">
+              <Input
+                type="email"
+                placeholder="Enter your email address"
+                value={userEmail}
+                onChange={(e) => setUserEmail(e.target.value)}
+                className="w-full"
+                required
+              />
+              
+              <div className="flex gap-2">
+                <Button 
+                  type="submit" 
+                  disabled={!userEmail.trim() || isEmailSubmitting}
+                  style={{ backgroundColor: primaryColor }}
+                  className="flex-1"
+                >
+                  {isEmailSubmitting ? (
+                    <>
+                      <LoadingSpinner size="sm" className="mr-2" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="h-4 w-4 mr-2" />
+                      Submit Email
+                    </>
+                  )}
+                </Button>
+                
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleSkipEmail}
+                  disabled={isEmailSubmitting}
+                >
+                  Skip
+                </Button>
+              </div>
+            </form>
+            
+            <div className="text-xs text-gray-500 mt-2">
+              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -191,7 +342,7 @@ const AgentPlayground = () => {
       </div>
     );
   }
-  
+
   // Get the primary color from agent appearance or use default
   const primaryColor = agent?.appearance?.primaryColor || '#9b87f5';
   const avatarSrc = agent?.appearance?.avatar?.src || '';
@@ -220,53 +371,66 @@ const AgentPlayground = () => {
       <div className="flex flex-1 overflow-hidden">
         <div className="w-2/3 flex flex-col border-r">
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div 
-                  className={`flex gap-3 max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}
+            {messages.map((message) => {
+              // Handle email collection UI
+              if (message.type === 'ui' && message.ui_type === 'email') {
+                return (
+                  <div key={message.id}>
+                    {renderEmailCollection(message)}
+                  </div>
+                );
+              }
+              
+              // Handle regular messages
+              return (
+                <div
+                  key={message.id}
+                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  {message.sender === 'agent' ? (
-                    <Avatar className="h-8 w-8" style={{
-                      backgroundColor: avatarType === 'default' ? primaryColor : 'transparent'
-                    }}>
-                      {avatarSrc && avatarType === 'custom' ? (
-                        <AvatarImage src={avatarSrc} alt={agent.name} className="object-cover" />
-                      ) : null}
-                      <AvatarFallback style={{
-                        backgroundColor: primaryColor
-                      }}>
-                        <Bot className="h-4 w-4 text-white" />
-                      </AvatarFallback>
-                    </Avatar>
-                  ) : (
-                    <Avatar className="h-8 w-8 bg-gray-200">
-                      <AvatarFallback>
-                        <User className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  
                   <div 
-                    className={`rounded-lg p-3 ${
-                      message.sender === 'agent' 
-                        ? `bg-opacity-10 text-gray-800` 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}
-                    style={{
-                      backgroundColor: message.sender === 'agent' ? `${primaryColor}20` : ''
-                    }}
+                    className={`flex gap-3 max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}
                   >
-                    <div className="text-sm">{message.text}</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {message.sender === 'agent' ? (
+                      <Avatar className="h-8 w-8" style={{
+                        backgroundColor: avatarType === 'default' ? primaryColor : 'transparent'
+                      }}>
+                        {avatarSrc && avatarType === 'custom' ? (
+                          <AvatarImage src={avatarSrc} alt={agent.name} className="object-cover" />
+                        ) : null}
+                        <AvatarFallback style={{
+                          backgroundColor: primaryColor
+                        }}>
+                          <Bot className="h-4 w-4 text-white" />
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <Avatar className="h-8 w-8 bg-gray-200">
+                        <AvatarFallback>
+                          <User className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    
+                    <div 
+                      className={`rounded-lg p-3 ${
+                        message.sender === 'agent' 
+                          ? `bg-opacity-10 text-gray-800` 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                      style={{
+                        backgroundColor: message.sender === 'agent' ? `${primaryColor}20` : ''
+                      }}
+                    >
+                      <div className="text-sm">{message.text}</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
+            
             {isTyping && (
               <div className="flex justify-start">
                 <div className="flex gap-3 max-w-[80%]">
@@ -363,6 +527,9 @@ const AgentPlayground = () => {
             <p>
               In this test mode, the agent is using simulated responses. In a real deployment, the agent 
               would use its configured knowledge sources and behavior settings to generate responses.
+            </p>
+            <p>
+              The agent may request your email address during the conversation for follow-up purposes.
             </p>
           </div>
         </div>
