@@ -206,23 +206,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       const data = await response.json();
       console.log("Login response:", data);
       
-      if (!data.data.userData.is_verified) {
-        const email = data.data.userData.email || null;
+      // Check if we have a successful response with data
+      if (response.ok && data.data && data.data.userData) {
+        // Check verification status
+        if (!data.data.userData.is_verified) {
+          const email = data.data.userData.email || null;
+          
+          setPendingVerificationEmail(email);
+          setNeedsVerification(true);
+          
+          toast({
+            title: "Account Not Verified",
+            description: data.message || "Please verify your account first",
+            variant: "destructive",
+          });
+          
+          navigate('/verify', { state: { email } });
+          return;
+        }
         
-        setPendingVerificationEmail(email);
-        setNeedsVerification(true);
-        
-        toast({
-          title: "Account Not Verified",
-          description: data.message,
-          variant: "destructive",
-        });
-        
-        navigate('/verify', { state: { email } });
-        return;
-      }
-      
-      if (response.ok && data.data.access) {
+        // User is verified, proceed with login
         const userRole = data.data.userData.user_role === "admin" ? "admin" : data.data.userData.user_role;
         
         await login(data.data.userData.username, values.password, {
@@ -256,8 +259,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         return;
       }
       
+      // Handle error responses
       if (!response.ok) {
-        if (data.error.message) {
+        // Check for error in response data
+        if (data.error && data.error.message) {
           if (data.error.message === "Please verify your account first") {
             const email = data.email || values.username;
             
@@ -281,17 +286,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
               message: data.error.message 
             });
           }
-        } else if (data.error) {
+        } else if (data.message) {
+          // Use the message from the response
           form.setError("root", { 
-            message: data.error.message 
+            message: data.message 
           });
           
           toast({
             title: "Login Failed",
-            description: data.error.message,
+            description: data.message,
             variant: "destructive",
           });
         } else {
+          // Fallback error message
           toast({
             title: "Login Failed",
             description: "An unexpected error occurred. Please try again.",
@@ -300,6 +307,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         }
         return;
       }
+      
+      // If we reach here, something unexpected happened
+      toast({
+        title: "Login Failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
       
     } catch (error) {
       console.log("Login error:", error);
