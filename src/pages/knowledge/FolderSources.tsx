@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ModernInput } from '@/components/ui/modern-input';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { Search, FileText, Globe, Plus, ArrowLeft, MoreHorizontal, Download, Trash2, Database, File, FileSpreadsheet, Layers, Eye } from 'lucide-react';
+import { Search, FileText, Globe, Plus, ArrowLeft, MoreHorizontal, Download, Trash2, Database, File, FileSpreadsheet, Layers, Eye, Link2 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
@@ -13,6 +12,7 @@ import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import KnowledgeStatsCard from '@/components/dashboard/KnowledgeStatsCard';
 import { ModernModal } from '@/components/ui/modern-modal';
 import PlainTextViewerModal from '@/components/agents/knowledge/PlainTextViewerModal';
+import UrlsViewerModal from '@/components/agents/knowledge/UrlsViewerModal';
 
 const FolderSources = () => {
   const { agentId } = useParams();
@@ -25,6 +25,8 @@ const FolderSources = () => {
   const [sourceToDelete, setSourceToDelete] = useState<any>(null);
   const [plainTextViewerOpen, setPlainTextViewerOpen] = useState(false);
   const [selectedPlainTextSource, setSelectedPlainTextSource] = useState<any>(null);
+  const [urlsViewerOpen, setUrlsViewerOpen] = useState(false);
+  const [selectedUrlsSource, setSelectedUrlsSource] = useState<any>(null);
 
   // Fetch sources for the agent's folder
   const { 
@@ -217,21 +219,27 @@ const FolderSources = () => {
     setPlainTextViewerOpen(true);
   };
 
-  const renderUrls = (urls: []) => {
-    return(
-      <>
-        {
-          urls.map((url) => (
-            <>
-            <span>{url}</span>
-            <br/>
-            </>
-          ))
-        }
-        
-      </>
-    )
-  }
+  const renderUrls = (urls: string[], source: any) => {
+    if (!urls || urls.length === 0) return null;
+    
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-slate-600 dark:text-slate-400">
+          {urls.length} URL{urls.length !== 1 ? 's' : ''}
+        </span>
+        <ModernButton
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setSelectedUrlsSource(source);
+            setUrlsViewerOpen(true);
+          }}
+          icon={Link2}
+          className="h-6 w-6 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded hover:text-blue-600"
+        />
+      </div>
+    );
+  };
 
   if (error) {
     return (
@@ -371,7 +379,7 @@ const FolderSources = () => {
                       </h3>
                     </div>
                     <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                      {getFileInfo(source) || (source.urls ? renderUrls(source.urls) : 'Plain text')} • {formatDate(source?.metadata?.upload_date)}
+                      {getFileInfo(source) || (source.urls ? renderUrls(source.urls, source) : 'Plain text')} • {formatDate(source?.metadata?.upload_date)}
                     </p>
                   </div>
                   <div className="flex-shrink-0 flex items-center gap-1">
@@ -466,6 +474,16 @@ const FolderSources = () => {
           onOpenChange={setPlainTextViewerOpen}
           title={selectedPlainTextSource.title}
           content={selectedPlainTextSource.plain_text || ''}
+        />
+      )}
+
+      {/* URLs Viewer Modal */}
+      {selectedUrlsSource && (
+        <UrlsViewerModal
+          open={urlsViewerOpen}
+          onOpenChange={setUrlsViewerOpen}
+          urls={selectedUrlsSource.urls || []}
+          title={selectedUrlsSource.title}
         />
       )}
     </div>
