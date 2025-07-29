@@ -206,6 +206,8 @@ const KnowledgeTrainingStatus = ({
   };
 
   const trainAllSources = async () => {
+    console.log("zzzzzzzzzzz");
+    return;
     if (!agentKnowledgeBases || agentKnowledgeBases.length === 0) {
       toast({
         title: "No sources selected",

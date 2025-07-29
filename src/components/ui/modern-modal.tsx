@@ -22,6 +22,7 @@ interface ModernModalProps {
   size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl';
   className?: string;
   fixedFooter?: boolean;
+  type?: string;
 }
 
 const sizeClasses = {
@@ -46,6 +47,7 @@ export const ModernModal = ({
   size = 'lg',
   className,
   fixedFooter = false,
+  type = ''
 }: ModernModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -65,7 +67,7 @@ export const ModernModal = ({
         </DialogClose>
 
         {(title || description) && (
-          <DialogHeader className="space-y-3 pb-6">
+          <DialogHeader className={cn(type === 'alert' ? "" : "space-y-3 pb-6")}>
             {title && (
               <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100 pr-12">
                 {title}
@@ -79,30 +81,36 @@ export const ModernModal = ({
           </DialogHeader>
         )}
 
-        <div className={cn(
-          'flex-1',
-          fixedFooter && 'overflow-auto',
-          // Beautiful scrollbar styling
-          '[&::-webkit-scrollbar]:w-2',
-          '[&::-webkit-scrollbar-track]:bg-slate-100/50 [&::-webkit-scrollbar-track]:dark:bg-slate-800/50',
-          '[&::-webkit-scrollbar-track]:rounded-full',
-          '[&::-webkit-scrollbar-thumb]:bg-slate-300/80 [&::-webkit-scrollbar-thumb]:dark:bg-slate-600/80',
-          '[&::-webkit-scrollbar-thumb]:rounded-full',
-          '[&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent',
-          '[&::-webkit-scrollbar-thumb]:bg-clip-padding',
-          '[&::-webkit-scrollbar-thumb]:hover:bg-slate-400/80 [&::-webkit-scrollbar-thumb]:dark:hover:bg-slate-500/80',
-          '[&::-webkit-scrollbar-thumb]:transition-colors',
-          // Firefox scrollbar styling
-          'scrollbar-thin scrollbar-track-slate-100/50 scrollbar-thumb-slate-300/80',
-          'dark:scrollbar-track-slate-800/50 dark:scrollbar-thumb-slate-600/80'
-        )}>
-          {children}
-        </div>
+        {
+          type === 'alert' ? (<></>) : (
+            <div className={cn(
+              'flex-1',
+              fixedFooter && 'overflow-auto',
+              // Beautiful scrollbar styling
+              '[&::-webkit-scrollbar]:w-2',
+              '[&::-webkit-scrollbar-track]:bg-slate-100/50 [&::-webkit-scrollbar-track]:dark:bg-slate-800/50',
+              '[&::-webkit-scrollbar-track]:rounded-full',
+              '[&::-webkit-scrollbar-thumb]:bg-slate-300/80 [&::-webkit-scrollbar-thumb]:dark:bg-slate-600/80',
+              '[&::-webkit-scrollbar-thumb]:rounded-full',
+              '[&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent',
+              '[&::-webkit-scrollbar-thumb]:bg-clip-padding',
+              '[&::-webkit-scrollbar-thumb]:hover:bg-slate-400/80 [&::-webkit-scrollbar-thumb]:dark:hover:bg-slate-500/80',
+              '[&::-webkit-scrollbar-thumb]:transition-colors',
+              // Firefox scrollbar styling
+              'scrollbar-thin scrollbar-track-slate-100/50 scrollbar-thumb-slate-300/80',
+              'dark:scrollbar-track-slate-800/50 dark:scrollbar-thumb-slate-600/80'
+            )}>
+              {children}
+            </div>
+          )
+        }
+        
 
         {footer && (
           <DialogFooter className={cn(
             'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0 pt-6 mt-6',
-            fixedFooter && 'border-t border-border px-6 py-4 -mx-6 -mb-6 rounded-b-2xl pb-[29px] pr-[29px]'
+            fixedFooter && 'border-t border-border px-6 py-4 -mx-6 -mb-6 rounded-b-2xl pb-[29px] pr-[29px]',
+            type === 'alert' && 'pt-0 mt-0'
           )}>
             {footer}
           </DialogFooter>

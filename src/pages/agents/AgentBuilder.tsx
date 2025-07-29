@@ -141,14 +141,19 @@ const AgentBuilderContent = () => {
     updateAgentData({ knowledgeSources: sourcesWithTrainingStatus });
 
     addNotification({
-      title: 'Training Started',
+      title: 'Re-Training Started',
       message: `Retraining ${state.agentData.name} with updated knowledge sources`,
       type: 'training_started',
       agentId,
       agentName: state.agentData.name
     });
 
-    try {
+    toast({
+      title: "Re-Training started",
+      description: `Retraining ${state.agentData.name} knowledge sources. This may take a while.`
+    });
+
+    try { 
       const knowledgeSourceIds = state.agentData.knowledgeSources.map(ks => ks.id);
       const success = await AgentTrainingService.trainAgent(
         agentId, 

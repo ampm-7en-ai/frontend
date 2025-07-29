@@ -276,6 +276,7 @@ export const BuilderSidebar = () => {
           title="Delete Knowledge Source"
           description="Are you sure you want to remove this knowledge source from your agent? This action cannot be undone."
           size="md"
+          type="alert"
           footer={
             <div className="flex gap-3">
               <ModernButton variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
@@ -291,10 +292,8 @@ export const BuilderSidebar = () => {
             </div>
           }
         >
-          <div className="py-4">
-            <p className="text-slate-600 dark:text-slate-400">
-              This will permanently remove the knowledge source from your agent.
-            </p>
+          <div>
+            
           </div>
         </ModernModal>
       </div>

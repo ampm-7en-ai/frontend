@@ -39,23 +39,20 @@ export const AgentTrainingService = {
           selected_urls: selectedUrls
         })
       });
-      
-      console.log("Training API response status:", response.status);
+      const res = await response.json();
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Train agent request failed:", errorText);
-        throw new Error(errorText || "Train agent request failed.");
+        console.log("pipip",res);
+         const errorText = res.error;
+        // console.error("Train agent request failed:", errorText);
+         throw new Error(errorText || "Train agent request failed.");
       }
-      
-      const data: TrainingResponse = await response.json();
-      console.log("Training completed successfully:", data);
       
       // The notification should be added by the calling component
       toast({
         title: "Training Complete",
-        description: data.message || `${agentName} training completed successfully.`,
-        variant: "default"
+        description: res.message || `${agentName} training completed successfully.`,
+        variant: "success"
       });
       
       return true;

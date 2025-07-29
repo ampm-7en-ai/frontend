@@ -82,6 +82,7 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
   };
 
   const handleTrainKnowledge = async () => {
+    
     if (!agentData.id) return;
     
     if (agentData.knowledgeSources.length === 0) {

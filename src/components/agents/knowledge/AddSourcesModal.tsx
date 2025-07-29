@@ -235,11 +235,12 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     }
   };
 
-  const validateForm = (): boolean => {
+  const validateForm = (): { isValid: boolean, errors: ValidationErrors } => {
     const errors: ValidationErrors = {};
-
+    const isValid: boolean = true;
     if (!documentName.trim()) {
       errors.documentName = 'Source name is required';
+      
     }
 
     switch (sourceType) {
@@ -274,9 +275,11 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
         }
         break;
     }
-
     setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
+    return {
+      isValid: Object.keys(errors).length === 0,
+      errors: errors
+    };
   };
 
   const isValidUrl = (string: string): boolean => {
@@ -368,12 +371,14 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    
     e.preventDefault();
-
-    if (!validateForm()) {
+    const validation = validateForm();
+    if (!validation.isValid) {
+      const firstError = Object.values(validation.errors)[0];
       showToast({
         title: "Validation Error",
-        description: "Please fix the errors and try again.",
+        description: firstError || "Please fix the errors and try again.",
         variant: "error"
       });
       return;
