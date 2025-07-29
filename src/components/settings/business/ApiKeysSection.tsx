@@ -10,6 +10,7 @@ import { useApiKeys } from '@/hooks/useApiKeys';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { ModernInput } from '@/components/ui/modern-input';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const ApiKeysSection = () => {
   const { openPricingModal } = usePricingModal();
@@ -179,8 +180,10 @@ const ApiKeysSection = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+            <div className="container mx-auto py-12 flex justify-center items-center h-64">
+              <LoadingSpinner size="lg" text="Generating..." />
+            </div>
           </div>
         ) : error ? (
           <div className="bg-red-50/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl">
@@ -299,12 +302,12 @@ const ApiKeysSection = () => {
             <div className="space-y-3">
               <label className="block text-sm font-medium text-foreground">Your API Key</label>
               <div className="relative">
-                <ModernInput
+                <Input
                   type={showApiKey ? 'text' : 'password'}
                   value={currentApiKey}
                   readOnly
                   className="font-mono text-sm pr-20 bg-muted/50"
-                  variant="glass"
+                  variant="modern"
                 />
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
                   <ModernButton

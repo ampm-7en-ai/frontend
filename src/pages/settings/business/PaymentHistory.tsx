@@ -5,14 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, Download, Calendar, DollarSign } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { usePaymentHistory } from '@/hooks/usePaymentHistory';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import ModernButton from '@/components/dashboard/ModernButton';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const PaymentHistory = () => {
   const { data: paymentHistory, isLoading, error } = usePaymentHistory();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleDownloadInvoice = (invoiceUrl: string, planName: string) => {
     if (!invoiceUrl) {
@@ -65,14 +68,18 @@ const PaymentHistory = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="container mx-auto p-6 max-w-6xl">
         <div className="mb-6">
-          <Link 
-            to="/settings/business" 
-            className="inline-flex items-center text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 mb-4 transition-colors"
+          
+          <ModernButton
+            variant="outline"
+            icon={ArrowLeft}
+            onClick={()=>navigate('/settings/business')}
+            className="text-muted-foreground hover:text-foreground"
+            size='sm'
           >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Back to Settings
-          </Link>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Payment History</h1>
+            Back
+          </ModernButton>
+        
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mt-6">Payment History</h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">View your subscription and payment details</p>
         </div>
 
@@ -88,8 +95,10 @@ const PaymentHistory = () => {
           
           <div className="p-6">
             {isLoading ? (
-              <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+                <div className="container mx-auto py-12 flex justify-center items-center h-64">
+                  <LoadingSpinner size="lg" text="Loading..." />
+                </div>
               </div>
             ) : error ? (
               <div className="text-center py-12">
@@ -115,7 +124,7 @@ const PaymentHistory = () => {
                       <TableHead className="font-semibold text-slate-900 dark:text-slate-100">Ended</TableHead>
                       <TableHead className="font-semibold text-slate-900 dark:text-slate-100">Duration</TableHead>
                       <TableHead className="font-semibold text-slate-900 dark:text-slate-100">Status</TableHead>
-                      <TableHead className="text-right font-semibold text-slate-900 dark:text-slate-100">Invoice</TableHead>
+                      <TableHead className="text-right font-semibold text-slate-900 dark:text-slate-100">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -138,15 +147,15 @@ const PaymentHistory = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           {payment.invoice_url ? (
-                            <Button
+                            <ModernButton
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDownloadInvoice(payment.invoice_url!, payment.plan_name)}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-100 dark:hover:bg-slate-700"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                               <Download className="h-4 w-4 mr-1" />
                               Download
-                            </Button>
+                            </ModernButton>
                           ) : (
                             <span className="text-slate-400 dark:text-slate-500 text-sm">N/A</span>
                           )}

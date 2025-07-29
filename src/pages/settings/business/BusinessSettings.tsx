@@ -76,10 +76,6 @@ const BusinessSettings = () => {
             }}/>
           </div>
 
-          {/* Connected Accounts Section */}
-          <div className="rounded-2xl overflow-hidden">
-            <ConnectedAccountsSection />
-          </div>
 
           {/* API Keys Section */}
           <div className="rounded-2xl overflow-hidden">

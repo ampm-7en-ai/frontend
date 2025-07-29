@@ -89,7 +89,7 @@ const FolderSources = () => {
   ];
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return 'No Date';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB');
   };
@@ -216,6 +216,22 @@ const FolderSources = () => {
     setSelectedPlainTextSource(source);
     setPlainTextViewerOpen(true);
   };
+
+  const renderUrls = (urls: []) => {
+    return(
+      <>
+        {
+          urls.map((url) => (
+            <>
+            <span>{url}</span>
+            <br/>
+            </>
+          ))
+        }
+        
+      </>
+    )
+  }
 
   if (error) {
     return (
@@ -355,7 +371,7 @@ const FolderSources = () => {
                       </h3>
                     </div>
                     <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                      {getFileInfo(source) || (source.url ? 'Web URL' : 'Plain text')} • {formatDate(source.metadata?.upload_date)}
+                      {getFileInfo(source) || (source.urls ? renderUrls(source.urls) : 'Plain text')} • {formatDate(source?.metadata?.upload_date)}
                     </p>
                   </div>
                   <div className="flex-shrink-0 flex items-center gap-1">

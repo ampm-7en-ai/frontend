@@ -16,6 +16,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getApiUrl, getAuthHeaders, API_ENDPOINTS } from '@/utils/api-config';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface Role {
   id: number;
@@ -452,8 +453,10 @@ const TeamManagementSection = () => {
           </div>
           
           {loading ? (
-            <div className="p-6 flex justify-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+            <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+              <div className="container mx-auto py-12 flex justify-center items-center h-64">
+                <LoadingSpinner size="lg" text="Loading..." />
+              </div>
             </div>
           ) : (
             <div className="divide-y divide-slate-200/50 dark:divide-slate-600/50">
