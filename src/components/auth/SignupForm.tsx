@@ -83,18 +83,16 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
         const data = await response.json();
         
         if (response.ok) {
-          // Check if API returned a message for success
           if (data.message) {
             toast({
               title: "Registration Status",
               description: data.message,
-              variant: "success",
+              variant: "default",
             });
           }
           
           handleRegistrationSuccess(data, values.email);
         } else {
-          // Handle API error responses
           handleRegistrationError(data);
         }
       } catch (error) {
@@ -122,7 +120,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
           });
         } else {
           toast({
-            title: "Connection Error",
+            title: "Registration Error",
             description: "Could not connect to registration service. Please try again later.",
             variant: "destructive",
           });
@@ -151,24 +149,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
     toast({
       title: "Account Created",
       description: "Please verify your email to continue",
-      variant: "success",
+      variant: "default",
     });
   };
   
   const handleRegistrationError = (data: any) => {
     console.log('Registration error response:', data);
     
-    // Check for API message field first
-    if (data.message) {
-      toast({
-        title: "Registration Failed",
-        description: data.message,
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Handle specific field errors
     if (data.username) {
       form.setError('username', { 
         type: 'server', 
@@ -183,34 +170,22 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
       });
     }
     
-    // Handle nested error object
-    if (data.error) {
-      if (data.error.message) {
-        toast({
+    if (!data.username && !data.email && data.error.message) {
+      if(data.error.fields.hasOwnProperty("username")){
+         toast({
           title: "Registration Failed",
-          description: data.error.message,
+          description: data.error.fields.username[0],
           variant: "destructive",
         });
-      } else if (data.error.fields) {
-        // Handle field-specific errors
-        if (data.error.fields.username) {
-          toast({
-            title: "Registration Failed",
-            description: Array.isArray(data.error.fields.username) ? 
-              data.error.fields.username[0] : data.error.fields.username,
-            variant: "destructive",
-          });
-        } else if (data.error.fields.email) {
-          toast({
-            title: "Registration Failed",
-            description: Array.isArray(data.error.fields.email) ? 
-              data.error.fields.email[0] : data.error.fields.email,
-            variant: "destructive",
-          });
-        }
+      }else if(data.error.fields.hasOwnProperty("email")){
+        toast({
+          title: "Registration Failed",
+          description: data.error.fields.email[0],
+          variant: "destructive",
+        });
       }
-    } else if (!data.username && !data.email) {
-      // Generic fallback
+     
+    } else if (!data.username && !data.email && !data.error.message) {
       toast({
         title: "Registration Failed",
         description: "Please check your information and try again",
