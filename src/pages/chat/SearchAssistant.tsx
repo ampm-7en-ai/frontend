@@ -312,7 +312,7 @@ const SearchAssistant = () => {
     
     // Continue with the conversation
     if (chatServiceRef.current?.isConnected()) {
-      chatServiceRef.current.sendMessage('skip_email');
+      chatServiceRef.current.sendMessage('no_thanks');
       setIsProcessing(true);
       startThinkingAnimation();
     }

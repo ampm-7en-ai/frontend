@@ -203,14 +203,17 @@ export const ModelComparisonGrid = ({
                 // Show only the latest AI response
                 (() => {
                   const latestAiMessage = cell.messages
-                    .filter(msg => msg.sender?.startsWith('agent') || msg.type === 'assistant' || msg.sender === 'assistant')
+                    .filter(msg => msg.sender?.startsWith('agent') || msg.type === 'assistant' || msg.type === 'ui' || msg.sender === 'assistant')
                     .pop();
                   
                   return latestAiMessage ? (
                     <div className="space-y-2">
                       <p className="text-sm dark:text-gray-500">AI Assistant</p>
                       <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
-                        {latestAiMessage.content}
+                        {latestAiMessage.content} 
+                        {
+                          latestAiMessage.type === "ui" && ("Enter a valid email and send")
+                        }
                       </div>
                     </div>
                   ) : (
