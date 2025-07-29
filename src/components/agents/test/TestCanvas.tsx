@@ -67,6 +67,7 @@ interface TestCanvasProps {
   onPrepareNewMessage: () => void;
   onLoadHistoryData: (item: HistoryItem) => void;
   onToggleHistoryMode: (enabled: boolean) => void;
+  renderEmailCollection?: (message: any, modelIndex: number) => React.ReactNode;
 }
 
 export const TestCanvas = ({
@@ -94,7 +95,8 @@ export const TestCanvas = ({
   onSelectHistory,
   onPrepareNewMessage,
   onLoadHistoryData,
-  onToggleHistoryMode
+  onToggleHistoryMode,
+  renderEmailCollection
 }: TestCanvasProps) => {
   const [expandedCellId, setExpandedCellId] = useState<string | null>(null);
   const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
@@ -281,6 +283,7 @@ export const TestCanvas = ({
                 expandedCellId={expandedCellId}
                 onToggleExpand={handleToggleExpand}
                 isHistoryMode={isHistoryMode}
+                renderEmailCollection={renderEmailCollection}
               />
             </div>
           </div>
