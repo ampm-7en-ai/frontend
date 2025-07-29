@@ -254,7 +254,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       </Form>
       
       <ForgotPasswordDialog 
-        open={showForgotPassword} 
+        isOpen={showForgotPassword} 
         onClose={() => setShowForgotPassword(false)} 
       />
     </div>
