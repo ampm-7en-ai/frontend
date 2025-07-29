@@ -28,7 +28,7 @@
         buttonText: data.buttonText || '',
         position: data.position || 'bottom-right',
         avatarUrl: data.avatarUrl || '',
-        previewUrl: `https://staging.7en.ai/chat/preview/${agentId}`
+        previewUrl: `http://localhost:8080/chat/preview/${agentId}`
       };
       
       console.log('Fetched config:', config);

@@ -44,10 +44,10 @@ const UrlsViewerModal: React.FC<UrlsViewerModalProps> = ({
         {urls.map((url, index) => (
           <div
             key={index}
-            className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700"
+            className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 !mb-[2px]"
           >
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
                 <Globe className="h-4 w-4 text-white" />
               </div>
             </div>

@@ -461,8 +461,11 @@ export const ChatboxPreview = ({
         };
       default:
         return {
-          containerClass: 'bg-gray-50 border border-gray-200',
-          textClass: 'text-gray-700'
+          containerClass: 'text-white border border-transparent shadow-md',
+          textClass: 'text-white',
+          style: { 
+            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`
+          }
         };
     }
   };
@@ -1144,7 +1147,7 @@ export const ChatboxPreview = ({
                 <div key={message.messageId || index} className={isConsecutive ? 'mt-2' : 'mt-4'}>
                   {message.type !== 'ui' && (
                     <div 
-                      className={`flex gap-4 items-start ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
+                      className={`flex gap-4 items-start ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-end'}`}
                       style={{
                         animation: 'messageSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
                       }}

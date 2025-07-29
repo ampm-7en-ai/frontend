@@ -76,7 +76,7 @@ const FolderSources = () => {
       (typeFilter === 'website' && source.type === 'website') ||
       (typeFilter === 'csv' && source.type === 'csv') ||
       (typeFilter === 'plain_text' && source.type === 'plain_text') ||
-      (typeFilter === 'third_party' && source.type === 'third_party');
+      (typeFilter === 'third_party' && source.type === 'custom');
     
     return matchesSearch && matchesType;
   }) : [];
@@ -144,16 +144,28 @@ const FolderSources = () => {
   };
 
   const getFileInfo = (source) => {
+
     if (source.metadata) {
-      const { format, file_size, no_of_pages, no_of_chars } = source.metadata;
-      const parts = [];
+      if(source.type === 'custom') {
+        const { mimeType, size} = source.metadata;
+        const parts = [];
       
-      if (no_of_pages) parts.push(`${no_of_pages} pages`);
-      if (no_of_chars) parts.push(`${no_of_chars.toLocaleString()} characters`);
-      if (file_size) parts.push(file_size);
-      if (format && !no_of_pages && !no_of_chars && !file_size) parts.push(format.toUpperCase());
+        if (mimeType) parts.push(`${mimeType}`);
+        if (size) parts.push(`${(size/1024).toFixed(2)} KB`);
+         return parts.join(' • ');
+      }else {
+        const { format, file_size, no_of_pages, no_of_chars } = source.metadata;
+        const parts = [];
       
-      return parts.join(' • ');
+        if (no_of_pages) parts.push(`${no_of_pages} pages`);
+        if (no_of_chars) parts.push(`${no_of_chars.toLocaleString()} characters`);
+        if (file_size) parts.push(`${(file_size.slice(0,-1)/1024).toFixed(2)} KB`);
+        if (format && !no_of_pages && !no_of_chars && !file_size) parts.push(format.toUpperCase());
+         return parts.join(' • ');
+      }
+      
+      
+     
     }
     return '';
   };
@@ -223,21 +235,17 @@ const FolderSources = () => {
     if (!urls || urls.length === 0) return null;
     
     return (
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-slate-600 dark:text-slate-400">
-          {urls.length} URL{urls.length !== 1 ? 's' : ''}
-        </span>
-        <ModernButton
-          variant="ghost"
-          size="sm"
-          onClick={() => {
+      <>
+        <span 
+        onClick={() => {
             setSelectedUrlsSource(source);
             setUrlsViewerOpen(true);
           }}
-          icon={Link2}
-          className="h-6 w-6 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded hover:text-blue-600"
-        />
-      </div>
+        className="text-xs text-blue-600 dark:text-blue-400">
+          {urls.length} URL{urls.length !== 1 ? 's' : ''}
+        </span>
+        
+      </>
     );
   };
 
@@ -266,7 +274,7 @@ const FolderSources = () => {
           className="text-muted-foreground hover:text-foreground"
           size='sm'
         >
-          Back to Knowledge Folders
+          Back
         </ModernButton>
       </div>
 
@@ -368,8 +376,8 @@ const FolderSources = () => {
               >
                 <div className="flex items-center gap-4">
                   <div className="flex-shrink-0">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getIconBackground(source)}`}>
-                      {renderSourceIcon(source)}
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getIconBackground(source.type === 'custom' ? {...source,type:'docs'} : source )}`}>
+                      {renderSourceIcon(source.type === 'custom' ? {...source,type:'docs'} : source )}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -383,6 +391,17 @@ const FolderSources = () => {
                     </p>
                   </div>
                   <div className="flex-shrink-0 flex items-center gap-1">
+                    {source.type === 'custom' && source.metadata && (
+                      <ModernButton
+                        variant="ghost"
+                        size="sm"
+                        icon={Eye}
+                        iconOnly={true}
+                        className="h-10 w-10 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg hover:text-blue-600"
+                        onClick={(e) => window.open(source.metadata.webViewLink, '_blank', 'noopener,noreferrer')
+                        }
+                      />
+                    )}
                     {source.type === 'plain_text' && source.plain_text && (
                       <ModernButton
                         variant="ghost"

@@ -18,7 +18,7 @@ const KnowledgeStatsCard = ({ sources = [] }: KnowledgeStatsCardProps) => {
     };
 
     sources.forEach(source => {
-      if (source.type === 'document' || source.file) {
+      if (source.type === 'document' || source.type === 'custom' || source.file) {
         result.documentFiles++;
       } else if (source.type === 'website' || source.url) {
         result.websites++;
