@@ -108,7 +108,7 @@ const RoleEditDialog: React.FC<RoleEditDialogProps> = ({ isOpen, onClose, role, 
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="sm:max-w-md">
+      <SheetContent className="sm:max-w-2xl">
         <SheetHeader>
           <SheetTitle>Edit Role</SheetTitle>
           <SheetDescription>
@@ -156,22 +156,22 @@ const RoleEditDialog: React.FC<RoleEditDialogProps> = ({ isOpen, onClose, role, 
                   <LoadingSpinner size="sm" text="Loading permissions..." />
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-3">
+                <div className="grid grid-cols-2 gap-2 max-h-none">
                   {availablePermissions.map((permission) => (
-                    <div key={permission.id} className="flex items-start space-x-2">
+                    <div key={permission.id} className="flex items-start space-x-2 p-2 border rounded-md">
                       <Checkbox 
                         id={`permission-${permission.id}`}
                         checked={selectedPermissions.includes(permission.id)}
                         onCheckedChange={() => handlePermissionToggle(permission.id)}
                       />
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <Label 
                           htmlFor={`permission-${permission.id}`}
-                          className="text-sm font-medium"
+                          className="text-xs font-medium leading-tight"
                         >
                           {permission.name.replace(/_/g, ' ')}
                         </Label>
-                        <p className="text-xs text-muted-foreground">{permission.description}</p>
+                        <p className="text-xs text-muted-foreground truncate">{permission.description}</p>
                       </div>
                     </div>
                   ))}
