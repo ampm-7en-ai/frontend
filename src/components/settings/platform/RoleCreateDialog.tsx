@@ -92,7 +92,7 @@ const RoleCreateDialog: React.FC<RoleCreateDialogProps> = ({ isOpen, onClose, on
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="sm:max-w-2xl">
+      <SheetContent className="sm:max-w-md">
         <SheetHeader>
           <SheetTitle>Create New Role</SheetTitle>
           <SheetDescription>
@@ -139,22 +139,22 @@ const RoleCreateDialog: React.FC<RoleCreateDialogProps> = ({ isOpen, onClose, on
                 <LoadingSpinner size="sm" text="Loading permissions..." />
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2 max-h-none">
+              <div className="grid grid-cols-1 gap-3">
                 {availablePermissions.map((permission) => (
-                  <div key={permission.id} className="flex items-start space-x-2 p-2 border rounded-md">
+                  <div key={permission.id} className="flex items-start space-x-2">
                     <Checkbox 
                       id={`permission-${permission.id}`}
                       checked={selectedPermissions.includes(permission.id)}
                       onCheckedChange={() => handlePermissionToggle(permission.id)}
                     />
-                    <div className="flex-1 min-w-0">
+                    <div>
                       <Label 
                         htmlFor={`permission-${permission.id}`}
-                        className="text-xs font-medium leading-tight"
+                        className="text-sm font-medium"
                       >
                         {permission.name.replace(/_/g, ' ')}
                       </Label>
-                      <p className="text-xs text-muted-foreground truncate">{permission.description}</p>
+                      <p className="text-xs text-muted-foreground">{permission.description}</p>
                     </div>
                   </div>
                 ))}
