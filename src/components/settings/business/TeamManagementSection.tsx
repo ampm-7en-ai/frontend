@@ -410,7 +410,7 @@ const TeamManagementSection = () => {
         {inviteForm.watch("team_role_id") && (
           <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50 mt-4">
             <h4 className="text-sm font-semibold mb-3 text-slate-900 dark:text-slate-100">Role Permissions</h4>
-            <ScrollArea className="h-[100px]">
+            <ScrollArea className="h-[200px]">
               <div className="space-y-2">
                 {availableRoles.find(r => r.id === inviteForm.watch("team_role_id"))?.permissions.map(permission => (
                   <div key={permission.id} className="flex items-center justify-between py-1.5 px-3 bg-white/60 dark:bg-slate-700/60 rounded-lg">

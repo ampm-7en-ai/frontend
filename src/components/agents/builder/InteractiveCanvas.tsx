@@ -84,12 +84,14 @@ export const InteractiveCanvas = () => {
                 {agentData.avatar || agentData.avatarUrl ? (
                   <Avatar className={hasButtonText ? "w-6 h-6" : "w-[56px] h-[56px]"}>
                     <AvatarImage src={agentData.avatar || agentData.avatarUrl} alt={agentData.chatbotName} className="object-cover" />
-                    <AvatarFallback className="text-white bg-transparent">
+                    <AvatarFallback className="text-white bg-transparent" style={{color: agentData.secondaryColor }}>
                       <MessageSquare size={hasButtonText ? 16 : 24} />
                     </AvatarFallback>
                   </Avatar>
                 ) : (
-                  <MessageSquare className="text-white" size={iconSize} />
+                  <div style={{width:'24px',height:'24px'}}>
+                    <svg style={{fill: agentData.secondaryColor}} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 508.81 443.74"><path d="M434.56,65.24C386.48,23.17,322.49,0,254.4,0,186.31,0,122.32,23.17,74.23,65.24,26.36,107.12,0,162.75,0,221.87c0,45.86,15.92,89.87,46.03,127.28l1.75,2.17-.65,2.71c-5.98,25.07-10.25,50.72-12.68,76.23-.15,1.62,.79,2.6,1.2,2.95,.51,.43,1.57,1.08,3.08,.68l83.43-22.46,1.97,1.02c39.27,20.47,84.32,31.29,130.27,31.29,68.09,0,132.08-23.17,180.16-65.24,47.87-41.89,74.24-97.52,74.24-156.63s-26.37-114.74-74.24-156.63ZM254.4,248.7c-14.79,0-26.83-12.04-26.83-26.83s12.04-26.83,26.83-26.83c14.79,0,26.83,12.04,26.83,26.83s-12.04,26.83-26.83,26.83Zm-122.27,0c-14.79,0-26.83-12.04-26.83-26.83s12.04-26.83,26.83-26.83,26.83,12.04,26.83,26.83-12.04,26.83-26.83,26.83Zm244.54,0c-14.79,0-26.83-12.04-26.83-26.83s12.04-26.83,26.83-26.83c14.79,0,26.83,12.04,26.83,26.83s-12.04,26.83-26.83,26.83Z"/></svg>
+                  </div>
                 )}
                 {hasButtonText && (
                   <span className="text-white font-medium text-sm">

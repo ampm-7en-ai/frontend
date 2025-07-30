@@ -338,6 +338,10 @@ export const ChatboxPreview = ({
   };
 
   const handleRestart = () => {
+
+    if (onRestart) {
+      onRestart();
+    }
     // Set restarting flag
     restartingRef.current = true;
     
@@ -447,7 +451,8 @@ export const ChatboxPreview = ({
           containerClass: 'text-white border border-transparent shadow-md',
           textClass: 'text-white',
           style: { 
-            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`
+            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
+            color: secondaryColor
           }
         };
       case 'system_message':
@@ -464,7 +469,8 @@ export const ChatboxPreview = ({
           containerClass: 'text-white border border-transparent shadow-md',
           textClass: 'text-white',
           style: { 
-            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`
+            background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
+            color: secondaryColor
           }
         };
     }
@@ -532,7 +538,7 @@ export const ChatboxPreview = ({
                     )}
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-semibold text-white text-lg drop-shadow-sm">{chatbotName}</span>
+                    <span className="font-semibold text-white text-lg drop-shadow-sm" style={{color:`${secondaryColor} !important`}}>{chatbotName}</span>
                     <span className="text-white/80 text-sm">
                       {isConnected ? 'Online' : 'Connecting...'}
                     </span>
@@ -1050,17 +1056,17 @@ export const ChatboxPreview = ({
                   </AvatarFallback>
                 </Avatar>
               ) : (
-                <User2 size={24} className="text-white drop-shadow-sm" />
+                <User2 size={24} className="text-white drop-shadow-sm" style={{color: secondaryColor}}/>
               )}
             </div>
             {/* Online indicator */}
             {isConnected && (
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse" />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
             )}
           </div>
           <div className="flex flex-col">
-            <span className="font-semibold text-white text-lg drop-shadow-sm">{chatbotName}</span>
-            <span className="text-white/80 text-sm">
+            <span className="font-semibold text-white text-lg drop-shadow-sm" style={{color: secondaryColor}}>{chatbotName}</span>
+            <span className="text-white/80 text-sm" style={{color: `${secondaryColor}80`}}>
               {isConnected ? 'Online' : 'Connecting...'}
             </span>
           </div>
@@ -1075,6 +1081,9 @@ export const ChatboxPreview = ({
             className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
             title="Restart chat"
             icon={RotateCcw}
+            style={{
+              color: `${secondaryColor}80`
+            }}
             iconOnly
           />
           
@@ -1086,6 +1095,9 @@ export const ChatboxPreview = ({
               className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
               title="Minimize chat"
               icon={Minus}
+              style={{
+                color: `${secondaryColor}80`
+              }}
               iconOnly
             />
           )}
@@ -1113,7 +1125,7 @@ export const ChatboxPreview = ({
           ref={scrollAreaRef}
           className="flex-1 min-h-0"
         >
-          <div className="p-6 space-y-4 bg-gradient-to-b from-gray-50/50 to-white min-h-full">
+          <div className="p-6 space-y-4 bg-gradient-to-b from-gray-50/50 to-white min-h-full mb-5">
             {connectionError && (
               <div className="flex items-center gap-3 p-4 bg-red-50/80 border border-red-200/60 rounded-xl backdrop-blur-sm">
                 <AlertCircle size={18} className="text-red-600 flex-shrink-0" />
@@ -1316,7 +1328,7 @@ export const ChatboxPreview = ({
                   <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
                   <AvatarFallback style={{ 
                     background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
-                    color: secondaryColor
+                    color: '#fff'
                   }}>
                     <User2 size={10} />
                   </AvatarFallback>

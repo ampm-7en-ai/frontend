@@ -88,6 +88,11 @@
 
   // CSS Styles for the shell
   const styles = `
+
+    *,.chat-popup{
+    box-shadow: initial !important;
+    }
+    
     .chat-widget-container {
       position: fixed;
       z-index: 10000;
@@ -117,7 +122,6 @@
       outline: none;
       overflow: hidden;
       border: 4px solid rgba(255, 255, 255, 0.3);
-      box-shadow: none !important;
     }
     
     .chat-button.with-text {
@@ -126,7 +130,6 @@
       height: auto;
       gap: 8px;
       font-size: 14px;
-      box-shadow: none !important;
     }
     
     .chat-button.icon-only {
@@ -134,17 +137,14 @@
       width: 64px;
       height: 64px;
       padding: 0;
-      box-shadow: none !important;
     }
     
     .chat-button:hover {
       transform: scale(1.1);
-      box-shadow: none !important;
     }
     
     .chat-button:active {
       transform: scale(0.95);
-      box-shadow: none !important;
     }
     
     .chat-button-gradient-overlay {
@@ -153,7 +153,6 @@
       background: linear-gradient(90deg, rgba(255, 255, 255, 0.2), transparent);
       opacity: 0;
       transition: opacity 0.3s ease;
-      box-shadow: none !important;
     }
     
     .chat-button:hover .chat-button-gradient-overlay {
@@ -171,8 +170,6 @@
     .chat-button-icon {
       width: 24px;
       height: 24px;
-      fill: none;
-      stroke: currentColor;
       stroke-width: 2;
       stroke-linecap: round;
       stroke-linejoin: round;
@@ -193,7 +190,7 @@
       height: 700px;
       background: #ffffff;
       border-radius: 20px 20px 20px 20px;
-      box-shadow: none !important;
+      box-shadow: 10px 20px 30px rgba(0,0,0,0.3) !important;
       position: absolute;
       bottom: 84px;
       right: 0;
@@ -227,7 +224,6 @@
       position: relative;
       overflow: hidden;
       border-radius: 20px 20px 20px 20px;
-      box-shadow: none !important;
       border: none;
     }
     
@@ -237,7 +233,6 @@
       border: none;
       border-radius: 20px 20px 20px 20px;
       background: #f8fafc;
-      box-shadow: none !important;
     }
     
     .chat-loading {
@@ -276,7 +271,6 @@
         bottom: 84px;
         right: 20px;
         left: 20px;
-        box-shadow: none !important;
       }
       
       .chat-popup.bottom-left {
@@ -319,28 +313,10 @@
           .chat-button {
             background: linear-gradient(135deg, ${this.config.primaryColor}, ${adjustedPrimaryColor}) !important;
             font-family: ${this.config.fontFamily} !important;
-            box-shadow: none !important;
-          }
-          .chat-button:hover {
-            box-shadow: none !important;
-          }
-          .chat-button:active {
-            box-shadow: none !important;
-          }
-          .chat-button:focus {
-            box-shadow: none !important;
+           
           }
           .chat-popup {
-            box-shadow: none !important;
-          }
-          .chat-iframe-container {
-            box-shadow: none !important;
-          }
-          .chat-iframe {
-            box-shadow: none !important;
-          }
-          * {
-            box-shadow: none !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
           }
         `
       });
@@ -363,7 +339,8 @@
       const buttonClass = hasText ? 'chat-button with-text' : 'chat-button icon-only';
       
       this.button = createElement('button', buttonClass, {
-        onclick: () => this.toggleChat()
+        onclick: () => this.toggleChat(),
+        type: 'button'
       });
 
       // Create gradient overlay
@@ -383,10 +360,16 @@
         contentContainer.appendChild(avatar);
       } else {
         // MessageSquare icon as SVG (converted from Lucide)
-        const iconSvg = createElement('svg', 'chat-button-icon', {
-          innerHTML: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/><path d="M15.8 11.9c0 .6-.4 1-1 1s-1-.4-1-1 .4-1 1-1 1 .4 1 1z"/><path d="M9.8 11.9c0 .6-.4 1-1 1s-1-.4-1-1 .4-1 1-1 1 .4 1 1z"/>',
-          viewBox: '0 0 24 24'
-        });
+        const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        iconSvg.setAttribute('class','chat-button-icon');
+        iconSvg.setAttribute('viewBox', '0 0 508.81 443.74');
+        iconSvg.setAttribute('fill', `${this.config.secondaryColor}`);
+
+        // Create path element
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M434.56,65.24C386.48,23.17,322.49,0,254.4,0,186.31,0,122.32,23.17,74.23,65.24,26.36,107.12,0,162.75,0,221.87c0,45.86,15.92,89.87,46.03,127.28l1.75,2.17-.65,2.71c-5.98,25.07-10.25,50.72-12.68,76.23-.15,1.62,.79,2.6,1.2,2.95,.51,.43,1.57,1.08,3.08,.68l83.43-22.46,1.97,1.02c39.27,20.47,84.32,31.29,130.27,31.29,68.09,0,132.08-23.17,180.16-65.24,47.87-41.89,74.24-97.52,74.24-156.63s-26.37-114.74-74.24-156.63ZM254.4,248.7c-14.79,0-26.83-12.04-26.83-26.83s12.04-26.83,26.83-26.83c14.79,0,26.83,12.04,26.83,26.83s-12.04,26.83-26.83,26.83Zm-122.27,0c-14.79,0-26.83-12.04-26.83-26.83s12.04-26.83,26.83-26.83,26.83,12.04,26.83,26.83-12.04,26.83-26.83,26.83Zm244.54,0c-14.79,0-26.83-12.04-26.83-26.83s12.04-26.83,26.83-26.83c14.79,0,26.83,12.04,26.83,26.83s-12.04,26.83-26.83,26.83Z');
+        // Append path to SVG
+        iconSvg.appendChild(path);
         contentContainer.appendChild(iconSvg);
       }
 

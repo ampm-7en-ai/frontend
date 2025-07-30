@@ -65,6 +65,34 @@ const ChatPreview = () => {
     console.log('✅ New session ID stored and state updated:', newSessionId);
   };
 
+  //handle remove session id on restart
+  const removeStoredSessionId = (agentId: string): void => {
+    try {
+      localStorage.removeItem(`chat_session_${agentId}`);
+      console.log('🗑️ Session ID removed from localStorage for agent:', agentId);
+    } catch (error) {
+      console.error('❌ Error removing session ID from localStorage:', error);
+    }
+  };
+
+  //handle chat restart
+  const handleChatRestart = () => {
+    if (!agentId) {
+      console.log('❌ No agentId available, cannot remove session ID');
+      return;
+    }
+    
+    console.log('🔄 Chat restart requested, removing stored session ID');
+    
+    // Remove the stored session ID
+    removeStoredSessionId(agentId);
+    
+    // Reset the local sessionId state
+    setSessionId(null);
+    
+    console.log('✅ Session ID cleared for restart');
+  };
+
   useEffect(() => {
     const fetchConfig = async () => {
       try {
@@ -192,6 +220,7 @@ const ChatPreview = () => {
           sessionId={sessionId}
           enableSessionStorage={true}
           onSessionIdReceived={handleSessionIdReceived}
+          onRestart={handleChatRestart}
         />
       </div>
     </div>

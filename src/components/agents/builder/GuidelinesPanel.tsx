@@ -801,9 +801,9 @@ export const GuidelinesPanel = () => {
                           size="sm"
                           onClick={() => setShowTemplateModal(true)}
                           disabled={promptsLoading || !getCurrentTemplate()}
-                          className="h-8 px-3 rounded-lg text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          className="h-8 px-3 rounded-lg text-xs text-slate-600 hover:text-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                         >
-                          Show Template
+                          Templates
                         </ModernButton>
                         <SystemPromptModal
                           value={agentData.systemPrompt || ''}
