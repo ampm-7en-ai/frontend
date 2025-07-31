@@ -7,8 +7,8 @@
     "REDIRECT_URI": "https://api.7en.ai/api/slack/callback"
   },
   "facebook": {
-    "FACEBOOK_APP_ID": "1103615605128273",
-    "FACEBOOK_CONFIG_ID": "562672060215866"
+    "FACEBOOK_APP_ID": "1360531701919581",
+    "FACEBOOK_CONFIG_ID": "2536994279967204"
   },
   "NODE_ENV": "development",
   "agentTypes": {

@@ -53,7 +53,7 @@ const UrlsViewerModal: React.FC<UrlsViewerModalProps> = ({
             </div>
             
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-slate-900 dark:text-slate-100 truncate font-medium">
+              <p className="text-sm text-slate-900 dark:text-slate-100 font-medium">
                 {url}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400">
