@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Globe, FileText, Table, AlignLeft, ExternalLink, Upload, X, Link, Loader2, Search, RefreshCw } from 'lucide-react';
+import { Globe, FileText, Table, AlignLeft, ExternalLink, Upload, X, Link, Loader2, Search, RefreshCw, ArrowBigRight, ChevronRight, ChevronLeft } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import { useNavigate } from 'react-router-dom';
@@ -35,6 +35,8 @@ interface GoogleDriveFile {
   webViewLink: string;
   createdTime: string;
   modifiedTime: string;
+  nextPageToken: string;
+  prevPageToken: string;
 }
 
 interface ScrapedUrl {
@@ -77,7 +79,7 @@ interface SourceTypeSelectorProps {
   handleDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   getFileIcon: (mimeType: string) => React.ReactNode;
   toggleFileSelection: (fileName: string) => void;
-  fetchGoogleDriveData?: () => void;
+  fetchGoogleDriveData?: (token?: string) => void;
   isScrapingUrls: boolean;
   scrapedUrls: ScrapedUrl[];
   toggleUrlSelection: (url: string) => void;
@@ -86,6 +88,7 @@ interface SourceTypeSelectorProps {
   sortOrder: 'asc' | 'desc';
   handleSortToggle: () => void;
   handleRefreshFiles: () => void;
+  pageData: {nextToken: string ,prevToken: string};
 }
 
 interface SourceConfig {
@@ -138,7 +141,8 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
   setSearchQuery,
   sortOrder,
   handleSortToggle,
-  handleRefreshFiles
+  handleRefreshFiles,
+  pageData
 }) => {
   const navigate = useNavigate();
   const [urlSearchQuery, setUrlSearchQuery] = useState('');
@@ -534,6 +538,8 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                       <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                         {selectedProvider === 'googleDrive' ? 'Google Drive Files' : 'Imported Content'} ({selectedFiles.length} selected)
                       </Label>
+                     
+                       
                       <ModernButton 
                         variant="outline" 
                         size="sm"
@@ -542,6 +548,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                       >
                         Refresh
                       </ModernButton>
+                      
                     </div>
                     
                     {validationErrors.thirdParty && (
@@ -620,6 +627,35 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                         </ModernButton>
                       </div>
                     )}
+                    <div className='flex justify-end gap-2'>
+                      {
+                        pageData.prevToken != null && (
+                        <ModernButton
+                        variant='outline'
+                        size='sm'
+                        type='button'
+                        iconOnly
+                      >
+                        <ChevronLeft className='w-4 h-4'/>
+                      </ModernButton>
+                      )
+                      
+                      }
+                      {
+                        pageData.nextToken != null && (
+                          <ModernButton
+                            variant='outline'
+                            size='sm'
+                            type='button'
+                            iconOnly
+                            onClick={() => fetchGoogleDriveData(pageData.nextToken)}
+                          >
+                            <ChevronRight className='w-4 h-4'/>
+                          </ModernButton>
+                        )
+                      }
+                       
+                    </div>
                   </div>
                 )}
               </>

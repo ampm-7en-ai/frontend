@@ -330,8 +330,8 @@ export const integrationApi = {
 
   // Google Drive specific
   googleDrive: {
-    getFiles: async () => {
-      const response = await apiGet(getApiUrl('drive/files/'));
+    getFiles: async (token='') => {
+      const response = await apiGet(getApiUrl(token !== '' ? `drive/files/?page_size=10&page_token=${token}` : 'drive/files/?page_size=10'));
       return response;
     },
     unlink: () => integrationApi.unlink('drive')
@@ -534,8 +534,8 @@ export const addGoogleDriveFileToAgent = async (agentId: string, fileId: string,
 };
 
 // Legacy functions - now use the centralized API functions above
-export const fetchGoogleDriveFiles = async (): Promise<any> => {
-  const response = await integrationApi.googleDrive.getFiles();
+export const fetchGoogleDriveFiles = async (token=''): Promise<any> => {
+  const response = await integrationApi.googleDrive.getFiles(token);
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
     throw new Error(errorData.message || `Failed to fetch Google Drive files: ${response.status}`);

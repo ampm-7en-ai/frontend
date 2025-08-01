@@ -37,6 +37,8 @@ interface GoogleDriveFile {
   webViewLink: string;
   createdTime: string;
   modifiedTime: string;
+  nextPageToken: string;
+  prevPageToken: string;
 }
 
 interface ScrapedUrl {
@@ -78,6 +80,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   const [scrapedUrls, setScrapedUrls] = useState<ScrapedUrl[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [pageData, setPageData] = useState({nextToken:"", prevToken:""});
 
   // Use centralized integration management
   const { getIntegrationsByType } = useIntegrations();
@@ -218,11 +221,12 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     }
   };
 
-  const fetchGoogleDriveData = async () => {
+  const fetchGoogleDriveData = async (token='') => {
     setIsLoadingGoogleDriveFiles(true);
     try {
-      const response = await fetchGoogleDriveFiles();
+      const response = await fetchGoogleDriveFiles(token);
       setGoogleDriveFiles(response.files || []);
+      setPageData({...pageData,nextToken: response.nextPageToken,prevToken: response.prevPageToken});
       setIsLoadingGoogleDriveFiles(false);
     } catch (error) {
       console.error('Error fetching Google Drive files:', error);
@@ -602,6 +606,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
           isConnecting={isConnecting}
           isLoadingGoogleDriveFiles={isLoadingGoogleDriveFiles}
           googleDriveFiles={googleDriveFiles}
+          pageData={pageData}
           availableThirdPartyProviders={availableThirdPartyProviders}
           thirdPartyProviders={thirdPartyProviders}
           handleFileChange={handleFileChange}
