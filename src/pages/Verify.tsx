@@ -11,6 +11,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Mail, CheckCircle2, Clock } from 'lucide-react';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 const otpSchema = z.object({
   otp: z.string().length(6, "OTP must be exactly 6 digits")
@@ -279,11 +280,13 @@ const Verify = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center justify-center mb-6">
-          <div className="text-primary font-bold text-3xl mb-1">7en.ai</div>
+          <div className="text-primary font-bold text-3xl mb-1">
+            <img src='/logo.svg' alt="7en AI" style={{width: "100px"}}/>
+          </div>
           <p className="text-dark-gray text-sm">European-compliant multi-agent AI platform</p>
         </div>
         
-        <div className="p-8 bg-white rounded-lg shadow-sm">
+        <div className="p-8 bg-white rounded-3xl shadow-sm">
           <div className="mb-6 text-center">
             <h2 className="text-2xl font-semibold">Verify Your Account</h2>
             <p className="text-muted-foreground mt-2">
@@ -340,13 +343,15 @@ const Verify = () => {
               </div>
               
               <div className="flex justify-center">
-                <Button 
+                <ModernButton 
                   type="submit"
                   disabled={isVerifying}
                   className="w-full"
+                  variant='primary'
+                  size='lg'
                 >
                   {isVerifying ? "Verifying..." : "Verify Account"}
-                </Button>
+                </ModernButton>
               </div>
               
               <div className="text-center">

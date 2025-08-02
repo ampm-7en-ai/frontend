@@ -44,7 +44,7 @@ const BusinessDetail = () => {
   // Loading state
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-7xl m-auto py-8">
         <div className="flex items-center justify-between">
           <Button variant="outline" size="sm" asChild disabled>
             <div className="flex items-center gap-1">
@@ -107,7 +107,7 @@ const BusinessDetail = () => {
   // Error state
   if (!business) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-7xl m-auto py-8">
         <div className="flex items-center justify-between">
           <Button variant="outline" size="sm" asChild>
             <Link to="/businesses" className="flex items-center gap-1">
@@ -135,7 +135,7 @@ const BusinessDetail = () => {
 
   // Success state with data
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl m-auto py-8">
         <div className="flex items-center justify-between">
           <Button variant="outline" size="sm" asChild>
             <Link to="/businesses" className="flex items-center gap-1">

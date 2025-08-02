@@ -35,8 +35,8 @@ const Login = () => {
             <div className="max-w-lg text-center space-y-8">
               {/* Logo */}
               <div className="mb-8">
-                <div className="w-16 h-16 mx-auto mb-6 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
-                  <img src="/logo.svg" alt="7en.ai" className="h-8 w-8"/>
+                <div className="w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                  <img src="/logo.svg" alt="7en.ai" className=""/>
                 </div>
                 <h1 className="text-4xl font-bold text-gray-900 mb-4">
                   Welcome to 7en.ai

@@ -51,7 +51,7 @@ const BusinessList = () => {
   }
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl m-auto py-8">
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div className="relative w-full sm:w-96">
           <Input 

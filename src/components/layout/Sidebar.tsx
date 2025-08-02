@@ -371,14 +371,25 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                       {user?.email || 'user@example.com'}
                     </p>
                   </div>
-                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700">
-                    <User className="h-4 w-4" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700">
-                    <CreditCard className="h-4 w-4" />
-                    Billing
-                  </DropdownMenuItem>
+                  {
+                    userRole === 'USER' && (
+                      <>
+                        <DropdownMenuItem 
+                        className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
+                        onClick={() => navigate('/settings')}>
+                          <User className="h-4 w-4" />
+                          Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                        className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
+                        onClick={() => navigate('/settings/business/payment-history')}>
+                          <CreditCard className="h-4 w-4" />
+                          Billing
+                        </DropdownMenuItem>
+                      </>
+                    )
+                  }
+                  
                   <DropdownMenuSeparator className="dark:bg-gray-700" />
                   <DropdownMenuItem 
                     className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"

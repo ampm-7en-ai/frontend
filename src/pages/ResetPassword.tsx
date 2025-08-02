@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { authApi } from '@/utils/api-config';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 const resetPasswordSchema = z.object({
   newPassword: z.string().min(8, "Password must be at least 8 characters"),
@@ -98,7 +99,7 @@ const ResetPassword = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
       <div className="w-full max-w-md">
-        <div className="p-8 bg-white rounded-lg shadow-sm">
+        <div className="p-8 bg-white rounded-3xl shadow-sm">
           <div className="flex justify-center mb-6">
             <div className="text-primary">
               <img src="/logo.svg" alt="7en.ai" style={{height:"45px"}}/>
@@ -108,7 +109,7 @@ const ResetPassword = () => {
           {!isSuccess ? (
             <>
               <h1 className="text-2xl font-semibold text-center mb-2">Reset your password</h1>
-              <p className="text-center text-medium-gray mb-6">
+              <p className="text-center text-gray-400 mb-6">
                 Enter your new password below
               </p>
               
@@ -121,13 +122,14 @@ const ResetPassword = () => {
                       <FormItem className="space-y-3">
                         <FormLabel>New Password</FormLabel>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4 z-10" />
                           <FormControl>
                             <Input 
                               type={showPassword ? "text" : "password"}
                               placeholder="Enter new password" 
                               className="h-11 pl-9 pr-10" 
                               {...field}
+                              variant="modern"
                             />
                           </FormControl>
                           <button
@@ -150,13 +152,14 @@ const ResetPassword = () => {
                       <FormItem className="space-y-3">
                         <FormLabel>Confirm New Password</FormLabel>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4 z-10" />
                           <FormControl>
                             <Input 
                               type={showConfirmPassword ? "text" : "password"}
                               placeholder="Confirm new password" 
                               className="h-11 pl-9 pr-10" 
                               {...field}
+                              variant="modern"
                             />
                           </FormControl>
                           <button
@@ -178,13 +181,14 @@ const ResetPassword = () => {
                     </div>
                   )}
                   
-                  <Button 
+                  <ModernButton 
                     type="submit" 
                     className="w-full py-2 h-12"
                     disabled={isSubmitting}
+                    variant="primary"
                   >
                     {isSubmitting ? "Resetting..." : "Reset Password"}
-                  </Button>
+                  </ModernButton>
                 </form>
               </Form>
             </>
@@ -213,7 +217,7 @@ const ResetPassword = () => {
             </p>
           </div>
           
-          <div className="mt-8 text-center text-xs text-medium-gray">
+          <div className="mt-8 text-center text-xs text-gray-400">
             <p>© 2023 7en.ai. All rights reserved.</p>
             <div className="mt-1 space-x-2">
               <a href="/terms" className="hover:underline">

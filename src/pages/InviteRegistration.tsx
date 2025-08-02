@@ -12,6 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CheckCircle2, User, Lock, Mail, AlertCircle, Shield, Eye, EyeOff } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 const inviteRegistrationSchema = z.object({
   username: z.string().min(2, { message: "Username must be at least 2 characters" }),
@@ -214,11 +215,13 @@ const InviteRegistration = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center justify-center mb-6">
-          <div className="text-primary font-bold text-3xl mb-1">7en.ai</div>
+          <div className="text-primary font-bold text-3xl mb-1">
+           <img src='/logo.svg' alt="7en AI" style={{width:'200px',marginBottom:'12px'}}/>
+          </div>
           <p className="text-dark-gray text-sm">European-compliant multi-agent AI platform</p>
         </div>
         
-        <Card>
+        <Card className="rounded-3xl p-5">
           <CardHeader>
             <CardTitle className="text-center text-2xl">Complete Your Registration</CardTitle>
             {businessName && (
@@ -232,7 +235,7 @@ const InviteRegistration = () => {
           </CardHeader>
           <CardContent>
             {invitedEmail && (
-              <Alert className="mb-6">
+              <Alert className="mb-6" variant='default'>
                 <Mail className="h-4 w-4" />
                 <AlertTitle>Invited Email</AlertTitle>
                 <AlertDescription>
@@ -251,8 +254,8 @@ const InviteRegistration = () => {
                       <FormLabel>Username</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                          <Input placeholder="username" className="pl-10" {...field} />
+                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
+                          <Input placeholder="username" className="pl-10" {...field} variant="modern" />
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -268,12 +271,13 @@ const InviteRegistration = () => {
                       <FormLabel>Password</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
                           <Input 
                             type={showPassword ? "text" : "password"} 
                             placeholder="•••••••" 
                             className="pl-10 pr-10" 
                             {...field} 
+                            variant="modern"
                           />
                           <button
                             type="button"
@@ -297,12 +301,13 @@ const InviteRegistration = () => {
                       <FormLabel>Confirm Password</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                          <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
                           <Input 
                             type={showConfirmPassword ? "text" : "password"} 
                             placeholder="•••••••" 
                             className="pl-10 pr-10" 
                             {...field} 
+                            variant='modern'
                           />
                           <button
                             type="button"
@@ -318,17 +323,19 @@ const InviteRegistration = () => {
                   )}
                 />
                 
-                <Button 
+                <ModernButton
                   type="submit" 
                   className="w-full mt-6" 
                   disabled={isLoading}
+                  variant='primary'
+                  size='lg'
                 >
                   {isLoading ? "Processing..." : "Complete Registration"}
-                </Button>
+                </ModernButton>
               </form>
             </Form>
           </CardContent>
-          <CardFooter className="flex justify-center border-t pt-6">
+          <CardFooter className="flex justify-center pt-2">
             <Button 
               variant="link" 
               className="text-sm"
