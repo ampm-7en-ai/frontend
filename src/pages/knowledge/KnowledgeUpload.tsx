@@ -23,26 +23,11 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { useIntegrations } from '@/hooks/useIntegrations';
 import { fetchGoogleDriveFiles } from '@/utils/api-config';
 import SourceTypeSelector from '@/components/agents/knowledge/SourceTypeSelector';
+import { GoogleDriveFile } from '@/types/googleDrive';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 
 type ThirdPartyProvider = 'googleDrive' | 'slack' | 'notion' | 'dropbox' | 'github';
-
-interface SourceConfig {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  acceptedTypes?: string;
-  placeholder?: string;
-}
-
-interface ThirdPartyConfig {
-  icon: React.ReactNode;
-  name: string;
-  description: string;
-  color: string;
-  id: string;
-}
 
 interface ValidationErrors {
   documentName?: string;
@@ -50,15 +35,6 @@ interface ValidationErrors {
   files?: string;
   plainText?: string;
   thirdParty?: string;
-}
-
-interface GoogleDriveFile {
-  id: string;
-  name: string;
-  mimeType: string;
-  webViewLink: string;
-  createdTime: string;
-  modifiedTime: string;
 }
 
 interface ScrapedUrl {
@@ -146,7 +122,7 @@ const KnowledgeUpload = () => {
     integration => integration.status === 'connected'
   );
 
-  const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
+  const thirdPartyProviders: Record<ThirdPartyProvider, { icon: React.ReactNode; name: string; description: string; color: string; id: string }> = {
     googleDrive: {
       icon: <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg" alt="Google Drive" className="h-4 w-4" />,
       name: "Google Drive",
@@ -189,7 +165,7 @@ const KnowledgeUpload = () => {
     connectedStorageIntegrations.some(integration => integration.id === provider.id)
   );
 
-  const sourceConfigs: Record<SourceType, SourceConfig> = {
+  const sourceConfigs: Record<SourceType, { icon: React.ReactNode; title: string; description: string; acceptedTypes?: string; placeholder?: string }> = {
     url: {
       icon: <Globe className="h-4 w-4" />,
       title: "Website",

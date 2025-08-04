@@ -10,6 +10,7 @@ import { apiRequest } from '@/utils/api-interceptor';
 import SourceTypeSelector from './SourceTypeSelector';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { Table, FileText } from 'lucide-react';
+import { GoogleDriveFile, GoogleDriveFilesResponse } from '@/types/googleDrive';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 type ThirdPartyProvider = 'googleDrive' | 'slack' | 'notion' | 'dropbox' | 'github';
@@ -28,17 +29,6 @@ interface ThirdPartyConfig {
   description: string;
   color: string;
   id: string;
-}
-
-interface GoogleDriveFile {
-  id: string;
-  name: string;
-  mimeType: string;
-  webViewLink: string;
-  createdTime: string;
-  modifiedTime: string;
-  nextPageToken: string;
-  prevPageToken: string;
 }
 
 interface ScrapedUrl {
@@ -224,9 +214,12 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   const fetchGoogleDriveData = async (token='') => {
     setIsLoadingGoogleDriveFiles(true);
     try {
-      const response = await fetchGoogleDriveFiles(token);
+      const response: GoogleDriveFilesResponse = await fetchGoogleDriveFiles(token);
       setGoogleDriveFiles(response.files || []);
-      setPageData({...pageData,nextToken: response.nextPageToken,prevToken: response.prevPageToken});
+      setPageData({
+        nextToken: response.nextPageToken || "",
+        prevToken: response.prevPageToken || ""
+      });
       setIsLoadingGoogleDriveFiles(false);
     } catch (error) {
       console.error('Error fetching Google Drive files:', error);
