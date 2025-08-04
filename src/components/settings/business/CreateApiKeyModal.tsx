@@ -47,19 +47,7 @@ export const CreateApiKeyModal: React.FC<CreateApiKeyModalProps> = ({
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/50 dark:border-blue-800/30 rounded-xl p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Key className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">API Key Name</h3>
-              <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
-                Choose a name that helps you identify this key's purpose (e.g., "Production API", "Development Testing").
-              </p>
-            </div>
-          </div>
-        </div>
+        
 
         <div className="space-y-3">
           <label className="block text-sm font-medium text-foreground">Key Name</label>
@@ -72,9 +60,6 @@ export const CreateApiKeyModal: React.FC<CreateApiKeyModalProps> = ({
             className="w-full"
             variant="modern"
           />
-          <p className="text-xs text-muted-foreground">
-            This name will help you identify the key in your dashboard.
-          </p>
         </div>
 
         <div className="flex justify-end gap-3 pt-6 border-t border-border/50">

@@ -6,6 +6,8 @@ export interface GoogleDriveFile {
   webViewLink: string;
   createdTime: string;
   modifiedTime: string;
+  nextPageToken: string;
+  prevPageToken: string;
 }
 
 export interface GoogleDriveFilesResponse {

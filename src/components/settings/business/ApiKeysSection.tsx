@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Copy, AlertCircle, ChevronRight, Plus, KeyRound, Eye, EyeOff, Key, Trash2, Check } from 'lucide-react';
+import { Copy, AlertCircle, ChevronRight, Plus, KeyRound, Eye, EyeOff, Key, Trash2, Check, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,6 +11,7 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { CreateApiKeyModal } from './CreateApiKeyModal';
+import { Link } from 'react-router-dom';
 
 const ApiKeysSection = () => {
   const { openPricingModal } = usePricingModal();
@@ -20,6 +21,7 @@ const ApiKeysSection = () => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [currentApiKey, setCurrentApiKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   
   // Simulate paid plan status - in real app this would come from user data
   const isPaidPlan = true; // Change to false to show the upgrade prompt
@@ -57,6 +59,8 @@ const ApiKeysSection = () => {
         description: "Failed to delete API key",
         variant: "destructive"
       });
+    } finally {
+      setDeleteConfirmOpen(false);
     }
   };
 
@@ -136,7 +140,7 @@ const ApiKeysSection = () => {
             disabled={isLoading}
             icon={Plus}
           >
-            Create API Key
+            Create new
           </ModernButton>
         </div>
 
@@ -174,7 +178,7 @@ const ApiKeysSection = () => {
                       <TableCell>
                         <div className="flex items-center gap-2 font-mono text-sm">
                           <span className="text-slate-600 dark:text-slate-400">
-                            {apiKey.masked_key}
+                            {apiKey.masked_key.slice(0,10)}
                           </span>
                         </div>
                       </TableCell>
@@ -183,17 +187,11 @@ const ApiKeysSection = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          
                           <ModernButton
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleCopyKey(apiKey.masked_key)}
-                            icon={Copy}
-                            iconOnly
-                          />
-                          <ModernButton
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteKey(apiKey.id, apiKey.name)}
+                            onClick={() => setDeleteConfirmOpen(true)}
                             disabled={isLoading}
                             icon={Trash2}
                             iconOnly
@@ -201,7 +199,37 @@ const ApiKeysSection = () => {
                           />
                         </div>
                       </TableCell>
+                      {/* Delete Confirmation Modal */}
+                    <ModernModal
+                      open={deleteConfirmOpen}
+                      onOpenChange={setDeleteConfirmOpen}
+                      title="Delete API Key"
+                      description={`Are you sure you want to delete "${apiKey.name}"? This action cannot be undone.`}
+                      size="md"
+                      type='alert'
+                      footer={
+                        <div className="flex gap-3">
+                          <ModernButton variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+                            Cancel
+                          </ModernButton>
+                          <ModernButton 
+                            variant="gradient" 
+                            onClick={() => handleDeleteKey(apiKey.id, apiKey.name)}
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                          >
+                            Delete
+                          </ModernButton>
+                        </div>
+                      }
+                    >
+                      <div className="py-4">
+                        <p className="text-slate-600 dark:text-slate-400">
+                          This will permanently remove the knowledge source from your agent.
+                        </p>
+                      </div>
+                    </ModernModal>
                     </TableRow>
+                    
                   ))}
                 </TableBody>
               </Table>
@@ -223,7 +251,10 @@ const ApiKeysSection = () => {
             View our API documentation to learn how to integrate 7en.ai with your applications.
           </p>
           <ModernButton variant="outline">
+            <a href='https://docs.7en.ai/api/' target='_blank' className='flex gap-2'>
             View API Documentation
+            <ExternalLink className='w-4 h-4'/>
+            </a>
           </ModernButton>
         </div>
       </div>
@@ -246,19 +277,7 @@ const ApiKeysSection = () => {
         className="max-w-2xl"
       >
         <div className="space-y-6">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/50 dark:border-blue-800/30 rounded-xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Key className="h-6 w-6 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">New API Key Created</h3>
-                <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
-                  This key provides full access to your 7en.ai account. Store it securely and never share it publicly.
-                </p>
-              </div>
-            </div>
-          </div>
+          
           
           {currentApiKey && (
             <div className="space-y-3">
@@ -295,20 +314,7 @@ const ApiKeysSection = () => {
             </div>
           )}
 
-          <div className="bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-800/30 rounded-xl p-4">
-            <div className="flex gap-3">
-              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Security Best Practices</p>
-                <ul className="text-xs text-amber-700 dark:text-amber-300 mt-2 space-y-1">
-                  <li>• Store your API key in environment variables, not in your code</li>
-                  <li>• Never commit API keys to version control systems</li>
-                  <li>• Rotate your keys regularly for enhanced security</li>
-                  <li>• Monitor usage in your dashboard to detect unauthorized access</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          
         </div>
 
         <div className="flex justify-end gap-3 pt-6 border-t border-border/50">
@@ -321,6 +327,8 @@ const ApiKeysSection = () => {
           </ModernButton>
         </div>
       </ModernModal>
+
+        
     </section>
   );
 };
