@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Copy, AlertCircle, ChevronRight, RefreshCw, Plus, KeyRound, Eye, EyeOff, Key, Trash2, Check } from 'lucide-react';
+import { Copy, AlertCircle, ChevronRight, Plus, KeyRound, Eye, EyeOff, Key, Trash2, Check } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,35 +9,27 @@ import { usePricingModal } from '@/hooks/usePricingModal';
 import { useApiKeys } from '@/hooks/useApiKeys';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernModal } from '@/components/ui/modern-modal';
-import { ModernInput } from '@/components/ui/modern-input';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { CreateApiKeyModal } from './CreateApiKeyModal';
 
 const ApiKeysSection = () => {
   const { openPricingModal } = usePricingModal();
   const { toast } = useToast();
   const [isApiKeyDialogOpen, setIsApiKeyDialogOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [currentApiKey, setCurrentApiKey] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [apiKeyData, setApiKeyData] = useState<any>(null);
   
   // Simulate paid plan status - in real app this would come from user data
   const isPaidPlan = true; // Change to false to show the upgrade prompt
   
-  const { hasApiKey, isLoading, createApiKey, refreshApiKey, error, checkApiKeyExists } = useApiKeys();
+  const { apiKeys, isLoading, createApiKey, deleteApiKey, error } = useApiKeys();
 
-  const handleCreateKey = async () => {
+  const handleCreateKey = async (name: string) => {
     try {
-      const newKey = await createApiKey();
+      const newKey = await createApiKey(name);
       setCurrentApiKey(newKey);
-      setApiKeyData({
-        id: Date.now(),
-        key: newKey,
-        created_at: new Date().toISOString(),
-        last_used_at: null,
-        is_active: true
-      });
       setIsApiKeyDialogOpen(true);
       toast({
         title: "Success",
@@ -52,32 +44,19 @@ const ApiKeysSection = () => {
     }
   };
 
-  const handleRefreshKey = async () => {
-    setIsRefreshing(true);
+  const handleDeleteKey = async (keyId: number, keyName: string) => {
     try {
-      const newKey = await refreshApiKey();
-      setCurrentApiKey(newKey);
-      setApiKeyData(prev => ({
-        ...prev,
-        id: Date.now(),
-        key: newKey,
-        created_at: new Date().toISOString(),
-        last_used_at: prev?.last_used_at || null,
-        is_active: true
-      }));
-      setIsApiKeyDialogOpen(true);
+      await deleteApiKey(keyId);
       toast({
         title: "Success",
-        description: "API key refreshed successfully",
+        description: `API key "${keyName || 'Unnamed'}" deleted successfully`,
       });
     } catch (err) {
       toast({
         title: "Error",
-        description: "Failed to refresh API key",
+        description: "Failed to delete API key",
         variant: "destructive"
       });
-    } finally {
-      setIsRefreshing(false);
     }
   };
 
@@ -92,11 +71,6 @@ const ApiKeysSection = () => {
     setCurrentApiKey(null);
     setShowApiKey(false);
     setCopied(false);
-  };
-
-  const formatApiKey = (key: string) => {
-    if (!key) return '';
-    return `7en_${key.substring(4, 12)}...${key.substring(key.length - 8)}`;
   };
 
   const formatDate = (dateString: string) => {
@@ -143,7 +117,7 @@ const ApiKeysSection = () => {
       <div className="mb-8 pl-2">
         <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Your 7en.ai API Keys</h2>
         <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-          Manage your API key to access the 7en.ai API programmatically. Keep your API key secure - it has the same permissions as your account.
+          Manage your API keys to access the 7en.ai API programmatically. Keep your API keys secure - they have the same permissions as your account.
         </p>
       </div>
 
@@ -155,41 +129,28 @@ const ApiKeysSection = () => {
             </div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">API Keys</h3>
           </div>
-          {hasApiKey || apiKeyData ? (
-            <ModernButton 
-              variant="outline"
-              size="sm"
-              onClick={handleRefreshKey}
-              disabled={isLoading || isRefreshing}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'Refreshing...' : 'Refresh Key'}
-            </ModernButton>
-          ) : (
-            <ModernButton 
-              variant="primary"
-              size="sm"
-              onClick={handleCreateKey}
-              disabled={isLoading}
-              icon={Plus}
-            >
-              Create API Key
-            </ModernButton>
-          )}
+          <ModernButton 
+            variant="primary"
+            size="sm"
+            onClick={() => setIsCreateModalOpen(true)}
+            disabled={isLoading}
+            icon={Plus}
+          >
+            Create API Key
+          </ModernButton>
         </div>
 
         {isLoading ? (
           <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
             <div className="container mx-auto py-12 flex justify-center items-center h-64">
-              <LoadingSpinner size="lg" text="Generating..." />
+              <LoadingSpinner size="lg" text="Loading API Keys..." />
             </div>
           </div>
         ) : error ? (
           <div className="bg-red-50/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl">
-            <p>Failed to load API key information. Please try again.</p>
+            <p>Failed to load API keys. Please try again.</p>
           </div>
-        ) : (hasApiKey || apiKeyData) ? (
+        ) : apiKeys.length > 0 ? (
           <div className="space-y-4">
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
               <Table>
@@ -197,59 +158,51 @@ const ApiKeysSection = () => {
                   <TableRow className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                     <TableHead>Name</TableHead>
                     <TableHead>Key</TableHead>
-                    <TableHead>Status</TableHead>
                     <TableHead>Created</TableHead>
-                    <TableHead>Last Used</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <KeyRound className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                        Default API Key
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 font-mono text-sm">
-                        <span className="text-slate-600 dark:text-slate-400">
-                          {apiKeyData ? formatApiKey(apiKeyData.key) : '7en_••••••••••••••••'}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                        Active
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-slate-600 dark:text-slate-400">
-                      {apiKeyData ? formatDate(apiKeyData.created_at) : 'Just now'}
-                    </TableCell>
-                    <TableCell className="text-slate-600 dark:text-slate-400">
-                      {apiKeyData?.last_used_at ? formatDate(apiKeyData.last_used_at) : 'Never'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <ModernButton
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleCopyKey(apiKeyData?.key || 'sample-key-for-demo')}
-                          icon={Copy}
-                          iconOnly
-                        />
-                        <ModernButton
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleRefreshKey}
-                          disabled={isRefreshing}
-                          icon={RefreshCw}
-                          iconOnly
-                          className={isRefreshing ? '[&_svg]:animate-spin' : ''}
-                        />
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  {apiKeys.map((apiKey) => (
+                    <TableRow key={apiKey.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <KeyRound className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          {apiKey.name || 'Unnamed API Key'}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 font-mono text-sm">
+                          <span className="text-slate-600 dark:text-slate-400">
+                            {apiKey.masked_key}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-slate-600 dark:text-slate-400">
+                        {formatDate(apiKey.created_at)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <ModernButton
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCopyKey(apiKey.masked_key)}
+                            icon={Copy}
+                            iconOnly
+                          />
+                          <ModernButton
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteKey(apiKey.id, apiKey.name)}
+                            disabled={isLoading}
+                            icon={Trash2}
+                            iconOnly
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </div>
@@ -259,8 +212,8 @@ const ApiKeysSection = () => {
             <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <KeyRound className="h-8 w-8 text-slate-400" />
             </div>
-            <p className="text-slate-600 dark:text-slate-400 mb-2">No API key found</p>
-            <p className="text-sm text-slate-500 dark:text-slate-500">Create your API key to get started</p>
+            <p className="text-slate-600 dark:text-slate-400 mb-2">No API keys found</p>
+            <p className="text-sm text-slate-500 dark:text-slate-500">Create your first API key to get started</p>
           </div>
         )}
 
@@ -275,6 +228,15 @@ const ApiKeysSection = () => {
         </div>
       </div>
 
+      {/* Create API Key Modal */}
+      <CreateApiKeyModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        onCreateKey={handleCreateKey}
+        isLoading={isLoading}
+      />
+
+      {/* Show New API Key Modal */}
       <ModernModal
         open={isApiKeyDialogOpen}
         onOpenChange={handleCloseDialog}

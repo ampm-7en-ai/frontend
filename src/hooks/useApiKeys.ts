@@ -1,9 +1,27 @@
 
 import { useState, useEffect } from 'react';
 import { getApiUrl } from '@/utils/api-config';
-import { apiGet, apiPost } from '@/utils/api-interceptor';
+import { apiGet, apiPost, apiDelete } from '@/utils/api-interceptor';
 
-export interface ApiKeyResponse {
+export interface ApiKey {
+  id: number;
+  name: string;
+  masked_key: string;
+  created_at: string;
+}
+
+export interface ApiKeysResponse {
+  message: string;
+  data: {
+    api_keys: ApiKey[];
+    names: string[];
+    count: number;
+  };
+  status: string;
+  permissions: string[];
+}
+
+export interface ApiKeyCreateResponse {
   message: string;
   data: {
     id: number;
@@ -14,26 +32,18 @@ export interface ApiKeyResponse {
     last_used_at: string | null;
     description: string;
     raw_key: string;
-  };
-  status: string;
-  permissions: string[];
-}
-
-export interface ApiKeyExistenceResponse {
-  message: string;
-  data: {
-    has_api_key: boolean;
+    name: string;
   };
   status: string;
   permissions: string[];
 }
 
 export function useApiKeys() {
-  const [hasApiKey, setHasApiKey] = useState<boolean>(false);
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const checkApiKeyExists = async () => {
+  const fetchApiKeys = async () => {
     setIsLoading(true);
     setError(null);
     
@@ -41,31 +51,34 @@ export function useApiKeys() {
       const response = await apiGet(getApiUrl('v1/keys/'));
 
       if (!response.ok) {
-        throw new Error('Failed to check API key existence');
+        throw new Error('Failed to fetch API keys');
       }
 
-      const data: ApiKeyExistenceResponse = await response.json();
-      setHasApiKey(data.data.has_api_key);
+      const data: ApiKeysResponse = await response.json();
+      setApiKeys(data.data.api_keys);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to check API key existence'));
+      setError(err instanceof Error ? err : new Error('Failed to fetch API keys'));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const createApiKey = async (): Promise<string> => {
+  const createApiKey = async (name: string): Promise<string> => {
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await apiPost(getApiUrl('v1/keys/'), {});
+      const response = await apiPost(getApiUrl('v1/keys/'), { name });
 
       if (!response.ok) {
         throw new Error('Failed to create API key');
       }
 
-      const data: ApiKeyResponse = await response.json();
-      setHasApiKey(true);
+      const data: ApiKeyCreateResponse = await response.json();
+      
+      // Refresh the keys list
+      await fetchApiKeys();
+      
       return data.data.raw_key;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to create API key'));
@@ -75,21 +88,21 @@ export function useApiKeys() {
     }
   };
 
-  const refreshApiKey = async (): Promise<string> => {
+  const deleteApiKey = async (keyId: number): Promise<void> => {
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await apiPost(getApiUrl('v1/keys/refresh/'), {});
+      const response = await apiDelete(getApiUrl(`v1/keys/${keyId}/`));
 
       if (!response.ok) {
-        throw new Error('Failed to refresh API key');
+        throw new Error('Failed to delete API key');
       }
 
-      const data: ApiKeyResponse = await response.json();
-      return data.data.raw_key;
+      // Refresh the keys list
+      await fetchApiKeys();
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to refresh API key'));
+      setError(err instanceof Error ? err : new Error('Failed to delete API key'));
       throw err;
     } finally {
       setIsLoading(false);
@@ -97,15 +110,15 @@ export function useApiKeys() {
   };
 
   useEffect(() => {
-    checkApiKeyExists();
+    fetchApiKeys();
   }, []);
 
   return {
-    hasApiKey,
+    apiKeys,
     isLoading,
     error,
     createApiKey,
-    refreshApiKey,
-    checkApiKeyExists
+    deleteApiKey,
+    fetchApiKeys
   };
 }
