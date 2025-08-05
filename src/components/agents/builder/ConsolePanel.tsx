@@ -8,15 +8,19 @@ import { useBuilder } from '@/components/agents/builder/BuilderContext';
 
 interface ConsolePanelProps {
   className?: string;
+  isTraining?: boolean;
 }
 
-export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '' }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTraining = false }) => {
+  const [isExpanded, setIsExpanded] = useState(true); // Default expanded
   const [copiedTaskId, setCopiedTaskId] = useState<string | null>(null);
   const { state } = useBuilder();
   
   const agentId = state.agentData.id?.toString();
   const currentTask = agentId ? AgentTrainingService.getTrainingTask(agentId) : null;
+
+  // Determine if console should be visible
+  const shouldShowConsole = currentTask || isTraining;
 
   const handleCopyTaskId = async (taskId: string) => {
     try {
@@ -45,18 +49,25 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '' }) =>
     }
   };
 
+  // Don't render if conditions aren't met
+  if (!shouldShowConsole) {
+    return null;
+  }
+
   return (
-    <div className={`fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 transition-all duration-300 ${className}`}>
+    <div className={`absolute bottom-4 left-4 right-4 z-30 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg transition-all duration-300 ${className}`}>
       {/* Console Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 rounded-t-lg">
         <div className="flex items-center gap-2">
           <Terminal className="h-4 w-4 text-gray-600 dark:text-gray-400" />
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Console
+            Training Status
           </span>
-          {currentTask && (
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(currentTask.status)}`}>
-              {currentTask.status}
+          {(currentTask || isTraining) && (
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+              currentTask ? getStatusColor(currentTask.status) : 'text-blue-600 bg-blue-50'
+            }`}>
+              {currentTask ? currentTask.status : 'training'}
             </span>
           )}
         </div>
@@ -133,6 +144,12 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '' }) =>
                 </div>
               </div>
             </Card>
+          ) : isTraining ? (
+            <div className="text-center text-blue-600 dark:text-blue-400 py-4">
+              <Terminal className="h-8 w-8 mx-auto mb-2" />
+              <p className="text-sm">Training in progress...</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Task ID will be available shortly</p>
+            </div>
           ) : (
             <div className="text-center text-gray-500 dark:text-gray-400 py-8">
               <Terminal className="h-8 w-8 mx-auto mb-2 opacity-50" />

@@ -258,6 +258,8 @@ const AgentBuilderContent = () => {
         {/* Center Canvas */}
         <div className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-700 relative">
           <InteractiveCanvas />
+          {/* Console Panel positioned within the canvas */}
+          <ConsolePanel isTraining={isTraining} />
         </div>
         
         {/* Right Sidebar - Configuration & Guidelines */}
@@ -273,9 +275,6 @@ const AgentBuilderContent = () => {
           {!rightPanelCollapsed && <GuidelinesPanel />}
         </div>
       </div>
-
-      {/* Console Panel */}
-      <ConsolePanel />
     </div>
   );
 };
