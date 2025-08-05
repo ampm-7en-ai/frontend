@@ -1,58 +1,20 @@
 
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
 import { toast } from '@/hooks/use-toast';
+import { useNotifications } from '@/context/NotificationContext';
+import { NotificationTypes } from '@/types/notification';
 
 export interface TrainingResponse {
   message: string;
-  task_id: string;
+  vector_store: string;
 }
-
-// Training task storage utilities
-const TRAINING_STORAGE_KEY = 'agent_training_tasks';
-
-interface TrainingTask {
-  agentId: string;
-  taskId: string;
-  agentName: string;
-  startTime: string;
-  status: 'started' | 'completed' | 'failed';
-}
-
-const getTrainingTasks = (): TrainingTask[] => {
-  try {
-    const stored = localStorage.getItem(TRAINING_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch (error) {
-    console.error('Error reading training tasks from localStorage:', error);
-    return [];
-  }
-};
-
-const saveTrainingTask = (task: TrainingTask): void => {
-  try {
-    const tasks = getTrainingTasks();
-    const existingIndex = tasks.findIndex(t => t.agentId === task.agentId);
-    
-    if (existingIndex >= 0) {
-      tasks[existingIndex] = task;
-    } else {
-      tasks.push(task);
-    }
-    
-    localStorage.setItem(TRAINING_STORAGE_KEY, JSON.stringify(tasks));
-    console.log('Training task saved to localStorage:', task);
-  } catch (error) {
-    console.error('Error saving training task to localStorage:', error);
-  }
-};
-
-export const getTrainingTaskForAgent = (agentId: string): TrainingTask | null => {
-  const tasks = getTrainingTasks();
-  return tasks.find(t => t.agentId === agentId) || null;
-};
 
 export const AgentTrainingService = {
   async trainAgent(agentId: string, knowledgeSources: number[] = [], agentName: string, selectedUrls: string[] = []): Promise<boolean> {
+   // console.log("Training agent started:", { agentId, agentName, knowledgeSources });
+    
+    // Problem: We can't use hooks like useNotifications inside a regular function
+    // Solution: We need to accept the addNotification function as a parameter
     const token = getAccessToken();
     if (!token) {
       console.error("Authentication required for training agent");
@@ -65,6 +27,9 @@ export const AgentTrainingService = {
     }
     
     try {
+      // Add a training started notification
+      // This needs to be done by the calling component
+      
       const response = await fetch(`${BASE_URL}ai/train-agent/`, {
         method: "POST",
         headers: getAuthHeaders(token),
@@ -74,30 +39,20 @@ export const AgentTrainingService = {
           selected_urls: selectedUrls
         })
       });
-      
-      const res: TrainingResponse = await response.json();
+      const res = await response.json();
       
       if (!response.ok) {
-        console.log("Training request failed:", res);
-        const errorText = (res as any).error || "Train agent request failed.";
-        throw new Error(errorText);
+        console.log("pipip",res);
+         const errorText = res.error;
+        // console.error("Train agent request failed:", errorText);
+         throw new Error(errorText || "Train agent request failed.");
       }
       
-      // Save training task to localStorage
-      const trainingTask: TrainingTask = {
-        agentId,
-        taskId: res.task_id,
-        agentName,
-        startTime: new Date().toISOString(),
-        status: 'started'
-      };
-      
-      saveTrainingTask(trainingTask);
-      
+      // The notification should be added by the calling component
       toast({
-        title: "Training Started",
-        description: res.message || `${agentName} training started successfully.`,
-        variant: "default"
+        title: "Training Complete",
+        description: res.message || `${agentName} training completed successfully.`,
+        variant: "success"
       });
       
       return true;

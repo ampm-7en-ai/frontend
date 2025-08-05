@@ -7,7 +7,6 @@ import { GuidelinesPanel } from '@/components/agents/builder/GuidelinesPanel';
 import { InteractiveCanvas } from '@/components/agents/builder/InteractiveCanvas';
 import { TrainingAlertBadge } from '@/components/ui/training-alert-badge';
 import { UntrainedSourcesAlert } from '@/components/agents/builder/UntrainedSourcesAlert';
-import { ConsolePanel } from '@/components/agents/builder/ConsolePanel';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
@@ -230,7 +229,7 @@ const AgentBuilderContent = () => {
         onAgentDataRefresh={refetchAgentData}
       />
       
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Knowledge Base */}
         <div className={`${leftPanelCollapsed ? 'w-12' : 'w-80'} border-r border-gray-200 dark:border-gray-700 transition-all duration-300 relative`}>
           <Button
@@ -262,9 +261,6 @@ const AgentBuilderContent = () => {
           {!rightPanelCollapsed && <GuidelinesPanel />}
         </div>
       </div>
-
-      {/* Console Panel */}
-      <ConsolePanel agentId={state.agentData.id?.toString() || ''} />
     </div>
   );
 };
