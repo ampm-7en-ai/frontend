@@ -493,9 +493,9 @@ export const GuidelinesPanel = () => {
         </h2>
       </div>
       
-      <ScrollArea className="flex-1 h-[calc(100%-80px)]">
+      <ScrollArea className="flex-1 h-[calc(100%-60px)]">
         <div className="p-4">
-          <Accordion type="multiple" defaultValue={["basic", "guidelines"]} className="space-y-4">
+          <Accordion type="multiple" defaultValue={["basic"]} className="space-y-4">
             {/* Basic Settings */}
             <AccordionItem value="basic" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
@@ -591,7 +591,7 @@ export const GuidelinesPanel = () => {
                       max={1}
                       min={0}
                       step={0.1}
-                      className="mt-3"
+                      className="mt-3 dark:bg-slate-900"
                     />
                   </div>
 

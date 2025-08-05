@@ -286,9 +286,9 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
   return (
     <>
       {/* Canvas container - proper positioning context */}
-      <div className="relative w-full h-full bg-white dark:bg-gray-900 overflow-hidden">
+      <div className="relative w-full h-full bg-white dark:bg-gray-900 flex flex-col">
         {/* Canvas content area */}
-        <div className="absolute inset-0">
+        <div className="flex-1">
           {getCanvasContent()}
         </div>
         
