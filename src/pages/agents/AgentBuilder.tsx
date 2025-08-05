@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { BuilderProvider, useBuilder } from '@/components/agents/builder/BuilderContext';
 import { BuilderToolbar } from '@/components/agents/builder/BuilderToolbar';
@@ -14,6 +13,7 @@ import { useNotifications } from '@/context/NotificationContext';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { agentApi } from '@/utils/api-config';
+import { ConsolePanel } from '@/components/agents/builder/ConsolePanel';
 
 const AgentBuilderContent = () => {
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
@@ -167,6 +167,9 @@ const AgentBuilderContent = () => {
         // Manually refetch agent data from API instead of page refresh
         await refetchAgentData();
 
+        // Update the task status to completed
+        AgentTrainingService.updateTaskStatus(agentId, 'completed');
+
         addNotification({
           title: 'Training Complete',
           message: `Agent "${state.agentData.name}" training completed successfully.`,
@@ -175,6 +178,9 @@ const AgentBuilderContent = () => {
           agentName: state.agentData.name
         });
       } else {
+        // Update the task status to failed
+        AgentTrainingService.updateTaskStatus(agentId, 'failed');
+
         addNotification({
           title: 'Training Failed',
           message: `Agent "${state.agentData.name}" training failed.`,
@@ -185,6 +191,12 @@ const AgentBuilderContent = () => {
       }
     } catch (error) {
       console.error("Error training agent:", error);
+      
+      // Update the task status to failed
+      if (agentId) {
+        AgentTrainingService.updateTaskStatus(agentId, 'failed');
+      }
+
       addNotification({
         title: 'Training Failed',
         message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -261,6 +273,9 @@ const AgentBuilderContent = () => {
           {!rightPanelCollapsed && <GuidelinesPanel />}
         </div>
       </div>
+
+      {/* Console Panel */}
+      <ConsolePanel />
     </div>
   );
 };
