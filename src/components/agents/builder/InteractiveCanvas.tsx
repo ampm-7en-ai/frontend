@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
 import { useBuilder } from './BuilderContext';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { AskAiModal } from './AskAiModal';
+import { ConsolePanel } from './ConsolePanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Bot, MessageCircleReplyIcon, MessageCircle, MessageSquare } from 'lucide-react';
@@ -9,7 +11,11 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import ModernButton from '@/components/dashboard/ModernButton';
 
-export const InteractiveCanvas = () => {
+interface InteractiveCanvasProps {
+  isTraining?: boolean;
+}
+
+export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining = false }) => {
   const { state } = useBuilder();
   const { agentData, canvasMode, isPreviewActive, isLoading } = state;
   const [isAskAiOpen, setIsAskAiOpen] = useState(false);
@@ -285,6 +291,9 @@ export const InteractiveCanvas = () => {
         <div className="absolute inset-0">
           {getCanvasContent()}
         </div>
+        
+        {/* Console Panel positioned within the canvas */}
+        <ConsolePanel isTraining={isTraining} />
       </div>
 
       <AskAiModal 
