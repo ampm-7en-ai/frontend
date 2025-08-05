@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from "@/hooks/use-toast";
@@ -24,9 +25,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { UploadCloud, RefreshCw, Google, X, Loader2 } from 'lucide-react';
+import { UploadCloud, RefreshCw, X, Loader2 } from 'lucide-react';
 import { useGoogleDrive } from '@/hooks/useGoogleDrive';
-import { SourceTypeSelector } from '@/components/agents/knowledge/SourceTypeSelector';
+import SourceTypeSelector from '@/components/agents/knowledge/SourceTypeSelector';
 import {
   BASE_URL, getAuthHeaders, getKnowledgeBaseEndpoint, getApiUrl, API_ENDPOINTS
 } from '@/utils/api-config';
