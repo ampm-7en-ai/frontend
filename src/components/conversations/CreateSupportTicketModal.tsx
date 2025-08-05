@@ -276,7 +276,7 @@ const CreateSupportTicketModal = ({
             />
           </div>
           
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="priority">Priority *</Label>
             <ModernDropdown
               value={priority}
@@ -285,7 +285,7 @@ const CreateSupportTicketModal = ({
               placeholder="Select priority"
               disabled={isCreating || !selectedProviderData}
             />
-          </div>
+          </div> */}
           
           <div className="space-y-2">
             <Label htmlFor="content">Content *</Label>

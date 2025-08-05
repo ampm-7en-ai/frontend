@@ -292,7 +292,7 @@ const ZendeskIntegration = () => {
                 />
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Find your API key in Zendesk: Admin → Channels → API
+                Find your API key in Zendesk: Apps & Integrations → APIs → API tokens → Add API tokens 
               </p>
             </div>
           </div>

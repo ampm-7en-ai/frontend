@@ -444,7 +444,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           {isGoogleLoading ? "Signing in..." : "Sign in with Google"}
         </ModernButton>
         
-        <ModernButton 
+        {/* <ModernButton 
           variant="outline" 
           size="lg"
           className="w-full h-11"
@@ -453,7 +453,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             <path d="M10 2L3 7v11h4v-6h6v6h4V7l-7-5z"/>
           </svg>
           Sign in with SSO
-        </ModernButton>
+        </ModernButton> */}
       </div>
 
       <ForgotPasswordDialog 

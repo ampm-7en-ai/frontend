@@ -50,7 +50,7 @@ export const createTicket = async (providerId: string, ticketData: TicketData): 
     session_id: ticketData.conversation?.id || ticketData.session_id,
     subject: ticketData.subject,
     description: ticketData.content,
-    priority: priorityNumber,
+    //priority: priorityNumber,
     provider: providerId
   };
 
