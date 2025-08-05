@@ -54,7 +54,7 @@ const KnowledgeUpload = () => {
   const [selectedAgentId, setSelectedAgentId] = useState<string>('');
   const [agents, setAgents] = useState<any[]>([]);
   const [isLoadingAgents, setIsLoadingAgents] = useState(false);
-
+  const [pageData, setPageData] = useState({nextToken:"", prevToken:""});
   // Fetch agents for dropdown
   const fetchAgents = async () => {
     setIsLoadingAgents(true);
@@ -290,6 +290,10 @@ const KnowledgeUpload = () => {
       const response = await fetchGoogleDriveFiles();
       setGoogleDriveFiles(response.files || []);
       
+      setPageData({
+        nextToken: response.nextPageToken || "",
+        prevToken: response.prevPageToken || ""
+      });
       // Auto-select some files (you can modify this logic)
       const autoSelectedFiles = response.files
         ?.filter((file: GoogleDriveFile) => 
@@ -932,6 +936,7 @@ const KnowledgeUpload = () => {
                   sortOrder={sortOrder}
                   handleSortToggle={handleSortToggle}
                   handleRefreshFiles={handleRefreshFiles}
+                  pageData={pageData}
                 />
                 
                 {/* Actions */}
