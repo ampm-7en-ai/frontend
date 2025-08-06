@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { authApi } from '@/utils/api-config';
+import ModernButton from '../dashboard/ModernButton';
 
 // Schema for the forgot password form
 const forgotPasswordSchema = z.object({
@@ -36,6 +37,7 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({ isOpen, onC
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [email,setEmail] = useState("");
 
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -47,6 +49,7 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({ isOpen, onC
   const handleSubmit = async (values: ForgotPasswordFormValues) => {
     setIsSubmitting(true);
     setErrorMessage(null);
+    setEmail(values.email)
     
     try {
       const response = await authApi.forgotPassword(values.email);
@@ -107,12 +110,13 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({ isOpen, onC
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4" />
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-gray h-4 w-4 z-10" />
                       <FormControl>
                         <Input
                           placeholder="Enter your email address"
                           className="pl-9"
                           {...field}
+                          variant='modern'
                         />
                       </FormControl>
                     </div>
@@ -128,27 +132,27 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({ isOpen, onC
               )}
               
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={handleDialogClose}>
+                <ModernButton type="button" variant="outline" onClick={handleDialogClose}>
                   Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                </ModernButton>
+                <ModernButton type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Sending..." : "Send reset link"}
-                </Button>
+                </ModernButton>
               </DialogFooter>
             </form>
           </Form>
         ) : (
           <div className="space-y-4">
-            <div className="bg-green-50 p-4 rounded-md border border-green-200">
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <p className="text-green-800">
-                Password reset instructions have been sent to <span className="font-semibold">{form.getValues().email}</span>. 
+                Password reset instructions have been sent to <span className="font-semibold">{email}</span>. 
                 Please check your email inbox and follow the instructions to reset your password.
               </p>
             </div>
             <DialogFooter>
-              <Button onClick={handleDialogClose}>
+              <ModernButton onClick={handleDialogClose}>
                 Close
-              </Button>
+              </ModernButton>
             </DialogFooter>
           </div>
         )}

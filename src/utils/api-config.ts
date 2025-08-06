@@ -212,7 +212,7 @@ export const authApi = {
 
   forgotPassword: async (email: string) => {
     const response = await apiPost(getApiUrl(API_ENDPOINTS.FORGOT_PASSWORD), {
-      data: email,
+      data: {email: email},
       header: { "X-Frontend-URL": window.location.origin, 'Content-Type': 'application/json' }
     }, false);
     return response;

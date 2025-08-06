@@ -22,7 +22,7 @@ const signupSchema = z.object({
     .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
   phone_number: z.string().min(10, "Valid phone number is required"),
   website: z.string().optional(),
-  address: z.string().min(1, "Address is required"),
+  address: z.string().optional(),
   username: z.string().min(3, "Username must be at least 3 characters"),
 });
 
@@ -331,7 +331,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             />
           </div>
           
-          <FormField
+          {/* <FormField
             control={form.control}
             name="website"
             render={({ field }) => (
@@ -352,9 +352,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                 <FormMessage />
               </FormItem>
             )}
-          />
+          /> */}
           
-          <FormField
+          {/* <FormField
             control={form.control}
             name="address"
             render={({ field }) => (
@@ -375,7 +375,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                 <FormMessage />
               </FormItem>
             )}
-          />
+          /> */}
           
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
             <p className="text-sm text-gray-600 leading-relaxed">
