@@ -188,11 +188,13 @@ export const GuidelinesPanel = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      
       const response = await fetch(getApiUrl('users/upload-file/'), {
         method: 'POST',
         body: formData,
-        headers: {"Authorization": `Bearer ${getAccessToken()}` }
+        headers: {
+          "Authorization": `Bearer ${getAccessToken()}`,
+          "X-Frontend-URL": window.location.origin
+        }
       });
       
       if (!response.ok) {

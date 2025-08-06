@@ -13,7 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useAuth } from '@/context/AuthContext';
-import { getApiUrl, getAuthHeaders, API_ENDPOINTS } from '@/utils/api-config';
+import { getApiUrl, getAuthHeaders, API_ENDPOINTS, getAccessToken } from '@/utils/api-config';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -244,7 +244,11 @@ const TeamManagementSection = () => {
       
       const response = await fetch(getApiUrl('users/create_team_invite/'), {
         method: 'POST',
-        headers: getAuthHeaders(token),
+        headers: {
+          "Authorization": `Bearer ${getAccessToken()}`,
+          "X-Frontend-URL": window.location.origin,
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           email: data.email,
           team_role_id: data.team_role_id

@@ -289,10 +289,11 @@ export const apiGet = (url: string, authRequired: boolean = true): Promise<Respo
 
 // Convenience wrapper for POST requests
 export const apiPost = (url: string, data: any, authRequired: boolean = true): Promise<Response> => {
+  
   return apiRequest(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
+    headers: data.hasOwnProperty("header") ? data.header : { 'Content-Type': 'application/json' },
+    body: data.hasOwnProperty("header") ? JSON.stringify(data.data) : JSON.stringify(data)
   }, authRequired);
 };
 
