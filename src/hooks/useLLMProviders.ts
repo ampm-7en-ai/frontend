@@ -7,7 +7,7 @@ import { apiGet } from '@/utils/api-interceptor';
 // Non-admin simplified provider structure
 export interface LLMProvider {
   provider_name: string;
-  models: string[];
+  models: ModelObject;
   default_model: string | null;
 }
 
@@ -18,6 +18,7 @@ export interface ModelObject {
   provider_config?: number;
   created_at?: string;
   updated_at?: string;
+  display_name: string;
 }
 
 // Superadmin provider structure (completely separate from LLMProvider)

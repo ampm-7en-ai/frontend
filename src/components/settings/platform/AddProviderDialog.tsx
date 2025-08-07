@@ -61,7 +61,7 @@ const AddProviderDialog = ({ isOpen, onClose, onProviderAdded }: AddProviderDial
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.provider_name || !formData.api_key || !formData.default_model) {
+    if (!formData.provider_name || !formData.api_key ) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -172,25 +172,7 @@ const AddProviderDialog = ({ isOpen, onClose, onProviderAdded }: AddProviderDial
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="default_model">Default Model *</Label>
-            <Select 
-              value={formData.default_model} 
-              onValueChange={(value) => setFormData(prev => ({ ...prev, default_model: value }))}
-              disabled={!selectedProvider}
-            >
-              <SelectTrigger variant="modern">
-                <SelectValue placeholder="Select model" />
-              </SelectTrigger>
-              <SelectContent variant="modern">
-                {selectedProvider?.models.map((model) => (
-                  <SelectItem key={model} value={model} variant="modern">
-                    {model}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          
 
           <div className="flex items-center space-x-2">
             <Switch

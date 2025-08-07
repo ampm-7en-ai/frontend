@@ -9,13 +9,14 @@ import { Loader2 } from 'lucide-react';
 interface AddModelDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onModelAdded: (providerId: number, modelName: string) => Promise<void>;
+  onModelAdded: (providerId: number, modelName: string, displayName: string) => Promise<void>;
   providerId: number;
   providerName: string;
 }
 
 const AddModelDialog = ({ isOpen, onClose, onModelAdded, providerId, providerName }: AddModelDialogProps) => {
   const [modelName, setModelName] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,7 +26,7 @@ const AddModelDialog = ({ isOpen, onClose, onModelAdded, providerId, providerNam
 
     try {
       setIsLoading(true);
-      await onModelAdded(providerId, modelName.trim());
+      await onModelAdded(providerId, modelName.trim(), displayName.trim());
       setModelName('');
       onClose();
     } catch (error) {
@@ -58,6 +59,14 @@ const AddModelDialog = ({ isOpen, onClose, onModelAdded, providerId, providerNam
               placeholder="e.g., gpt-4o, claude-3-sonnet"
               value={modelName}
               onChange={(e) => setModelName(e.target.value)}
+              disabled={isLoading}
+            />
+            <Label htmlFor="displayName">Display Name (Semantic name)</Label>
+             <Input
+              id="displayName"
+              placeholder="e.g., Open AI GPT Turbo"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
               disabled={isLoading}
             />
           </div>

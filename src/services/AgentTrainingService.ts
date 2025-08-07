@@ -1,6 +1,7 @@
 
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
 import { toast } from '@/hooks/use-toast';
+import { trainingSSEService, SSETrainingEvent } from './TrainingSSEService';
 
 export interface TrainingResponse {
   message: string;
@@ -39,7 +40,7 @@ const saveTrainingTask = (agentId: string, taskId: string, agentName: string) =>
 };
 
 // Helper function to update training task status
-const updateTrainingTaskStatus = (agentId: string, status: 'completed' | 'failed') => {
+const updateTrainingTaskStatus = (agentId: string, status: 'completed' | 'failed' | 'training') => {
   try {
     const tasks = getTrainingTasks();
     if (tasks[agentId]) {
@@ -86,6 +87,9 @@ export const AgentTrainingService = {
       // Save the task_id to localStorage with agent information
       if (res.task_id) {
         saveTrainingTask(agentId, res.task_id, agentName);
+
+        //Subscribe to SSE updates
+        this.subscribeToTrainingUpdates(agentId, res.task_id, agentName);
       }
       
       toast({
@@ -111,6 +115,70 @@ export const AgentTrainingService = {
     }
   },
   
+  // Subscribe to real-time training updates via SSE
+
+  subscribeToTrainingUpdates(agentId: string, taskId: string, agentName: string): void {
+    const callback = (event: SSETrainingEvent) => {
+      switch (event.event) {
+        case 'training_started':
+          updateTrainingTaskStatus(agentId, 'training');
+          toast({
+            title: "Training Started",
+            description: `Training has started for ${agentName}`,
+            variant: "default"
+          });
+          break;
+
+        case 'training_progress':
+          // Update progress if your UI supports it
+          console.log(`Training progress: ${event.data.progress}%`);
+          break;
+
+        case 'training_completed':
+          updateTrainingTaskStatus(agentId, 'completed');
+          toast({
+            title: "Training Complete",
+            description: `${agentName} training completed successfully!`,
+            variant: "default"
+          });
+          // Unsubscribe after completion
+          trainingSSEService.unsubscribe(agentId, taskId);
+          break;
+
+        case 'training_failed':
+          updateTrainingTaskStatus(agentId, 'failed');
+          toast({
+            title: "Training Failed",
+            description: event.data.error || `${agentName} training failed.`,
+            variant: "destructive"
+          });
+          // Unsubscribe after failure
+          trainingSSEService.unsubscribe(agentId, taskId);
+          break;
+
+        case 'training_cancelled':
+          updateTrainingTaskStatus(agentId, 'failed'); // Or add 'cancelled' status
+          toast({
+            title: "Training Cancelled",
+            description: `${agentName} training was cancelled.`,
+            variant: "default"
+          });
+          // Unsubscribe after cancellation
+          trainingSSEService.unsubscribe(agentId, taskId);
+          break;
+      }
+    };
+
+    //trainingSSEService.subscribe(agentId, taskId, callback);
+  },
+
+  /**
+   * Unsubscribe from training updates
+   */
+  unsubscribeFromTrainingUpdates(agentId: string, taskId: string): void {
+    trainingSSEService.unsubscribe(agentId, taskId);
+  },
+
   async cancelTraining(agentId: string): Promise<boolean> {
     const token = getAccessToken();
     if (!token) {

@@ -38,11 +38,12 @@ export const transformProvidersToModelOptions = (providers: LLMProvider[]): Mode
   const modelOptions: ModelOption[] = [];
 
   providers.forEach(provider => {
-    provider.models.forEach(modelKey => {
-      const displayName = MODEL_DISPLAY_NAMES[modelKey] || modelKey;
+    provider.models.map((model) => {
+      //const displayName = MODEL_DISPLAY_NAMES[modelKey] || modelKey;
+      console.log("pipip",model);
       modelOptions.push({
-        value: modelKey,
-        label: `${displayName} (${provider.provider_name})`,
+        value: model.name,
+        label: model.display_name,
         provider: provider.provider_name
       });
     });

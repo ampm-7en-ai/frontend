@@ -267,7 +267,10 @@ const LLMProvidersSettings = () => {
                                 <div key={modelObj.id || modelObj.name} className="flex items-center justify-between p-3 border rounded-lg">
                                   <div className="flex items-center space-x-3">
                                     <div>
-                                      <div className="font-medium">{modelObj.name}</div>
+                                      <div className="font-medium">
+                                        {modelObj.display_name}<br/>
+                                        <span className='text-[9px]'>{modelObj.name}</span>
+                                      </div>
                                       {isDefault && (
                                         <Badge variant="outline" className="text-xs mt-1">Default</Badge>
                                       )}

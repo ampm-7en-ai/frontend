@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
-import { ChevronUp, ChevronDown, Terminal, Copy, Check, LoaderCircle } from 'lucide-react';
+import { ChevronUp, ChevronDown, Terminal, Copy, Check, LoaderCircle, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
+import { trainingSSEService } from '@/services/TrainingSSEService';
 import { useBuilder } from '@/components/agents/builder/BuilderContext';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -15,14 +15,44 @@ interface ConsolePanelProps {
 }
 
 export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTraining = false }) => {
-  const [isExpanded, setIsExpanded] = useState(true); // Default expanded
+  const [isExpanded, setIsExpanded] = useState(true);
   const [copiedTaskId, setCopiedTaskId] = useState<string | null>(null);
-  const { state } = useBuilder();
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'open' | 'closed'>('closed');
+  const [trainingProgress, setTrainingProgress] = useState<number | null>(null);
   
+  const { state } = useBuilder();
   const agentId = state.agentData.id?.toString();
   const currentTask = agentId ? AgentTrainingService.getTrainingTask(agentId) : null;
 
-  // Determine if console should be visible
+  // Check SSE connection status periodically
+  useEffect(() => {
+    const checkConnectionStatus = () => {
+      setConnectionStatus(trainingSSEService.getConnectionStatus());
+    };
+
+    const interval = setInterval(checkConnectionStatus, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Subscribe to SSE updates when component mounts and we have a task
+  useEffect(() => {
+    if (currentTask && agentId) {
+      const callback = (event) => {
+        if (event.event === 'training_progress' && event.data.progress !== undefined) {
+          setTrainingProgress(event.data.progress);
+        }
+        // Force re-render by updating the component state indirectly
+        // The actual status updates are handled by AgentTrainingService
+      };
+
+      AgentTrainingService.subscribeToTrainingUpdates(agentId, currentTask.taskId, currentTask.agentName);
+      
+      return () => {
+        AgentTrainingService.unsubscribeFromTrainingUpdates(agentId, currentTask.taskId);
+      };
+    }
+  }, [currentTask, agentId]);
+
   const shouldShowConsole = currentTask || isTraining;
 
   const handleCopyTaskId = async (taskId: string) => {
@@ -51,10 +81,11 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
         return 'text-gray-600 bg-gray-50';
     }
   };
+
   const getStatusBadge = (status) => {
     const statusConfig = {
       'active': { label: 'Untrained', className: 'bg-yellow-50 text-yellow-800 border-yellow-200 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800' },
-      'completed': { label: 'Completed', className: 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/60 dark:text-blue-400 dark:border-blue-700' },
+      'completed': { label: 'Completed', className: 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/60 dark:text-green-400 dark:border-green-700' },
       'training': { label: 'Training', className: 'bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800' },
       'failed': { label: 'Failed', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
       'deleted': { label: 'Deleted', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
@@ -63,9 +94,20 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
     const config = statusConfig[status?.toLowerCase()] || { label: 'Unknown', className: 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800' };
     return <Badge className={`${config.className} text-[9px] font-medium`}>{config.label}</Badge>;
-};
+  };
 
-  // Don't render if conditions aren't met
+  const getConnectionIcon = () => {
+    switch (connectionStatus) {
+      case 'open':
+        return <Wifi className="h-3 w-3 text-green-600" />;
+      case 'connecting':
+        return <LoaderCircle className="h-3 w-3 text-yellow-600 animate-spin" />;
+      case 'closed':
+      default:
+        return <WifiOff className="h-3 w-3 text-gray-400" />;
+    }
+  };
+
   if (!shouldShowConsole) {
     return null;
   }
@@ -82,6 +124,12 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           {(currentTask || isTraining) && (
             getStatusBadge(currentTask ? currentTask.hasOwnProperty('status') ? currentTask.status : "training" : "training")
           )}
+          
+          {/* SSE Connection Status */}
+          <div className="flex items-center gap-1 ml-2" title={`SSE Connection: ${connectionStatus}`}>
+            {getConnectionIcon()}
+            <span className="text-xs text-gray-500">{connectionStatus}</span>
+          </div>
         </div>
         
         <Button
@@ -96,82 +144,98 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             <ChevronUp className="h-3 w-3" />
           )}
         </Button>
-        
       </div>
+      
       <ScrollArea className="flex-1 h-[calc(100%-40px)]">
-      <div className="p-0">
-      {/* Console Content */}
-      {isExpanded && (
-        <div className="p-4 max-h-60">
-          {currentTask ? (
-            <Card className="p-4 bg-gray-50 dark:bg-gray-800">
-              <div className="space-y-3">
-                <div>
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                    Training Task Information
-                  </h4>
-                </div>
-                
-                <div className="grid grid-cols-1 gap-3 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-600 dark:text-gray-400">Agent:</span>
-                    <span className="ml-2 text-gray-900 dark:text-gray-100">
-                      {currentTask.agentName}
-                    </span>
-                  </div>
-                  
-                  <div>
-                    <span className="font-medium text-gray-600 dark:text-gray-400">Status: </span>
-                    {getStatusBadge(currentTask.status)}
-                  </div>
-                  
-                  <div>
-                    <span className="font-medium text-gray-600 dark:text-gray-400">Started:</span>
-                    <span className="ml-2 text-gray-900 dark:text-gray-100">
-                      {formatTimestamp(currentTask.timestamp)}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-end justify-between">
-                    <div className="flex-1 min-w-0">
-                      <span className="font-medium text-gray-600 dark:text-gray-400">Task ID:</span>
-                      <div className="font-mono text-xs text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 px-2 py-1 rounded border break-all">
-                        {currentTask.taskId}
+        <div className="p-0">
+          {/* Console Content */}
+          {isExpanded && (
+            <div className="p-4 max-h-60">
+              {currentTask ? (
+                <Card className="p-4 bg-gray-50 dark:bg-gray-800">
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+                        Training Task Information
+                      </h4>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-3 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-600 dark:text-gray-400">Agent:</span>
+                        <span className="ml-2 text-gray-900 dark:text-gray-100">
+                          {currentTask.agentName}
+                        </span>
+                      </div>
+                      
+                      <div>
+                        <span className="font-medium text-gray-600 dark:text-gray-400">Status: </span>
+                        {getStatusBadge(currentTask.status)}
+                      </div>
+                      
+                      {/* Training Progress */}
+                      {trainingProgress !== null && currentTask.status === 'training' && (
+                        <div>
+                          <span className="font-medium text-gray-600 dark:text-gray-400">Progress:</span>
+                          <div className="ml-2 flex items-center gap-2">
+                            <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                                style={{ width: `${trainingProgress}%` }}
+                              />
+                            </div>
+                            <span className="text-xs text-gray-500">{trainingProgress}%</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div>
+                        <span className="font-medium text-gray-600 dark:text-gray-400">Started:</span>
+                        <span className="ml-2 text-gray-900 dark:text-gray-100">
+                          {formatTimestamp(currentTask.timestamp)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-end justify-between">
+                        <div className="flex-1 min-w-0">
+                          <span className="font-medium text-gray-600 dark:text-gray-400">Task ID:</span>
+                          <div className="font-mono text-xs text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 px-2 py-1 rounded border break-all">
+                            {currentTask.taskId}
+                          </div>
+                        </div>
+                        <ModernButton
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCopyTaskId(currentTask.taskId)}
+                          className="ml-2 h-8 w-8 p-2"
+                          title="Copy Task ID"
+                          iconOnly
+                        >
+                          {copiedTaskId === currentTask.taskId ? (
+                            <Check className="h-3 w-3 text-green-600" />
+                          ) : (
+                            <Copy className="h-3 w-3" />
+                          )}
+                        </ModernButton>
                       </div>
                     </div>
-                    <ModernButton
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleCopyTaskId(currentTask.taskId)}
-                      className="ml-2 h-8 w-8 p-2"
-                      title="Copy Task ID"
-                      iconOnly
-                    >
-                      {copiedTaskId === currentTask.taskId ? (
-                        <Check className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <Copy className="h-3 w-3" />
-                      )}
-                    </ModernButton>
                   </div>
+                </Card>
+              ) : isTraining ? (
+                <div className="text-center text-blue-600 dark:text-blue-400 py-4">
+                  <Terminal className="h-8 w-8 mx-auto mb-2" />
+                  <p className="text-sm">Training in progress...</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Task ID will be available shortly</p>
                 </div>
-              </div>
-            </Card>
-          ) : isTraining ? (
-            <div className="text-center text-blue-600 dark:text-blue-400 py-4">
-              <Terminal className="h-8 w-8 mx-auto mb-2" />
-              <p className="text-sm">Training in progress...</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Task ID will be available shortly</p>
-            </div>
-          ) : (
-            <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-              <Terminal className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No training tasks found for this agent</p>
+              ) : (
+                <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                  <Terminal className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No training tasks found for this agent</p>
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
-      </div>
       </ScrollArea>
     </div>
   );

@@ -82,14 +82,15 @@ export const useSuperAdminLLMProviders = () => {
     }
   };
 
-  const addModel = async (providerId: number, modelName: string) => {
+  const addModel = async (providerId: number, modelName: string, displayName: string) => {
     try {
       const response = await apiRequest(getApiUrl('admin/provider-models/'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider_config: providerId,
-          name: modelName
+          name: modelName,
+          display_name: displayName
         })
       });
 
