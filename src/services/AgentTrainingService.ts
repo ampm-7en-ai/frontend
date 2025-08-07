@@ -169,7 +169,7 @@ export const AgentTrainingService = {
       }
     };
 
-    //trainingSSEService.subscribe(agentId, taskId, callback);
+    trainingSSEService.subscribe(agentId, taskId, callback);
   },
 
   /**
