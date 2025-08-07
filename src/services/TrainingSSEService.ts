@@ -63,7 +63,7 @@ class TrainingSSEService {
       this.disconnect();
 
       // Create new EventSource connection
-      const sseUrl = `https://api.7en.ai/api/ai/train-status/${agentId}`;
+      const sseUrl = `https://api-staging.7en.ai/api/ai/train-status/${agentId}`;
       
       // EventSource doesn't support custom headers, so we pass token as query param
       const urlWithAuth = `${sseUrl}?token=${encodeURIComponent(token)}`;
