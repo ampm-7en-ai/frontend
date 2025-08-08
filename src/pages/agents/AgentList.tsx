@@ -260,8 +260,6 @@ const AgentList = () => {
             ) : (
               <div className="space-y-6">
                 {filteredAgents.map((agent) => (
-                 <>
-                  {JSON.stringify(agent)}
                    <AgentCard 
                     key={agent.id} 
                     agent={agent}
@@ -269,8 +267,6 @@ const AgentList = () => {
                     getStatusBadgeColor={getStatusBadgeColor}
                     onDelete={handleDeleteAgent}
                   />
-                 </>
-                 
                 ))}
               </div>
             )}

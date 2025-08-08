@@ -30,11 +30,7 @@ export const transformAgentData = (apiAgent: any): Agent => {
            agentData.model?.name || 
            'mistral-small',
       // Prioritize display_model from API, then fall back to response_model as display
-      display_name: agentData.model?.display_model || 
-           agentData.model?.display_name || 
-           agentData.model?.response_model ||
-           agentData.model?.selectedModel || 
-           agentData.model?.name || 
+      display_name: agentData.model?.display_model ||  
            'Unknown Model'
     },
     isDeployed: agentData.status === 'Live',
