@@ -83,3 +83,36 @@ export const transformAgentList = (apiResponse: ApiResponse | { data: ApiAgent[]
     return transformedAgent;
   });
 };
+
+// Transform single agent data (used by cache utils)
+export const transformAgentData = (apiAgent: ApiAgent): Agent => {
+  console.log('🔄 transformAgentData: Transforming single agent');
+  
+  return {
+    id: apiAgent.id.toString(),
+    name: apiAgent.name,
+    description: apiAgent.description,
+    status: apiAgent.status || 'Unknown',
+    conversations: Math.floor(Math.random() * 50), // Mock data since not in API
+    lastModified: apiAgent.updated_at || apiAgent.created_at,
+    averageRating: 4.2, // Mock data since not in API
+    knowledgeSources: (apiAgent.knowledge_sources || []).map(transformKnowledgeSource),
+    model: {
+      response_model: apiAgent.model?.response_model || 'unknown',
+      display_name: apiAgent.model?.display_model || 'Unknown Model' // Map display_model to display_name
+    },
+    isDeployed: apiAgent.status?.toLowerCase() === 'active'
+  };
+};
+
+// Transform agent creation response (used by cache utils)
+export const transformAgentCreationResponse = (apiResponse: { data: ApiAgent }): Agent => {
+  console.log('🔄 transformAgentCreationResponse: Transforming creation response');
+  
+  if (!apiResponse.data) {
+    console.warn('❌ No data in agent creation response');
+    return null;
+  }
+  
+  return transformAgentData(apiResponse.data);
+};
