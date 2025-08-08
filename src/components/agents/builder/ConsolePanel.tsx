@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ChevronUp, ChevronDown, Terminal, Copy, Check, LoaderCircle, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,9 +28,12 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   // Check polling connection status periodically
   useEffect(() => {
     const checkConnectionStatus = () => {
-      setConnectionStatus(trainingPollingService.getConnectionStatus());
+      const status = trainingPollingService.getConnectionStatus();
+      setConnectionStatus(status);
+      console.log('Polling connection status:', status);
     };
 
+    checkConnectionStatus(); // Initial check
     const interval = setInterval(checkConnectionStatus, 1000);
     return () => clearInterval(interval);
   }, []);
@@ -39,32 +41,32 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   // Subscribe to polling updates when component mounts and we have a task
   useEffect(() => {
     if (currentTask && agentId) {
-      const callback = (event) => {
+      console.log('Console panel setting up polling subscription for agent:', agentId);
+      
+      const callback = (event: any) => {
         console.log('Console panel received polling event:', event);
         
-        // Handle server response format: { agent_id: 167, training_status: 'issues' | 'training' | 'active' }
-        if (event.status) {
-          // Map server statuses to our internal statuses
-          let mappedStatus = event.status;
-          if (event.status === 'issues') {
-            mappedStatus = 'failed';
-          } else if (event.status === 'active') {
-            mappedStatus = 'completed';
-          }
+        // Handle server response format: { agent_id: number, training_status: 'issues' | 'training' | 'active' }
+        if (event.training_status || event.status) {
+          const status = event.training_status || event.status;
           
           // Update progress if available
           if (event.progress !== undefined) {
             setTrainingProgress(event.progress);
           }
           
+          console.log(`Training status update for agent ${agentId}: ${status}`);
+          
           // Force component re-render to show updated status
           setForceUpdate(prev => prev + 1);
         }
       };
 
-      AgentTrainingService.subscribeToTrainingUpdates(agentId, currentTask.taskId, currentTask.agentName);
+      // Use the AgentTrainingService to handle subscription
+      AgentTrainingService.subscribeToTrainingUpdates(agentId, currentTask.taskId, callback);
       
       return () => {
+        console.log('Console panel cleaning up polling subscription for agent:', agentId);
         AgentTrainingService.unsubscribeFromTrainingUpdates(agentId, currentTask.taskId);
       };
     }
@@ -99,9 +101,9 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     }
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status: string) => {
     const statusConfig = {
-      'active': { label: 'Untrained', className: 'bg-yellow-50 text-yellow-800 border-yellow-200 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800' },
+      'active': { label: 'Completed', className: 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/60 dark:text-green-400 dark:border-green-700' },
       'completed': { label: 'Completed', className: 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/60 dark:text-green-400 dark:border-green-700' },
       'training': { label: 'Training', className: 'bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800' },
       'failed': { label: 'Failed', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },

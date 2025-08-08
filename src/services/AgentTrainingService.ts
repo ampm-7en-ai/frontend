@@ -106,13 +106,14 @@ export const AgentTrainingService = {
         trainingPollingService.subscribe(agentId, res.task_id, (event) => {
           console.log("Polling event received:", event);
           
-          // Update task status based on server response
-          if (event.status === 'active') {
-            // Remove from localStorage when training is complete
+          // Handle server response: { agent_id: number, training_status: 'issues' | 'training' | 'active' }
+          if (event.training_status === 'active') {
+            // Training completed - remove from localStorage
             removeTrainingTask(agentId);
-          } else if (event.status === 'issues') {
+            updateTrainingTaskStatus(agentId, 'completed');
+          } else if (event.training_status === 'issues') {
             updateTrainingTaskStatus(agentId, 'failed');
-          } else if (event.status === 'training') {
+          } else if (event.training_status === 'training') {
             updateTrainingTaskStatus(agentId, 'training');
           }
         });
@@ -142,25 +143,40 @@ export const AgentTrainingService = {
   },
 
   // Subscribe to training updates using polling service
-  subscribeToTrainingUpdates(agentId: string, taskId: string, agentName: string) {
-    trainingPollingService.subscribe(agentId, taskId, (event) => {
-      console.log("Training update received:", event);
+  subscribeToTrainingUpdates(agentId: string, taskId: string, callback: (event: any) => void) {
+    console.log(`Subscribing to training updates for agent ${agentId}, task ${taskId}`);
+    trainingPollingService.subscribe(agentId, taskId, (pollingEvent) => {
+      console.log("Training update received from polling service:", pollingEvent);
       
-      // Handle different status responses from server
-      if (event.status === 'active') {
-        // Training completed - remove from localStorage
+      // Transform polling event to match expected callback format
+      const transformedEvent = {
+        agent_id: pollingEvent.agent_id,
+        task_id: taskId,
+        status: pollingEvent.training_status === 'active' ? 'completed' : 
+               pollingEvent.training_status === 'issues' ? 'failed' : 
+               pollingEvent.training_status,
+        training_status: pollingEvent.training_status,
+        message: pollingEvent.message,
+        error: pollingEvent.error,
+        timestamp: pollingEvent.timestamp
+      };
+      
+      // Handle localStorage updates
+      if (pollingEvent.training_status === 'active') {
         removeTrainingTask(agentId);
-        updateTrainingTaskStatus(agentId, 'completed');
-      } else if (event.status === 'issues') {
+      } else if (pollingEvent.training_status === 'issues') {
         updateTrainingTaskStatus(agentId, 'failed');
-      } else if (event.status === 'training') {
+      } else if (pollingEvent.training_status === 'training') {
         updateTrainingTaskStatus(agentId, 'training');
       }
+      
+      callback(transformedEvent);
     });
   },
 
   // Unsubscribe from training updates
   unsubscribeFromTrainingUpdates(agentId: string, taskId: string) {
+    console.log(`Unsubscribing from training updates for agent ${agentId}, task ${taskId}`);
     trainingPollingService.unsubscribe(agentId, taskId);
   },
 
