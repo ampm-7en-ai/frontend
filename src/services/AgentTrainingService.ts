@@ -1,6 +1,6 @@
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
 import { toast } from '@/hooks/use-toast';
-import { trainingSSEService, SSETrainingEvent } from './TrainingSSEService';
+import { trainingPollingService } from './TrainingPollingService';
 
 export interface TrainingResponse {
   message: string;
@@ -88,7 +88,9 @@ export const AgentTrainingService = {
         saveTrainingTask(agentId, res.task_id, agentName);
 
         // Subscribe to SSE updates
-        this.subscribeToTrainingUpdates(agentId, res.task_id, agentName);
+        trainingPollingService.subscribe(agentId, res.task_id, (event) => {
+          console.log("Polling started: ",event);
+        });
       }
       
       toast({
@@ -114,52 +116,9 @@ export const AgentTrainingService = {
     }
   },
   
-  // Subscribe to real-time training updates via SSE
-  subscribeToTrainingUpdates(agentId: string, taskId: string, agentName: string): void {
-    const callback = (event: SSETrainingEvent) => {
-      console.log('SSE Training event received:', event);
-      
-      switch (event.event) {
-        case 'training_progress':
-          updateTrainingTaskStatus(agentId, 'training');
-          if (event.data.progress !== undefined) {
-            console.log(`Training progress: ${event.data.progress}%`);
-          }
-          break;
+  //subscribe to training Polling
+  
 
-        case 'training_completed':
-          updateTrainingTaskStatus(agentId, 'completed');
-          toast({
-            title: "Training Complete",
-            description: `${agentName} training completed successfully!`,
-            variant: "default"
-          });
-          // Unsubscribe after completion
-          trainingSSEService.unsubscribe(agentId, taskId);
-          break;
-
-        case 'training_failed':
-          updateTrainingTaskStatus(agentId, 'failed');
-          toast({
-            title: "Training Failed",
-            description: event.data.error || `${agentName} training failed.`,
-            variant: "destructive"
-          });
-          // Unsubscribe after failure
-          trainingSSEService.unsubscribe(agentId, taskId);
-          break;
-      }
-    };
-
-   // trainingSSEService.subscribe(agentId, taskId, callback);
-  },
-
-  /**
-   * Unsubscribe from training updates
-   */
-  unsubscribeFromTrainingUpdates(agentId: string, taskId: string): void {
-    trainingSSEService.unsubscribe(agentId, taskId);
-  },
 
   async cancelTraining(agentId: string): Promise<boolean> {
     const token = getAccessToken();

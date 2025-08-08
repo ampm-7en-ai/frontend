@@ -1,4 +1,5 @@
 import { getAccessToken } from '@/utils/api-config';
+import { SSE } from 'sse.js';
 
 export interface SSETrainingEvent {
   event: 'training_connected' | 'training_progress' | 'training_completed' | 'training_failed';
@@ -17,7 +18,7 @@ export interface SSETrainingEvent {
 export type SSEEventCallback = (event: SSETrainingEvent) => void;
 
 class TrainingSSEService {
-  private eventSource: EventSource | null = null;
+  private eventSource: any;
   private callbacks: Map<string, SSEEventCallback> = new Map();
   private taskMappings: Map<string, string> = new Map(); // agentId -> taskId
   private reconnectAttempts = 0;
@@ -66,10 +67,17 @@ class TrainingSSEService {
 
       // Backend endpoint: /api/ai/train-status/{agentId}
       const testUrl = `https://api-staging.7en.ai/api/demo/sse/`
-      const sseUrl = `https://api-staging.7en.ai/api/ai/train-status/${agentId}`;
-      const urlWithAuth = `${testUrl}?token=${token}`;
+      const sseUrl = `https://api-staging.7en.ai/api/ai/train-status/${agentId}/`;
+      const urlWithAuth = `${sseUrl}?token=${token}`;
       
-      this.eventSource = new EventSource(urlWithAuth);
+     // this.eventSource = new EventSource(urlWithAuth);
+
+      this.eventSource = new SSE(sseUrl,{headers: {
+        'Authorization': `Bearer ${getAccessToken()}`
+      }
+      });
+
+      
 
       // Handle connection open
       this.eventSource.onopen = (event) => {
@@ -91,7 +99,7 @@ class TrainingSSEService {
       // Handle connection errors
       this.eventSource.onerror = (event) => {
         console.error('SSE connection error:', event);
-        this.handleConnectionError(agentId, token);
+        //this.handleConnectionError(agentId, token);
       };
 
       // Setup backend-specific event listeners
