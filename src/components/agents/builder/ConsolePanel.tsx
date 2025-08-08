@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
-import { trainingPollingService } from '@/services/TrainingPollingService';
+import { simpleTrainingPollingService } from '@/services/SimpleTrainingPollingService';
 import { useBuilder } from '@/components/agents/builder/BuilderContext';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -18,67 +18,48 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const [isExpanded, setIsExpanded] = useState(true);
   const [copiedTaskId, setCopiedTaskId] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'open' | 'closed'>('closed');
-  const [trainingProgress, setTrainingProgress] = useState<number | null>(null);
   const [forceUpdate, setForceUpdate] = useState(0);
   
   const { state } = useBuilder();
   const agentId = state.agentData.id?.toString();
   const currentTask = agentId ? AgentTrainingService.getTrainingTask(agentId) : null;
 
-  // Check polling connection status periodically
+  // Check simple polling connection status
   useEffect(() => {
     const checkConnectionStatus = () => {
-      const status = trainingPollingService.getConnectionStatus();
+      const status = simpleTrainingPollingService.getConnectionStatus();
+      const currentAgent = simpleTrainingPollingService.getCurrentAgent();
+      
       setConnectionStatus(status);
-      // Reduced logging frequency
+      
       if (status !== connectionStatus) {
-        console.log('Console: Polling connection status changed to:', status);
+        console.log('Console: Simple polling connection status changed to:', status, 'for agent:', currentAgent);
       }
     };
 
-    checkConnectionStatus(); // Initial check
-    const interval = setInterval(checkConnectionStatus, 2000); // Check every 2 seconds instead of 1
+    checkConnectionStatus();
+    const interval = setInterval(checkConnectionStatus, 2000);
     return () => clearInterval(interval);
   }, [connectionStatus]);
 
-  // Subscribe to polling updates when component mounts and we have a task
+  // Start simple polling when component mounts and we have a task
   useEffect(() => {
     if (currentTask && agentId) {
-      console.log('Console: Setting up polling subscription for agent:', agentId, 'with task:', currentTask.taskId);
+      console.log('Console: Starting simple polling for agent:', agentId, 'with task:', currentTask.taskId);
       
       const callback = (event: any) => {
-        console.log('Console: Received polling event for agent', agentId, ':', event);
+        console.log('Console: Received simple polling event for agent', agentId, ':', event);
         
-        // Handle server response format: { agent_id: number, training_status: 'Issues' | 'Training' | 'Active' }
-        if (event.training_status || event.status) {
-          const status = event.training_status || event.status;
-          
-          // Update progress if available
-          if (event.progress !== undefined) {
-            setTrainingProgress(event.progress);
-          }
-          
-          console.log(`Console: Training status update for agent ${agentId}: ${status}`);
-          
-          // Check if this is a final status
-          if (status === 'Active' || status === 'Issues') {
-            console.log(`Console: Final status received for agent ${agentId}: ${status}. UI will show final state.`);
-            
-            // Clear progress for final statuses
-            setTrainingProgress(null);
-          }
-          
-          // Force component re-render to show updated status
-          setForceUpdate(prev => prev + 1);
-        }
+        // Force component re-render to show updated status
+        setForceUpdate(prev => prev + 1);
       };
 
-      // Use the AgentTrainingService to handle subscription
-      AgentTrainingService.subscribeToTrainingUpdates(agentId, currentTask.taskId, callback);
+      // Start simple polling for this agent only
+      AgentTrainingService.startPollingForAgent(agentId, currentTask.taskId, callback);
       
       return () => {
-        console.log('Console: Cleaning up polling subscription for agent:', agentId);
-        AgentTrainingService.unsubscribeFromTrainingUpdates(agentId, currentTask.taskId);
+        console.log('Console: Stopping simple polling for agent:', agentId);
+        AgentTrainingService.stopPolling();
       };
     }
   }, [currentTask, agentId]);
@@ -157,8 +138,8 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             getStatusBadge(currentTask ? currentTask.hasOwnProperty('status') ? currentTask.status : "training" : "training")
           )}
           
-          {/* Polling Connection Status */}
-          <div className="flex items-center gap-1 ml-2" title={`Polling Connection: ${connectionStatus}`}>
+          {/* Simple Polling Connection Status */}
+          <div className="flex items-center gap-1 ml-2" title={`Simple Polling: ${connectionStatus}`}>
             {getConnectionIcon()}
             <span className="text-xs text-gray-500">{connectionStatus}</span>
           </div>
@@ -204,22 +185,6 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
                         <span className="font-medium text-gray-600 dark:text-gray-400">Status: </span>
                         {getStatusBadge(currentTask.status)}
                       </div>
-                      
-                      {/* Training Progress */}
-                      {trainingProgress !== null && currentTask.status === 'training' && (
-                        <div>
-                          <span className="font-medium text-gray-600 dark:text-gray-400">Progress:</span>
-                          <div className="ml-2 flex items-center gap-2">
-                            <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                              <div 
-                                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                                style={{ width: `${trainingProgress}%` }}
-                              />
-                            </div>
-                            <span className="text-xs text-gray-500">{trainingProgress}%</span>
-                          </div>
-                        </div>
-                      )}
                       
                       <div>
                         <span className="font-medium text-gray-600 dark:text-gray-400">Started:</span>

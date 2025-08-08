@@ -1,6 +1,7 @@
+
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
 import { toast } from '@/hooks/use-toast';
-import { trainingPollingService } from './TrainingPollingService';
+import { simpleTrainingPollingService } from './SimpleTrainingPollingService';
 
 export interface TrainingResponse {
   message: string;
@@ -101,14 +102,12 @@ export const AgentTrainingService = {
       if (res.task_id) {
         saveTrainingTask(agentId, res.task_id, agentName);
 
-        // Subscribe to polling updates with enhanced callback
-        trainingPollingService.subscribe(agentId, res.task_id, (event) => {
-          console.log("Training polling event received:", event);
+        // Start simple polling for this agent only
+        simpleTrainingPollingService.startPollingForAgent(agentId, res.task_id, (event) => {
+          console.log("Training status event received:", event);
           
-          // Handle server response: { agent_id: number, training_status: 'Issues' | 'Training' | 'Active' }
           if (event.training_status === 'Active') {
-            console.log(`Training completed for agent ${agentId}. Removing from localStorage.`);
-            // Training completed - remove from localStorage and update status
+            console.log(`Training completed for agent ${agentId}.`);
             removeTrainingTask(agentId);
             
             toast({
@@ -118,7 +117,7 @@ export const AgentTrainingService = {
             });
             
           } else if (event.training_status === 'Issues') {
-            console.log(`Training failed for agent ${agentId}. Updating status to failed.`);
+            console.log(`Training failed for agent ${agentId}.`);
             updateTrainingTaskStatus(agentId, 'failed');
             
             toast({
@@ -131,8 +130,6 @@ export const AgentTrainingService = {
             console.log(`Training in progress for agent ${agentId}.`);
             updateTrainingTaskStatus(agentId, 'training');
           }
-          
-          // Note: No manual unsubscription needed here as TrainingPollingService handles it automatically
         });
       }
       
@@ -159,13 +156,12 @@ export const AgentTrainingService = {
     }
   },
 
-  // Subscribe to training updates using polling service
-  subscribeToTrainingUpdates(agentId: string, taskId: string, callback: (event: any) => void) {
-    console.log(`Subscribing to training updates for agent ${agentId}, task ${taskId}`);
-    trainingPollingService.subscribe(agentId, taskId, (pollingEvent) => {
-      console.log("Training update received from polling service:", pollingEvent);
-      
-      // Transform polling event to match expected callback format
+  // Start polling for specific agent (for use in components)
+  startPollingForAgent(agentId: string, taskId: string, callback: (event: any) => void) {
+    console.log(`Starting polling for agent ${agentId}, task ${taskId}`);
+    
+    simpleTrainingPollingService.startPollingForAgent(agentId, taskId, (pollingEvent) => {
+      // Transform to match expected callback format
       const transformedEvent = {
         agent_id: pollingEvent.agent_id,
         task_id: taskId,
@@ -178,12 +174,10 @@ export const AgentTrainingService = {
         timestamp: pollingEvent.timestamp
       };
       
-      // Handle localStorage updates - TrainingPollingService will handle unsubscription automatically
+      // Update localStorage based on status
       if (pollingEvent.training_status === 'Active') {
-        console.log(`Final status 'Active' received for agent ${agentId}. Cleaning localStorage.`);
         removeTrainingTask(agentId);
       } else if (pollingEvent.training_status === 'Issues') {
-        console.log(`Final status 'Issues' received for agent ${agentId}. Updating status to failed.`);
         updateTrainingTaskStatus(agentId, 'failed');
       } else if (pollingEvent.training_status === 'Training') {
         updateTrainingTaskStatus(agentId, 'training');
@@ -193,10 +187,10 @@ export const AgentTrainingService = {
     });
   },
 
-  // Unsubscribe from training updates
-  unsubscribeFromTrainingUpdates(agentId: string, taskId: string) {
-    console.log(`Unsubscribing from training updates for agent ${agentId}, task ${taskId}`);
-    trainingPollingService.unsubscribe(agentId, taskId);
+  // Stop polling
+  stopPolling() {
+    console.log('Stopping training polling via AgentTrainingService');
+    simpleTrainingPollingService.stopPolling();
   },
 
   async cancelTraining(agentId: string): Promise<boolean> {
