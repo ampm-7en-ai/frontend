@@ -58,15 +58,15 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
     }
   };
 
-  // const getModelDisplayName = () => {
-  //   return agent.model === 'gpt4' ? 'GPT-4 (OpenAI)' :
-  //          agent.model === 'gpt35' ? 'GPT-3.5 Turbo (OpenAI)' :
-  //          agent.model === 'claude' ? 'Claude 3 (Anthropic)' :
-  //          agent.model === 'gemini' ? 'Gemini Pro (Google)' :
-  //          agent.model === 'mistral' ? 'Mistral Large (Mistral AI)' :
-  //          agent.model === 'llama' ? 'Llama 2 (Meta AI)' :
-  //          agent.model;
-  // };
+  const getModelDisplayName = () => {
+    return agent.model.display_name === 'gpt4' ? 'GPT-4 (OpenAI)' :
+           agent.model.display_name === 'gpt35' ? 'GPT-3.5 Turbo (OpenAI)' :
+           agent.model.display_name === 'claude' ? 'Claude 3 (Anthropic)' :
+           agent.model.display_name === 'gemini' ? 'Gemini Pro (Google)' :
+           agent.model.display_name === 'mistral' ? 'Mistral Large (Mistral AI)' :
+           agent.model.display_name === 'llama' ? 'Llama 2 (Meta AI)' :
+           agent.model.display_name;
+  };
 
   const getModelStyles = () => {
     const colorName = getModelBadgeColor(agent.model.response_model);
@@ -163,7 +163,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                   </div>
                   <div>
                     <div className={`text-sm font-bold ${getModelStyles()}`}>
-                      {agent.model.display_name}
+                      {getModelDisplayName()}
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">AI Model</div>
                   </div>
