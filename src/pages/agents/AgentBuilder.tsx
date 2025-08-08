@@ -166,9 +166,6 @@ const AgentBuilderContent = () => {
         // Manually refetch agent data from API instead of page refresh
         await refetchAgentData();
 
-        // Update the task status to completed
-        AgentTrainingService.updateTaskStatus(agentId, 'completed');
-
         addNotification({
           title: 'Training Complete',
           message: `Agent "${state.agentData.name}" training completed successfully.`,
@@ -177,9 +174,6 @@ const AgentBuilderContent = () => {
           agentName: state.agentData.name
         });
       } else {
-        // Update the task status to failed
-        AgentTrainingService.updateTaskStatus(agentId, 'failed');
-
         addNotification({
           title: 'Training Failed',
           message: `Agent "${state.agentData.name}" training failed.`,
@@ -190,11 +184,6 @@ const AgentBuilderContent = () => {
       }
     } catch (error) {
       console.error("Error training agent:", error);
-      
-      // Update the task status to failed
-      if (agentId) {
-        AgentTrainingService.updateTaskStatus(agentId, 'failed');
-      }
 
       addNotification({
         title: 'Training Failed',
