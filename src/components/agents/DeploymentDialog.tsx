@@ -6,6 +6,7 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { API_BASE_URL } from "@/config/env";
 
 interface DeploymentDialogProps {
   open: boolean;
@@ -31,8 +32,10 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
     script.type = "text/javascript";
     script.setAttribute("data-agent-id", "${agent.id}");
     script.setAttribute("data-type", "bubble");
+    script.setAttribute("data-config","${API_BASE_URL}");
+    script.setAttribute("data-preview","${window.location.origin}");
     
-    script.src = "https://api.7en.ai/static/agent.js";
+    script.src = "${window.location.origin}/agent-hybrid.js";
     document.body.appendChild(script);
   })();
 </script>`; 

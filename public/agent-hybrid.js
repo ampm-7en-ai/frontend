@@ -5,6 +5,8 @@
   async function fetchConfig() {
     const script = document.currentScript || document.querySelector('script[data-agent-id]');
     const agentId = script?.getAttribute('data-agent-id') || '';
+    const previewUrl = script?.getAttribute('data-preview') || 'https://app.7en.ai';
+    const configUrl = script?.getAttribute('data-config') || 'https://api.7en.ai/api/';
     
     if (!agentId) {
       console.error('ChatWidget: data-agent-id is required');
@@ -12,7 +14,7 @@
     }
 
     try {
-      const response = await fetch(`https://api-staging.7en.ai/api/chatbot-config?agentId=${agentId}`);
+      const response = await fetch(`${configUrl}chatbot-config?agentId=${agentId}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -28,7 +30,7 @@
         buttonText: data.buttonText || '',
         position: data.position || 'bottom-right',
         avatarUrl: data.avatarUrl || '',
-        previewUrl: `http://localhost:8080/chat/preview/${agentId}`
+        previewUrl: `${previewUrl}/chat/preview/${agentId}`
       };
       
       console.log('Fetched config:', config);
