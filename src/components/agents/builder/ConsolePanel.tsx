@@ -30,23 +30,26 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     const checkConnectionStatus = () => {
       const status = trainingPollingService.getConnectionStatus();
       setConnectionStatus(status);
-      console.log('Polling connection status:', status);
+      // Reduced logging frequency
+      if (status !== connectionStatus) {
+        console.log('Console: Polling connection status changed to:', status);
+      }
     };
 
     checkConnectionStatus(); // Initial check
-    const interval = setInterval(checkConnectionStatus, 1000);
+    const interval = setInterval(checkConnectionStatus, 2000); // Check every 2 seconds instead of 1
     return () => clearInterval(interval);
-  }, []);
+  }, [connectionStatus]);
 
   // Subscribe to polling updates when component mounts and we have a task
   useEffect(() => {
     if (currentTask && agentId) {
-      console.log('Console panel setting up polling subscription for agent:', agentId);
+      console.log('Console: Setting up polling subscription for agent:', agentId, 'with task:', currentTask.taskId);
       
       const callback = (event: any) => {
-        console.log('Console panel received polling event:', event);
+        console.log('Console: Received polling event for agent', agentId, ':', event);
         
-        // Handle server response format: { agent_id: number, training_status: 'issues' | 'training' | 'active' }
+        // Handle server response format: { agent_id: number, training_status: 'Issues' | 'Training' | 'Active' }
         if (event.training_status || event.status) {
           const status = event.training_status || event.status;
           
@@ -55,7 +58,15 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             setTrainingProgress(event.progress);
           }
           
-          console.log(`Training status update for agent ${agentId}: ${status}`);
+          console.log(`Console: Training status update for agent ${agentId}: ${status}`);
+          
+          // Check if this is a final status
+          if (status === 'Active' || status === 'Issues') {
+            console.log(`Console: Final status received for agent ${agentId}: ${status}. UI will show final state.`);
+            
+            // Clear progress for final statuses
+            setTrainingProgress(null);
+          }
           
           // Force component re-render to show updated status
           setForceUpdate(prev => prev + 1);
@@ -66,7 +77,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
       AgentTrainingService.subscribeToTrainingUpdates(agentId, currentTask.taskId, callback);
       
       return () => {
-        console.log('Console panel cleaning up polling subscription for agent:', agentId);
+        console.log('Console: Cleaning up polling subscription for agent:', agentId);
         AgentTrainingService.unsubscribeFromTrainingUpdates(agentId, currentTask.taskId);
       };
     }
@@ -103,16 +114,17 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      'active': { label: 'Completed', className: 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/60 dark:text-green-400 dark:border-green-700' },
+      'Active': { label: 'Completed', className: 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/60 dark:text-green-400 dark:border-green-700' },
       'completed': { label: 'Completed', className: 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/60 dark:text-green-400 dark:border-green-700' },
+      'Training': { label: 'Training', className: 'bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800' },
       'training': { label: 'Training', className: 'bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800' },
+      'Issues': { label: 'Failed', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
       'failed': { label: 'Failed', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
-      'issues': { label: 'Issues', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
       'deleted': { label: 'Deleted', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
       'pending': { label: 'Pending', className: 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800' },
     };
 
-    const config = statusConfig[status?.toLowerCase()] || { label: 'Unknown', className: 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800' };
+    const config = statusConfig[status] || { label: 'Unknown', className: 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800' };
     return <Badge className={`${config.className} text-[9px] font-medium`}>{config.label}</Badge>;
   };
 

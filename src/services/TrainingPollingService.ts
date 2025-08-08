@@ -29,7 +29,7 @@ class TrainingPollingService {
 
     const callbackKey = `${agentId}_${taskId}`;
     this.callbacks.set(callbackKey, callback);
-    console.log(`Subscribed to polling updates for agent ${agentId}, task ${taskId}`);
+    console.log(`Subscribed to polling updates for agent ${agentId}, task ${taskId}. Total callbacks: ${this.callbacks.size}`);
 
     if (!this.isPolling) {
       this.startPolling();
@@ -41,8 +41,8 @@ class TrainingPollingService {
    */
   unsubscribe(agentId: string, taskId: string): void {
     const callbackKey = `${agentId}_${taskId}`;
-    this.callbacks.delete(callbackKey);
-    console.log(`Unsubscribed from polling updates for agent ${agentId}, task ${taskId}`);
+    const removed = this.callbacks.delete(callbackKey);
+    console.log(`Unsubscribed from polling updates for agent ${agentId}, task ${taskId}. Removed: ${removed}. Remaining callbacks: ${this.callbacks.size}`);
 
     if (this.callbacks.size === 0) {
       this.stopPolling();
@@ -54,17 +54,17 @@ class TrainingPollingService {
    */
   private startPolling(): void {
     if (this.isPolling) {
-      console.log('Polling already active');
+      console.log('Polling already active, skipping start');
       return;
     }
 
     this.isPolling = true;
-    console.log('Starting training status polling...');
+    console.log(`Starting training status polling every ${this.pollingIntervalMs}ms...`);
     
     // Start immediate poll
     this.poll();
     
-    // Set up recurring polling
+    // Set up recurring polling with proper interval
     this.pollInterval = setInterval(() => {
       this.poll();
     }, this.pollingIntervalMs);
@@ -87,8 +87,8 @@ class TrainingPollingService {
    * Perform the polling request
    */
   private async poll() {
-    if (!this.isPolling) {
-      console.log('Polling stopped, skipping poll request');
+    if (!this.isPolling || this.callbacks.size === 0) {
+      console.log('Polling stopped or no callbacks, skipping poll request');
       return;
     }
 
@@ -99,14 +99,18 @@ class TrainingPollingService {
       return;
     }
 
-    console.log(`Polling ${this.callbacks.size} agents for training status...`);
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] Polling ${this.callbacks.size} agents for training status...`);
 
-    for (const [callbackKey] of this.callbacks) {
+    // Create a copy of callbacks to iterate safely
+    const callbackEntries = Array.from(this.callbacks.entries());
+
+    for (const [callbackKey, callback] of callbackEntries) {
       const [agentId, taskId] = callbackKey.split('_');
       const url = `${BASE_URL}ai/train-status/${agentId}/`;
 
       try {
-        console.log(`Making polling request to: ${url}`);
+        console.log(`[${timestamp}] Making polling request to: ${url}`);
         
         const response = await fetch(url, {
           method: 'POST',
@@ -129,7 +133,7 @@ class TrainingPollingService {
         }
 
         const data = await response.json();
-        console.log('Polling response received:', data);
+        console.log(`[${timestamp}] Polling response for agent ${agentId}:`, data);
 
         // Transform the server response to match our interface
         const transformedEvent: PollingTrainingEvent = {
@@ -137,19 +141,31 @@ class TrainingPollingService {
           training_status: data.training_status,
           message: data.message,
           error: data.error,
-          timestamp: new Date().toISOString()
+          timestamp: timestamp
         };
 
-        const callback = this.callbacks.get(callbackKey);
-        if (callback) {
-          console.log(`Calling callback for agent ${agentId} with status: ${data.training_status}`);
+        console.log(`[${timestamp}] Training status for agent ${agentId}: ${data.training_status}`);
+
+        // Check if this is a final status that should stop polling for this agent
+        if (data.training_status === 'Active' || data.training_status === 'Issues') {
+          console.log(`[${timestamp}] Final status received for agent ${agentId}: ${data.training_status}. Will unsubscribe after callback.`);
+          
+          // Call the callback first
           callback(transformedEvent);
+          
+          // Then unsubscribe this specific agent
+          setTimeout(() => {
+            console.log(`[${timestamp}] Auto-unsubscribing agent ${agentId} due to final status: ${data.training_status}`);
+            this.unsubscribe(agentId, taskId);
+          }, 100); // Small delay to ensure callback processing completes
+          
         } else {
-          console.warn(`No callback found for key: ${callbackKey}`);
+          // Continue polling for this agent
+          callback(transformedEvent);
         }
         
       } catch (error) {
-        console.error(`Polling error for agent ${agentId}:`, error);
+        console.error(`[${timestamp}] Polling error for agent ${agentId}:`, error);
         
         // Don't stop polling for network errors, just log them
         if (error instanceof Error && !error.message.includes('401')) {
@@ -171,6 +187,13 @@ class TrainingPollingService {
    */
   getConnectionStatus(): 'connecting' | 'open' | 'closed' {
     return this.isPolling ? 'open' : 'closed';
+  }
+
+  /**
+   * Get current polling interval in milliseconds
+   */
+  getPollingInterval(): number {
+    return this.pollingIntervalMs;
   }
 }
 

@@ -102,18 +102,35 @@ export const AgentTrainingService = {
       if (res.task_id) {
         saveTrainingTask(agentId, res.task_id, agentName);
 
-        // Subscribe to polling updates
+        // Subscribe to polling updates with enhanced callback
         trainingPollingService.subscribe(agentId, res.task_id, (event) => {
-          console.log("Polling event received:", event);
+          console.log("Training polling event received:", event);
           
-          // Handle server response: { agent_id: number, training_status: 'issues' | 'training' | 'active' }
+          // Handle server response: { agent_id: number, training_status: 'Issues' | 'Training' | 'Active' }
           if (event.training_status === 'Active') {
-            // Training completed - remove from localStorage
+            console.log(`Training completed for agent ${agentId}. Removing from localStorage.`);
+            // Training completed - remove from localStorage and update status
             removeTrainingTask(agentId);
             updateTrainingTaskStatus(agentId, 'completed');
+            
+            toast({
+              title: "Training Completed",
+              description: `${agentName} training completed successfully.`,
+              variant: "default"
+            });
+            
           } else if (event.training_status === 'Issues') {
+            console.log(`Training failed for agent ${agentId}. Updating status to failed.`);
             updateTrainingTaskStatus(agentId, 'failed');
+            
+            toast({
+              title: "Training Failed", 
+              description: `${agentName} training encountered issues.`,
+              variant: "destructive"
+            });
+            
           } else if (event.training_status === 'Training') {
+            console.log(`Training in progress for agent ${agentId}.`);
             updateTrainingTaskStatus(agentId, 'training');
           }
         });
@@ -161,10 +178,12 @@ export const AgentTrainingService = {
         timestamp: pollingEvent.timestamp
       };
       
-      // Handle localStorage updates
+      // Handle localStorage updates - but don't auto-unsubscribe here as TrainingPollingService handles it
       if (pollingEvent.training_status === 'Active') {
+        console.log(`Final status 'Active' received for agent ${agentId}. Cleaning localStorage.`);
         removeTrainingTask(agentId);
       } else if (pollingEvent.training_status === 'Issues') {
+        console.log(`Final status 'Issues' received for agent ${agentId}. Updating status to failed.`);
         updateTrainingTaskStatus(agentId, 'failed');
       } else if (pollingEvent.training_status === 'Training') {
         updateTrainingTaskStatus(agentId, 'training');
