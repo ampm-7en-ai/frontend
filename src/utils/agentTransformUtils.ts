@@ -29,10 +29,13 @@ export const transformAgentData = (apiAgent: any): Agent => {
            agentData.model?.selectedModel || 
            agentData.model?.name || 
            'mistral-small',
-      // Map display_model from API to display_name for frontend
+      // Prioritize display_model from API, then fall back to response_model as display
       display_name: agentData.model?.display_model || 
            agentData.model?.display_name || 
-           'mistral-small'
+           agentData.model?.response_model ||
+           agentData.model?.selectedModel || 
+           agentData.model?.name || 
+           'Unknown Model'
     },
     isDeployed: agentData.status === 'Live',
     status: agentData.status || 'Idle'
