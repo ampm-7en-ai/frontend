@@ -39,7 +39,7 @@ interface ApiResponse {
 
 const transformKnowledgeSource = (source: ApiKnowledgeSource): KnowledgeSource => {
   return {
-    id: source.id.toString(),
+    id: source.id, // Keep as number, don't convert to string
     name: source.title,
     type: source.type as 'document' | 'url' | 'text' | 'database' | 'webpage',
     hasError: source.status?.toLowerCase() === 'error' || source.training_status?.toLowerCase() === 'error',
