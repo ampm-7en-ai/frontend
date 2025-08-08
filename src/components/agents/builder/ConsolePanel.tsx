@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { ChevronUp, ChevronDown, Terminal, Copy, Check, LoaderCircle, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
-import { trainingSSEService } from '@/services/TrainingSSEService';
+import { trainingPollingService } from '@/services/TrainingPollingService';
 import { useBuilder } from '@/components/agents/builder/BuilderContext';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -19,30 +20,46 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const [copiedTaskId, setCopiedTaskId] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'open' | 'closed'>('closed');
   const [trainingProgress, setTrainingProgress] = useState<number | null>(null);
+  const [forceUpdate, setForceUpdate] = useState(0);
   
   const { state } = useBuilder();
   const agentId = state.agentData.id?.toString();
   const currentTask = agentId ? AgentTrainingService.getTrainingTask(agentId) : null;
 
-  // Check SSE connection status periodically
+  // Check polling connection status periodically
   useEffect(() => {
     const checkConnectionStatus = () => {
-      setConnectionStatus(trainingSSEService.getConnectionStatus());
+      setConnectionStatus(trainingPollingService.getConnectionStatus());
     };
 
     const interval = setInterval(checkConnectionStatus, 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // Subscribe to SSE updates when component mounts and we have a task
+  // Subscribe to polling updates when component mounts and we have a task
   useEffect(() => {
     if (currentTask && agentId) {
       const callback = (event) => {
-        if (event.event === 'training_progress' && event.data.progress !== undefined) {
-          setTrainingProgress(event.data.progress);
+        console.log('Console panel received polling event:', event);
+        
+        // Handle server response format: { agent_id: 167, training_status: 'issues' | 'training' | 'active' }
+        if (event.status) {
+          // Map server statuses to our internal statuses
+          let mappedStatus = event.status;
+          if (event.status === 'issues') {
+            mappedStatus = 'failed';
+          } else if (event.status === 'active') {
+            mappedStatus = 'completed';
+          }
+          
+          // Update progress if available
+          if (event.progress !== undefined) {
+            setTrainingProgress(event.progress);
+          }
+          
+          // Force component re-render to show updated status
+          setForceUpdate(prev => prev + 1);
         }
-        // Force re-render by updating the component state indirectly
-        // The actual status updates are handled by AgentTrainingService
       };
 
       AgentTrainingService.subscribeToTrainingUpdates(agentId, currentTask.taskId, currentTask.agentName);
@@ -88,6 +105,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
       'completed': { label: 'Completed', className: 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/60 dark:text-green-400 dark:border-green-700' },
       'training': { label: 'Training', className: 'bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800' },
       'failed': { label: 'Failed', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
+      'issues': { label: 'Issues', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
       'deleted': { label: 'Deleted', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
       'pending': { label: 'Pending', className: 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800' },
     };
@@ -125,8 +143,8 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             getStatusBadge(currentTask ? currentTask.hasOwnProperty('status') ? currentTask.status : "training" : "training")
           )}
           
-          {/* SSE Connection Status */}
-          <div className="flex items-center gap-1 ml-2" title={`SSE Connection: ${connectionStatus}`}>
+          {/* Polling Connection Status */}
+          <div className="flex items-center gap-1 ml-2" title={`Polling Connection: ${connectionStatus}`}>
             {getConnectionIcon()}
             <span className="text-xs text-gray-500">{connectionStatus}</span>
           </div>

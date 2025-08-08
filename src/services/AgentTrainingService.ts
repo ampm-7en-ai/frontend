@@ -1,3 +1,4 @@
+
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
 import { toast } from '@/hooks/use-toast';
 import { trainingPollingService } from './TrainingPollingService';
@@ -52,6 +53,20 @@ const updateTrainingTaskStatus = (agentId: string, status: 'completed' | 'failed
   }
 };
 
+// Helper function to remove training task from localStorage
+const removeTrainingTask = (agentId: string) => {
+  try {
+    const tasks = getTrainingTasks();
+    if (tasks[agentId]) {
+      delete tasks[agentId];
+      localStorage.setItem(TRAINING_TASKS_KEY, JSON.stringify(tasks));
+      console.log('Removed training task from localStorage:', { agentId });
+    }
+  } catch (error) {
+    console.error('Error removing training task from localStorage:', error);
+  }
+};
+
 export const AgentTrainingService = {
   async trainAgent(agentId: string, knowledgeSources: number[] = [], agentName: string, selectedUrls: string[] = []): Promise<boolean> {
     const token = getAccessToken();
@@ -87,9 +102,19 @@ export const AgentTrainingService = {
       if (res.task_id) {
         saveTrainingTask(agentId, res.task_id, agentName);
 
-        // Subscribe to SSE updates
+        // Subscribe to polling updates
         trainingPollingService.subscribe(agentId, res.task_id, (event) => {
-          console.log("Polling started: ",event);
+          console.log("Polling event received:", event);
+          
+          // Update task status based on server response
+          if (event.status === 'active') {
+            // Remove from localStorage when training is complete
+            removeTrainingTask(agentId);
+          } else if (event.status === 'issues') {
+            updateTrainingTaskStatus(agentId, 'failed');
+          } else if (event.status === 'training') {
+            updateTrainingTaskStatus(agentId, 'training');
+          }
         });
       }
       
@@ -115,10 +140,29 @@ export const AgentTrainingService = {
       return false;
     }
   },
-  
-  //subscribe to training Polling
-  
 
+  // Subscribe to training updates using polling service
+  subscribeToTrainingUpdates(agentId: string, taskId: string, agentName: string) {
+    trainingPollingService.subscribe(agentId, taskId, (event) => {
+      console.log("Training update received:", event);
+      
+      // Handle different status responses from server
+      if (event.status === 'active') {
+        // Training completed - remove from localStorage
+        removeTrainingTask(agentId);
+        updateTrainingTaskStatus(agentId, 'completed');
+      } else if (event.status === 'issues') {
+        updateTrainingTaskStatus(agentId, 'failed');
+      } else if (event.status === 'training') {
+        updateTrainingTaskStatus(agentId, 'training');
+      }
+    });
+  },
+
+  // Unsubscribe from training updates
+  unsubscribeFromTrainingUpdates(agentId: string, taskId: string) {
+    trainingPollingService.unsubscribe(agentId, taskId);
+  },
 
   async cancelTraining(agentId: string): Promise<boolean> {
     const token = getAccessToken();
@@ -172,5 +216,10 @@ export const AgentTrainingService = {
   // Update task status (for external use)
   updateTaskStatus: (agentId: string, status: 'completed' | 'failed') => {
     updateTrainingTaskStatus(agentId, status);
+  },
+
+  // Remove training task (for external use)
+  removeTask: (agentId: string) => {
+    removeTrainingTask(agentId);
   }
 };
