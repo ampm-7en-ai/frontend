@@ -13,7 +13,6 @@ import { useNotifications } from '@/context/NotificationContext';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { agentApi } from '@/utils/api-config';
-import { ConsolePanel } from '@/components/agents/builder/ConsolePanel';
 
 const AgentBuilderContent = () => {
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);

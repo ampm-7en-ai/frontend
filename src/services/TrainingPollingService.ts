@@ -3,7 +3,7 @@ import { BASE_URL, getAccessToken } from '@/utils/api-config';
 
 export interface PollingTrainingEvent {
   agent_id: number;
-  training_status: 'training' | 'active' | 'issues';
+  training_status: 'Training' | 'Active' | 'Issues';
   message?: string;
   error?: string;
   timestamp: string;
@@ -14,7 +14,7 @@ export type PollingEventCallback = (event: PollingTrainingEvent) => void;
 class TrainingPollingService {
   private callbacks: Map<string, PollingEventCallback> = new Map();
   private pollInterval: NodeJS.Timeout | null = null;
-  private pollingIntervalMs = 2000; // Poll every 2 seconds
+  private pollingIntervalMs = 5000; // Poll every 5 seconds
   private isPolling = false;
 
   /**
@@ -103,15 +103,14 @@ class TrainingPollingService {
 
     for (const [callbackKey] of this.callbacks) {
       const [agentId, taskId] = callbackKey.split('_');
-      const url = `${BASE_URL}/ai/train-status/${agentId}/`;
+      const url = `${BASE_URL}ai/train-status/${agentId}/`;
 
       try {
         console.log(`Making polling request to: ${url}`);
         
         const response = await fetch(url, {
-          method: 'GET',
+          method: 'POST',
           headers: {
-            'Accept': 'application/json',
             'Authorization': `Bearer ${token}`
           },
         });

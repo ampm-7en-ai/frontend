@@ -107,13 +107,13 @@ export const AgentTrainingService = {
           console.log("Polling event received:", event);
           
           // Handle server response: { agent_id: number, training_status: 'issues' | 'training' | 'active' }
-          if (event.training_status === 'active') {
+          if (event.training_status === 'Active') {
             // Training completed - remove from localStorage
             removeTrainingTask(agentId);
             updateTrainingTaskStatus(agentId, 'completed');
-          } else if (event.training_status === 'issues') {
+          } else if (event.training_status === 'Issues') {
             updateTrainingTaskStatus(agentId, 'failed');
-          } else if (event.training_status === 'training') {
+          } else if (event.training_status === 'Training') {
             updateTrainingTaskStatus(agentId, 'training');
           }
         });
@@ -152,8 +152,8 @@ export const AgentTrainingService = {
       const transformedEvent = {
         agent_id: pollingEvent.agent_id,
         task_id: taskId,
-        status: pollingEvent.training_status === 'active' ? 'completed' : 
-               pollingEvent.training_status === 'issues' ? 'failed' : 
+        status: pollingEvent.training_status === 'Active' ? 'completed' : 
+               pollingEvent.training_status === 'Issues' ? 'failed' : 
                pollingEvent.training_status,
         training_status: pollingEvent.training_status,
         message: pollingEvent.message,
@@ -162,11 +162,11 @@ export const AgentTrainingService = {
       };
       
       // Handle localStorage updates
-      if (pollingEvent.training_status === 'active') {
+      if (pollingEvent.training_status === 'Active') {
         removeTrainingTask(agentId);
-      } else if (pollingEvent.training_status === 'issues') {
+      } else if (pollingEvent.training_status === 'Issues') {
         updateTrainingTaskStatus(agentId, 'failed');
-      } else if (pollingEvent.training_status === 'training') {
+      } else if (pollingEvent.training_status === 'Training') {
         updateTrainingTaskStatus(agentId, 'training');
       }
       
