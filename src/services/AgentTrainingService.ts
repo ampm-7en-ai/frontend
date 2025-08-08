@@ -1,4 +1,3 @@
-
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
 import { toast } from '@/hooks/use-toast';
 import { trainingPollingService } from './TrainingPollingService';
@@ -111,7 +110,6 @@ export const AgentTrainingService = {
             console.log(`Training completed for agent ${agentId}. Removing from localStorage.`);
             // Training completed - remove from localStorage and update status
             removeTrainingTask(agentId);
-            updateTrainingTaskStatus(agentId, 'completed');
             
             toast({
               title: "Training Completed",
@@ -133,6 +131,8 @@ export const AgentTrainingService = {
             console.log(`Training in progress for agent ${agentId}.`);
             updateTrainingTaskStatus(agentId, 'training');
           }
+          
+          // Note: No manual unsubscription needed here as TrainingPollingService handles it automatically
         });
       }
       
@@ -178,7 +178,7 @@ export const AgentTrainingService = {
         timestamp: pollingEvent.timestamp
       };
       
-      // Handle localStorage updates - but don't auto-unsubscribe here as TrainingPollingService handles it
+      // Handle localStorage updates - TrainingPollingService will handle unsubscription automatically
       if (pollingEvent.training_status === 'Active') {
         console.log(`Final status 'Active' received for agent ${agentId}. Cleaning localStorage.`);
         removeTrainingTask(agentId);

@@ -16,6 +16,7 @@ class TrainingPollingService {
   private pollInterval: NodeJS.Timeout | null = null;
   private pollingIntervalMs = 5000; // Poll every 5 seconds
   private isPolling = false;
+  private finalStatusAgents: Set<string> = new Set(); // Track agents with final status
 
   /**
    * Subscribe to training status updates for a specific agent
@@ -28,6 +29,10 @@ class TrainingPollingService {
     }
 
     const callbackKey = `${agentId}_${taskId}`;
+    
+    // Remove from final status set if re-subscribing
+    this.finalStatusAgents.delete(agentId);
+    
     this.callbacks.set(callbackKey, callback);
     console.log(`Subscribed to polling updates for agent ${agentId}, task ${taskId}. Total callbacks: ${this.callbacks.size}`);
 
@@ -42,6 +47,10 @@ class TrainingPollingService {
   unsubscribe(agentId: string, taskId: string): void {
     const callbackKey = `${agentId}_${taskId}`;
     const removed = this.callbacks.delete(callbackKey);
+    
+    // Add to final status set to prevent further polling
+    this.finalStatusAgents.add(agentId);
+    
     console.log(`Unsubscribed from polling updates for agent ${agentId}, task ${taskId}. Removed: ${removed}. Remaining callbacks: ${this.callbacks.size}`);
 
     if (this.callbacks.size === 0) {
@@ -81,6 +90,9 @@ class TrainingPollingService {
       clearInterval(this.pollInterval);
       this.pollInterval = null;
     }
+    
+    // Clear final status tracking
+    this.finalStatusAgents.clear();
   }
 
   /**
@@ -104,9 +116,17 @@ class TrainingPollingService {
 
     // Create a copy of callbacks to iterate safely
     const callbackEntries = Array.from(this.callbacks.entries());
+    const agentsToUnsubscribe: Array<{agentId: string, taskId: string}> = [];
 
     for (const [callbackKey, callback] of callbackEntries) {
       const [agentId, taskId] = callbackKey.split('_');
+      
+      // Skip agents that already have final status
+      if (this.finalStatusAgents.has(agentId)) {
+        console.log(`[${timestamp}] Skipping agent ${agentId} - already has final status`);
+        continue;
+      }
+
       const url = `${BASE_URL}ai/train-status/${agentId}/`;
 
       try {
@@ -148,16 +168,16 @@ class TrainingPollingService {
 
         // Check if this is a final status that should stop polling for this agent
         if (data.training_status === 'Active' || data.training_status === 'Issues') {
-          console.log(`[${timestamp}] Final status received for agent ${agentId}: ${data.training_status}. Will unsubscribe after callback.`);
+          console.log(`[${timestamp}] Final status received for agent ${agentId}: ${data.training_status}. Marking for unsubscribe.`);
+          
+          // Add to final status set immediately
+          this.finalStatusAgents.add(agentId);
           
           // Call the callback first
           callback(transformedEvent);
           
-          // Then unsubscribe this specific agent
-          setTimeout(() => {
-            console.log(`[${timestamp}] Auto-unsubscribing agent ${agentId} due to final status: ${data.training_status}`);
-            this.unsubscribe(agentId, taskId);
-          }, 100); // Small delay to ensure callback processing completes
+          // Mark this agent for unsubscription
+          agentsToUnsubscribe.push({ agentId, taskId });
           
         } else {
           // Continue polling for this agent
@@ -172,6 +192,12 @@ class TrainingPollingService {
           console.log('Network error, continuing polling...');
         }
       }
+    }
+
+    // Unsubscribe agents with final statuses after all polling requests are complete
+    for (const { agentId, taskId } of agentsToUnsubscribe) {
+      console.log(`[${timestamp}] Auto-unsubscribing agent ${agentId} due to final status`);
+      this.unsubscribe(agentId, taskId);
     }
   }
 
