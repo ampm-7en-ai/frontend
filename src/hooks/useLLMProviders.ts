@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { getApiUrl } from '@/utils/api-config';
@@ -16,7 +17,7 @@ export interface ModelObject {
 // Non-admin simplified provider structure - FIXED: models is now array
 export interface LLMProvider {
   provider_name: string;
-  models: ModelObject[]; // FIXED: Changed from ModelObject to ModelObject[]
+  models: ModelObject[]; // FIXED: This is now correctly an array
   default_model: string | null;
 }
 

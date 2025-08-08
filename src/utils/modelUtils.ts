@@ -1,3 +1,4 @@
+
 import { LLMProvider } from '@/hooks/useLLMProviders';
 
 // Simplified model option interface for non-admin usage
@@ -37,8 +38,8 @@ export const transformProvidersToModelOptions = (providers: LLMProvider[]): Mode
   const modelOptions: ModelOption[] = [];
 
   providers.forEach(provider => {
-    // FIXED: Now correctly using .map() on the array
-    provider.models.map((model) => {
+    // FIXED: Now correctly iterating over the array of models
+    provider.models.forEach((model) => {
       console.log("pipip", model);
       modelOptions.push({
         value: model.name,
