@@ -37,7 +37,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     };
 
     checkConnectionStatus();
-    const interval = setInterval(checkConnectionStatus, 2000);
+    const interval = setInterval(isPolling() && checkConnectionStatus, 2000);
     return () => clearInterval(interval);
   }, []);
 
