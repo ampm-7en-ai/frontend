@@ -24,11 +24,14 @@ export const transformAgentData = (apiAgent: any): Agent => {
       hasError: kb.status === 'deleted',
       hasIssue: kb.status === 'issues' || kb.training_status === 'issues'
     })),
-    // Handle different model field structures
-    model: agentData.model?.response_model || 
+    model: {
+      response_model: agentData.model?.response_model || 
            agentData.model?.selectedModel || 
            agentData.model?.name || 
            'mistral-small',
+      display_name: agentData.model?.display_name || 
+           'mistral-small'
+    },
     isDeployed: agentData.status === 'Live',
     status: agentData.status || 'Idle'
   };

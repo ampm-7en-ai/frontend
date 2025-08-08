@@ -260,13 +260,17 @@ const AgentList = () => {
             ) : (
               <div className="space-y-6">
                 {filteredAgents.map((agent) => (
-                  <AgentCard 
+                 <>
+                  {JSON.stringify(agent)}
+                   <AgentCard 
                     key={agent.id} 
                     agent={agent}
                     getModelBadgeColor={getModelBadgeColor}
                     getStatusBadgeColor={getStatusBadgeColor}
                     onDelete={handleDeleteAgent}
                   />
+                 </>
+                 
                 ))}
               </div>
             )}

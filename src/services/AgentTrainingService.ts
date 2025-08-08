@@ -1,4 +1,3 @@
-
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
 import { toast } from '@/hooks/use-toast';
 import { trainingSSEService, SSETrainingEvent } from './TrainingSSEService';
@@ -88,7 +87,7 @@ export const AgentTrainingService = {
       if (res.task_id) {
         saveTrainingTask(agentId, res.task_id, agentName);
 
-        //Subscribe to SSE updates
+        // Subscribe to SSE updates
         this.subscribeToTrainingUpdates(agentId, res.task_id, agentName);
       }
       
@@ -116,22 +115,16 @@ export const AgentTrainingService = {
   },
   
   // Subscribe to real-time training updates via SSE
-
   subscribeToTrainingUpdates(agentId: string, taskId: string, agentName: string): void {
     const callback = (event: SSETrainingEvent) => {
+      console.log('SSE Training event received:', event);
+      
       switch (event.event) {
-        case 'training_started':
-          updateTrainingTaskStatus(agentId, 'training');
-          toast({
-            title: "Training Started",
-            description: `Training has started for ${agentName}`,
-            variant: "default"
-          });
-          break;
-
         case 'training_progress':
-          // Update progress if your UI supports it
-          console.log(`Training progress: ${event.data.progress}%`);
+          updateTrainingTaskStatus(agentId, 'training');
+          if (event.data.progress !== undefined) {
+            console.log(`Training progress: ${event.data.progress}%`);
+          }
           break;
 
         case 'training_completed':
@@ -155,21 +148,10 @@ export const AgentTrainingService = {
           // Unsubscribe after failure
           trainingSSEService.unsubscribe(agentId, taskId);
           break;
-
-        case 'training_cancelled':
-          updateTrainingTaskStatus(agentId, 'failed'); // Or add 'cancelled' status
-          toast({
-            title: "Training Cancelled",
-            description: `${agentName} training was cancelled.`,
-            variant: "default"
-          });
-          // Unsubscribe after cancellation
-          trainingSSEService.unsubscribe(agentId, taskId);
-          break;
       }
     };
 
-    trainingSSEService.subscribe(agentId, taskId, callback);
+   // trainingSSEService.subscribe(agentId, taskId, callback);
   },
 
   /**

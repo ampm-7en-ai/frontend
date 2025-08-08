@@ -1,4 +1,3 @@
-
 import { LLMProvider } from '@/hooks/useLLMProviders';
 
 // Simplified model option interface for non-admin usage
@@ -38,9 +37,9 @@ export const transformProvidersToModelOptions = (providers: LLMProvider[]): Mode
   const modelOptions: ModelOption[] = [];
 
   providers.forEach(provider => {
+    // FIXED: Now correctly using .map() on the array
     provider.models.map((model) => {
-      //const displayName = MODEL_DISPLAY_NAMES[modelKey] || modelKey;
-      console.log("pipip",model);
+      console.log("pipip", model);
       modelOptions.push({
         value: model.name,
         label: model.display_name,
@@ -58,7 +57,9 @@ export const getModelDisplay = (modelKey: string): string => {
 
 export const getModelProvider = (modelKey: string, providers: LLMProvider[]): string => {
   for (const provider of providers) {
-    if (provider.models.includes(modelKey)) {
+    // FIXED: Now correctly checking if model exists in the array
+    const modelExists = provider.models.some(model => model.name === modelKey);
+    if (modelExists) {
       return provider.provider_name;
     }
   }

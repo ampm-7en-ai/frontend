@@ -10,9 +10,14 @@ export interface Agent {
   lastModified: string;
   averageRating: number;
   knowledgeSources: KnowledgeSource[];
-  model: string;
+  model: ModelObject;
   isDeployed: boolean;
   status: string;
+}
+
+interface ModelObject {
+  display_name: string;
+  response_model: string;
 }
 
 interface UseAgentFilteringProps {
@@ -40,7 +45,7 @@ export const useAgentFiltering = ({
       
       // Filter by model
       const matchesModel = modelFilter === 'all' || 
-        agent.model.toLowerCase().includes(modelFilter.toLowerCase());
+        agent.model.response_model.toLowerCase().includes(modelFilter.toLowerCase());
       
       return matchesSearch && matchesModel;
     });

@@ -1,17 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { getApiUrl } from '@/utils/api-config';
 import { apiGet } from '@/utils/api-interceptor';
 
-// Non-admin simplified provider structure
-export interface LLMProvider {
-  provider_name: string;
-  models: ModelObject;
-  default_model: string | null;
-}
-
-// Model object structure for superadmin
+// Model object structure
 export interface ModelObject {
   id: number;
   name: string;
@@ -19,6 +11,13 @@ export interface ModelObject {
   created_at?: string;
   updated_at?: string;
   display_name: string;
+}
+
+// Non-admin simplified provider structure - FIXED: models is now array
+export interface LLMProvider {
+  provider_name: string;
+  models: ModelObject[]; // FIXED: Changed from ModelObject to ModelObject[]
+  default_model: string | null;
 }
 
 // Superadmin provider structure (completely separate from LLMProvider)
