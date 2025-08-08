@@ -1,7 +1,6 @@
-
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
 import { toast } from '@/hooks/use-toast';
-import { simpleTrainingPollingService } from './SimpleTrainingPollingService';
+import { startPollingAgent } from '@/utils/trainingPoller';
 
 export interface TrainingResponse {
   message: string;
@@ -36,20 +35,6 @@ const saveTrainingTask = (agentId: string, taskId: string, agentName: string) =>
     console.log('Saved training task to localStorage:', { agentId, taskId, agentName });
   } catch (error) {
     console.error('Error saving training task to localStorage:', error);
-  }
-};
-
-// Helper function to update training task status
-const updateTrainingTaskStatus = (agentId: string, status: 'completed' | 'failed' | 'training') => {
-  try {
-    const tasks = getTrainingTasks();
-    if (tasks[agentId]) {
-      tasks[agentId].status = status;
-      localStorage.setItem(TRAINING_TASKS_KEY, JSON.stringify(tasks));
-      console.log('Updated training task status:', { agentId, status });
-    }
-  } catch (error) {
-    console.error('Error updating training task status:', error);
   }
 };
 
@@ -98,15 +83,15 @@ export const AgentTrainingService = {
         throw new Error(errorText || "Train agent request failed.");
       }
       
-      // Save the task_id to localStorage with agent information
+      // Save the task_id to localStorage
       if (res.task_id) {
         saveTrainingTask(agentId, res.task_id, agentName);
 
-        // Start simple polling for this agent only
-        simpleTrainingPollingService.startPollingForAgent(agentId, res.task_id, (event) => {
-          console.log("Training status event received:", event);
+        // Start simple polling
+        startPollingAgent(agentId, (status, message) => {
+          console.log("Training status received:", { status, message });
           
-          if (event.training_status === 'Active') {
+          if (status === 'Active') {
             console.log(`Training completed for agent ${agentId}.`);
             removeTrainingTask(agentId);
             
@@ -116,19 +101,15 @@ export const AgentTrainingService = {
               variant: "default"
             });
             
-          } else if (event.training_status === 'Issues') {
+          } else if (status === 'Issues') {
             console.log(`Training failed for agent ${agentId}.`);
-            updateTrainingTaskStatus(agentId, 'failed');
+            removeTrainingTask(agentId);
             
             toast({
               title: "Training Failed", 
               description: `${agentName} training encountered issues.`,
               variant: "destructive"
             });
-            
-          } else if (event.training_status === 'Training') {
-            console.log(`Training in progress for agent ${agentId}.`);
-            updateTrainingTaskStatus(agentId, 'training');
           }
         });
       }
@@ -143,9 +124,6 @@ export const AgentTrainingService = {
     } catch (error) {
       console.error("Training failed:", error);
       
-      // Update status to failed if we have the agentId
-      updateTrainingTaskStatus(agentId, 'failed');
-      
       toast({
         title: "Training failed",
         description: error instanceof Error ? error.message : "An error occurred while training agent.",
@@ -154,43 +132,6 @@ export const AgentTrainingService = {
       
       return false;
     }
-  },
-
-  // Start polling for specific agent (for use in components)
-  startPollingForAgent(agentId: string, taskId: string, callback: (event: any) => void) {
-    console.log(`Starting polling for agent ${agentId}, task ${taskId}`);
-    
-    simpleTrainingPollingService.startPollingForAgent(agentId, taskId, (pollingEvent) => {
-      // Transform to match expected callback format
-      const transformedEvent = {
-        agent_id: pollingEvent.agent_id,
-        task_id: taskId,
-        status: pollingEvent.training_status === 'Active' ? 'completed' : 
-               pollingEvent.training_status === 'Issues' ? 'failed' : 
-               pollingEvent.training_status,
-        training_status: pollingEvent.training_status,
-        message: pollingEvent.message,
-        error: pollingEvent.error,
-        timestamp: pollingEvent.timestamp
-      };
-      
-      // Update localStorage based on status
-      if (pollingEvent.training_status === 'Active') {
-        removeTrainingTask(agentId);
-      } else if (pollingEvent.training_status === 'Issues') {
-        updateTrainingTaskStatus(agentId, 'failed');
-      } else if (pollingEvent.training_status === 'Training') {
-        updateTrainingTaskStatus(agentId, 'training');
-      }
-      
-      callback(transformedEvent);
-    });
-  },
-
-  // Stop polling
-  stopPolling() {
-    console.log('Stopping training polling via AgentTrainingService');
-    simpleTrainingPollingService.stopPolling();
   },
 
   async cancelTraining(agentId: string): Promise<boolean> {
@@ -240,11 +181,6 @@ export const AgentTrainingService = {
   // Get all training tasks
   getAllTrainingTasks: () => {
     return getTrainingTasks();
-  },
-
-  // Update task status (for external use)
-  updateTaskStatus: (agentId: string, status: 'completed' | 'failed') => {
-    updateTrainingTaskStatus(agentId, status);
   },
 
   // Remove training task (for external use)

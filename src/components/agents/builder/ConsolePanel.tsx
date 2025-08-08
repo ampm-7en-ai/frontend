@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
-import { simpleTrainingPollingService } from '@/services/SimpleTrainingPollingService';
+import { isPolling, getCurrentPollingAgent } from '@/utils/trainingPoller';
 import { useBuilder } from '@/components/agents/builder/BuilderContext';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -24,45 +24,33 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const agentId = state.agentData.id?.toString();
   const currentTask = agentId ? AgentTrainingService.getTrainingTask(agentId) : null;
 
-  // Check simple polling connection status
+  // Check polling connection status
   useEffect(() => {
     const checkConnectionStatus = () => {
-      const status = simpleTrainingPollingService.getConnectionStatus();
-      const currentAgent = simpleTrainingPollingService.getCurrentAgent();
+      const polling = isPolling();
+      const currentAgent = getCurrentPollingAgent();
       
+      const status = polling ? 'open' : 'closed';
       setConnectionStatus(status);
       
-      if (status !== connectionStatus) {
-        console.log('Console: Simple polling connection status changed to:', status, 'for agent:', currentAgent);
-      }
+      console.log('Console: Polling status:', { polling, currentAgent, status });
     };
 
     checkConnectionStatus();
     const interval = setInterval(checkConnectionStatus, 2000);
     return () => clearInterval(interval);
-  }, [connectionStatus]);
+  }, []);
 
-  // Start simple polling when component mounts and we have a task
+  // Force re-render when task status might have changed
   useEffect(() => {
-    if (currentTask && agentId) {
-      console.log('Console: Starting simple polling for agent:', agentId, 'with task:', currentTask.taskId);
-      
-      const callback = (event: any) => {
-        console.log('Console: Received simple polling event for agent', agentId, ':', event);
-        
-        // Force component re-render to show updated status
+    if (currentTask) {
+      const interval = setInterval(() => {
         setForceUpdate(prev => prev + 1);
-      };
-
-      // Start simple polling for this agent only
-      AgentTrainingService.startPollingForAgent(agentId, currentTask.taskId, callback);
+      }, 1000);
       
-      return () => {
-        console.log('Console: Stopping simple polling for agent:', agentId);
-        AgentTrainingService.stopPolling();
-      };
+      return () => clearInterval(interval);
     }
-  }, [currentTask, agentId]);
+  }, [currentTask]);
 
   const shouldShowConsole = currentTask || isTraining;
 
@@ -138,8 +126,8 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             getStatusBadge(currentTask ? currentTask.hasOwnProperty('status') ? currentTask.status : "training" : "training")
           )}
           
-          {/* Simple Polling Connection Status */}
-          <div className="flex items-center gap-1 ml-2" title={`Simple Polling: ${connectionStatus}`}>
+          {/* Polling Connection Status */}
+          <div className="flex items-center gap-1 ml-2" title={`Polling: ${connectionStatus}`}>
             {getConnectionIcon()}
             <span className="text-xs text-gray-500">{connectionStatus}</span>
           </div>
