@@ -1,5 +1,3 @@
-
-
 import { BASE_URL, getAccessToken } from '@/utils/api-config';
 
 let currentPollingInterval: NodeJS.Timeout | null = null;
@@ -84,4 +82,3 @@ export const stopPollingAgent = () => {
 
 export const isPolling = () => currentPollingInterval !== null;
 export const getCurrentPollingAgent = () => currentAgentId;
-
