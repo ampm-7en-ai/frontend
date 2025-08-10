@@ -1,3 +1,4 @@
+
 import { BASE_URL, getAccessToken } from '@/utils/api-config';
 
 let currentPollingInterval: NodeJS.Timeout | null = null;
@@ -9,6 +10,7 @@ export interface PollCallback {
 
 export const startPollingAgent = (agentId: string, callback: PollCallback, refetchAgentData?: () => Promise<void>) => {
   console.log(`Starting simple polling for agent ${agentId}`);
+  console.log('RefetchAgentData callback provided:', !!refetchAgentData);
   
   // Stop any existing polling
   stopPollingAgent();
@@ -41,13 +43,15 @@ export const startPollingAgent = (agentId: string, callback: PollCallback, refet
       console.log(`Status response for agent ${agentId}:`, data);
 
       const status = data.training_status;
+      
+      // Always call the callback first
       callback(status, data.message);
 
-      // Stop polling if status is final
+      // Check if status is final and refetch agent data
       if (status === 'Active' || status === 'Issues') {
-        console.log(`Final status '${status}' received. Stopping polling.`);
+        console.log(`Final status '${status}' received. Processing completion...`);
         
-        // Refetch agent data when training is complete
+        // Always attempt to refetch agent data when training is complete
         if (refetchAgentData) {
           console.log('🔄 Refetching agent data after training completion...');
           try {
@@ -56,8 +60,11 @@ export const startPollingAgent = (agentId: string, callback: PollCallback, refet
           } catch (error) {
             console.error('❌ Error during agent data refetch:', error);
           }
+        } else {
+          console.warn('⚠️ No refetchAgentData callback provided');
         }
         
+        console.log('Stopping polling after final status');
         stopPollingAgent();
       }
       
