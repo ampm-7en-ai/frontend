@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Search, ArrowRight, MessageSquare, BookOpen, Headphones } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import SearchModal from '@/components/help/SearchModal';
+import { useNavigate } from 'react-router-dom';
 
 const SupportTicket = () => {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
@@ -80,13 +82,13 @@ const SupportTicket = () => {
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
                 <Headphones className="h-6 w-6 text-white" />
               </div>
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Premium Support</h2>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">API Reference</h2>
             </div>
             <p className="text-slate-600 dark:text-slate-400 mb-4">
-              Direct support channel, for paying users.
+              API reference documentation for developers.
             </p>
-            <ModernButton variant="gradient" size="sm" icon={ArrowRight}>
-              Get Support
+            <ModernButton variant="outline" size="sm" icon={ArrowRight} onClick={()=>window.location.href = 'https://docs.7en.ai/api/' }>
+              API Docs
             </ModernButton>
           </div>
         </div>
