@@ -12,9 +12,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 interface ConsolePanelProps {
   className?: string;
   isTraining?: boolean;
+  refetchAgentData?: () => Promise<void>;
 }
 
-export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTraining = false }) => {
+export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTraining = false, refetchAgentData }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [copiedTaskId, setCopiedTaskId] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'open' | 'closed'>('closed');
@@ -110,6 +111,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   };
 
   if (!shouldShowConsole) {
+    //refetchAgentData(); //refresh agent data
     return null;
   }
 
@@ -127,10 +129,10 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           )}
           
           {/* Polling Connection Status */}
-          <div className="flex items-center gap-1 ml-2" title={`Polling: ${connectionStatus}`}>
+          {/* <div className="flex items-center gap-1 ml-2" title={`Polling: ${connectionStatus}`}>
             {getConnectionIcon()}
             <span className="text-xs text-gray-500">{connectionStatus}</span>
-          </div>
+          </div> */}
         </div>
         
         <Button

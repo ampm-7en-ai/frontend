@@ -284,10 +284,10 @@ const KnowledgeUpload = () => {
     );
   };
 
-  const fetchGoogleDriveData = async () => {
+  const fetchGoogleDriveData = async (token?: string) => {
     setIsLoadingGoogleDriveFiles(true);
     try {
-      const response = await fetchGoogleDriveFiles();
+      const response = await fetchGoogleDriveFiles(token);
       setGoogleDriveFiles(response.files || []);
       
       setPageData({

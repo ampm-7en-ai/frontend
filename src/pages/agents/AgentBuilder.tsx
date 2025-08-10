@@ -245,7 +245,7 @@ const AgentBuilderContent = () => {
         
         {/* Center Canvas */}
         <div className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-700 relative">
-          <InteractiveCanvas isTraining={isTraining} />
+          <InteractiveCanvas isTraining={isTraining} onAgentDataRefresh={refetchAgentData} />
         </div>
         
         {/* Right Sidebar - Configuration & Guidelines */}

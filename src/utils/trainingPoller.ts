@@ -47,6 +47,7 @@ export const startPollingAgent = (agentId: string, callback: PollCallback) => {
       // Stop polling if status is final
       if (status === 'Active' || status === 'Issues') {
         console.log(`Final status '${status}' received. Stopping polling.`);
+        
         stopPollingAgent();
       }
       

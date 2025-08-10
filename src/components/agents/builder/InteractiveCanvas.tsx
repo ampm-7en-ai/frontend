@@ -13,9 +13,10 @@ import ModernButton from '@/components/dashboard/ModernButton';
 
 interface InteractiveCanvasProps {
   isTraining?: boolean;
+  onAgentDataRefresh?: () => Promise<void>;
 }
 
-export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining = false }) => {
+export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining = false, onAgentDataRefresh }) => {
   const { state } = useBuilder();
   const { agentData, canvasMode, isPreviewActive, isLoading } = state;
   const [isAskAiOpen, setIsAskAiOpen] = useState(false);
@@ -293,7 +294,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
         </div>
         
         {/* Console Panel positioned within the canvas */}
-        <ConsolePanel isTraining={isTraining} />
+        <ConsolePanel isTraining={isTraining} refetchAgentData={onAgentDataRefresh}/>
       </div>
 
       <AskAiModal 

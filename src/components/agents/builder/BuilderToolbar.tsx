@@ -157,9 +157,9 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
         console.log('✅ Training successful from toolbar, refreshing agent data via callback');
 
         // Use the callback function instead of doing our own refresh
-        if (onAgentDataRefresh) {
-          await onAgentDataRefresh();
-        }
+        // if (onAgentDataRefresh) {
+        //   await onAgentDataRefresh();
+        // }
 
         addNotification({
           title: 'Training Complete',
