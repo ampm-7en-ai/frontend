@@ -629,12 +629,13 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                     )}
                     <div className='flex justify-end gap-2'>
                       {
-                        pageData.prevToken != null && (
+                        pageData.prevToken !== "" && (
                         <ModernButton
                         variant='outline'
                         size='sm'
                         type='button'
                         iconOnly
+                        onClick={() => fetchGoogleDriveData(pageData.prevToken)}
                       >
                         <ChevronLeft className='w-4 h-4'/>
                       </ModernButton>
@@ -642,7 +643,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                       
                       }
                       {
-                        pageData.nextToken != null && (
+                        pageData.nextToken !== "null" && (
                           <ModernButton
                             variant='outline'
                             size='sm'

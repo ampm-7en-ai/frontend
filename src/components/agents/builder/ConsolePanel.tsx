@@ -147,9 +147,8 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
         </Button>
       </div>
       
-      <ScrollArea className="flex-1 h-[calc(100%-40px)]">
+      {/* <ScrollArea className="flex-1 h-[calc(100%-40px)]">
         <div className="p-0">
-          {/* Console Content */}
           {isExpanded && (
             <div className="p-4 max-h-60">
               {currentTask ? (
@@ -221,7 +220,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             </div>
           )}
         </div>
-      </ScrollArea>
+      </ScrollArea> */}
     </div>
   );
 };

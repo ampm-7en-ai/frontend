@@ -508,7 +508,7 @@ export const GuidelinesPanel = () => {
                   <span className="text-sm font-medium">Basic Settings</span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="pb-4">
+              <AccordionContent className="pb-4 px-1">
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">Agent Name</Label>
@@ -557,7 +557,7 @@ export const GuidelinesPanel = () => {
                   
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="pb-4">
+              <AccordionContent className="pb-4 px-1">
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-2">
@@ -622,7 +622,7 @@ export const GuidelinesPanel = () => {
                   <span className="text-sm font-medium">Appearance</span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="pb-4">
+              <AccordionContent className="pb-4 px-1">
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="primaryColor" className="text-sm font-medium text-gray-700 dark:text-gray-300">Primary Color</Label>
@@ -777,7 +777,7 @@ export const GuidelinesPanel = () => {
                   <span className="text-sm font-medium">Behavior Guidelines</span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="pb-4">
+              <AccordionContent className="pb-4 px-1">
                 <div className="space-y-6">
                   {/* Agent Type Selection */}
                   <div>
@@ -911,7 +911,7 @@ export const GuidelinesPanel = () => {
                   <span className="text-sm font-medium">Behavior Settings</span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="pb-4">
+              <AccordionContent className="pb-4 px-1">
                 <div className="space-y-4">
                   
                   
@@ -964,7 +964,7 @@ export const GuidelinesPanel = () => {
                   <span className="text-sm font-medium">Quick Suggestions</span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="pb-4">
+              <AccordionContent className="pb-4 px-1">
                 <div className="space-y-3">
                   {agentData.suggestions.map((suggestion, index) => (
                     <div key={index} className="flex gap-2">

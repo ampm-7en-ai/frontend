@@ -84,7 +84,7 @@ export const ModernModal = ({
         {
           type === 'alert' ? (<></>) : (
             <div className={cn(
-              'flex-1',
+              'flex-1 px-1',
               fixedFooter && 'overflow-auto',
               // Beautiful scrollbar styling
               '[&::-webkit-scrollbar]:w-2',
