@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBuilder } from './BuilderContext';
@@ -150,16 +148,12 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
         agentData.id.toString(), 
         knowledgeSourceIds, 
         agentData.name, 
-        websiteUrls
+        websiteUrls,
+        onAgentDataRefresh // Pass the refetch callback here!
       );
       
       if (success) {
-        console.log('✅ Training successful from toolbar, refreshing agent data via callback');
-
-        // Use the callback function instead of doing our own refresh
-        // if (onAgentDataRefresh) {
-        //   await onAgentDataRefresh();
-        // }
+        console.log('✅ Training successful from toolbar');
 
         addNotification({
           title: 'Training Complete',
