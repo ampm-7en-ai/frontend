@@ -157,14 +157,13 @@ const AgentBuilderContent = () => {
       const success = await AgentTrainingService.trainAgent(
         agentId, 
         knowledgeSourceIds, 
-        state.agentData.name
+        state.agentData.name,
+        [],
+        refetchAgentData
       );
       
       if (success) {
-        console.log('✅ Training successful, refreshing agent data');
-        
-        // Manually refetch agent data from API instead of page refresh
-        await refetchAgentData();
+        console.log('✅ Training successful, polling will handle data refresh');
 
         addNotification({
           title: 'Training Complete',

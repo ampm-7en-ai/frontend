@@ -53,7 +53,7 @@ const removeTrainingTask = (agentId: string) => {
 };
 
 export const AgentTrainingService = {
-  async trainAgent(agentId: string, knowledgeSources: number[] = [], agentName: string, selectedUrls: string[] = []): Promise<boolean> {
+  async trainAgent(agentId: string, knowledgeSources: number[] = [], agentName: string, selectedUrls: string[] = [], refetchAgentData?: () => Promise<void>): Promise<boolean> {
     const token = getAccessToken();
     if (!token) {
       console.error("Authentication required for training agent");
@@ -87,7 +87,7 @@ export const AgentTrainingService = {
       if (res.task_id) {
         saveTrainingTask(agentId, res.task_id, agentName);
 
-        // Start simple polling
+        // Start simple polling with refetch callback
         startPollingAgent(agentId, (status, message) => {
           console.log("Training status received:", { status, message });
           
@@ -111,7 +111,7 @@ export const AgentTrainingService = {
               variant: "destructive"
             });
           }
-        });
+        }, refetchAgentData);
       }
       
       toast({

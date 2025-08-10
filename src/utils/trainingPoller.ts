@@ -8,7 +8,7 @@ export interface PollCallback {
   (status: 'Active' | 'Training' | 'Issues', message?: string): void;
 }
 
-export const startPollingAgent = (agentId: string, callback: PollCallback) => {
+export const startPollingAgent = (agentId: string, callback: PollCallback, refetchAgentData?: () => Promise<void>) => {
   console.log(`Starting simple polling for agent ${agentId}`);
   
   // Stop any existing polling
@@ -47,6 +47,12 @@ export const startPollingAgent = (agentId: string, callback: PollCallback) => {
       // Stop polling if status is final
       if (status === 'Active' || status === 'Issues') {
         console.log(`Final status '${status}' received. Stopping polling.`);
+        
+        // Refetch agent data when training is complete
+        if (refetchAgentData) {
+          console.log('🔄 Refetching agent data after training completion...');
+          await refetchAgentData();
+        }
         
         stopPollingAgent();
       }
