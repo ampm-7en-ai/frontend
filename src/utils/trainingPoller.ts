@@ -1,4 +1,5 @@
 
+
 import { BASE_URL, getAccessToken } from '@/utils/api-config';
 
 let currentPollingInterval: NodeJS.Timeout | null = null;
@@ -51,7 +52,12 @@ export const startPollingAgent = (agentId: string, callback: PollCallback, refet
         // Refetch agent data when training is complete
         if (refetchAgentData) {
           console.log('🔄 Refetching agent data after training completion...');
-          await refetchAgentData();
+          try {
+            await refetchAgentData();
+            console.log('✅ Agent data refetch completed successfully');
+          } catch (error) {
+            console.error('❌ Error during agent data refetch:', error);
+          }
         }
         
         stopPollingAgent();
@@ -78,3 +84,4 @@ export const stopPollingAgent = () => {
 
 export const isPolling = () => currentPollingInterval !== null;
 export const getCurrentPollingAgent = () => currentAgentId;
+
