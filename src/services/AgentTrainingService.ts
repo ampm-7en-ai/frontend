@@ -87,7 +87,9 @@ export const AgentTrainingService = {
       if (res.task_id) {
         saveTrainingTask(agentId, res.task_id, agentName);
 
-        // Start simple polling with refetch callback
+        console.log('🚀 Starting polling with refetchAgentData callback:', !!refetchAgentData);
+        
+        // Start simple polling with refetch callback - ensure it's passed correctly
         startPollingAgent(agentId, (status, message) => {
           console.log("Training status received:", { status, message });
           
