@@ -5,7 +5,7 @@ import { agentApi } from '@/utils/api-config';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import { updateAgentInCache, removeAgentFromCache } from '@/utils/agentCacheUtils';
 import { useQueryClient } from '@tanstack/react-query';
-import { startPollingAgent } from '@/utils/trainingPoller';
+import { startPollingAgent, stopPollingAgent } from '@/utils/trainingPoller';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 
 interface AgentFormData {
@@ -329,6 +329,14 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       checkAgentTrainingStatus();
     }
   }, [id, state.isLoading, state.agentData.status, state.agentData.name, state.agentData.id, loadAgentData, toast]);
+
+  // 🔥 NEW: Cleanup polling when component unmounts (user leaves builder page)
+  useEffect(() => {
+    return () => {
+      console.log('🛑 BuilderProvider unmounting, stopping all polling...');
+      stopPollingAgent();
+    };
+  }, []);
 
   const updateAgentData = useCallback((data: Partial<AgentFormData>) => {
     console.log('Updating agent data:', data);
