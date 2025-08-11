@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -46,6 +45,7 @@ interface AgentFormData {
     response_model?: string;
   };
   knowledgeSources: KnowledgeSource[];
+  status?: string; // 🔥 Add status field to preserve agent status from server
 }
 
 interface BuilderState {
@@ -211,10 +211,15 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           token_length: agentData.model?.token_length || agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
           response_model: agentData.model?.response_model || agentData.model?.selectedModel || agentData.model?.name || 'gpt-3.5-turbo'
         },
-        knowledgeSources: formatKnowledgeSources(agentData.knowledge_sources || [])
+        knowledgeSources: formatKnowledgeSources(agentData.knowledge_sources || []),
+        // 🔥 CRITICAL: Preserve the agent status from server
+        status: agentData.status
       };
 
-      console.log('Mapped agent data with updated model settings:', mappedData);
+      console.log('Mapped agent data with status preserved:', {
+        ...mappedData,
+        statusFromServer: agentData.status
+      });
 
       setState(prev => ({
         ...prev,
@@ -242,109 +247,93 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
     loadAgentData();
   }, [loadAgentData]);
 
-  // Check agent training status on page load/refresh
+  // Check agent training status on page load/refresh - Enhanced to check mapped agent data
   useEffect(() => {
     const checkAgentTrainingStatus = async () => {
       if (!id || state.isLoading) return;
 
-      // Get current agent status from server
       const agentId = id.toString();
       
-      try {
-        console.log('🔍 Checking agent training status on page load for agent:', agentId);
-        
-        const response = await agentApi.getById(agentId);
-        if (!response.ok) {
-          console.log('❌ Failed to fetch agent data for training status check');
-          return;
-        }
-        
-        const result = await response.json();
-        const agentData = result.data;
-        
-        console.log('🔍 Agent data from server:', {
-          agentId,
-          agentStatus: agentData.status,
-          agentName: agentData.name
-        });
+      console.log('🔍 Checking agent training status using mapped data:', {
+        agentId,
+        mappedStatus: state.agentData.status,
+        agentName: state.agentData.name
+      });
 
-        // Check localStorage for existing training tasks
-        const allTasks = AgentTrainingService.getAllTrainingTasks();
-        const agentTask = allTasks[agentId];
-        
-        console.log('🔍 LocalStorage training task:', agentTask);
+      // Check localStorage for existing training tasks
+      const allTasks = AgentTrainingService.getAllTrainingTasks();
+      const agentTask = allTasks[agentId];
+      
+      console.log('🔍 LocalStorage training task:', agentTask);
 
-        if (agentData.status === 'Training') {
-          console.log('🚀 Agent is in Training status, checking localStorage...');
+      // Use the mapped agent data status (which should preserve server status)
+      if (state.agentData.status === 'Training') {
+        console.log('🚀 Agent is in Training status, checking localStorage...');
+        
+        if (!agentTask || agentTask.status !== 'training') {
+          // Server shows training but no localStorage task - resume polling
+          console.log('📡 Resuming polling for training agent (no valid localStorage task found)');
           
-          if (!agentTask || agentTask.status !== 'training') {
-            // Server shows training but no localStorage task - resume polling
-            console.log('📡 Resuming polling for training agent (no valid localStorage task found)');
+          // Save training task to localStorage
+          if (state.agentData.name) {
+            // Create a temporary task entry
+            const tasks = AgentTrainingService.getAllTrainingTasks();
+            tasks[agentId] = {
+              taskId: `resumed-${Date.now()}`,
+              agentName: state.agentData.name,
+              timestamp: Date.now(),
+              status: 'training'
+            };
+            localStorage.setItem('agent_training_tasks', JSON.stringify(tasks));
+            console.log('💾 Saved resumed training task to localStorage');
+          }
+          
+          // Start polling with loadAgentData as the refetch callback
+          console.log('🔄 Starting polling with refetch callback...');
+          startPollingAgent(agentId, (status, message) => {
+            console.log("📊 Training status received:", { status, message });
             
-            // Save training task to localStorage
-            if (agentData.name) {
-              // Create a temporary task entry
-              const tasks = AgentTrainingService.getAllTrainingTasks();
-              tasks[agentId] = {
-                taskId: `resumed-${Date.now()}`,
-                agentName: agentData.name,
-                timestamp: Date.now(),
-                status: 'training'
-              };
-              localStorage.setItem('agent_training_tasks', JSON.stringify(tasks));
-              console.log('💾 Saved resumed training task to localStorage');
-            }
-            
-            // Start polling with loadAgentData as the refetch callback
-            console.log('🔄 Starting polling with refetch callback...');
-            startPollingAgent(agentId, (status, message) => {
-              console.log("📊 Training status received:", { status, message });
+            if (status === 'Active') {
+              console.log(`✅ Training completed for agent ${agentId}`);
+              AgentTrainingService.removeTask(agentId);
               
-              if (status === 'Active') {
-                console.log(`✅ Training completed for agent ${agentId}`);
-                AgentTrainingService.removeTask(agentId);
-                
-                toast({
-                  title: "Training Completed",
-                  description: `${agentData.name} training completed successfully.`,
-                  variant: "default"
-                });
-                
-              } else if (status === 'Issues') {
-                console.log(`❌ Training failed for agent ${agentId}`);
-                AgentTrainingService.removeTask(agentId);
-                
-                toast({
-                  title: "Training Failed", 
-                  description: `${agentData.name} training encountered issues.`,
-                  variant: "destructive"
-                });
-              }
-            }, loadAgentData);
-            
-            console.log('✅ Polling resumed successfully');
-          } else {
-            console.log('✅ Agent is training and localStorage task exists - polling should already be active');
-          }
+              toast({
+                title: "Training Completed",
+                description: `${state.agentData.name} training completed successfully.`,
+                variant: "default"
+              });
+              
+            } else if (status === 'Issues') {
+              console.log(`❌ Training failed for agent ${agentId}`);
+              AgentTrainingService.removeTask(agentId);
+              
+              toast({
+                title: "Training Failed", 
+                description: `${state.agentData.name} training encountered issues.`,
+                variant: "destructive"
+              });
+            }
+          }, loadAgentData);
+          
+          console.log('✅ Polling resumed successfully');
         } else {
-          // Agent is not in training status, clean up any stale localStorage entries
-          if (agentTask && agentTask.status === 'training') {
-            console.log('🧹 Cleaning up stale localStorage training task');
-            AgentTrainingService.removeTask(agentId);
-          }
-          console.log('ℹ️ Agent is not in Training status, no polling needed');
+          console.log('✅ Agent is training and localStorage task exists - polling should already be active');
         }
-        
-      } catch (error) {
-        console.error('❌ Error checking agent training status:', error);
+      } else {
+        // Agent is not in training status, clean up any stale localStorage entries
+        if (agentTask && agentTask.status === 'training') {
+          console.log('🧹 Cleaning up stale localStorage training task');
+          AgentTrainingService.removeTask(agentId);
+        }
+        console.log('ℹ️ Agent is not in Training status, no polling needed');
       }
     };
 
-    // Only run this check when loading is complete
-    if (!state.isLoading) {
+    // Only run this check when loading is complete and agent data is available
+    if (!state.isLoading && state.agentData.id) {
       checkAgentTrainingStatus();
     }
-  }, [id, state.isLoading, loadAgentData, toast]);
+  }, [id, state.isLoading, state.agentData.status, state.agentData.name, state.agentData.id, loadAgentData, toast]);
 
   const updateAgentData = useCallback((data: Partial<AgentFormData>) => {
     console.log('Updating agent data:', data);
