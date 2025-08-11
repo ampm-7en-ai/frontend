@@ -330,7 +330,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
           const selectedUrls = scrapedUrls.filter(urlData => urlData.selected).map(urlData => urlData.url);
           formData.append('urls', JSON.stringify(selectedUrls));
         } else {
-          formData.append('url', url);
+          formData.append('urls', "["+JSON.stringify(url)+"]");
         }
         formData.append('crawl_all_pages', importAllPages.toString());
         break;
