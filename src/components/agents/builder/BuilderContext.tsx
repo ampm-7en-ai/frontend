@@ -5,6 +5,8 @@ import { agentApi } from '@/utils/api-config';
 import { KnowledgeSource } from '@/components/agents/knowledge/types';
 import { updateAgentInCache, removeAgentFromCache } from '@/utils/agentCacheUtils';
 import { useQueryClient } from '@tanstack/react-query';
+import { startPollingAgent } from '@/utils/trainingPoller';
+import { AgentTrainingService } from '@/services/AgentTrainingService';
 
 interface AgentFormData {
   id?: string | number;
@@ -148,92 +150,188 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   // Fetch agent data when ID is present
-  useEffect(() => {
-    const loadAgentData = async () => {
-      if (!id) {
-        console.log('No agent ID provided, using default data');
-        return;
+  const loadAgentData = useCallback(async () => {
+    if (!id) {
+      console.log('No agent ID provided, using default data');
+      return;
+    }
+
+    console.log('Loading agent data for ID:', id);
+    setState(prev => ({ ...prev, isLoading: true }));
+
+    try {
+      const response = await agentApi.getById(id);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch agent: ${response.statusText}`);
       }
 
-      console.log('Loading agent data for ID:', id);
-      setState(prev => ({ ...prev, isLoading: true }));
+      const result = await response.json();
+      const agentData = result.data;
+      
+      console.log('Fetched agent data:', agentData);
 
+      // Map API response to our form structure - Enhanced model configuration mapping
+      const mappedData: AgentFormData = {
+        id: agentData.id || id,
+        name: agentData.name || 'Untitled Agent',
+        description: agentData.description || 'A helpful AI assistant created with our builder.',
+        agentType: agentData.agentType || 'Customer Support',
+        // Updated model mapping to handle the new API structure
+        model: agentData.model?.response_model || agentData.model?.selectedModel || agentData.model?.name || 'gpt-3.5-turbo',
+        temperature: agentData.model?.temperature || 0.7,
+        maxTokens: agentData.model?.token_length || agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
+        systemPrompt: agentData.systemPrompt || 'You are a helpful AI assistant. Be friendly, professional, and provide accurate information.',
+        primaryColor: agentData.appearance?.primaryColor || '#3b82f6',
+        secondaryColor: agentData.appearance?.secondaryColor || '#ffffff',
+        fontFamily: agentData.appearance?.fontFamily || 'Inter',
+        chatbotName: agentData.appearance?.chatbotName || 'AI Assistant',
+        welcomeMessage: agentData.appearance?.welcomeMessage || '',
+        buttonText: agentData.appearance?.buttonText || '',
+        position: agentData.appearance?.position || 'bottom-right',
+        suggestions: agentData.behavior?.suggestions || agentData.appearance?.suggestions || [],
+        avatar: agentData.appearance?.avatar?.src,
+        avatarUrl: agentData.appearance?.avatar?.src,
+        avatarType: agentData.appearance?.avatar?.type || 'default',
+        guidelines: {
+          dos: agentData.behavior?.guidelines?.dos || [],
+          donts: agentData.behavior?.guidelines?.donts || []
+        },
+        behavior: {
+          conversationMemory: agentData.behavior?.conversationMemory || false,
+          continuousLearning: agentData.behavior?.continuousLearning || false,
+          expertHandoff: agentData.behavior?.expertHandoff || false,
+          aiToAiHandoff: agentData.behavior?.aiToAiHandoff || false,
+          multilingualSupport: agentData.behavior?.multilingualSupport || false
+        },
+        // Updated settings mapping to match the new API structure
+        settings: {
+          temperature: agentData.model?.temperature || 0.7,
+          token_length: agentData.model?.token_length || agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
+          response_model: agentData.model?.response_model || agentData.model?.selectedModel || agentData.model?.name || 'gpt-3.5-turbo'
+        },
+        knowledgeSources: formatKnowledgeSources(agentData.knowledge_sources || [])
+      };
+
+      console.log('Mapped agent data with updated model settings:', mappedData);
+
+      setState(prev => ({
+        ...prev,
+        agentData: mappedData,
+        isDirty: false,
+        isLoading: false
+      }));
+
+      // Return the agentData for use in other effects
+      return agentData;
+
+    } catch (error) {
+      console.error('Error loading agent:', error);
+      toast({
+        title: "Error Loading Agent",
+        description: error instanceof Error ? error.message : "Failed to load agent data.",
+        variant: "destructive"
+      });
+      setState(prev => ({ ...prev, isLoading: false }));
+      return null;
+    }
+  }, [id, toast]);
+
+  useEffect(() => {
+    loadAgentData();
+  }, [loadAgentData]);
+
+  // Check agent training status on page load/refresh
+  useEffect(() => {
+    const checkAgentTrainingStatus = async () => {
+      if (!id || state.isLoading) return;
+
+      // Get current agent status from server
+      const agentId = id.toString();
+      
       try {
-        const response = await agentApi.getById(id);
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch agent: ${response.statusText}`);
-        }
-
+        const response = await agentApi.getById(agentId);
+        if (!response.ok) return;
+        
         const result = await response.json();
         const agentData = result.data;
         
-        console.log('Fetched agent data:', agentData);
-
-        // Map API response to our form structure - Enhanced model configuration mapping
-        const mappedData: AgentFormData = {
-          id: agentData.id || id,
-          name: agentData.name || 'Untitled Agent',
-          description: agentData.description || 'A helpful AI assistant created with our builder.',
-          agentType: agentData.agentType || 'Customer Support',
-          // Updated model mapping to handle the new API structure
-          model: agentData.model?.response_model || agentData.model?.selectedModel || agentData.model?.name || 'gpt-3.5-turbo',
-          temperature: agentData.model?.temperature || 0.7,
-          maxTokens: agentData.model?.token_length || agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
-          systemPrompt: agentData.systemPrompt || 'You are a helpful AI assistant. Be friendly, professional, and provide accurate information.',
-          primaryColor: agentData.appearance?.primaryColor || '#3b82f6',
-          secondaryColor: agentData.appearance?.secondaryColor || '#ffffff',
-          fontFamily: agentData.appearance?.fontFamily || 'Inter',
-          chatbotName: agentData.appearance?.chatbotName || 'AI Assistant',
-          welcomeMessage: agentData.appearance?.welcomeMessage || '',
-          buttonText: agentData.appearance?.buttonText || '',
-          position: agentData.appearance?.position || 'bottom-right',
-          suggestions: agentData.behavior?.suggestions || agentData.appearance?.suggestions || [],
-          avatar: agentData.appearance?.avatar?.src,
-          avatarUrl: agentData.appearance?.avatar?.src,
-          avatarType: agentData.appearance?.avatar?.type || 'default',
-          guidelines: {
-            dos: agentData.behavior?.guidelines?.dos || [],
-            donts: agentData.behavior?.guidelines?.donts || []
-          },
-          behavior: {
-            conversationMemory: agentData.behavior?.conversationMemory || false,
-            continuousLearning: agentData.behavior?.continuousLearning || false,
-            expertHandoff: agentData.behavior?.expertHandoff || false,
-            aiToAiHandoff: agentData.behavior?.aiToAiHandoff || false,
-            multilingualSupport: agentData.behavior?.multilingualSupport || false
-          },
-          // Updated settings mapping to match the new API structure
-          settings: {
-            temperature: agentData.model?.temperature || 0.7,
-            token_length: agentData.model?.token_length || agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
-            response_model: agentData.model?.response_model || agentData.model?.selectedModel || agentData.model?.name || 'gpt-3.5-turbo'
-          },
-          knowledgeSources: formatKnowledgeSources(agentData.knowledge_sources || [])
-        };
-
-        console.log('Mapped agent data with updated model settings:', mappedData);
-
-        setState(prev => ({
-          ...prev,
-          agentData: mappedData,
-          isDirty: false,
-          isLoading: false
-        }));
-
-      } catch (error) {
-        console.error('Error loading agent:', error);
-        toast({
-          title: "Error Loading Agent",
-          description: error instanceof Error ? error.message : "Failed to load agent data.",
-          variant: "destructive"
+        console.log('🔍 Checking agent training status on page load:', {
+          agentId,
+          agentStatus: agentData.status,
+          agentName: agentData.name
         });
-        setState(prev => ({ ...prev, isLoading: false }));
+
+        // Check localStorage for existing training tasks
+        const allTasks = AgentTrainingService.getAllTrainingTasks();
+        const agentTask = allTasks[agentId];
+        
+        if (agentData.status === 'Training') {
+          console.log('🚀 Agent is in Training status, checking localStorage...');
+          
+          if (!agentTask || agentTask.status !== 'training') {
+            // Server shows training but no localStorage task - resume polling
+            console.log('📡 Resuming polling for training agent (no localStorage task found)');
+            
+            // Save training task to localStorage
+            if (agentData.name) {
+              // Create a temporary task entry
+              const tasks = AgentTrainingService.getAllTrainingTasks();
+              tasks[agentId] = {
+                taskId: `resumed-${Date.now()}`,
+                agentName: agentData.name,
+                timestamp: Date.now(),
+                status: 'training'
+              };
+              localStorage.setItem('agent_training_tasks', JSON.stringify(tasks));
+            }
+            
+            // Start polling with loadAgentData as the refetch callback
+            startPollingAgent(agentId, (status, message) => {
+              console.log("Training status received:", { status, message });
+              
+              if (status === 'Active') {
+                console.log(`Training completed for agent ${agentId}.`);
+                AgentTrainingService.removeTask(agentId);
+                
+                toast({
+                  title: "Training Completed",
+                  description: `${agentData.name} training completed successfully.`,
+                  variant: "default"
+                });
+                
+              } else if (status === 'Issues') {
+                console.log(`Training failed for agent ${agentId}.`);
+                AgentTrainingService.removeTask(agentId);
+                
+                toast({
+                  title: "Training Failed", 
+                  description: `${agentData.name} training encountered issues.`,
+                  variant: "destructive"
+                });
+              }
+            }, loadAgentData);
+          } else {
+            console.log('✅ Agent is training and localStorage task exists - polling should already be active');
+          }
+        } else {
+          // Agent is not in training status, clean up any stale localStorage entries
+          if (agentTask && agentTask.status === 'training') {
+            console.log('🧹 Cleaning up stale localStorage training task');
+            AgentTrainingService.removeTask(agentId);
+          }
+        }
+        
+      } catch (error) {
+        console.error('Error checking agent training status:', error);
       }
     };
 
-    loadAgentData();
-  }, [id, toast]);
+    // Only run this check when loading is complete
+    if (!state.isLoading) {
+      checkAgentTrainingStatus();
+    }
+  }, [id, state.isLoading, loadAgentData, toast]);
 
   const updateAgentData = useCallback((data: Partial<AgentFormData>) => {
     console.log('Updating agent data:', data);
