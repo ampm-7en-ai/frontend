@@ -5,8 +5,8 @@
 
 // Google OAuth Client Configuration
 export const GOOGLE_AUTH_CONFIG = {
-  CLIENT_ID: "489274856564-46b2umf3pv7b0b8e60hvo0ptu71iq2ph.apps.googleusercontent.com",
-  PROJECT_ID: "eseven-465906",
+  CLIENT_ID: "507089589791-t0c9qqojv3jb1lg39gvdegcpseoij7kt.apps.googleusercontent.com",
+  PROJECT_ID: "engemini",
   AUTH_URI: "https://accounts.google.com/o/oauth2/auth",
   TOKEN_URI: "https://oauth2.googleapis.com/token",
   AUTH_PROVIDER_CERT_URL: "https://www.googleapis.com/oauth2/v1/certs",
