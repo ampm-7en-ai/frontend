@@ -30,9 +30,13 @@ export const TrainingAlertBadge: React.FC<TrainingAlertBadgeProps> = ({
       const taskEntries = Object.entries(allTasks);
       
       if (agentId) {
-        // If agentId is provided, only check for this specific agent
+        // If agentId is provided, only check for this specific agent in localStorage
         const agentTask = allTasks[agentId];
         const isAgentTraining = agentTask && agentTask.status === 'training';
+        console.log(`🔍 TrainingAlertBadge: Checking localStorage for agent ${agentId}:`, {
+          agentTask,
+          isAgentTraining
+        });
         setHasTrainingTasks(isAgentTraining);
         setCurrentTrainingAgent(isAgentTraining ? agentTask.agentName : '');
       } else {
