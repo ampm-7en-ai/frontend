@@ -19,11 +19,34 @@ const AgentBuilderContent = () => {
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
   const [isTraining, setIsTraining] = useState(false);
   const [showUntrainedAlert, setShowUntrainedAlert] = useState(false);
+  const [hasActiveTrainingTasks, setHasActiveTrainingTasks] = useState(false);
 
   const { state, updateAgentData } = useBuilder();
   const { addNotification } = useNotifications();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Check for active training tasks in localStorage
+  useEffect(() => {
+    const checkActiveTrainingTasks = () => {
+      const agentId = state.agentData.id?.toString();
+      if (!agentId) return;
+
+      const allTasks = AgentTrainingService.getAllTrainingTasks();
+      const agentTask = allTasks[agentId];
+      const isAgentTraining = agentTask && agentTask.status === 'training';
+      
+      setHasActiveTrainingTasks(isAgentTraining);
+    };
+
+    // Check immediately
+    checkActiveTrainingTasks();
+    
+    // Set up polling to check periodically
+    const interval = setInterval(checkActiveTrainingTasks, 2000);
+    
+    return () => clearInterval(interval);
+  }, [state.agentData.id]);
 
   // Helper function to format knowledge sources
   const formatKnowledgeSources = (knowledgeSources: any[]) => {
@@ -92,7 +115,7 @@ const AgentBuilderContent = () => {
   // Check for untrained knowledge sources - Updated to check status field
   useEffect(() => {
     const agentId = state.agentData.id?.toString();
-    if (!agentId || isTraining || state.isLoading) return;
+    if (!agentId || isTraining || state.isLoading || hasActiveTrainingTasks) return;
 
     // Debug logging
     console.log('🔍 Checking knowledge sources for untrained status:', {
@@ -116,11 +139,12 @@ const AgentBuilderContent = () => {
     const shouldShowAlert = untrainedSources.length > 0;
     
     console.log('⚠️ Should show alert:', shouldShowAlert, {
-      untrainedCount: untrainedSources.length
+      untrainedCount: untrainedSources.length,
+      hasActiveTrainingTasks
     });
     
     setShowUntrainedAlert(shouldShowAlert);
-  }, [state.agentData.knowledgeSources, state.agentData.id, isTraining, state.isLoading]);
+  }, [state.agentData.knowledgeSources, state.agentData.id, isTraining, state.isLoading, hasActiveTrainingTasks]);
 
   const handleRetrainAgent = async () => {
     const agentId = state.agentData.id?.toString();
@@ -212,12 +236,12 @@ const AgentBuilderContent = () => {
         isVisible={isTraining}
         message="Training knowledge sources..."
         agentId={state.agentData.id?.toString()}
-        hasUntrainedAlert={showUntrainedAlert}
+        hasUntrainedAlert={showUntrainedAlert && !hasActiveTrainingTasks}
       />
       
-      {/* Untrained Sources Alert */}
+      {/* Untrained Sources Alert - Hide when training is active */}
       <UntrainedSourcesAlert
-        isVisible={showUntrainedAlert}
+        isVisible={showUntrainedAlert && !hasActiveTrainingTasks}
         untrainedCount={untrainedCount}
         onRetrain={handleRetrainAgent}
         onDismiss={handleDismissUntrainedAlert}
