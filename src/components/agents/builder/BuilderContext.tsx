@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -222,7 +223,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isLoading: false
       }));
 
-      // Return the agentData for use in other effects
+      // Return the raw agentData for use in other effects (preserving original status)
       return agentData;
 
     } catch (error) {
@@ -250,13 +251,18 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const agentId = id.toString();
       
       try {
+        console.log('🔍 Checking agent training status on page load for agent:', agentId);
+        
         const response = await agentApi.getById(agentId);
-        if (!response.ok) return;
+        if (!response.ok) {
+          console.log('❌ Failed to fetch agent data for training status check');
+          return;
+        }
         
         const result = await response.json();
         const agentData = result.data;
         
-        console.log('🔍 Checking agent training status on page load:', {
+        console.log('🔍 Agent data from server:', {
           agentId,
           agentStatus: agentData.status,
           agentName: agentData.name
@@ -266,12 +272,14 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const allTasks = AgentTrainingService.getAllTrainingTasks();
         const agentTask = allTasks[agentId];
         
+        console.log('🔍 LocalStorage training task:', agentTask);
+
         if (agentData.status === 'Training') {
           console.log('🚀 Agent is in Training status, checking localStorage...');
           
           if (!agentTask || agentTask.status !== 'training') {
             // Server shows training but no localStorage task - resume polling
-            console.log('📡 Resuming polling for training agent (no localStorage task found)');
+            console.log('📡 Resuming polling for training agent (no valid localStorage task found)');
             
             // Save training task to localStorage
             if (agentData.name) {
@@ -284,14 +292,16 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 status: 'training'
               };
               localStorage.setItem('agent_training_tasks', JSON.stringify(tasks));
+              console.log('💾 Saved resumed training task to localStorage');
             }
             
             // Start polling with loadAgentData as the refetch callback
+            console.log('🔄 Starting polling with refetch callback...');
             startPollingAgent(agentId, (status, message) => {
-              console.log("Training status received:", { status, message });
+              console.log("📊 Training status received:", { status, message });
               
               if (status === 'Active') {
-                console.log(`Training completed for agent ${agentId}.`);
+                console.log(`✅ Training completed for agent ${agentId}`);
                 AgentTrainingService.removeTask(agentId);
                 
                 toast({
@@ -301,7 +311,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 });
                 
               } else if (status === 'Issues') {
-                console.log(`Training failed for agent ${agentId}.`);
+                console.log(`❌ Training failed for agent ${agentId}`);
                 AgentTrainingService.removeTask(agentId);
                 
                 toast({
@@ -311,6 +321,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 });
               }
             }, loadAgentData);
+            
+            console.log('✅ Polling resumed successfully');
           } else {
             console.log('✅ Agent is training and localStorage task exists - polling should already be active');
           }
@@ -320,10 +332,11 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
             console.log('🧹 Cleaning up stale localStorage training task');
             AgentTrainingService.removeTask(agentId);
           }
+          console.log('ℹ️ Agent is not in Training status, no polling needed');
         }
         
       } catch (error) {
-        console.error('Error checking agent training status:', error);
+        console.error('❌ Error checking agent training status:', error);
       }
     };
 
