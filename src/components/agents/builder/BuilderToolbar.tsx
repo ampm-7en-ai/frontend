@@ -153,7 +153,10 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
       );
       
       if (success) {
-        console.log('✅ Training successful from toolbar');
+        console.log('✅ Training started successfully, updating agent status to Training');
+        
+        // Update agent status to "Training" to keep the alert badge visible
+        updateAgentData({ status: 'Training' });
 
         addNotification({
           title: 'Training Complete',
