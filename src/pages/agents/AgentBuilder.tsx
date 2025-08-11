@@ -211,6 +211,8 @@ const AgentBuilderContent = () => {
       <TrainingAlertBadge 
         isVisible={isTraining}
         message="Training knowledge sources..."
+        agentId={state.agentData.id?.toString()}
+        hasUntrainedAlert={showUntrainedAlert}
       />
       
       {/* Untrained Sources Alert */}
