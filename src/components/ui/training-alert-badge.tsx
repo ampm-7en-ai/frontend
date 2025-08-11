@@ -1,16 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Brain } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { AgentTrainingService } from '@/services/AgentTrainingService';
 
 interface TrainingAlertBadgeProps {
   isVisible?: boolean;
   message?: string;
   className?: string;
   hasUntrainedAlert?: boolean;
-  agentId?: string; // Optional - if provided, will show training status for this specific agent
+  agentStatus?: string; // Use agent status instead of agentId
+  agentName?: string; // Agent name for display
 }
 
 export const TrainingAlertBadge: React.FC<TrainingAlertBadgeProps> = ({
@@ -18,56 +18,24 @@ export const TrainingAlertBadge: React.FC<TrainingAlertBadgeProps> = ({
   message = "Training in progress...",
   className,
   hasUntrainedAlert = false,
-  agentId
+  agentStatus,
+  agentName
 }) => {
-  const [hasTrainingTasks, setHasTrainingTasks] = useState(false);
-  const [currentTrainingAgent, setCurrentTrainingAgent] = useState<string>('');
-
-  // Check for training tasks in localStorage
-  useEffect(() => {
-    const checkTrainingTasks = () => {
-      const allTasks = AgentTrainingService.getAllTrainingTasks();
-      const taskEntries = Object.entries(allTasks);
-      
-      if (agentId) {
-        // If agentId is provided, only check for this specific agent in localStorage
-        const agentTask = allTasks[agentId];
-        const isAgentTraining = agentTask && agentTask.status === 'training';
-        console.log(`🔍 TrainingAlertBadge: Checking localStorage for agent ${agentId}:`, {
-          agentTask,
-          isAgentTraining
-        });
-        setHasTrainingTasks(isAgentTraining);
-        setCurrentTrainingAgent(isAgentTraining ? agentTask.agentName : '');
-      } else {
-        // Check for any training tasks
-        const activeTrainingTasks = taskEntries.filter(([_, task]) => task.status === 'training');
-        setHasTrainingTasks(activeTrainingTasks.length > 0);
-        
-        if (activeTrainingTasks.length > 0) {
-          const firstTask = activeTrainingTasks[0][1];
-          setCurrentTrainingAgent(firstTask.agentName);
-        } else {
-          setCurrentTrainingAgent('');
-        }
-      }
-    };
-
-    // Check immediately
-    checkTrainingTasks();
-    
-    // Set up polling to check periodically
-    const interval = setInterval(checkTrainingTasks, 2000);
-    
-    return () => clearInterval(interval);
-  }, [agentId]);
+  // Check if agent is in training status
+  const isAgentTraining = agentStatus === 'Training';
+  
+  console.log(`🔍 TrainingAlertBadge: Checking agent status:`, {
+    agentStatus,
+    isAgentTraining,
+    agentName
+  });
 
   // Determine if badge should be visible
-  const shouldShowBadge = externalIsVisible || hasTrainingTasks;
+  const shouldShowBadge = externalIsVisible || isAgentTraining;
   
   // Determine the message to show
-  const displayMessage = hasTrainingTasks 
-    ? `Training ${currentTrainingAgent}...`
+  const displayMessage = isAgentTraining && agentName
+    ? `Training ${agentName}...`
     : message;
 
   if (!shouldShowBadge) return null;
