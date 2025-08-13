@@ -383,7 +383,7 @@ export const GuidelinesPanel = () => {
     setUpdatingProvider(providerId);
     
     try {
-      const currentProviders: string[] = agentData.ticketing_providers || [];
+      const currentProviders: string[] = (agentData.ticketing_providers || []).map(String);
       let newProviders: string[];
       
       if (enabled) {
@@ -418,7 +418,7 @@ export const GuidelinesPanel = () => {
 
   // Handle adding new provider from modal
   const handleAddProvider = async (providerId: string) => {
-    const currentProviders: string[] = agentData.ticketing_providers || [];
+    const currentProviders: string[] = (agentData.ticketing_providers || []).map(String);
     const newProviders: string[] = [...currentProviders, providerId];
     
     updateAgentData({ ticketing_providers: newProviders });
@@ -1107,7 +1107,7 @@ export const GuidelinesPanel = () => {
       <IntegrationSelectionModal
         open={showIntegrationModal}
         onOpenChange={setShowIntegrationModal}
-        currentProviders={agentData.ticketing_providers as string[] || []}
+        currentProviders={(agentData.ticketing_providers || []).map(String)}
         onAddProvider={handleAddProvider}
       />
 
