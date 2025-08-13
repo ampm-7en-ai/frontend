@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ export const GuidelinesPanel = () => {
     setUpdatingProvider(providerId);
     
     try {
-      const currentProviders: string[] = (agentData.ticketing_providers || []).map(String);
+      const currentProviders: string[] = (agentData.ticketing_providers || []).map(p => String(p));
       let newProviders: string[];
       
       if (enabled) {
@@ -45,7 +46,7 @@ export const GuidelinesPanel = () => {
 
   // Handle adding new provider from modal
   const handleAddProvider = async (providerId: string) => {
-    const currentProviders: string[] = (agentData.ticketing_providers || []).map(String);
+    const currentProviders: string[] = (agentData.ticketing_providers || []).map(p => String(p));
     const newProviders: string[] = [...currentProviders, providerId];
     
     updateAgentData({ ticketing_providers: newProviders });
@@ -93,8 +94,8 @@ export const GuidelinesPanel = () => {
                 <Label htmlFor="system-prompt-text">System Prompt</Label>
                 <Textarea
                   id="system-prompt-text"
-                  value={agentData.system_prompt || ''}
-                  onChange={(e) => updateAgentData({ system_prompt: e.target.value })}
+                  value={agentData.systemPrompt || ''}
+                  onChange={(e) => updateAgentData({ systemPrompt: e.target.value })}
                 />
               </div>
             </div>
@@ -114,11 +115,11 @@ export const GuidelinesPanel = () => {
               {agentData.ticketing_providers && agentData.ticketing_providers.length > 0 ? (
                 agentData.ticketing_providers.map((providerId) => (
                   <IntegrationProviderCard
-                    key={providerId}
-                    providerId={providerId}
+                    key={String(providerId)}
+                    providerId={String(providerId)}
                     isEnabled={true}
                     onToggle={handleProviderToggle}
-                    isUpdating={updatingProvider === providerId}
+                    isUpdating={updatingProvider === String(providerId)}
                   />
                 ))
               ) : (
@@ -145,7 +146,7 @@ export const GuidelinesPanel = () => {
       <IntegrationSelectionModal
         open={showIntegrationModal}
         onOpenChange={setShowIntegrationModal}
-        currentProviders={(agentData.ticketing_providers || []).map(String)}
+        currentProviders={(agentData.ticketing_providers || []).map(p => String(p))}
         onAddProvider={handleAddProvider}
       />
     </div>
