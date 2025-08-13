@@ -383,7 +383,7 @@ export const GuidelinesPanel = () => {
     setUpdatingProvider(providerId);
     
     try {
-      const currentProviders = agentData.ticketing_providers || [];
+      const currentProviders: string[] = agentData.ticketing_providers || [];
       let newProviders: string[];
       
       if (enabled) {
@@ -393,7 +393,7 @@ export const GuidelinesPanel = () => {
           : [...currentProviders, providerId];
       } else {
         // Remove provider from array
-        newProviders = currentProviders.filter(p => p !== providerId);
+        newProviders = currentProviders.filter((p: string) => p !== providerId);
       }
       
       // Update local state
@@ -418,8 +418,8 @@ export const GuidelinesPanel = () => {
 
   // Handle adding new provider from modal
   const handleAddProvider = async (providerId: string) => {
-    const currentProviders = agentData.ticketing_providers || [];
-    const newProviders = [...currentProviders, providerId];
+    const currentProviders: string[] = agentData.ticketing_providers || [];
+    const newProviders: string[] = [...currentProviders, providerId];
     
     updateAgentData({ ticketing_providers: newProviders });
     setShowIntegrationModal(false);
@@ -1069,7 +1069,7 @@ export const GuidelinesPanel = () => {
                 <div className="space-y-3">
                   {agentData.ticketing_providers && agentData.ticketing_providers.length > 0 ? (
                     <>
-                      {agentData.ticketing_providers.map((providerId) => (
+                      {(agentData.ticketing_providers as string[]).map((providerId: string) => (
                         <IntegrationProviderCard
                           key={providerId}
                           providerId={providerId}
@@ -1107,7 +1107,7 @@ export const GuidelinesPanel = () => {
       <IntegrationSelectionModal
         open={showIntegrationModal}
         onOpenChange={setShowIntegrationModal}
-        currentProviders={agentData.ticketing_providers || []}
+        currentProviders={agentData.ticketing_providers as string[] || []}
         onAddProvider={handleAddProvider}
       />
 

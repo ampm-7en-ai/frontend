@@ -15,7 +15,7 @@ export interface TicketingProvider {
   };
 }
 
-const TICKETING_PROVIDERS: Record<string, Omit<TicketingProvider, 'id' | 'status' | 'isDefault'>> = {
+export const TICKETING_PROVIDERS: Record<string, Omit<TicketingProvider, 'id' | 'status' | 'isDefault'>> = {
   hubspot: {
     name: 'HubSpot',
     type: 'ticketing',
