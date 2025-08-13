@@ -19,6 +19,8 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { getAccessToken, getApiUrl } from '@/utils/api-config';
+import { IntegrationProviderCard } from './IntegrationProviderCard';
+import { IntegrationSelectionModal } from './IntegrationSelectionModal';
 
 export const GuidelinesPanel = () => {
   const { state, updateAgentData } = useBuilder();
@@ -34,10 +36,14 @@ export const GuidelinesPanel = () => {
   // Modal states
   const [showSystemPromptModal, setShowSystemPromptModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showIntegrationModal, setShowIntegrationModal] = useState(false);
   
   // Avatar upload states
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isRemovingAvatar, setIsRemovingAvatar] = useState(false);
+  
+  // Integration states
+  const [updatingProvider, setUpdatingProvider] = useState<string | null>(null);
 
   // Get global default model from agent data settings
   const globalDefaultModel = agentData.settings?.response_model;
@@ -370,6 +376,53 @@ export const GuidelinesPanel = () => {
     const newSuggestions = [...agentData.suggestions];
     newSuggestions[index] = value;
     updateAgentData({ suggestions: newSuggestions });
+  };
+
+  // Handle provider toggle
+  const handleProviderToggle = async (providerId: string, enabled: boolean) => {
+    setUpdatingProvider(providerId);
+    
+    try {
+      const currentProviders = agentData.ticketing_providers || [];
+      let newProviders: string[];
+      
+      if (enabled) {
+        // Add provider if not already in array
+        newProviders = currentProviders.includes(providerId) 
+          ? currentProviders 
+          : [...currentProviders, providerId];
+      } else {
+        // Remove provider from array
+        newProviders = currentProviders.filter(p => p !== providerId);
+      }
+      
+      // Update local state
+      updateAgentData({ ticketing_providers: newProviders });
+      
+      toast({
+        title: enabled ? "Integration enabled" : "Integration disabled",
+        description: `${providerId} has been ${enabled ? 'added to' : 'removed from'} your agent.`,
+      });
+      
+    } catch (error) {
+      console.error('Error updating provider:', error);
+      toast({
+        title: "Update failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingProvider(null);
+    }
+  };
+
+  // Handle adding new provider from modal
+  const handleAddProvider = async (providerId: string) => {
+    const currentProviders = agentData.ticketing_providers || [];
+    const newProviders = [...currentProviders, providerId];
+    
+    updateAgentData({ ticketing_providers: newProviders });
+    setShowIntegrationModal(false);
   };
 
   // Show skeleton loading state during initial load
@@ -1005,24 +1058,41 @@ export const GuidelinesPanel = () => {
                     <Settings2 className="h-4 w-4 text-white" />
                   </div>
                   <span className="text-sm font-medium">Integrations</span>
+                  {agentData.ticketing_providers && agentData.ticketing_providers.length > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {agentData.ticketing_providers.length}
+                    </Badge>
+                  )}
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pb-4 px-1">
                 <div className="space-y-3">
-                  {
-                    agentData.ticketing_providers.map(provider => (
-                      <p>
-                        {provider}
-                      </p>
-                    ))
-                  }
+                  {agentData.ticketing_providers && agentData.ticketing_providers.length > 0 ? (
+                    <>
+                      {agentData.ticketing_providers.map((providerId) => (
+                        <IntegrationProviderCard
+                          key={providerId}
+                          providerId={providerId}
+                          isEnabled={true}
+                          onToggle={handleProviderToggle}
+                          isUpdating={updatingProvider === providerId}
+                        />
+                      ))}
+                    </>
+                  ) : (
+                    <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                      <Settings2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No integrations added yet</p>
+                      <p className="text-xs mt-1">Add ticketing integrations to enable advanced features</p>
+                    </div>
+                  )}
                   
                   <ModernButton
                     variant="ghost"
                     size="sm"
                     icon={Plus}
-                    onClick={()=>(null)}
-                    className="h-10 rounded-xl text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                    onClick={() => setShowIntegrationModal(true)}
+                    className="h-10 rounded-xl text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 w-full"
                   >
                     Add App
                   </ModernButton>
@@ -1032,6 +1102,14 @@ export const GuidelinesPanel = () => {
           </Accordion>
         </div>
       </ScrollArea>
+
+      {/* Integration Selection Modal */}
+      <IntegrationSelectionModal
+        open={showIntegrationModal}
+        onOpenChange={setShowIntegrationModal}
+        currentProviders={agentData.ticketing_providers || []}
+        onAddProvider={handleAddProvider}
+      />
 
       {/* Template Modal */}
       <SystemPromptModal
