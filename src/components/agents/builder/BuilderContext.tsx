@@ -46,6 +46,7 @@ interface AgentFormData {
   };
   knowledgeSources: KnowledgeSource[];
   status?: string; // 🔥 Add status field to preserve agent status from server
+  ticketing_providers: String[];
 }
 
 interface BuilderState {
@@ -100,7 +101,8 @@ const defaultAgentData: AgentFormData = {
     token_length: 1000,
     response_model: 'gpt-3.5-turbo'
   },
-  knowledgeSources: []
+  knowledgeSources: [],
+  ticketing_providers: []
 };
 
 const initialState: BuilderState = {
@@ -213,7 +215,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         },
         knowledgeSources: formatKnowledgeSources(agentData.knowledge_sources || []),
         // 🔥 CRITICAL: Preserve the agent status from server
-        status: agentData.status
+        status: agentData.status,
+        ticketing_providers: agentData.ticketing_providers || []
       };
 
       console.log('Mapped agent data with status preserved:', {

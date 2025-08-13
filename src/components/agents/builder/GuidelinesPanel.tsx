@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useBuilder } from './BuilderContext';
-import { FileText, Settings, Bot, Palette, MessageSquare, Plus, X, Target, Zap, Expand, User, Upload, RotateCcw } from 'lucide-react';
+import { FileText, Settings, Bot, Palette, MessageSquare, Plus, X, Target, Zap, Expand, User, Upload, RotateCcw, Settings2 } from 'lucide-react';
 import { useAgentPrompts } from '@/hooks/useAgentPrompts';
 import { useAIModels } from '@/hooks/useAIModels';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -992,6 +992,39 @@ export const GuidelinesPanel = () => {
                     className="h-10 rounded-xl text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20"
                   >
                     Add Suggestion
+                  </ModernButton>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Integrations */}
+            <AccordionItem value="integrations" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+              <AccordionTrigger className="py-3 hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600">
+                    <Settings2 className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="text-sm font-medium">Integrations</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pb-4 px-1">
+                <div className="space-y-3">
+                  {
+                    agentData.ticketing_providers.map(provider => (
+                      <p>
+                        {provider}
+                      </p>
+                    ))
+                  }
+                  
+                  <ModernButton
+                    variant="ghost"
+                    size="sm"
+                    icon={Plus}
+                    onClick={()=>(null)}
+                    className="h-10 rounded-xl text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                  >
+                    Add App
                   </ModernButton>
                 </div>
               </AccordionContent>
