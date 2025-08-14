@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowUp, ArrowRight, Moon, Sun, User, ArrowLeft, Bot } from 'lucide-react';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { useToast } from '@/hooks/use-toast';
-import ReactMarkdown from 'react-markdown';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -13,6 +12,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { BASE_URL } from '@/utils/api-config';
+import { StyledMarkdown } from '@/components/ui/styled-markdown';
 
 interface ChatbotConfig {
   agentId: string;
@@ -664,134 +664,11 @@ const SearchAssistant = () => {
                             </Avatar>
 
                             <div className="flex-1 pl-[10px] pt-[5px]">
-                              <div className="prose prose-sm max-w-none break-words assistant-content" style={{ 
-                                color: isDarkTheme ? '#bdbdbd' : '#333333',
-                              }}>
-                                <ReactMarkdown
-                                  components={{
-                                    code({ node, className, children, ...props }) {
-                                      const match = /language-(\w+)/.exec(className || '');
-                                      const language = match ? match[1] : '';
-                                      
-                                      // Check if inline code
-                                      const isInline = !match && children.toString().split('\n').length === 1;
-                                      
-                                      if (isInline) {
-                                        return (
-                                          <code
-                                            className="px-2 py-1 rounded-md font-mono text-sm font-medium"
-                                            style={{ 
-                                              backgroundColor: inlineCodeBg,
-                                              color: primaryColor,
-                                              fontSize: '0.875rem'
-                                            }}
-                                            {...props}
-                                          >
-                                            {children}
-                                          </code>
-                                        );
-                                      }
-                                      
-                                      return (
-                                        <div className="my-4">
-                                          <pre
-                                            className="p-4 rounded-lg overflow-x-auto text-sm border"
-                                            style={{ 
-                                              backgroundColor: codeBackgroundColor,
-                                              color: codeTextColor,
-                                              borderColor: isDarkTheme ? '#444' : '#e0e0e0'
-                                            }}
-                                          >
-                                            <code className={className} {...props}>
-                                              {children}
-                                            </code>
-                                          </pre>
-                                        </div>
-                                      );
-                                    },
-                                    p({ children }) {
-                                      return <p className="mb-4 text-base leading-7 font-normal">{children}</p>;
-                                    },
-                                    ul({ children }) {
-                                      return (
-                                        <ul className="mb-4 space-y-2 pl-0 assistant-ul">
-                                          {children}
-                                        </ul>
-                                      );
-                                    },
-                                    ol({ children }) {
-                                      return (
-                                        <ol className="mb-4 space-y-2 pl-0 assistant-ol">
-                                          {children}
-                                        </ol>
-                                      );
-                                    },
-                                    li({ children }) {
-                                      return (
-                                        <li className="assistant-li">
-                                          {children}
-                                        </li>
-                                      );
-                                    },
-                                    h1({ children }) {
-                                      return <h1 className="text-2xl font-bold mb-4 mt-6" style={{ color: primaryColor }}>{children}</h1>;
-                                    },
-                                    h2({ children }) {
-                                      return <h2 className="text-xl font-bold mb-3 mt-5" style={{ color: primaryColor }}>{children}</h2>;
-                                    },
-                                    h3({ children }) {
-                                      return <h3 className="text-lg font-semibold mb-3 mt-4" style={{ color: primaryColor }}>{children}</h3>;
-                                    },
-                                    h4({ children }) {
-                                      return <h4 className="text-base font-semibold mb-2 mt-3" style={{ color: primaryColor }}>{children}</h4>;
-                                    },
-                                    h5({ children }) {
-                                      return <h5 className="text-sm font-semibold mb-2 mt-3" style={{ color: primaryColor }}>{children}</h5>;
-                                    },
-                                    h6({ children }) {
-                                      return <h6 className="text-sm font-medium mb-2 mt-3" style={{ color: primaryColor }}>{children}</h6>;
-                                    },
-                                    a({ href, children }) {
-                                      return (
-                                        <a 
-                                          href={href} 
-                                          target="_blank" 
-                                          rel="noopener noreferrer"
-                                          className="underline hover:no-underline transition-all duration-200 font-medium"
-                                          style={{ color: linkColor }}
-                                        >
-                                          {children}
-                                        </a>
-                                      );
-                                    },
-                                    strong({ children }) {
-                                      return <strong className="font-semibold" style={{ color: strongTagColor }}>{children}</strong>;
-                                    },
-                                    em({ children }) {
-                                      return <em className="italic font-medium">{children}</em>;
-                                    },
-                                    blockquote({ children }) {
-                                      return (
-                                        <blockquote 
-                                          className="border-l-4 pl-4 py-2 my-4 italic"
-                                          style={{ 
-                                            borderLeftColor: primaryColor,
-                                            backgroundColor: isDarkTheme ? `${primaryColor}10` : `${primaryColor}08`
-                                          }}
-                                        >
-                                          {children}
-                                        </blockquote>
-                                      );
-                                    },
-                                    hr() {
-                                      // Return null to hide HR elements
-                                      return null;
-                                    }
-                                  }}
-                                >
-                                  {message.content}
-                                </ReactMarkdown>
-                              </div>
+                              <StyledMarkdown
+                                content={message.content}
+                                primaryColor={primaryColor}
+                                isDarkTheme={isDarkTheme}
+                              />
                             </div>
                           </div>
                         );
@@ -960,74 +837,6 @@ const SearchAssistant = () => {
                   </div>
                 </div>
               </div>
-              
-              {/* Custom CSS for list styling */}
-              <style dangerouslySetInnerHTML={{
-                __html: `
-                  .assistant-content .assistant-ol {
-                    counter-reset: list-counter;
-                    list-style: none;
-                  }
-                  
-                  .assistant-content .assistant-ol > .assistant-li {
-                    counter-increment: list-counter;
-                    position: relative;
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 12px;
-                    margin-bottom: 16px;
-                    line-height: 1.75;
-                  }
-                  
-                  .assistant-content .assistant-ol > .assistant-li::before {
-                    content: counter(list-counter);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 24px;
-                    height: 24px;
-                    background-color: ${primaryColor};
-                    color: white;
-                    border-radius: 6px;
-                    font-size: 12px;
-                    font-weight: 600;
-                    flex-shrink: 0;
-                    margin-top: 2px;
-                  }
-                  
-                  .assistant-content .assistant-ul {
-                    list-style: none;
-                  }
-                  
-                  .assistant-content .assistant-ul > .assistant-li {
-                    position: relative;
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 12px;
-                    margin-bottom: 12px;
-                    line-height: 1.75;
-                  }
-                  
-                  .assistant-content .assistant-ul > .assistant-li::before {
-                    content: '•';
-                    color: ${isDarkTheme ? '#888' : '#666'};
-                    font-size: 16px;
-                    font-weight: bold;
-                    flex-shrink: 0;
-                    margin-top: 2px;
-                  }
-                  
-                  .assistant-content .assistant-li > .assistant-ul {
-                    margin-top: 8px;
-                    margin-left: 0;
-                  }
-                  
-                  .assistant-content .assistant-li > .assistant-ul > .assistant-li::before {
-                    content: '–';
-                    color: ${isDarkTheme ? '#999' : '#777'};
-                  }
-                `
-              }} />
             </div>
           )}
 
@@ -1265,127 +1074,11 @@ const SearchAssistant = () => {
                         </Avatar>
 
                         <div className="flex-1 pl-[10px] pt-[5px]">
-                          <div className="prose prose-sm max-w-none break-words" style={{ 
-                            color: isDarkTheme ? '#bdbdbd' : '#333333',
-                          }}>
-                            <ReactMarkdown
-                              components={{
-                                code({ node, className, children, ...props }) {
-                                  const match = /language-(\w+)/.exec(className || '');
-                                  const language = match ? match[1] : '';
-                                  
-                                  // Check if inline code
-                                  const isInline = !match && children.toString().split('\n').length === 1;
-                                  
-                                  if (isInline) {
-                                    return (
-                                      <code
-                                        className="px-1 py-0.5 rounded font-mono text-xs"
-                                        style={{ 
-                                          backgroundColor: isDarkTheme ? inlineCodeBg : '#f0f0f0',
-                                          color: isDarkTheme ? primaryColor : '#333333' 
-                                        }}
-                                        {...props}
-                                      >
-                                        {children}
-                                      </code>
-                                    );
-                                  }
-
-                                  return (
-                                    <div className="relative mt-2">
-                                      {language && (
-                                        <div 
-                                          className="absolute top-0 right-0 px-2 py-1 text-xs rounded-bl font-mono"
-                                          style={{ 
-                                            backgroundColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-                                            color: isDarkTheme ? '#fff': "#000",
-                                          }}
-                                        >
-                                          {language}
-                                        </div>
-                                      )}
-                                      <pre 
-                                        className="!mt-0 rounded overflow-x-auto text-xs"
-                                        style={{ 
-                                          backgroundColor: isDarkTheme ? '#2d2d2d' : '#f6f6f6',
-                                          padding: '8px',
-                                          color: isDarkTheme ? '#e0e0e0' : '#333333',
-                                          border: isDarkTheme ? '1px solid #444' : '1px solid #e0e0e0'
-                                        }}
-                                      >
-                                        <code className="block font-mono" {...props}>
-                                          {children}
-                                        </code>
-                                      </pre>
-                                    </div>
-                                  );
-                                },
-                                a({ node, href, children, ...props }) {
-                                  return (
-                                    <a 
-                                      href={href} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer" 
-                                      style={{ color: linkColor, textDecoration: 'underline' }}
-                                      {...props}
-                                    >
-                                      {children}
-                                    </a>
-                                  );
-                                },
-                                ul({ node, children, ...props }) {
-                                  return (
-                                    <ul className="list-disc pl-5 my-2 space-y-1" {...props}>
-                                      {children}
-                                    </ul>
-                                  );
-                                },
-                                ol({ node, children, ...props }) {
-                                  return (
-                                    <ol className="list-decimal pl-5 my-2 space-y-1" {...props}>
-                                      {children}
-                                    </ol>
-                                  );
-                                },
-                                li({ node, children, ...props }) {
-                                  return (
-                                    <li className="mb-1" {...props}>
-                                      {children}
-                                    </li>
-                                  );
-                                },
-                                strong({ node, children, ...props }) {
-                                  return (
-                                    <strong 
-                                      style={{ color: strongTagColor, fontWeight: 'bold' }}
-                                      {...props}
-                                    >
-                                      {children}
-                                    </strong>
-                                  );
-                                },
-                                blockquote({ node, children, ...props }) {
-                                  return (
-                                    <blockquote 
-                                      style={{ 
-                                        borderLeftColor: primaryColor,
-                                        borderLeftWidth: '4px',
-                                        paddingLeft: '1rem',
-                                        fontStyle: 'italic',
-                                        margin: '1rem 0'
-                                      }} 
-                                      {...props}
-                                    >
-                                      {children}
-                                    </blockquote>
-                                  );
-                                }
-                              }}
-                            >
-                              {message.content}
-                            </ReactMarkdown>
-                          </div>
+                          <StyledMarkdown
+                            content={message.content}
+                            primaryColor={primaryColor}
+                            isDarkTheme={isDarkTheme}
+                          />
                         </div>
                       </div>
                     );

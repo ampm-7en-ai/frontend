@@ -1,0 +1,224 @@
+
+import React from 'react';
+import ReactMarkdown from 'react-markdown';
+
+interface StyledMarkdownProps {
+  content: string;
+  primaryColor: string;
+  isDarkTheme: boolean;
+  className?: string;
+}
+
+export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
+  content,
+  primaryColor,
+  isDarkTheme,
+  className = ""
+}) => {
+  const codeBackgroundColor = isDarkTheme ? '#2d2d2d' : '#f6f6f6';
+  const codeTextColor = isDarkTheme ? '#e0e0e0' : '#333333';
+  const inlineCodeBg = isDarkTheme ? '#3a3a3a' : '#f0f0f0';
+  const linkColor = isDarkTheme ? '#D6BCFA' : '#7559da';
+  const strongTagColor = isDarkTheme ? '#D6BCFA' : primaryColor;
+
+  return (
+    <>
+      <div className={`prose prose-sm max-w-none break-words assistant-content ${className}`} style={{ 
+        color: isDarkTheme ? '#bdbdbd' : '#333333',
+      }}>
+        <ReactMarkdown
+          components={{
+            code({ node, className, children, ...props }) {
+              const match = /language-(\w+)/.exec(className || '');
+              const language = match ? match[1] : '';
+              
+              // Check if inline code
+              const isInline = !match && children.toString().split('\n').length === 1;
+              
+              if (isInline) {
+                return (
+                  <code
+                    className="px-2 py-1 rounded-md font-mono text-sm font-medium"
+                    style={{ 
+                      backgroundColor: inlineCodeBg,
+                      color: primaryColor,
+                      fontSize: '0.875rem'
+                    }}
+                    {...props}
+                  >
+                    {children}
+                  </code>
+                );
+              }
+              
+              return (
+                <div className="my-4">
+                  <pre
+                    className="p-4 rounded-lg overflow-x-auto text-sm border"
+                    style={{ 
+                      backgroundColor: codeBackgroundColor,
+                      color: codeTextColor,
+                      borderColor: isDarkTheme ? '#444' : '#e0e0e0'
+                    }}
+                  >
+                    <code className={className} {...props}>
+                      {children}
+                    </code>
+                  </pre>
+                </div>
+              );
+            },
+            p({ children }) {
+              return <p className="mb-4 text-base leading-7 font-normal">{children}</p>;
+            },
+            ul({ children }) {
+              return (
+                <ul className="mb-4 space-y-2 pl-0 assistant-ul">
+                  {children}
+                </ul>
+              );
+            },
+            ol({ children }) {
+              return (
+                <ol className="mb-4 space-y-2 pl-0 assistant-ol">
+                  {children}
+                </ol>
+              );
+            },
+            li({ children }) {
+              return (
+                <li className="assistant-li">
+                  {children}
+                </li>
+              );
+            },
+            h1({ children }) {
+              return <h1 className="text-2xl font-bold mb-4 mt-6" style={{ color: primaryColor }}>{children}</h1>;
+            },
+            h2({ children }) {
+              return <h2 className="text-xl font-bold mb-3 mt-5" style={{ color: primaryColor }}>{children}</h2>;
+            },
+            h3({ children }) {
+              return <h3 className="text-lg font-semibold mb-3 mt-4" style={{ color: primaryColor }}>{children}</h3>;
+            },
+            h4({ children }) {
+              return <h4 className="text-base font-semibold mb-2 mt-3" style={{ color: primaryColor }}>{children}</h4>;
+            },
+            h5({ children }) {
+              return <h5 className="text-sm font-semibold mb-2 mt-3" style={{ color: primaryColor }}>{children}</h5>;
+            },
+            h6({ children }) {
+              return <h6 className="text-sm font-medium mb-2 mt-3" style={{ color: primaryColor }}>{children}</h6>;
+            },
+            a({ href, children }) {
+              return (
+                <a 
+                  href={href} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="underline hover:no-underline transition-all duration-200 font-medium"
+                  style={{ color: linkColor }}
+                >
+                  {children}
+                </a>
+              );
+            },
+            strong({ children }) {
+              return <strong className="font-semibold" style={{ color: strongTagColor }}>{children}</strong>;
+            },
+            em({ children }) {
+              return <em className="italic font-medium">{children}</em>;
+            },
+            blockquote({ children }) {
+              return (
+                <blockquote 
+                  className="border-l-4 pl-4 py-2 my-4 italic"
+                  style={{ 
+                    borderLeftColor: primaryColor,
+                    backgroundColor: isDarkTheme ? `${primaryColor}10` : `${primaryColor}08`
+                  }}
+                >
+                  {children}
+                </blockquote>
+              );
+            },
+            hr() {
+              // Return null to hide HR elements
+              return null;
+            }
+          }}
+        >
+          {content}
+        </ReactMarkdown>
+      </div>
+
+      {/* Custom CSS for list styling */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .assistant-content .assistant-ol {
+            counter-reset: list-counter;
+            list-style: none;
+          }
+          
+          .assistant-content .assistant-ol > .assistant-li {
+            counter-increment: list-counter;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+            line-height: 1.75;
+          }
+          
+          .assistant-content .assistant-ol > .assistant-li::before {
+            content: counter(list-counter);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background-color: ${primaryColor};
+            color: white;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+            margin-top: 2px;
+          }
+          
+          .assistant-content .assistant-ul {
+            list-style: none;
+          }
+          
+          .assistant-content .assistant-ul > .assistant-li {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+            line-height: 1.75;
+          }
+          
+          .assistant-content .assistant-ul > .assistant-li::before {
+            content: '•';
+            color: ${isDarkTheme ? '#888' : '#666'};
+            font-size: 16px;
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-top: 2px;
+          }
+          
+          .assistant-content .assistant-li > .assistant-ul {
+            margin-top: 8px;
+            margin-left: 0;
+          }
+          
+          .assistant-content .assistant-li > .assistant-ul > .assistant-li::before {
+            content: '–';
+            color: ${isDarkTheme ? '#999' : '#777'};
+          }
+        `
+      }} />
+    </>
+  );
+};
