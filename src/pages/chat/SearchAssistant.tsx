@@ -664,7 +664,7 @@ const SearchAssistant = () => {
                             </Avatar>
 
                             <div className="flex-1 pl-[10px] pt-[5px]">
-                              <div className="prose prose-sm max-w-none break-words assistant" style={{ 
+                              <div className="prose prose-sm max-w-none break-words assistant-content" style={{ 
                                 color: isDarkTheme ? '#bdbdbd' : '#333333',
                               }}>
                                 <ReactMarkdown
@@ -673,6 +673,7 @@ const SearchAssistant = () => {
                                       const match = /language-(\w+)/.exec(className || '');
                                       const language = match ? match[1] : '';
                                       
+                                      // Check if inline code
                                       const isInline = !match && children.toString().split('\n').length === 1;
                                       
                                       if (isInline) {
@@ -711,70 +712,26 @@ const SearchAssistant = () => {
                                     p({ children }) {
                                       return <p className="mb-4 text-base leading-7 font-normal">{children}</p>;
                                     },
-                                    ul({ children, ...props }) {
-                                      const isTopLevel = !props.node?.parent || props.node.parent.type !== 'listItem';
+                                    ul({ children }) {
                                       return (
-                                        <ul 
-                                          className={`mb-4 space-y-2 ${isTopLevel ? 'pl-0' : 'pl-6 mt-2'}`}
-                                          style={{ 
-                                            listStyle: 'none',
-                                            counterReset: isTopLevel ? 'top-level-counter' : 'none'
-                                          }}
-                                        >
+                                        <ul className="mb-4 space-y-2 pl-0 assistant-ul">
                                           {children}
                                         </ul>
                                       );
                                     },
-                                    ol({ children, ...props }) {
+                                    ol({ children }) {
                                       return (
-                                        <ol 
-                                          className="mb-4 space-y-2 pl-0"
-                                          style={{ 
-                                            listStyle: 'none',
-                                            counterReset: 'top-level-counter'
-                                          }}
-                                        >
+                                        <ol className="mb-4 space-y-2 pl-0 assistant-ol">
                                           {children}
                                         </ol>
                                       );
                                     },
-                                    li({ node, children, ...props }) {
-                                      // Check if this is a top-level list item
-                                      const isTopLevel = node?.parent?.type === 'list' && 
-                                        (!node.parent.parent || node.parent.parent.type !== 'listItem');
-                                      
-                                      if (isTopLevel) {
-                                        return (
-                                          <li 
-                                            className="relative flex items-start gap-3 text-base leading-7"
-                                            style={{ counterIncrement: 'top-level-counter' }}
-                                          >
-                                            <span 
-                                              className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-md text-xs font-semibold text-white mt-0.5"
-                                              style={{ 
-                                                backgroundColor: primaryColor,
-                                                fontSize: '0.75rem'
-                                              }}
-                                            >
-                                              <span style={{ content: 'counter(top-level-counter)' }}>
-                                                {/* This will be handled by CSS counter */}
-                                              </span>
-                                            </span>
-                                            <div className="flex-1">{children}</div>
-                                          </li>
-                                        );
-                                      } else {
-                                        // Child list items with bullet points
-                                        return (
-                                          <li className="relative flex items-start gap-3 text-base leading-7 ml-2">
-                                            <span 
-                                              className="flex-shrink-0 w-1.5 h-1.5 rounded-full mt-3"
-                                              style={{ backgroundColor: isDarkTheme ? '#888' : '#666' }}
-                                            />
-                                            <div className="flex-1">{children}</div>
-                                          </li>
-                                        );
-                                      }
+                                    li({ children }) {
+                                      return (
+                                        <li className="assistant-li">
+                                          {children}
+                                        </li>
+                                      );
                                     },
                                     h1({ children }) {
                                       return <h1 className="text-2xl font-bold mb-4 mt-6" style={{ color: primaryColor }}>{children}</h1>;
@@ -834,17 +791,6 @@ const SearchAssistant = () => {
                                 >
                                   {message.content}
                                 </ReactMarkdown>
-                                
-                                {/* Custom CSS for numbered lists */}
-                                <style jsx>{`
-                                  .assistant ol {
-                                    counter-reset: top-level-counter;
-                                  }
-                                  .assistant ol > li::before {
-                                    counter-increment: top-level-counter;
-                                    content: counter(top-level-counter);
-                                  }
-                                `}</style>
                               </div>
                             </div>
                           </div>
@@ -1014,6 +960,74 @@ const SearchAssistant = () => {
                   </div>
                 </div>
               </div>
+              
+              {/* Custom CSS for list styling */}
+              <style dangerouslySetInnerHTML={{
+                __html: `
+                  .assistant-content .assistant-ol {
+                    counter-reset: list-counter;
+                    list-style: none;
+                  }
+                  
+                  .assistant-content .assistant-ol > .assistant-li {
+                    counter-increment: list-counter;
+                    position: relative;
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 12px;
+                    margin-bottom: 16px;
+                    line-height: 1.75;
+                  }
+                  
+                  .assistant-content .assistant-ol > .assistant-li::before {
+                    content: counter(list-counter);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 24px;
+                    height: 24px;
+                    background-color: ${primaryColor};
+                    color: white;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    flex-shrink: 0;
+                    margin-top: 2px;
+                  }
+                  
+                  .assistant-content .assistant-ul {
+                    list-style: none;
+                  }
+                  
+                  .assistant-content .assistant-ul > .assistant-li {
+                    position: relative;
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 12px;
+                    margin-bottom: 12px;
+                    line-height: 1.75;
+                  }
+                  
+                  .assistant-content .assistant-ul > .assistant-li::before {
+                    content: '•';
+                    color: ${isDarkTheme ? '#888' : '#666'};
+                    font-size: 16px;
+                    font-weight: bold;
+                    flex-shrink: 0;
+                    margin-top: 2px;
+                  }
+                  
+                  .assistant-content .assistant-li > .assistant-ul {
+                    margin-top: 8px;
+                    margin-left: 0;
+                  }
+                  
+                  .assistant-content .assistant-li > .assistant-ul > .assistant-li::before {
+                    content: '–';
+                    color: ${isDarkTheme ? '#999' : '#777'};
+                  }
+                `
+              }} />
             </div>
           )}
 
