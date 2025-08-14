@@ -1,6 +1,7 @@
-
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface StyledMarkdownProps {
   content: string;
@@ -53,18 +54,25 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
               
               return (
                 <div className="my-4">
-                  <pre
-                    className="p-4 rounded-lg overflow-x-auto text-sm border"
-                    style={{ 
+                  <SyntaxHighlighter
+                    style={isDarkTheme ? oneDark : oneLight}
+                    language={language || 'text'}
+                    PreTag="div"
+                    className="rounded-lg border text-sm"
+                    customStyle={{
+                      margin: 0,
+                      borderColor: isDarkTheme ? '#444' : '#e0e0e0',
                       backgroundColor: codeBackgroundColor,
-                      color: codeTextColor,
-                      borderColor: isDarkTheme ? '#444' : '#e0e0e0'
+                    }}
+                    codeTagProps={{
+                      style: {
+                        fontSize: '0.875rem',
+                        fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Inconsolata, "Roboto Mono", "Segoe UI Mono", "Courier New", monospace',
+                      }
                     }}
                   >
-                    <code className={className} {...props}>
-                      {children}
-                    </code>
-                  </pre>
+                    {String(children).replace(/\n$/, '')}
+                  </SyntaxHighlighter>
                 </div>
               );
             },
