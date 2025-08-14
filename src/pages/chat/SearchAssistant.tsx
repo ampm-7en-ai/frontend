@@ -678,10 +678,11 @@ const SearchAssistant = () => {
                                       if (isInline) {
                                         return (
                                           <code
-                                            className="px-1 py-0.5 rounded font-mono text-xs"
+                                            className="px-2 py-1 rounded-md font-mono text-sm font-medium"
                                             style={{ 
                                               backgroundColor: inlineCodeBg,
-                                              color: codeTextColor
+                                              color: primaryColor,
+                                              fontSize: '0.875rem'
                                             }}
                                             {...props}
                                           >
@@ -691,12 +692,13 @@ const SearchAssistant = () => {
                                       }
                                       
                                       return (
-                                        <div className="my-2">
+                                        <div className="my-4">
                                           <pre
-                                            className="p-3 rounded overflow-x-auto text-xs"
+                                            className="p-4 rounded-lg overflow-x-auto text-sm border"
                                             style={{ 
                                               backgroundColor: codeBackgroundColor,
-                                              color: codeTextColor
+                                              color: codeTextColor,
+                                              borderColor: isDarkTheme ? '#444' : '#e0e0e0'
                                             }}
                                           >
                                             <code className={className} {...props}>
@@ -707,28 +709,90 @@ const SearchAssistant = () => {
                                       );
                                     },
                                     p({ children }) {
-                                      return <p className="mb-2 text-sm leading-relaxed">{children}</p>;
+                                      return <p className="mb-4 text-base leading-7 font-normal">{children}</p>;
                                     },
-                                    ul({ children }) {
-                                      return <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>;
-                                    },
-                                    ol({ children }) {
+                                    ul({ children, ...props }) {
+                                      const isTopLevel = !props.node?.parent || props.node.parent.type !== 'listItem';
                                       return (
-                                      <ol className="list-inside mb-2 space-y-1 list-none" style={{counterReset: 'item 0' }}>
-                                        {children}
-                                      </ol>);
+                                        <ul 
+                                          className={`mb-4 space-y-2 ${isTopLevel ? 'pl-0' : 'pl-6 mt-2'}`}
+                                          style={{ 
+                                            listStyle: 'none',
+                                            counterReset: isTopLevel ? 'top-level-counter' : 'none'
+                                          }}
+                                        >
+                                          {children}
+                                        </ul>
+                                      );
+                                    },
+                                    ol({ children, ...props }) {
+                                      return (
+                                        <ol 
+                                          className="mb-4 space-y-2 pl-0"
+                                          style={{ 
+                                            listStyle: 'none',
+                                            counterReset: 'top-level-counter'
+                                          }}
+                                        >
+                                          {children}
+                                        </ol>
+                                      );
                                     },
                                     li({ node, children, ...props }) {
-                                      return <li className="relative text-sm" style={{ counterIncrement: 'item'}}>{children}</li>;
+                                      // Check if this is a top-level list item
+                                      const isTopLevel = node?.parent?.type === 'list' && 
+                                        (!node.parent.parent || node.parent.parent.type !== 'listItem');
+                                      
+                                      if (isTopLevel) {
+                                        return (
+                                          <li 
+                                            className="relative flex items-start gap-3 text-base leading-7"
+                                            style={{ counterIncrement: 'top-level-counter' }}
+                                          >
+                                            <span 
+                                              className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-md text-xs font-semibold text-white mt-0.5"
+                                              style={{ 
+                                                backgroundColor: primaryColor,
+                                                fontSize: '0.75rem'
+                                              }}
+                                            >
+                                              <span style={{ content: 'counter(top-level-counter)' }}>
+                                                {/* This will be handled by CSS counter */}
+                                              </span>
+                                            </span>
+                                            <div className="flex-1">{children}</div>
+                                          </li>
+                                        );
+                                      } else {
+                                        // Child list items with bullet points
+                                        return (
+                                          <li className="relative flex items-start gap-3 text-base leading-7 ml-2">
+                                            <span 
+                                              className="flex-shrink-0 w-1.5 h-1.5 rounded-full mt-3"
+                                              style={{ backgroundColor: isDarkTheme ? '#888' : '#666' }}
+                                            />
+                                            <div className="flex-1">{children}</div>
+                                          </li>
+                                        );
+                                      }
                                     },
                                     h1({ children }) {
-                                      return <h1 className="text-lg font-bold mb-2" style={{ color: primaryColor }}>{children}</h1>;
+                                      return <h1 className="text-2xl font-bold mb-4 mt-6" style={{ color: primaryColor }}>{children}</h1>;
                                     },
                                     h2({ children }) {
-                                      return <h2 className="text-base font-bold mb-2" style={{ color: primaryColor }}>{children}</h2>;
+                                      return <h2 className="text-xl font-bold mb-3 mt-5" style={{ color: primaryColor }}>{children}</h2>;
                                     },
                                     h3({ children }) {
-                                      return <h3 className="text-sm font-bold mb-2" style={{ color: primaryColor }}>{children}</h3>;
+                                      return <h3 className="text-lg font-semibold mb-3 mt-4" style={{ color: primaryColor }}>{children}</h3>;
+                                    },
+                                    h4({ children }) {
+                                      return <h4 className="text-base font-semibold mb-2 mt-3" style={{ color: primaryColor }}>{children}</h4>;
+                                    },
+                                    h5({ children }) {
+                                      return <h5 className="text-sm font-semibold mb-2 mt-3" style={{ color: primaryColor }}>{children}</h5>;
+                                    },
+                                    h6({ children }) {
+                                      return <h6 className="text-sm font-medium mb-2 mt-3" style={{ color: primaryColor }}>{children}</h6>;
                                     },
                                     a({ href, children }) {
                                       return (
@@ -736,7 +800,7 @@ const SearchAssistant = () => {
                                           href={href} 
                                           target="_blank" 
                                           rel="noopener noreferrer"
-                                          className="underline hover:no-underline transition-all duration-200"
+                                          className="underline hover:no-underline transition-all duration-200 font-medium"
                                           style={{ color: linkColor }}
                                         >
                                           {children}
@@ -744,12 +808,43 @@ const SearchAssistant = () => {
                                       );
                                     },
                                     strong({ children }) {
-                                      return <strong style={{ color: strongTagColor }}>{children}</strong>;
+                                      return <strong className="font-semibold" style={{ color: strongTagColor }}>{children}</strong>;
+                                    },
+                                    em({ children }) {
+                                      return <em className="italic font-medium">{children}</em>;
+                                    },
+                                    blockquote({ children }) {
+                                      return (
+                                        <blockquote 
+                                          className="border-l-4 pl-4 py-2 my-4 italic"
+                                          style={{ 
+                                            borderLeftColor: primaryColor,
+                                            backgroundColor: isDarkTheme ? `${primaryColor}10` : `${primaryColor}08`
+                                          }}
+                                        >
+                                          {children}
+                                        </blockquote>
+                                      );
+                                    },
+                                    hr() {
+                                      // Return null to hide HR elements
+                                      return null;
                                     }
                                   }}
                                 >
                                   {message.content}
                                 </ReactMarkdown>
+                                
+                                {/* Custom CSS for numbered lists */}
+                                <style jsx>{`
+                                  .assistant ol {
+                                    counter-reset: top-level-counter;
+                                  }
+                                  .assistant ol > li::before {
+                                    counter-increment: top-level-counter;
+                                    content: counter(top-level-counter);
+                                  }
+                                `}</style>
                               </div>
                             </div>
                           </div>
