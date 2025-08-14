@@ -197,13 +197,13 @@ export default {
 							marginBottom: '0.375em',
 						},
 						pre: {
-							backgroundColor: theme('colors.gray.50'),
 							color: theme('colors.gray.900'),
 							borderRadius: '0.5rem',
-							padding: '1rem',
-							border: '1px solid',
-							borderColor: theme('colors.gray.200'),
+							padding: '0px !important',
 							overflowX: 'auto',
+							background: "none",
+							border: "none",
+							paddingInlineStart: "0px",
 							code: {
 								backgroundColor: 'transparent',
 								padding: '0',

@@ -19,12 +19,12 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
   const codeBackgroundColor = isDarkTheme ? '#2d2d2d' : '#f6f6f6';
   const codeTextColor = isDarkTheme ? '#e0e0e0' : '#333333';
   const inlineCodeBg = isDarkTheme ? '#3a3a3a' : '#f0f0f0';
-  const linkColor = isDarkTheme ? '#D6BCFA' : '#7559da';
+  const linkColor = isDarkTheme ? '#ffffff' : primaryColor;
   const strongTagColor = isDarkTheme ? '#D6BCFA' : primaryColor;
 
   return (
     <>
-      <div className={`prose prose-sm max-w-none break-words assistant-content ${className}`} style={{ 
+      <div className={`prose prose-sm max-w-none break-words assistant-content pr-12 ${className}`} style={{ 
         color: isDarkTheme ? '#bdbdbd' : '#333333',
       }}>
         <ReactMarkdown
@@ -53,7 +53,7 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
               }
               
               return (
-                <div className="my-4">
+                <div className="my-4 w-full p-0">
                   <SyntaxHighlighter
                     style={isDarkTheme ? oneDark : oneLight}
                     language={language || 'text'}
@@ -124,7 +124,7 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
                   href={href} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="underline hover:no-underline transition-all duration-200 font-medium"
+                  className="underline hover:no-underline transition-all duration-200 font-medium underline-offset-4"
                   style={{ color: linkColor }}
                 >
                   {children}
@@ -219,6 +219,7 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
             font-weight: bold;
             flex-shrink: 0;
             margin-top: 2px;
+            margin-right: 8px;
           }
 
           .assistant-content .assistant-li > .assistant-ul {
