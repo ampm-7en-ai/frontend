@@ -23,7 +23,7 @@ export const SystemPromptModal = ({
   open, 
   onOpenChange,
   isTemplate = false,
-  onUseTemplate
+  onUseTemplate,
 }: SystemPromptModalProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [localValue, setLocalValue] = React.useState(value);

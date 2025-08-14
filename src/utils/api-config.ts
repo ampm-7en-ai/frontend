@@ -174,7 +174,7 @@ export const getSourceMetadataInfo = (source: { type: string, metadata: any }): 
 };
 
 // Import the new API interceptor
-import { apiRequest, apiGet, apiPost, apiPut, apiDelete } from './api-interceptor';
+import { apiRequest, apiGet, apiPost, apiPut, apiDelete, apiPatch } from './api-interceptor';
 
 // =============================================================================
 // CENTRALIZED API FUNCTIONS - All API calls should use these functions
@@ -363,20 +363,20 @@ export const agentApi = {
     const payload = JSON.parse(JSON.stringify(agentData));
     
     // Convert File to data URL if needed
-    if (agentData.customAvatarFile && payload.appearance?.avatar?.type === 'custom') {
-      try {
-        const dataURL = await fileToDataURL(agentData.customAvatarFile);
-        payload.appearance.avatar.src = dataURL;
-      } catch (error) {
-        console.error('Error converting file to data URL:', error);
-        throw new Error('Failed to process avatar file');
-      }
-    }
+    // if (agentData.customAvatarFile && payload.appearance?.avatar?.type === 'custom') {
+    //   try {
+    //     const dataURL = await fileToDataURL(agentData.customAvatarFile);
+    //     payload.appearance.avatar.src = dataURL;
+    //   } catch (error) {
+    //     console.error('Error converting file to data URL:', error);
+    //     throw new Error('Failed to process avatar file');
+    //   }
+    // }
     
     // Remove non-API properties
-    delete payload.customAvatarFile;
+    //delete payload.customAvatarFile;
     
-    const response = await apiPut(getApiUrl(`${API_ENDPOINTS.AGENTS}${agentId}/`), payload);
+    const response = await apiPatch(getApiUrl(`${API_ENDPOINTS.AGENTS}${agentId}/`), payload);
     return response;
   },
 

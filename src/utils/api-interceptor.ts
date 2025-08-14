@@ -306,6 +306,15 @@ export const apiPut = (url: string, data: any, authRequired: boolean = true): Pr
   }, authRequired);
 };
 
+// Convenience wrapper for PUT requests
+export const apiPatch = (url: string, data: any, authRequired: boolean = true): Promise<Response> => {
+  return apiRequest(url, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }, authRequired);
+};
+
 // Convenience wrapper for DELETE requests
 export const apiDelete = (url: string, authRequired: boolean = true): Promise<Response> => {
   return apiRequest(url, { method: 'DELETE' }, authRequired);

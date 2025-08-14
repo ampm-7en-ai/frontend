@@ -18,17 +18,18 @@ import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { getAccessToken, getApiUrl } from '@/utils/api-config';
+import { agentApi, getAccessToken, getApiUrl } from '@/utils/api-config';
 import { IntegrationProviderCard } from './IntegrationProviderCard';
 import { IntegrationSelectionModal } from './IntegrationSelectionModal';
 
 export const GuidelinesPanel = () => {
-  const { state, updateAgentData } = useBuilder();
+  const { state, updateAgentData, saveAgent } = useBuilder();
   const { agentData, lastSaveTimestamp, isLoading } = state;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { prompts, isLoading: promptsLoading } = useAgentPrompts(true);
   const { modelOptionsForDropdown, isLoading: modelsLoading } = useAIModels();
   const { toast } = useToast();
+  const [IsAdding,setIsAdding] = useState(false);
   
   // Store user's custom prompts per agent type
   const [userPromptsByType, setUserPromptsByType] = useState<Record<string, string>>({});
@@ -380,11 +381,13 @@ export const GuidelinesPanel = () => {
 
   // Handle provider toggle
   const handleProviderToggle = async (providerId: string, enabled: boolean) => {
+    
     setUpdatingProvider(providerId);
     
     try {
       const currentProviders: string[] = (agentData.ticketing_providers || []).map(String);
       let newProviders: string[];
+
       
       if (enabled) {
         // Add provider if not already in array
@@ -395,9 +398,11 @@ export const GuidelinesPanel = () => {
         // Remove provider from array
         newProviders = currentProviders.filter((p: string) => p !== providerId);
       }
+     
       
       // Update local state
       updateAgentData({ ticketing_providers: newProviders });
+      //await saveAgent();
       
       toast({
         title: enabled ? "Integration enabled" : "Integration disabled",
@@ -418,11 +423,23 @@ export const GuidelinesPanel = () => {
 
   // Handle adding new provider from modal
   const handleAddProvider = async (providerId: string) => {
-    const currentProviders: string[] = (agentData.ticketing_providers || []).map(String);
+    let currentProviders: string[] = (agentData.ticketing_providers || []).map(String);
     const newProviders: string[] = [...currentProviders, providerId];
     
-    updateAgentData({ ticketing_providers: newProviders });
-    setShowIntegrationModal(false);
+    setIsAdding(true);
+    try {
+      const res = await agentApi.update(agentData.id as string,{
+        ticketing_providers: newProviders
+      })
+      const data = await res.json();
+      currentProviders = (data.data.ticketing_providers || []).map(String);
+      console.log(currentProviders);
+
+    }catch(error) {
+      console.error(error);
+    }
+    //updateAgentData({ ticketing_providers: newProviders });
+    //setShowIntegrationModal(true);
   };
 
   // Show skeleton loading state during initial load
@@ -1109,6 +1126,7 @@ export const GuidelinesPanel = () => {
         onOpenChange={setShowIntegrationModal}
         currentProviders={(agentData.ticketing_providers || []).map(String)}
         onAddProvider={handleAddProvider}
+        isAdding={IsAdding}
       />
 
       {/* Template Modal */}

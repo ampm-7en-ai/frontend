@@ -144,7 +144,7 @@ const Verify = () => {
   };
   
   const handleVerificationSuccess = (data: any) => {
-    console.log('OTP verification successful:', data);
+   // console.log('OTP verification successful:', data);
     
     setVerificationSuccess(true);
     setNeedsVerification(false);
@@ -163,6 +163,7 @@ const Verify = () => {
     });
     
     // Wait a moment before redirecting
+   // navigate('/dashboard');
     setTimeout(() => {
       navigate('/dashboard');
     }, 2000);
@@ -270,7 +271,7 @@ const Verify = () => {
               Your account has been verified successfully
             </p>
           </div>
-          <p>Redirecting to dashboard...</p>
+          <p>Redirecting to login page...</p>
         </div>
       </div>
     );

@@ -423,7 +423,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           },
           agentType: state.agentData.agentType,
           systemPrompt: state.agentData.systemPrompt,
-          knowledgeSources: state.agentData.knowledgeSources.map(ks => ks.id)
+          knowledgeSources: state.agentData.knowledgeSources.map(ks => ks.id),
+          ticketing_providers: state.agentData.ticketing_providers
         };
 
         console.log('Update payload:', updatePayload);
@@ -486,7 +487,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           },
           agentType: response.data.agentType || state.agentData.agentType,
           systemPrompt: response.data.systemPrompt || state.agentData.systemPrompt,
-          knowledgeSources: formatKnowledgeSources(response.data.knowledge_sources || [])
+          knowledgeSources: formatKnowledgeSources(response.data.knowledge_sources || []),
+          ticketing_providers: response.data.ticketing_providers || state.agentData.ticketing_providers
         };
         
         setState(prev => ({ 

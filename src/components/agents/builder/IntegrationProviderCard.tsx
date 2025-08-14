@@ -3,7 +3,6 @@ import React from 'react';
 import { ModernCard, ModernCardContent } from '@/components/ui/modern-card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { TICKETING_PROVIDERS } from '@/hooks/useTicketingIntegrations';
 import { CheckCircle } from 'lucide-react';
 
 interface IntegrationProviderCardProps {
@@ -12,6 +11,80 @@ interface IntegrationProviderCardProps {
   onToggle: (providerId: string, enabled: boolean) => void;
   isUpdating?: boolean;
 }
+const integrationsList = {
+      "whatsapp" : {
+        name: 'WhatsApp Business',
+        logo: 'https://img.logo.dev/whatsapp.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      },
+      "messenger" : {
+        name: 'Facebook Messenger',
+        logo: 'https://img.logo.dev/facebook.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true'
+      },
+      "slack": {
+        name: 'Slack',
+        logo: 'https://img.logo.dev/slack.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true'
+      },
+      "instagram":{
+        name: 'Instagram',
+        logo: 'https://img.logo.dev/instagram.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true'
+      },
+      "zapier": {
+      id: 'zapier',
+      name: 'Zapier',
+      description: 'Connect your AI Agent with thousands of apps through Zapier automation.',
+      logo: 'https://img.logo.dev/zapier.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      category: 'Automation',
+      type: 'automation'
+    },
+    "zendesk":{
+      id: 'zendesk',
+      name: 'Zendesk',
+      description: 'Connect your AI Agent with Zendesk to automate ticket management and customer support.',
+      logo: 'https://img.logo.dev/zendesk.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      category: 'Support',
+      type: 'ticketing'
+    },
+    "freshdesk": {
+      id: 'freshdesk',
+      name: 'Freshdesk',
+      description: 'Connect your AI Agent with Freshdesk to automate ticket management and customer support.',
+      logo: 'https://img.logo.dev/freshdesk.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      category: 'Support',
+      type: 'ticketing'
+    },
+    "zogo":{
+      id: 'zoho',
+      name: 'Zoho Desk',
+      description: 'Connect your AI Agent with Zoho Desk to streamline customer support and ticket handling.',
+      logo: 'https://img.logo.dev/zoho.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      category: 'Support',
+      type: 'ticketing'
+    },
+    "salesforce":{
+      id: 'salesforce',
+      name: 'Salesforce Service Cloud',
+      description: 'Connect your AI Agent with Salesforce to enhance customer service and case management.',
+      logo: 'https://img.logo.dev/salesforce.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      category: 'CRM & Support',
+      type: 'ticketing'
+    },
+    "hubspot":{
+      id: 'hubspot',
+      name: 'HubSpot Service Hub',
+      description: 'Connect your AI Agent with HubSpot to automate customer support and ticketing workflows.',
+      logo: 'https://img.logo.dev/hubspot.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
+      category: 'CRM & Support',
+      type: 'ticketing'
+    },
+    "google_drive": {
+      id: 'google_drive',
+      name: 'Google Drive',
+      description: 'Connect your AI Agent with Google Drive to access and manage your documents and files.',
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg',
+      category: 'Storage',
+      type: 'storage'
+    }
+  };
 
 export const IntegrationProviderCard: React.FC<IntegrationProviderCardProps> = ({
   providerId,
@@ -19,7 +92,7 @@ export const IntegrationProviderCard: React.FC<IntegrationProviderCardProps> = (
   onToggle,
   isUpdating = false
 }) => {
-  const providerInfo = TICKETING_PROVIDERS[providerId];
+  const providerInfo = integrationsList[providerId];
   
   if (!providerInfo) {
     return null;
@@ -49,20 +122,6 @@ export const IntegrationProviderCard: React.FC<IntegrationProviderCardProps> = (
               <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100">
                 {providerInfo.name}
               </h3>
-              <Badge variant="secondary" className="text-xs">
-                <CheckCircle className="w-3 h-3 mr-1" />
-                Active
-              </Badge>
-            </div>
-            
-            {/* Show capabilities */}
-            <div className="flex items-center gap-1 mt-1">
-              {providerInfo.capabilities.customFields && (
-                <Badge variant="outline" className="text-xs">Custom Fields</Badge>
-              )}
-              {providerInfo.capabilities.attachments && (
-                <Badge variant="outline" className="text-xs">Attachments</Badge>
-              )}
             </div>
           </div>
           
