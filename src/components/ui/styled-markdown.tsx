@@ -69,7 +69,7 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
               );
             },
             p({ children }) {
-              return <p className="mb-4 text-base leading-7 font-normal">{children}</p>;
+              return <p className="mb-0 text-sm leading-5 font-normal">{children}</p>;
             },
             ul({ children }) {
               return (
@@ -124,7 +124,7 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
               );
             },
             strong({ children }) {
-              return <strong className="font-semibold" style={{ color: strongTagColor }}>{children}</strong>;
+              return <strong className="font-semibold dark:text-white">{children}</strong>;
             },
             em({ children }) {
               return <em className="italic font-medium">{children}</em>;
@@ -159,17 +159,15 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
             counter-reset: list-counter;
             list-style: none;
           }
-          
+
           .assistant-content .assistant-ol > .assistant-li {
             counter-increment: list-counter;
             position: relative;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
             margin-bottom: 16px;
             line-height: 1.75;
+            padding-left: 2rem;
           }
-          
+
           .assistant-content .assistant-ol > .assistant-li::before {
             content: counter(list-counter);
             display: flex;
@@ -177,28 +175,35 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
             justify-content: center;
             width: 24px;
             height: 24px;
-            background-color: ${primaryColor};
-            color: white;
+            border-width: 1px;
+            border-color: ${primaryColor};
+            color: ${primaryColor};
             border-radius: 6px;
             font-size: 12px;
             font-weight: 600;
             flex-shrink: 0;
             margin-top: 2px;
           }
-          
+
+          .assistant-content .assistant-ol > .assistant-li::before {
+            content: counter(list-counter);
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 2px;
+          }
+
           .assistant-content .assistant-ul {
             list-style: none;
           }
-          
+
           .assistant-content .assistant-ul > .assistant-li {
             position: relative;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
             margin-bottom: 12px;
             line-height: 1.75;
           }
-          
+
           .assistant-content .assistant-ul > .assistant-li::before {
             content: '•';
             color: ${isDarkTheme ? '#888' : '#666'};
@@ -207,15 +212,24 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
             flex-shrink: 0;
             margin-top: 2px;
           }
-          
+
           .assistant-content .assistant-li > .assistant-ul {
             margin-top: 8px;
             margin-left: 0;
           }
-          
+
           .assistant-content .assistant-li > .assistant-ul > .assistant-li::before {
             content: '–';
             color: ${isDarkTheme ? '#999' : '#777'};
+            margin-right: 10px;
+          }
+          .assistant-content > p { 
+            margin: 0;
+            line-height: 22px; 
+            font-size: 0.875rem !important;        
+          }
+          .assistant-li > p {
+            padding-top: 5px ;
           }
         `
       }} />
