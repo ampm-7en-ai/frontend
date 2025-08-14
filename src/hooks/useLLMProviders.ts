@@ -41,10 +41,11 @@ interface LLMProvidersResponse {
   status: string;
 }
 
-export const useLLMProviders = () => {
+export const useLLMProviders = (enabled: boolean = true) => {
   const { toast } = useToast();
   const [providers, setProviders] = useState<LLMProvider[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   const fetchProviders = async () => {
     try {
@@ -72,8 +73,12 @@ export const useLLMProviders = () => {
   };
 
   useEffect(() => {
-    fetchProviders();
-  }, []);
+    console.log("useLLM",enabled);
+    if (enabled && !hasLoaded) {
+      fetchProviders().finally(() => setHasLoaded(true));
+    }
+
+  }, [enabled, hasLoaded]);
 
   return {
     providers,

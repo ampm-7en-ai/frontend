@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Slider } from '@/components/ui/slider';
+import { Slider } from '@/components/ui/slider';    
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import ModernButton from '@/components/dashboard/ModernButton';
@@ -26,10 +26,15 @@ export const GuidelinesPanel = () => {
   const { state, updateAgentData, saveAgent } = useBuilder();
   const { agentData, lastSaveTimestamp, isLoading } = state;
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { prompts, isLoading: promptsLoading } = useAgentPrompts(true);
-  const { modelOptionsForDropdown, isLoading: modelsLoading } = useAIModels();
+    //track accrodion id opened
+  const [openedAccordions, setOpenedAccordions] = useState<Set<string>>(new Set(['basic']));
+
+  console.log("pipip",openedAccordions);
+  const { prompts, isLoading: promptsLoading } = useAgentPrompts(true, openedAccordions.has('guidelines'));
+  const { modelOptionsForDropdown, isLoading: modelsLoading } = useAIModels(openedAccordions.has('model'));
   const { toast } = useToast();
   const [IsAdding,setIsAdding] = useState(false);
+
   
   // Store user's custom prompts per agent type
   const [userPromptsByType, setUserPromptsByType] = useState<Record<string, string>>({});
@@ -45,6 +50,7 @@ export const GuidelinesPanel = () => {
 
   // Get global default model from agent data settings
   const globalDefaultModel = agentData.settings?.response_model;
+
 
 
   // Initialize user prompts storage on first load and refresh on save
@@ -69,6 +75,14 @@ export const GuidelinesPanel = () => {
     const matchingPrompt = prompts.find(p => p.agent_type === agentData.agentType);
     return matchingPrompt?.system_prompt || '';
   };
+
+  //handle accordion changes
+    const handleAccordionChange = (values: string[]) => {
+    const newOpenedAccordions = new Set([...openedAccordions, ...values]);
+    setOpenedAccordions(newOpenedAccordions);
+  };
+
+
 
   // Handle system prompt changes
   const handleSystemPromptChange = (value: string) => {
@@ -528,7 +542,7 @@ export const GuidelinesPanel = () => {
       
       <ScrollArea className="flex-1 h-[calc(100%-60px)]">
         <div className="p-4">
-          <Accordion type="multiple" defaultValue={["basic"]} className="space-y-4">
+          <Accordion type="multiple" defaultValue={["basic"]} className="space-y-4" onValueChange={handleAccordionChange}>
             {/* Basic Settings */}
             <AccordionItem value="basic" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
               <AccordionTrigger className="py-3 hover:no-underline">

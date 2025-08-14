@@ -21,6 +21,7 @@ import { initFacebookSDK } from '@/utils/facebookSDK';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { useIntegrations } from '@/hooks/useIntegrations';
+import { TICKETING_PROVIDERS_LOGOS } from '@/utils/integrationUtils';
 
 const IntegrationsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -256,7 +257,6 @@ const IntegrationsPage = () => {
       id: 'whatsapp',
       name: 'WhatsApp Business',
       description: 'Connect your AI Agent with WhatsApp Business API to reach your customers where they are.',
-      logo: 'https://img.logo.dev/whatsapp.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: getIntegrationStatus('whatsapp'),
       category: 'Messaging',
       type: 'messaging'
@@ -265,7 +265,6 @@ const IntegrationsPage = () => {
       id: 'messenger',
       name: 'Facebook Messenger',
       description: 'Connect your AI Agent with Facebook Messenger to automate customer conversations.',
-      logo: 'https://img.logo.dev/facebook.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: getIntegrationStatus('messenger'),
       category: 'Messaging',
       type: 'messaging'
@@ -274,7 +273,6 @@ const IntegrationsPage = () => {
       id: 'slack',
       name: 'Slack',
       description: 'Connect your AI Agent with Slack to engage with your team and customers.',
-      logo: 'https://img.logo.dev/slack.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: getIntegrationStatus('slack'),
       category: 'Communication',
       type: 'communication'
@@ -283,7 +281,6 @@ const IntegrationsPage = () => {
       id: 'instagram',
       name: 'Instagram',
       description: 'Connect your AI Agent with Instagram to respond to DMs automatically.',
-      logo: 'https://img.logo.dev/instagram.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: getIntegrationStatus('instagram'),
       category: 'Social Media',
       type: 'social'
@@ -292,7 +289,6 @@ const IntegrationsPage = () => {
       id: 'zapier',
       name: 'Zapier',
       description: 'Connect your AI Agent with thousands of apps through Zapier automation.',
-      logo: 'https://img.logo.dev/zapier.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: getIntegrationStatus('zapier'),
       category: 'Automation',
       type: 'automation'
@@ -301,7 +297,6 @@ const IntegrationsPage = () => {
       id: 'zendesk',
       name: 'Zendesk',
       description: 'Connect your AI Agent with Zendesk to automate ticket management and customer support.',
-      logo: 'https://img.logo.dev/zendesk.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: getIntegrationStatus('zendesk'),
       category: 'Support',
       type: 'ticketing'
@@ -310,7 +305,6 @@ const IntegrationsPage = () => {
       id: 'freshdesk',
       name: 'Freshdesk',
       description: 'Connect your AI Agent with Freshdesk to automate ticket management and customer support.',
-      logo: 'https://img.logo.dev/freshdesk.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: getIntegrationStatus('freshdesk'),
       category: 'Support',
       type: 'ticketing'
@@ -319,7 +313,6 @@ const IntegrationsPage = () => {
       id: 'zoho',
       name: 'Zoho Desk',
       description: 'Connect your AI Agent with Zoho Desk to streamline customer support and ticket handling.',
-      logo: 'https://img.logo.dev/zoho.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: getIntegrationStatus('zoho'),
       category: 'Support',
       type: 'ticketing'
@@ -328,7 +321,6 @@ const IntegrationsPage = () => {
       id: 'salesforce',
       name: 'Salesforce Service Cloud',
       description: 'Connect your AI Agent with Salesforce to enhance customer service and case management.',
-      logo: 'https://img.logo.dev/salesforce.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: getIntegrationStatus('salesforce'),
       category: 'CRM & Support',
       type: 'ticketing'
@@ -337,7 +329,6 @@ const IntegrationsPage = () => {
       id: 'hubspot',
       name: 'HubSpot Service Hub',
       description: 'Connect your AI Agent with HubSpot to automate customer support and ticketing workflows.',
-      logo: 'https://img.logo.dev/hubspot.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true',
       status: getIntegrationStatus('hubspot'),
       category: 'CRM & Support',
       type: 'ticketing'
@@ -346,7 +337,6 @@ const IntegrationsPage = () => {
       id: 'google_drive',
       name: 'Google Drive',
       description: 'Connect your AI Agent with Google Drive to access and manage your documents and files.',
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg',
       status: getIntegrationStatus('google_drive'),
       category: 'Storage',
       type: 'storage'
@@ -572,7 +562,7 @@ const IntegrationsPage = () => {
                           }}
                         >
                           <img 
-                            src={integration?.logo} 
+                            src={TICKETING_PROVIDERS_LOGOS[integration?.id].logo} 
                             alt={integration?.name}
                             className="w-16 h-16 object-contain"
                           />
@@ -635,7 +625,7 @@ const IntegrationsPage = () => {
                                 }}
                               >
                                 <img 
-                                  src={integration.logo} 
+                                  src={TICKETING_PROVIDERS_LOGOS[integration?.id].logo} 
                                   alt={integration.name}
                                   className="w-12 h-12 object-contain"
                                 />

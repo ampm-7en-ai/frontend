@@ -13,6 +13,7 @@ export interface Agent {
   model: ModelObject;
   isDeployed: boolean;
   status: string;
+  default_ticketing_provider: string;
 }
 
 interface ModelObject {

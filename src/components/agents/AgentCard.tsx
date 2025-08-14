@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CalendarClock, MessageSquare, ActivitySquare, Database, Globe, FileText, BookOpen, Plus, ChevronDown, ChevronUp, Brain } from 'lucide-react';
+import { CalendarClock, MessageSquare, ActivitySquare, Database, Globe, FileText, BookOpen, Plus, ChevronDown, ChevronUp, Brain, Settings2 } from 'lucide-react';
 import { 
   Card, 
   CardContent, 
@@ -26,6 +26,7 @@ import { format } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Settings, Play } from 'lucide-react';
+import { TICKETING_PROVIDERS_LOGOS } from '@/utils/integrationUtils';
 
 interface AgentCardProps {
   agent: Agent;
@@ -171,6 +172,22 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                     <div className="text-xs text-slate-500 dark:text-slate-400">AI Model</div>
                   </div>
                 </div>
+
+                {
+                  agent.default_ticketing_provider && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/40 dark:to-orange-800/40 rounded-lg flex items-center justify-center overflow-hidden rounded-2xl">
+                        <img src={TICKETING_PROVIDERS_LOGOS[agent.default_ticketing_provider].logo} alt={agent.default_ticketing_provider} className="w-full h-full object-fill" />
+                      </div>
+                      <div>
+                        <div className={`text-sm font-bold`}>
+                          {agent.default_ticketing_provider}
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">Connected App</div>
+                      </div>
+                    </div>
+                  )
+                }
               </div>
               
               {/* Right side - Knowledge Base Trigger */}

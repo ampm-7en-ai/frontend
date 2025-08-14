@@ -664,7 +664,7 @@ const SearchAssistant = () => {
                             </Avatar>
 
                             <div className="flex-1 pl-[10px] pt-[5px]">
-                              <div className="prose prose-sm max-w-none break-words" style={{ 
+                              <div className="prose prose-sm max-w-none break-words assistant" style={{ 
                                 color: isDarkTheme ? '#bdbdbd' : '#333333',
                               }}>
                                 <ReactMarkdown
@@ -713,10 +713,13 @@ const SearchAssistant = () => {
                                       return <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>;
                                     },
                                     ol({ children }) {
-                                      return <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>;
+                                      return (
+                                      <ol className="list-inside mb-2 space-y-1 list-none" style={{counterReset: 'item 0' }}>
+                                        {children}
+                                      </ol>);
                                     },
-                                    li({ children }) {
-                                      return <li className="text-sm">{children}</li>;
+                                    li({ node, children, ...props }) {
+                                      return <li className="relative text-sm" style={{ counterIncrement: 'item'}}>{children}</li>;
                                     },
                                     h1({ children }) {
                                       return <h1 className="text-lg font-bold mb-2" style={{ color: primaryColor }}>{children}</h1>;

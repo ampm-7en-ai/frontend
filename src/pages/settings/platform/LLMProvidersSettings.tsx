@@ -33,7 +33,7 @@ const LLMProvidersSettings = () => {
   const [isSavingPrompt, setIsSavingPrompt] = useState(false);
   
   const { providers, isLoading, refetch, updateProvider, addModel, deleteModel, setDefaultModel, deleteProvider } = useSuperAdminLLMProviders();
-  const { prompts, isLoading: isLoadingPrompts, createPrompt, updatePrompt } = useAgentPrompts();
+  const { prompts, isLoading: isLoadingPrompts, createPrompt, updatePrompt } = useAgentPrompts(false,true);
 
   // Get unique agent types from the prompts
   const availableAgentTypes = React.useMemo(() => {

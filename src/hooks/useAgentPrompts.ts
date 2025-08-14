@@ -25,10 +25,11 @@ interface AgentPromptResponse {
   status: string;
 }
 
-export const useAgentPrompts = (isAdminPanel: boolean = false) => {
+export const useAgentPrompts = (isAdminPanel: boolean = false, enabled: boolean = true ) => {
   const { toast } = useToast();
   const [prompts, setPrompts] = useState<AgentPrompt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   
   const getEndpoint = () => isAdminPanel ? 'settings/system-prompts/' : 'admin/agent-prompts/';
 
@@ -127,8 +128,11 @@ export const useAgentPrompts = (isAdminPanel: boolean = false) => {
   };
 
   useEffect(() => {
-    fetchPrompts();
-  }, []);
+    if (enabled && !hasLoaded) {
+      fetchPrompts().finally(() => setHasLoaded(true));
+    }
+    
+  }, [enabled, hasLoaded]);
 
   return {
     prompts,

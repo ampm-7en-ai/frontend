@@ -82,3 +82,22 @@
     animation: float 3s ease-in-out infinite;
   }
 }
+
+.assistant ol li::before {
+  content: counter(item); /* Use the counter value */
+  @apply absolute left-0 flex items-center justify-center w-6 h-6 bg-gradient-to-br from-cyan-400 to-blue-500 text-white font-bold rounded-full shadow-lg;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.7), 0 0 20px rgba(0, 204, 255, 0.5); /* Glow effect */
+  text-shadow: 0 0 5px rgba(0, 255, 255, 0.8); /* Text glow */
+}
+
+/* Optional: Style the text content */
+.assistant li {
+  @apply text-gray-600;
+}
+
+/* Hover effect (optional) */
+.assistant ol li:hover::before {
+  @apply scale-110 shadow-2xl;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.9), 0 0 30px rgba(0, 204, 255, 0.7); /* Enhanced glow on hover */
+  transition: all 0.3s ease;
+}

@@ -21,7 +21,7 @@ export const SystemPromptSection = ({
   onAgentTypeChange,
   onSystemPromptChange
 }: SystemPromptSectionProps) => {
-  const { prompts, isLoading: promptsLoading } = useAgentPrompts(true);
+  const { prompts, isLoading: promptsLoading } = useAgentPrompts(true, true);
   const [userPromptsByType, setUserPromptsByType] = useState<Record<string, string>>({});
   const [showSystemPromptModal, setShowSystemPromptModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);

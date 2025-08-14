@@ -34,7 +34,9 @@ export const transformAgentData = (apiAgent: any): Agent => {
            'Unknown Model'
     },
     isDeployed: agentData.status === 'Live',
-    status: agentData.status || 'Idle'
+    status: agentData.status || 'Idle',
+    default_ticketing_provider: agentData.default_ticketing_provider || ''
+
   };
   
   console.log('✅ Unified transformation result:', transformed);

@@ -7,8 +7,8 @@ import {
   ModelOption
 } from '@/utils/modelUtils';
 
-export const useAIModels = () => {
-  const { providers, isLoading } = useLLMProviders();
+export const useAIModels = (enabled: boolean = true) => {
+  const { providers, isLoading } = useLLMProviders(enabled);
 
   const allModelOptions = useMemo(() => {
     console.log('useAIModels - Raw providers:', providers);

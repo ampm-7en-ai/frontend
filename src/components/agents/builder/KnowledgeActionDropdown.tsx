@@ -74,12 +74,17 @@ export const KnowledgeActionDropdown = () => {
       />
 
       {/* Add Sources Modal */}
-      <AddSourcesModal
-        isOpen={showUploadModal}
-        onClose={() => setShowUploadModal(false)}
-        agentId={agentData.id?.toString() || ''}
-        onSuccess={handleUploadSuccess}
-      />
+      {
+        showUploadModal && (
+          <AddSourcesModal
+            isOpen={showUploadModal}
+            onClose={() => setShowUploadModal(false)}
+            agentId={agentData.id?.toString() || ''}
+            onSuccess={handleUploadSuccess}
+          />
+        )
+      }
+      
     </>
   );
 };
