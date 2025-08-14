@@ -1,15 +1,14 @@
 
 import React from 'react';
 import { ModernCard, ModernCardContent } from '@/components/ui/modern-card';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle } from 'lucide-react';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface IntegrationProviderCardProps {
   providerId: string;
   isEnabled: boolean;
   onToggle: (providerId: string, enabled: boolean) => void;
   isUpdating?: boolean;
+  defaultProvider: string;
 }
 const integrationsList = {
       "whatsapp" : {
@@ -52,7 +51,7 @@ const integrationsList = {
       category: 'Support',
       type: 'ticketing'
     },
-    "zogo":{
+    "zoho":{
       id: 'zoho',
       name: 'Zoho Desk',
       description: 'Connect your AI Agent with Zoho Desk to streamline customer support and ticket handling.',
@@ -90,7 +89,8 @@ export const IntegrationProviderCard: React.FC<IntegrationProviderCardProps> = (
   providerId,
   isEnabled,
   onToggle,
-  isUpdating = false
+  isUpdating = false,
+  defaultProvider
 }) => {
   const providerInfo = integrationsList[providerId];
   
@@ -103,9 +103,9 @@ export const IntegrationProviderCard: React.FC<IntegrationProviderCardProps> = (
   };
 
   return (
-    <ModernCard className="p-3">
+    <ModernCard className={`p-2 ${isUpdating && `opacity-50 cursor-none pointer-events-none`}`}>
       <ModernCardContent className="p-0">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 group">
           <div className="flex-shrink-0">
             <img 
               src={getProviderLogo(providerId)} 
@@ -119,18 +119,22 @@ export const IntegrationProviderCard: React.FC<IntegrationProviderCardProps> = (
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100">
+              <h3 className="font-medium text-xs text-gray-900 dark:text-gray-100">
                 {providerInfo.name}
               </h3>
             </div>
           </div>
           
           <div className="flex-shrink-0">
-            <Switch
-              checked={isEnabled}
-              onCheckedChange={(checked) => onToggle(providerId, checked)}
-              disabled={isUpdating}
-            />
+           <ModernButton
+           variant="ghost"
+           size='sm'
+           className={`text-xs hidden ${providerId === defaultProvider ? `!block` : `group-hover:block` }`}
+           disabled={providerId === defaultProvider}
+           onClick={()=> onToggle(providerId,isEnabled)}
+           >
+           Default
+           </ModernButton>
           </div>
         </div>
       </ModernCardContent>

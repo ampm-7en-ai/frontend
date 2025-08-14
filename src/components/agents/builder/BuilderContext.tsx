@@ -47,6 +47,7 @@ interface AgentFormData {
   knowledgeSources: KnowledgeSource[];
   status?: string; // 🔥 Add status field to preserve agent status from server
   ticketing_providers: String[];
+  default_ticketing_provider: string;
 }
 
 interface BuilderState {
@@ -102,7 +103,8 @@ const defaultAgentData: AgentFormData = {
     response_model: 'gpt-3.5-turbo'
   },
   knowledgeSources: [],
-  ticketing_providers: []
+  ticketing_providers: [],
+  default_ticketing_provider: ""
 };
 
 const initialState: BuilderState = {
@@ -216,7 +218,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         knowledgeSources: formatKnowledgeSources(agentData.knowledge_sources || []),
         // 🔥 CRITICAL: Preserve the agent status from server
         status: agentData.status,
-        ticketing_providers: agentData.ticketing_providers || []
+        ticketing_providers: agentData.ticketing_providers || [],
+        default_ticketing_provider: agentData.default_ticketing_provider || ""
       };
 
       console.log('Mapped agent data with status preserved:', {
@@ -424,7 +427,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           agentType: state.agentData.agentType,
           systemPrompt: state.agentData.systemPrompt,
           knowledgeSources: state.agentData.knowledgeSources.map(ks => ks.id),
-          ticketing_providers: state.agentData.ticketing_providers
+          ticketing_providers: state.agentData.ticketing_providers,
+          default_ticketing_provider: state.agentData.default_ticketing_provider
         };
 
         console.log('Update payload:', updatePayload);
@@ -488,7 +492,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           agentType: response.data.agentType || state.agentData.agentType,
           systemPrompt: response.data.systemPrompt || state.agentData.systemPrompt,
           knowledgeSources: formatKnowledgeSources(response.data.knowledge_sources || []),
-          ticketing_providers: response.data.ticketing_providers || state.agentData.ticketing_providers
+          ticketing_providers: response.data.ticketing_providers || state.agentData.ticketing_providers,
+          default_ticketing_provider: response.data.default_ticketing_provider || state.agentData.default_ticketing_provider
         };
         
         setState(prev => ({ 

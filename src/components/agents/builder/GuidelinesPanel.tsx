@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useBuilder } from './BuilderContext';
-import { FileText, Settings, Bot, Palette, MessageSquare, Plus, X, Target, Zap, Expand, User, Upload, RotateCcw, Settings2 } from 'lucide-react';
+import { Settings, Bot, Palette, Plus, X, Target, Zap, Expand, Upload, Settings2 } from 'lucide-react';
 import { useAgentPrompts } from '@/hooks/useAgentPrompts';
 import { useAIModels } from '@/hooks/useAIModels';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -20,7 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { agentApi, getAccessToken, getApiUrl } from '@/utils/api-config';
 import { IntegrationProviderCard } from './IntegrationProviderCard';
-import { IntegrationSelectionModal } from './IntegrationSelectionModal';
+import { Link } from 'react-router-dom';
 
 export const GuidelinesPanel = () => {
   const { state, updateAgentData, saveAgent } = useBuilder();
@@ -37,20 +37,15 @@ export const GuidelinesPanel = () => {
   // Modal states
   const [showSystemPromptModal, setShowSystemPromptModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
-  const [showIntegrationModal, setShowIntegrationModal] = useState(false);
   
   // Avatar upload states
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isRemovingAvatar, setIsRemovingAvatar] = useState(false);
   
-  // Integration states
-  const [updatingProvider, setUpdatingProvider] = useState<string | null>(null);
 
   // Get global default model from agent data settings
   const globalDefaultModel = agentData.settings?.response_model;
-  
-  // Check if current model is using global default
-  const isUsingGlobalDefault = agentData.model === globalDefaultModel || (!agentData.model && globalDefaultModel);
+
 
   // Initialize user prompts storage on first load and refresh on save
   useEffect(() => {
@@ -380,66 +375,32 @@ export const GuidelinesPanel = () => {
   };
 
   // Handle provider toggle
-  const handleProviderToggle = async (providerId: string, enabled: boolean) => {
-    
-    setUpdatingProvider(providerId);
-    
-    try {
-      const currentProviders: string[] = (agentData.ticketing_providers || []).map(String);
-      let newProviders: string[];
-
-      
-      if (enabled) {
-        // Add provider if not already in array
-        newProviders = currentProviders.includes(providerId) 
-          ? currentProviders 
-          : [...currentProviders, providerId];
-      } else {
-        // Remove provider from array
-        newProviders = currentProviders.filter((p: string) => p !== providerId);
-      }
-     
-      
-      // Update local state
-      updateAgentData({ ticketing_providers: newProviders });
-      //await saveAgent();
-      
-      toast({
-        title: enabled ? "Integration enabled" : "Integration disabled",
-        description: `${providerId} has been ${enabled ? 'added to' : 'removed from'} your agent.`,
-      });
-      
-    } catch (error) {
-      console.error('Error updating provider:', error);
-      toast({
-        title: "Update failed",
-        description: "Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setUpdatingProvider(null);
-    }
-  };
-
-  // Handle adding new provider from modal
-  const handleAddProvider = async (providerId: string) => {
-    let currentProviders: string[] = (agentData.ticketing_providers || []).map(String);
-    const newProviders: string[] = [...currentProviders, providerId];
+  const handleProviderToggle = async (providerId: string) => {
     
     setIsAdding(true);
-    try {
+    
+      try {
       const res = await agentApi.update(agentData.id as string,{
-        ticketing_providers: newProviders
+        default_ticketing_provider: providerId
       })
       const data = await res.json();
-      currentProviders = (data.data.ticketing_providers || []).map(String);
-      console.log(currentProviders);
+      agentData.default_ticketing_provider = await data.data.default_ticketing_provider;
 
     }catch(error) {
       console.error(error);
+      toast({
+        title: "Operation failed",
+        description: `Failed to make ${providerId} default. Please try again.`,
+        variant: "destructive",
+      });
+    } finally {
+      toast({
+        title: "Success",
+        description: `${providerId} is default.`,
+        variant: "success",
+      });
+      setIsAdding(false);
     }
-    //updateAgentData({ ticketing_providers: newProviders });
-    //setShowIntegrationModal(true);
   };
 
   // Show skeleton loading state during initial load
@@ -1092,27 +1053,20 @@ export const GuidelinesPanel = () => {
                           providerId={providerId}
                           isEnabled={true}
                           onToggle={handleProviderToggle}
-                          isUpdating={updatingProvider === providerId}
+                          isUpdating={IsAdding}
+                          defaultProvider={agentData.default_ticketing_provider}
                         />
                       ))}
                     </>
                   ) : (
                     <div className="text-center py-6 text-gray-500 dark:text-gray-400">
                       <Settings2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No integrations added yet</p>
-                      <p className="text-xs mt-1">Add ticketing integrations to enable advanced features</p>
+                      <p className="text-sm font-semibold">No any apps are being added.</p>
+                      <p className="text-xs mt-1">Go to <Link to="/integrations" className="underline text-primary dark:text-white">Integrations</Link> page to connect apps.</p>
                     </div>
                   )}
                   
-                  <ModernButton
-                    variant="ghost"
-                    size="sm"
-                    icon={Plus}
-                    onClick={() => setShowIntegrationModal(true)}
-                    className="h-10 rounded-xl text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 w-full"
-                  >
-                    Add App
-                  </ModernButton>
+                  
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -1120,14 +1074,6 @@ export const GuidelinesPanel = () => {
         </div>
       </ScrollArea>
 
-      {/* Integration Selection Modal */}
-      <IntegrationSelectionModal
-        open={showIntegrationModal}
-        onOpenChange={setShowIntegrationModal}
-        currentProviders={(agentData.ticketing_providers || []).map(String)}
-        onAddProvider={handleAddProvider}
-        isAdding={IsAdding}
-      />
 
       {/* Template Modal */}
       <SystemPromptModal
