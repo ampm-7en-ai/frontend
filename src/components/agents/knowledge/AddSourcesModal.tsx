@@ -68,7 +68,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
   const [isScrapingUrls, setIsScrapingUrls] = useState(false);
   const [scrapedUrls, setScrapedUrls] = useState<ScrapedUrl[]>([]);
-  const [manualUrls, setManualUrls] = useState<string[]>([]);
+  const [manualUrls, setManualUrls] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [pageData, setPageData] = useState({nextToken:"", prevToken:""});
@@ -132,7 +132,6 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     setSelectedFiles([]);
     setValidationErrors({});
     setScrapedUrls([]);
-    setManualUrls([]);
     setImportAllPages(false);
   }, [sourceType]);
 
@@ -183,10 +182,10 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     }
   };
 
-  // Receive manual URLs from child component
-  const handleManualUrlsUpdate = (urls: string[]) => {
+  //getAll manual plus scraped
+  const getAllManualUrls = (urls) => {
     setManualUrls(urls);
-  };
+  }
 
   const handleImportAllPagesChange = async (checked: boolean) => {
     setImportAllPages(checked);
@@ -241,21 +240,17 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
 
   const validateForm = (): { isValid: boolean, errors: ValidationErrors } => {
     const errors: ValidationErrors = {};
-    
+    const isValid: boolean = true;
     if (!documentName.trim()) {
       errors.documentName = 'Source name is required';
+      
     }
 
     switch (sourceType) {
       case 'url':
-        // Get combined URLs for validation
-        const selectedScrapedUrls = scrapedUrls.filter(u => u.selected).map(u => u.url);
-        const validManualUrls = manualUrls.filter(url => url.trim() !== '');
-        const totalUrls = [...selectedScrapedUrls, ...validManualUrls];
-        
-        if (!url.trim() && totalUrls.length === 0) {
-          errors.url = 'At least one URL is required (either enter a website URL or add manual URLs)';
-        } else if (url.trim() && !isValidUrl(url)) {
+        if (!url.trim()) {
+          errors.url = 'Website URL is required';
+        } else if (!isValidUrl(url)) {
           errors.url = 'Please enter a valid URL';
         }
         break;
@@ -283,7 +278,6 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
         }
         break;
     }
-    
     setValidationErrors(errors);
     return {
       isValid: Object.keys(errors).length === 0,
@@ -338,20 +332,12 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
 
     switch (sourceType) {
       case 'url':
-        // Combine scraped and manual URLs
-        const selectedScrapedUrls = scrapedUrls.filter(u => u.selected).map(u => u.url);
-        const validManualUrls = manualUrls.filter(url => url.trim() !== '');
-        
-        // Remove duplicates and create final URL array
-        const combinedUrls = [...new Set([...selectedScrapedUrls, ...validManualUrls])];
-        
-        // If we have combined URLs, use them; otherwise use the single URL
-        if (combinedUrls.length > 0) {
-          formData.append('urls', JSON.stringify(combinedUrls));
+        if (importAllPages && scrapedUrls.length > 0 ) {
+          const selectedUrls = scrapedUrls.filter(urlData => urlData.selected).map(urlData => urlData.url);
+          formData.append('urls', JSON.stringify(selectedUrls));
         } else {
-          formData.append('urls', JSON.stringify([url]));
+          formData.append('urls', "["+JSON.stringify(url)+"]");
         }
-        
         formData.append('crawl_all_pages', importAllPages.toString());
         break;
 
@@ -635,8 +621,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
           fetchGoogleDriveData={fetchGoogleDriveData}
           isScrapingUrls={isScrapingUrls}
           scrapedUrls={scrapedUrls}
-          manualUrls={manualUrls}
-          onManualUrlsUpdate={handleManualUrlsUpdate}
+          getManualUrls={getAllManualUrls}
           toggleUrlSelection={toggleUrlSelection}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}

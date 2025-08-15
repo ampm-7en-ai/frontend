@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -82,8 +82,6 @@ interface SourceTypeSelectorProps {
   fetchGoogleDriveData?: (token?: string) => void;
   isScrapingUrls: boolean;
   scrapedUrls: ScrapedUrl[];
-  manualUrls: string[];
-  onManualUrlsUpdate: (urls: string[]) => void;
   toggleUrlSelection: (url: string) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -91,6 +89,10 @@ interface SourceTypeSelectorProps {
   handleSortToggle: () => void;
   handleRefreshFiles: () => void;
   pageData: {nextToken: string ,prevToken: string};
+  getManualUrls?: (url: string []) => void;
+  setManualUrls?: React.Dispatch<React.SetStateAction<string[]>>;
+  addUrlsManually?: boolean;
+  setAddUrlsManually?: (checked: boolean) => void;
 }
 
 interface SourceConfig {
@@ -138,25 +140,19 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
   fetchGoogleDriveData,
   isScrapingUrls,
   scrapedUrls,
-  manualUrls,
-  onManualUrlsUpdate,
   toggleUrlSelection,
   searchQuery,
   setSearchQuery,
   sortOrder,
   handleSortToggle,
   handleRefreshFiles,
-  pageData
+  pageData,
+  getManualUrls
 }) => {
   const navigate = useNavigate();
   const [urlSearchQuery, setUrlSearchQuery] = useState('');
   const [addUrlsManually, setAddUrlsManually] = useState(false);
-  const [localManualUrls, setLocalManualUrls] = useState<string[]>(['']);
-
-  // Update parent component when manual URLs change
-  useEffect(() => {
-    onManualUrlsUpdate(localManualUrls);
-  }, [localManualUrls, onManualUrlsUpdate]);
+  const [manualUrls, setManualUrls] = useState<string[]>(['']);
 
   const sourceConfigs: Record<SourceType, SourceConfig> = {
     url: {
@@ -220,29 +216,37 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
     });
   };
 
-  // Add new url input 
+  //add new url input 
   const addNewUrlInput = () => {
-    setLocalManualUrls(prev => [...prev, '']);
+    setManualUrls(prev => [...prev, '']); // Append empty string to array
   };
 
-  // Remove url input
+  //rermove url input
   const removeManualUrl = (index: number) => {
-    if (localManualUrls.length > 1) {
-      setLocalManualUrls(prev => prev.filter((_, i) => i !== index));
+    if (manualUrls.length > 1) { // Keep at least one input
+      setManualUrls(prev => prev.filter((_, i) => i !== index)); // Remove by index
     }
   };
 
-  // Update manual url
+  //update manual url
   const updateManualUrl = (index: number, value: string) => {
-    setLocalManualUrls(prev => 
-      prev.map((url, i) => i === index ? value : url)
+    setManualUrls(prev => 
+      prev.map((url, i) => i === index ? value : url) // Update specific index
     );
   };
 
-  // Calculate counts for display
-  const validManualUrlsCount = localManualUrls.filter(url => url.trim() !== '').length;
-  const selectedScrapedUrlsCount = scrapedUrls.filter(u => u.selected).length;
-  const totalUrlsCount = validManualUrlsCount + selectedScrapedUrlsCount;
+  //merge all urls
+  const getAllUrls = () => {
+    const validManualUrls = manualUrls.filter(url => url.trim() !== '');
+    const scrapedUrlsList = scrapedUrls.filter(u => u.selected).map(u => u.url);
+    
+    // Merge and remove duplicates
+    const allUrls = [...new Set([...validManualUrls, ...scrapedUrlsList])];
+    //const allUrls = [...validManualUrls,scrapedUrls.length > 0 && scrapedUrlsList.map(u => u)];
+    getManualUrls(allUrls);
+    return allUrls;
+  };
+
 
   const areAllUrlsSelected = filteredScrapedUrls.length > 0 && filteredScrapedUrls.every(urlData => urlData.selected);
   const areSomeUrlsSelected = filteredScrapedUrls.some(urlData => urlData.selected);
@@ -259,7 +263,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                 type="url"
                 variant="modern"
                 size="lg"
-                placeholder="https://example.com/page"
+                placeholder={sourceConfigs.url.placeholder}
                 value={url}
                 onChange={(e) => {
                   setUrl(e.target.value);
@@ -275,12 +279,10 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Enter the URL of the webpage you want to crawl. For multiple pages, we'll automatically explore linked pages.
               </p>
-              
-              {totalUrlsCount > 0 && (
-                <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-lg">
-                  Total URLs: {totalUrlsCount} ({selectedScrapedUrlsCount} scraped, {validManualUrlsCount} manual)
-                </div>
-              )}
+              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                All URLs ({getAllUrls().length} total - {scrapedUrls.filter(u => u.selected).length} scraped, {manualUrls.filter(url => url.trim()).length} manual)
+              </Label>
+              {JSON.stringify(getAllUrls())}
             </div>
             
             <div className="flex items-center space-x-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors duration-200">
@@ -300,54 +302,54 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                 onCheckedChange={(checked) => setAddUrlsManually(checked === true)}
               />
               <Label htmlFor="add-manually" className="text-sm font-medium cursor-pointer text-slate-700 dark:text-slate-300">
-                Add URLs manually
+                Input all linked pages from this domain
               </Label>
             </div>
 
             {addUrlsManually && (
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Manual URLs ({validManualUrlsCount} added)
-                </Label>
-                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-3">
-                  {localManualUrls.map((url, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <Input
-                        placeholder="https://example.com"
-                        value={url}
-                        onChange={(e) => updateManualUrl(index, e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeManualUrl(index)}
-                        disabled={localManualUrls.length <= 1}
-                        className="h-10 w-10 p-0"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={addNewUrlInput}
-                    className="w-full"
-                    type="button"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Another URL
-                  </Button>
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Manual URLs ({manualUrls.filter(url => url.trim()).length} added)
+                  </Label>
+                  <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-3">
+                    {manualUrls.map((url, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <Input
+                          placeholder="https://example.com"
+                          value={url}
+                          onChange={(e) => updateManualUrl(index, e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeManualUrl(index)}
+                          disabled={manualUrls.length <= 1}
+                          className="h-10 w-10 p-0"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={addNewUrlInput}
+                      className="w-full"
+                      type="button"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Another URL
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {scrapedUrls.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
                   <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Found URLs ({selectedScrapedUrlsCount} selected)
+                    Found URLs ({scrapedUrls.filter(u => u.selected).length} selected)
                   </Label>
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2">
@@ -760,12 +762,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
   return (
     <div className="space-y-4">
       <ModernTabNavigation
-        tabs={[
-          { id: 'url', label: 'Website' },
-          { id: 'document', label: 'Documents' },
-          { id: 'plainText', label: 'Plain Text' },
-          { id: 'thirdParty', label: 'Integrations' }
-        ]}
+        tabs={sourceNavItems.map(item => ({ id: item.id, label: item.label }))}
         activeTab={sourceType}
         onTabChange={(tabId) => setSourceType(tabId as SourceType)}
         className="text-xs"
