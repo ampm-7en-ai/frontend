@@ -1188,7 +1188,7 @@ export const ChatboxPreview = ({
                                 if (isInline) {
                                   return (
                                     <code
-                                      className="px-2 py-1 rounded-md bg-gray-100/80 font-mono text-xs border-0 font-normal whitespace-pre"
+                                      className="px-2 py-1 rounded-md bg-gray-100/80 font-mono text-xs border-0 font-normal"
                                       style={{ color: primaryColor }}
                                       {...props}
                                     >
