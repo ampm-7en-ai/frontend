@@ -68,7 +68,7 @@ const ConversationHeader = ({
   };
 
   const handleResolveConversation = async () => {
-    if (!conversation.id || conversation.status === 'resolved') return;
+    if (!conversation.id || conversation.status === 'Resolved') return;
 
     setIsResolving(true);
     try {
@@ -94,7 +94,7 @@ const ConversationHeader = ({
         onConversationUpdate({
           ...conversation,
           ...result.data,
-          status: result.data.chat_status || 'resolved'
+          status: result.data.chat_status || 'Resolved'
         });
       }
 
@@ -114,7 +114,7 @@ const ConversationHeader = ({
     }
   };
 
-  const isResolved = conversation.status === 'resolved' || conversation.status === 'completed';
+  const isResolved = conversation.status === 'Resolved' || conversation.status === 'Completed';
   const isHumanAgent = conversation.agentType === 'human';
 
   return (

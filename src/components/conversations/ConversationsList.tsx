@@ -42,7 +42,7 @@ interface Conversation {
   agent?: string;
   satisfaction?: string;
   lastMessage: Message;
-  status: 'resolved' | 'unresolved';
+  status: 'Resolved' | 'Unresolved';
   channel: 'whatsapp' | 'slack' | 'instagram' | 'freshdesk' | 'phone';
   handoffs?: Handoff[];
 }
@@ -69,7 +69,7 @@ const ConversationsList = () => {
         timestamp: '10:15 AM',
         tags: ['support', 'priority'],
       },
-      status: 'unresolved',
+      status: 'Unresolved',
       channel: 'whatsapp',
       handoffs: [
         {
@@ -93,7 +93,7 @@ const ConversationsList = () => {
         timestamp: '11:45 AM',
         tags: ['unresolved', 'urgent', 'multiple-transfers'],
       },
-      status: 'unresolved',
+      status: 'Unresolved',
       channel: 'freshdesk',
       handoffs: [
         {
@@ -129,7 +129,7 @@ const ConversationsList = () => {
         timestamp: '9:30 AM',
         tags: ['sales', 'product-inquiry'],
       },
-      status: 'unresolved',
+      status: 'Unresolved',
       channel: 'instagram',
       handoffs: []
     },
@@ -144,7 +144,7 @@ const ConversationsList = () => {
         tags: ['feedback'],
         isAgent: true
       },
-      status: 'resolved',
+      status: 'Resolved',
       channel: 'slack',
       handoffs: []
     },
@@ -158,7 +158,7 @@ const ConversationsList = () => {
         timestamp: '2 days ago',
         tags: ['billing', 'resolved'],
       },
-      status: 'resolved',
+      status: 'Resolved',
       channel: 'phone',
       handoffs: []
     }
@@ -367,11 +367,11 @@ const ConversationsList = () => {
                     <span className="font-medium">{conversation.customer}</span>
                     <span className={cn(
                       "px-1.5 py-0.5 text-xs rounded-full flex items-center gap-1",
-                      conversation.status === 'resolved' 
+                      conversation.status === 'Resolved' 
                         ? "bg-green-100 text-green-800 border border-green-200" 
                         : "bg-red-100 text-red-800 border border-red-200"
                     )}>
-                      {conversation.status === 'resolved' 
+                      {conversation.status === 'Resolved' 
                         ? <Check className="h-3 w-3" /> 
                         : <X className="h-3 w-3" />
                       }

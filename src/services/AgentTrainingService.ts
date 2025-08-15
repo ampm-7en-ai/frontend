@@ -29,7 +29,7 @@ const saveTrainingTask = (agentId: string, taskId: string, agentName: string) =>
       taskId,
       agentName,
       timestamp: Date.now(),
-      status: 'training'
+      status: 'Training'
     };
     localStorage.setItem(TRAINING_TASKS_KEY, JSON.stringify(tasks));
     console.log('Saved training task to localStorage:', { agentId, taskId, agentName });

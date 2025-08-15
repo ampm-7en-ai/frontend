@@ -89,7 +89,7 @@ interface SourceTypeSelectorProps {
   handleSortToggle: () => void;
   handleRefreshFiles: () => void;
   pageData: {nextToken: string ,prevToken: string};
-  getManualUrls?: (url: string []) => void;
+  manualUrls?: string [];
   setManualUrls?: React.Dispatch<React.SetStateAction<string[]>>;
   addUrlsManually?: boolean;
   setAddUrlsManually?: (checked: boolean) => void;
@@ -147,12 +147,13 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
   handleSortToggle,
   handleRefreshFiles,
   pageData,
-  getManualUrls
+  manualUrls,
+  setManualUrls,
+  addUrlsManually,
+  setAddUrlsManually
 }) => {
   const navigate = useNavigate();
   const [urlSearchQuery, setUrlSearchQuery] = useState('');
-  const [addUrlsManually, setAddUrlsManually] = useState(false);
-  const [manualUrls, setManualUrls] = useState<string[]>(['']);
 
   const sourceConfigs: Record<SourceType, SourceConfig> = {
     url: {
@@ -235,17 +236,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
     );
   };
 
-  //merge all urls
-  const getAllUrls = () => {
-    const validManualUrls = manualUrls.filter(url => url.trim() !== '');
-    const scrapedUrlsList = scrapedUrls.filter(u => u.selected).map(u => u.url);
-    
-    // Merge and remove duplicates
-    const allUrls = [...new Set([...validManualUrls, ...scrapedUrlsList])];
-    //const allUrls = [...validManualUrls,scrapedUrls.length > 0 && scrapedUrlsList.map(u => u)];
-    getManualUrls(allUrls);
-    return allUrls;
-  };
+
 
 
   const areAllUrlsSelected = filteredScrapedUrls.length > 0 && filteredScrapedUrls.every(urlData => urlData.selected);
@@ -271,7 +262,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                     setValidationErrors({ ...validationErrors, url: undefined });
                   }
                 }}
-                className={`${validationErrors.url ? 'border-red-500 dark:border-red-400' : ''}`}
+                className={`dark:text-white/70 ${validationErrors.url ? 'border-red-500 dark:border-red-400' : ''}`}
               />
               {validationErrors.url && (
                 <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.url}</p>
@@ -279,10 +270,6 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Enter the URL of the webpage you want to crawl. For multiple pages, we'll automatically explore linked pages.
               </p>
-              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                All URLs ({getAllUrls().length} total - {scrapedUrls.filter(u => u.selected).length} scraped, {manualUrls.filter(url => url.trim()).length} manual)
-              </Label>
-              {JSON.stringify(getAllUrls())}
             </div>
             
             <div className="flex items-center space-x-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors duration-200">
@@ -317,22 +304,24 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                         <Input
                           placeholder="https://example.com"
                           value={url}
+                          variant="modern"
                           onChange={(e) => updateManualUrl(index, e.target.value)}
-                          className="flex-1"
+                          className="flex w-full border ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm transition-all duration-200 border-slate-200/60 dark:border-slate-600/60 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl focus-visible:ring-blue-500/50 dark:focus-visible:ring-blue-400/50 focus-visible:border-transparent hover:border-slate-300/80 dark:hover:border-slate-500/80 text-base h-11 px-4 py-3 dark:text-white/70"
                         />
-                        <Button
-                          variant="outline"
+                        <ModernButton
+                          variant="ghost"
                           size="sm"
                           onClick={() => removeManualUrl(index)}
                           disabled={manualUrls.length <= 1}
                           className="h-10 w-10 p-0"
+                          iconOnly
                         >
                           <X className="h-4 w-4" />
-                        </Button>
+                        </ModernButton>
                       </div>
                     ))}
-                    <Button
-                      variant="outline"
+                    <ModernButton
+                      variant="ghost"
                       size="sm"
                       onClick={addNewUrlInput}
                       className="w-full"
@@ -340,7 +329,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Another URL
-                    </Button>
+                    </ModernButton>
                   </div>
                 </div>
               )}

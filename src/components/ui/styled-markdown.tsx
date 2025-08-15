@@ -23,7 +23,7 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
 
   return (
     <>
-      <div className={`prose prose-sm max-w-none break-words assistant-content pr-12 ${className}`} style={{ 
+      <div className={`prose prose-sm max-w-none break-words assistant-content pr-4 ${className}`} style={{ 
         color: isDarkTheme ? '#bdbdbd' : '#333333',
       }}>
         <ReactMarkdown
@@ -69,6 +69,7 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
                         fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Inconsolata, "Roboto Mono", "Segoe UI Mono", "Courier New", monospace',
                       }
                     }}
+                    wrapLongLines={true}
                   >
                     {String(children).replace(/\n$/, '')}
                   </SyntaxHighlighter>
@@ -172,7 +173,7 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
             position: relative;
             margin-bottom: 16px;
             line-height: 1.75;
-            padding-left: 2rem;
+            padding-left: 1.6rem;
           }
 
           .assistant-content .assistant-ol > .assistant-li::before {
@@ -180,13 +181,13 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 24px;
+            width: 19px;
+            height: 19px;
             border-width: 1px;
             border-color: ${primaryColor};
             color: ${primaryColor};
             border-radius: 6px;
-            font-size: 12px;
+            font-size: 9px !important;
             font-weight: 600;
             flex-shrink: 0;
             margin-top: 2px;
@@ -243,7 +244,7 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
             font-size: 0.875rem !important;        
           }
           .assistant-li > p {
-            padding-top: 5px ;
+            padding-top: 1px ;
           }
         `
       }} />

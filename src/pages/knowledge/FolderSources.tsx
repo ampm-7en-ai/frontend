@@ -63,7 +63,7 @@ const FolderSources = () => {
   const sources = (folderData?.data?.knowledge_sources?.knowledge_sources || 
                   folderData?.data?.knowledge_sources || 
                   folderData?.knowledge_sources || 
-                  []).filter(source => source.status !== 'deleted');
+                  []).filter(source => source.status !== 'Deleted');
   
   const folderName = folderData?.data?.folder_name || `Agent ${agentId} Knowledge Sources`;
 
@@ -158,10 +158,12 @@ const FolderSources = () => {
         const parts = [];
       
         if (no_of_pages) parts.push(`${no_of_pages} pages`);
+        if(format === "url" && no_of_pages) return '';
         if (no_of_chars) parts.push(`${no_of_chars.toLocaleString()} characters`);
         if (file_size) parts.push(`${(file_size.slice(0,-1)/1024).toFixed(2)} KB`);
         if (format && !no_of_pages && !no_of_chars && !file_size) parts.push(format.toUpperCase());
          return parts.join(' • ');
+        
       }
       
       
@@ -464,6 +466,7 @@ const FolderSources = () => {
         title="Delete Knowledge Source"
         description={`Are you sure you want to delete "${sourceToDelete?.title}"? This action cannot be undone.`}
         size="md"
+        type='alert'
         footer={
           <div className="flex gap-3">
             <ModernButton variant="outline" onClick={() => setDeleteConfirmOpen(false)}>

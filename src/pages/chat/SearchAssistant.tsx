@@ -522,7 +522,7 @@ const SearchAssistant = () => {
   const textColor = isDarkTheme ? '#FFFFFF' : '#1A1F2C';
   const inputBgColor = isDarkTheme ? '#2a2a2a' : '#F5F6F7';
   const inputBorderColor = `${primaryColor}40`;
-  const cardBgColor = isDarkTheme ? '#2a2a2a' : '#FFFFFF';
+  const cardBgColor = isDarkTheme ? '#1e1e1e' : '#FFFFFF';
   const borderColor = isDarkTheme ? `${primaryColor}40` : '#E1E4E8';
   const codeBackgroundColor = isDarkTheme ? '#2d2d2d' : '#f6f6f6';
   const codeTextColor = isDarkTheme ? '#e0e0e0' : '#333333';

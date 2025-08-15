@@ -68,7 +68,8 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
   const [isScrapingUrls, setIsScrapingUrls] = useState(false);
   const [scrapedUrls, setScrapedUrls] = useState<ScrapedUrl[]>([]);
-  const [manualUrls, setManualUrls] = useState([]);
+  const [manualUrls, setManualUrls] = useState([""]);
+  const [addUrlsManually, setAddUrlsManually] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [pageData, setPageData] = useState({nextToken:"", prevToken:""});
@@ -182,11 +183,14 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     }
   };
 
-  //getAll manual plus scraped
-  const getAllManualUrls = (urls) => {
-    setManualUrls(urls);
-  }
-
+  const getAllUrls = () => {
+      const validManualUrls = manualUrls.filter(url => url.trim() !== '');
+      const scrapedUrlsList = scrapedUrls.filter(u => u.selected).map(u => u.url);
+      
+      // Merge and remove duplicates
+      const allUrls = [...new Set([...validManualUrls, ...scrapedUrlsList])];
+      return allUrls;
+  };
   const handleImportAllPagesChange = async (checked: boolean) => {
     setImportAllPages(checked);
     
@@ -332,9 +336,9 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
 
     switch (sourceType) {
       case 'url':
-        if (importAllPages && scrapedUrls.length > 0 ) {
-          const selectedUrls = scrapedUrls.filter(urlData => urlData.selected).map(urlData => urlData.url);
-          formData.append('urls', JSON.stringify(selectedUrls));
+        if ((importAllPages && scrapedUrls.length > 0) || (addUrlsManually && manualUrls.length > 0) ) {
+          //const selectedUrls = scrapedUrls.filter(urlData => urlData.selected).map(urlData => urlData.url);
+          formData.append('urls', JSON.stringify(getAllUrls()));
         } else {
           formData.append('urls', "["+JSON.stringify(url)+"]");
         }
@@ -621,13 +625,17 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
           fetchGoogleDriveData={fetchGoogleDriveData}
           isScrapingUrls={isScrapingUrls}
           scrapedUrls={scrapedUrls}
-          getManualUrls={getAllManualUrls}
+          manualUrls={manualUrls}
+          setManualUrls={setManualUrls}
+          addUrlsManually={addUrlsManually}
+          setAddUrlsManually={setAddUrlsManually}
           toggleUrlSelection={toggleUrlSelection}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           sortOrder={sortOrder}
           handleSortToggle={handleSortToggle}
           handleRefreshFiles={handleRefreshFiles}
+
         />
       </form>
     </ModernModal>

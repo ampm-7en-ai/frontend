@@ -30,8 +30,8 @@ const ConversationFiltersModern = ({
 
   const statusTabs = [
     { id: 'all', label: 'All' },
-    { id: 'unresolved', label: 'Open' },
-    { id: 'resolved', label: 'Resolved' }
+    { id: 'Unresolved', label: 'Open' },
+    { id: 'Resolved', label: 'Resolved' }
   ];
 
   const channelOptions = [

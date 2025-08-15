@@ -47,8 +47,8 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
 
   const hasProblematicSources = (knowledgeSources: any[]) => {
     return knowledgeSources.some(source => 
-      source.trainingStatus === 'deleted' || 
-      source.trainingStatus === 'failed'
+      source.trainingStatus === 'Deleted' || 
+      source.trainingStatus === 'Failed'
     );
   };
 
@@ -57,7 +57,7 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
     if (!knowledgeSources || !Array.isArray(knowledgeSources)) return [];
     
     return knowledgeSources
-      .filter(ks => ks && ks.training_status !== 'deleted')
+      .filter(ks => ks && ks.training_status !== 'Deleted')
       .map(ks => ({
         id: ks.id,
         name: ks.title || 'Untitled Source',
@@ -65,7 +65,7 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
         size: ks.metadata?.file_size || 'N/A',
         lastUpdated: ks.metadata?.upload_date ? new Date(ks.metadata.upload_date).toLocaleDateString('en-GB') : 'N/A',
         status: ks.status || 'active',
-        trainingStatus: ks.training_status || ks.status || 'idle',
+        trainingStatus: ks.training_status || ks.status || 'Idle',
         linkBroken: false,
         knowledge_sources: [],
         metadata: {
@@ -100,7 +100,7 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
     // Update knowledge sources to show "training" status immediately
     const updatedKnowledgeSources = agentData.knowledgeSources.map(source => ({
       ...source,
-      trainingStatus: 'training' as const
+      trainingStatus: 'Training' as const
     }));
     
     updateAgentData({ knowledgeSources: updatedKnowledgeSources });
@@ -128,17 +128,18 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
       
       agentData.knowledgeSources.forEach(source => {
         // Only include sources that are not deleted or failed
-        if (source.trainingStatus !== 'deleted' && source.trainingStatus !== 'failed') {
-          if (source.type === 'website') {
+       
+       // if (source.trainingStatus !== 'deleted' && source.trainingStatus !== 'failed') {
+          //if (source.type === 'website') {
             // For website sources, extract URLs
-            if (source.metadata?.url) {
-              websiteUrls.push(source.metadata.url);
-            }
-          } else {
+         //   if (source.metadata?.url) {
+          //    websiteUrls.push(source.metadata.url);
+           // }
+         // } else {
             // For other source types (docs, csv, etc.), include the ID
             knowledgeSourceIds.push(source.id);
-          }
-        }
+          //}
+       // }
       });
 
       console.log('Extracted knowledge source IDs:', knowledgeSourceIds);

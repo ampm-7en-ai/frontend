@@ -111,6 +111,8 @@ const KnowledgeUpload = () => {
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
   const [isScrapingUrls, setIsScrapingUrls] = useState(false);
   const [scrapedUrls, setScrapedUrls] = useState<ScrapedUrl[]>([]);
+  const [manualUrls, setManualUrls] = useState([""]);
+  const [addUrlsManually, setAddUrlsManually] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
@@ -262,6 +264,15 @@ const KnowledgeUpload = () => {
     } finally {
       setIsScrapingUrls(false);
     }
+  };
+
+  const getAllUrls = () => {
+      const validManualUrls = manualUrls.filter(url => url.trim() !== '');
+      const scrapedUrlsList = scrapedUrls.filter(u => u.selected).map(u => u.url);
+      
+      // Merge and remove duplicates
+      const allUrls = [...new Set([...validManualUrls, ...scrapedUrlsList])];
+      return allUrls;
   };
 
   const handleImportAllPagesChange = (checked: boolean) => {
@@ -526,12 +537,11 @@ const KnowledgeUpload = () => {
 
         switch (sourceType) {
           case 'url':
-            if (importAllPages && scrapedUrls.length > 0) {
-              // Submit selected URLs
-              const selectedUrls = scrapedUrls.filter(urlData => urlData.selected).map(urlData => urlData.url);
-              payload.urls = selectedUrls;
-            } else {
-              payload.url = url;
+            if ((importAllPages && scrapedUrls.length > 0) || (addUrlsManually && manualUrls.length > 0) ) {
+              //const selectedUrls = scrapedUrls.filter(urlData => urlData.selected).map(urlData => urlData.url);
+              payload.urls = getAllUrls();
+          } else {
+              payload.urls = [url];
             }
             break;
           case 'plainText':
@@ -889,6 +899,7 @@ const KnowledgeUpload = () => {
                     placeholder="Enter a descriptive name for this knowledge source"
                     value={documentName}
                     onChange={(e) => setDocumentName(e.target.value)}
+                    className="dark:text-white/70"
                   />
                 </div>
                 
@@ -930,6 +941,10 @@ const KnowledgeUpload = () => {
                   fetchGoogleDriveData={fetchGoogleDriveData}
                   isScrapingUrls={isScrapingUrls}
                   scrapedUrls={scrapedUrls}
+                  manualUrls={manualUrls}
+                  setManualUrls={setManualUrls}
+                  addUrlsManually={addUrlsManually}
+                  setAddUrlsManually={setAddUrlsManually}
                   toggleUrlSelection={toggleUrlSelection}
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}

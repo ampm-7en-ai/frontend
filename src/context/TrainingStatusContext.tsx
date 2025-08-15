@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 interface TrainingProcess {
   agentId: string;
   agentName: string;
-  status: 'pending' | 'training' | 'completed' | 'failed';
+  status: string;
   startTime: Date;
   endTime?: Date;
   error?: string;

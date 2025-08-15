@@ -28,8 +28,8 @@ const ConversationFilters = ({
   setAgentTypeFilter
 }: ConversationFiltersProps) => {
   const statusTabs = [
-    { id: 'unresolved', label: 'Open' },
-    { id: 'resolved', label: 'Resolved' }
+    { id: 'Unresolved', label: 'Open' },
+    { id: 'Resolved', label: 'Resolved' }
   ];
 
   const channelOptions = [

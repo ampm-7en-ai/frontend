@@ -132,15 +132,15 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!knowledgeSources || !Array.isArray(knowledgeSources)) return [];
     
     return knowledgeSources
-      .filter(ks => ks && ks.training_status !== 'deleted') // Filter out deleted sources
+      .filter(ks => ks && ks.training_status !== 'Deleted') // Filter out deleted sources
       .map(ks => ({
         id: ks.id,
         name: ks.title || 'Untitled Source',
         type: ks.type || 'unknown',
         size: ks.metadata?.file_size || 'N/A',
         lastUpdated: ks.metadata?.upload_date ? new Date(ks.metadata.upload_date).toLocaleDateString('en-GB') : 'N/A',
-        status: ks.status || 'active', // Map status field from API
-        trainingStatus: ks.training_status || ks.status || 'idle',
+        status: ks.status || 'Active', // Map status field from API
+        trainingStatus: ks.training_status || ks.status || 'Idle',
         linkBroken: false,
         knowledge_sources: [],
         metadata: {
@@ -285,7 +285,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
               taskId: `resumed-${Date.now()}`,
               agentName: state.agentData.name,
               timestamp: Date.now(),
-              status: 'training'
+              status: 'Training'
             };
             localStorage.setItem('agent_training_tasks', JSON.stringify(tasks));
             console.log('💾 Saved resumed training task to localStorage');

@@ -13,7 +13,8 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernInput } from '@/components/ui/modern-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '../ui/input';
-
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { duotoneLight, oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 interface Message {
   type: string;
   content: string;
@@ -653,8 +654,7 @@ export const ChatboxPreview = ({
                                         if (isInline) {
                                           return (
                                             <code
-                                              className="px-2 py-1 rounded-lg bg-gray-100/80 font-mono text-sm border"
-                                              style={{ color: '#3b82f6' }}
+                                              className="px-2 py-1 rounded-none bg-gray-100/80 font-mono text-sm !border-0"
                                               {...props}
                                             >
                                               {children}
@@ -1188,8 +1188,8 @@ export const ChatboxPreview = ({
                                 if (isInline) {
                                   return (
                                     <code
-                                      className="px-2 py-1 rounded-lg bg-gray-100/80 font-mono text-sm border"
-                                      style={{ color: '#3b82f6' }}
+                                      className="px-2 py-1 rounded-md bg-gray-100/80 font-mono text-xs border-0 font-normal whitespace-pre"
+                                      style={{ color: primaryColor }}
                                       {...props}
                                     >
                                       {children}
@@ -1198,20 +1198,28 @@ export const ChatboxPreview = ({
                                 }
 
                                 return (
-                                  <div className="relative my-3">
-                                    {language && (
-                                      <div 
-                                        className="absolute top-0 right-0 px-3 py-1 text-xs rounded-bl-lg font-mono text-white z-10"
-                                        style={{ backgroundColor: '#3b82f6' }}
-                                      >
-                                        {language}
-                                      </div>
-                                    )}
-                                    <pre className="!mt-0 !bg-gray-50/80 border border-gray-200/60 rounded-xl overflow-x-auto backdrop-blur-sm">
-                                      <code className="block p-4 text-sm font-mono" {...props}>
-                                        {children}
-                                      </code>
-                                    </pre>
+                                  <div className="my-4 w-full p-0">
+                                    <SyntaxHighlighter
+                                      style={oneLight}
+                                      language={language || 'text'}
+                                      PreTag="div"
+                                      className="rounded-lg border text-sm"
+                                      customStyle={{
+                                        margin: 0,
+                                        borderColor:'#f4f4f4',
+                                        backgroundColor: '#f3f3f3',
+                                      }}
+                                      codeTagProps={{
+                                        style: {
+                                          fontSize: '0.723rem',
+                                          fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Inconsolata, "Roboto Mono", "Segoe UI Mono", "Courier New", monospace',
+                                        }
+                                      }}
+                                      wrapLongLines={true}
+                                      showInlineLineNumbers={true}
+                                    >
+                                      {String(children).replace(/\n$/, '')}
+                                    </SyntaxHighlighter>
                                   </div>
                                 );
                               },

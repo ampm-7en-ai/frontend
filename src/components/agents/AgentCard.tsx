@@ -142,7 +142,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                     <MessageSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    <div className="text-sm font-bold text-slate-900 dark:text-white/80">
                       {agent.conversations?.toLocaleString() || '0'}
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">Conversations</div>
@@ -154,7 +154,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                     <CalendarClock className="h-4 w-4 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    <div className="text-sm font-bold text-slate-900 dark:text-white/80">
                       {formattedDate}
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">Last Updated</div>
@@ -180,7 +180,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                         <img src={TICKETING_PROVIDERS_LOGOS[agent.default_ticketing_provider].logo} alt={agent.default_ticketing_provider} className="w-full h-full object-fill" />
                       </div>
                       <div>
-                        <div className={`text-sm font-bold`}>
+                        <div className={`text-sm font-bold dark:text-white/80`}>
                           {agent.default_ticketing_provider}
                         </div>
                         <div className="text-xs text-slate-500 dark:text-slate-400">Connected App</div>
