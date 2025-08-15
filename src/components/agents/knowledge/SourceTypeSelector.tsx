@@ -1,32 +1,44 @@
-import React, { useState } from 'react';
-import { Label } from '@/components/ui/label';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ModernInput } from '@/components/ui/modern-input';
-import { 
-  Upload, 
-  FileText, 
-  Globe, 
-  Link, 
-  Plus, 
-  X, 
-  Search,
-  ArrowUpDown,
-  RefreshCw,
-  Loader2,
-  ExternalLink,
-  Trash2
-} from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card, CardContent } from '@/components/ui/card';
+import { ModernInput } from '@/components/ui/modern-input';
+import { Upload, FileText, Globe, Type, Cloud, Search, ArrowUpDown, RefreshCw, Plus, X } from 'lucide-react';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
+type ThirdPartyProvider = 'googleDrive' | 'slack' | 'notion' | 'dropbox' | 'github';
+
+interface ValidationErrors {
+  url?: string;
+  files?: string;
+  plainText?: string;
+  thirdParty?: string;
+}
+
+interface ThirdPartyConfig {
+  icon: React.ReactNode;
+  name: string;
+  description: string;
+  color: string;
+  id: string;
+}
 
 interface ScrapedUrl {
   url: string;
   title: string;
   selected: boolean;
+}
+
+interface GoogleDriveFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  size?: string;
+  modifiedTime: string;
 }
 
 interface SourceTypeSelectorProps {
@@ -39,24 +51,24 @@ interface SourceTypeSelectorProps {
   plainText: string;
   setPlainText: (text: string) => void;
   importAllPages: boolean;
-  setImportAllPages: (checked: boolean) => void;
-  selectedProvider: string | null;
-  setSelectedProvider: (provider: string | null) => void;
+  setImportAllPages: (value: boolean) => void;
+  selectedProvider: ThirdPartyProvider | null;
+  setSelectedProvider: React.Dispatch<React.SetStateAction<ThirdPartyProvider | null>>;
   selectedFiles: string[];
   setSelectedFiles: (files: string[]) => void;
-  validationErrors: any;
-  setValidationErrors: (errors: any) => void;
+  validationErrors: ValidationErrors;
+  setValidationErrors: (errors: ValidationErrors) => void;
   isDragOver: boolean;
-  setIsDragOver: (dragOver: boolean) => void;
+  setIsDragOver: (value: boolean) => void;
   isConnecting: boolean;
   isLoadingGoogleDriveFiles: boolean;
-  googleDriveFiles: any[];
-  pageData: any;
-  availableThirdPartyProviders: any[];
-  thirdPartyProviders: any;
+  googleDriveFiles: GoogleDriveFile[];
+  pageData: { nextToken: string; prevToken: string };
+  availableThirdPartyProviders: [string, ThirdPartyConfig][];
+  thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig>;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   removeFile: (index: number) => void;
-  handleQuickConnect: (provider: any) => void;
+  handleQuickConnect: (provider: ThirdPartyProvider) => void;
   handleRemoveSelectedFile: (index: number) => void;
   handleFileUploadClick: (e?: React.MouseEvent) => void;
   handleDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
@@ -118,20 +130,12 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
   setSearchQuery,
   sortOrder,
   handleSortToggle,
-  handleRefreshFiles,
+  handleRefreshFiles
 }) => {
   const [addUrlsManually, setAddUrlsManually] = useState(false);
   const [manualUrls, setManualUrls] = useState<string[]>(['']);
 
-  const sourceTypes = [
-    { id: 'url', label: 'Website', icon: Globe, description: 'Import content from any website or webpage' },
-    { id: 'document', label: 'Document', icon: FileText, description: 'Upload PDF, DOC, or other document files' },
-    { id: 'csv', label: 'Spreadsheet', icon: FileText, description: 'Upload CSV or Excel files with structured data' },
-    { id: 'plainText', label: 'Plain Text', icon: FileText, description: 'Enter or paste text content directly' },
-    { id: 'thirdParty', label: 'Third Party', icon: Link, description: 'Connect to external services and platforms' }
-  ];
-
-  const addNewManualUrl = () => {
+  const addManualUrl = () => {
     setManualUrls(prev => [...prev, '']);
   };
 
@@ -143,13 +147,56 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
     setManualUrls(prev => prev.map((url, i) => i === index ? value : url));
   };
 
+  // Clear manual URLs when source type changes
+  useEffect(() => {
+    if (sourceType !== 'url') {
+      setAddUrlsManually(false);
+      setManualUrls(['']);
+    }
+  }, [sourceType]);
+
+  const sourceTypeOptions = [
+    {
+      id: 'url' as const,
+      icon: <Globe className="h-5 w-5" />,
+      title: 'Website',
+      description: 'Import content from web pages'
+    },
+    {
+      id: 'document' as const,
+      icon: <FileText className="h-5 w-5" />,
+      title: 'Documents',
+      description: 'Upload PDF, Word, or text documents'
+    },
+    {
+      id: 'csv' as const,
+      icon: <Upload className="h-5 w-5" />,
+      title: 'Spreadsheets',
+      description: 'Import data from CSV or Excel files'
+    },
+    {
+      id: 'plainText' as const,
+      icon: <Type className="h-5 w-5" />,
+      title: 'Plain Text',
+      description: 'Add raw text content directly'
+    },
+    {
+      id: 'thirdParty' as const,
+      icon: <Cloud className="h-5 w-5" />,
+      title: 'Third-party',
+      description: 'Connect to external platforms'
+    }
+  ];
+
+  // Filter scraped URLs based on search query
   const filteredScrapedUrls = scrapedUrls.filter(urlData =>
     urlData.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
     urlData.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const sortedScrapedUrls = [...filteredScrapedUrls].sort((a, b) => {
-    const comparison = a.title.localeCompare(b.title);
+  // Sort URLs
+  const sortedScrapedUrls = filteredScrapedUrls.sort((a, b) => {
+    const comparison = a.url.localeCompare(b.url);
     return sortOrder === 'asc' ? comparison : -comparison;
   });
 
@@ -170,72 +217,68 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
       <div className="space-y-3">
         <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Source Type *</Label>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {sourceTypes.map((type) => {
-            const IconComponent = type.icon;
-            return (
-              <button
-                key={type.id}
-                type="button"
-                onClick={() => setSourceType(type.id as SourceType)}
-                className={`p-4 rounded-xl border-2 transition-all duration-200 text-left hover:shadow-md ${
-                  sourceType === type.id
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/50 shadow-sm'
-                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600'
-                }`}
-              >
-                <div className="flex items-start gap-3">
+          {sourceTypeOptions.map((option) => (
+            <Card
+              key={option.id}
+              className={`cursor-pointer transition-all hover:shadow-md ${
+                sourceType === option.id
+                  ? 'ring-2 ring-slate-900 dark:ring-white bg-slate-50 dark:bg-slate-800'
+                  : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+              onClick={() => setSourceType(option.id)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${
-                    sourceType === type.id
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                    sourceType === option.id
+                      ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
+                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                   }`}>
-                    <IconComponent className="h-4 w-4" />
+                    {option.icon}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
-                      {type.label}
-                    </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
-                      {type.description}
-                    </p>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-slate-900 dark:text-slate-100">{option.title}</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{option.description}</p>
                   </div>
                 </div>
-              </button>
-            );
-          })}
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
 
+      {/* URL Input */}
       {sourceType === 'url' && (
         <div className="space-y-4">
           <div className="space-y-3">
-            <Label htmlFor="website-url" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Website URL *
-            </Label>
+            <Label htmlFor="url" className="text-sm font-medium text-slate-700 dark:text-slate-300">Website URL *</Label>
             <ModernInput
-              id="website-url"
+              id="url"
+              type="url"
               placeholder="https://example.com"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               className={validationErrors.url ? 'border-red-500 dark:border-red-400' : ''}
+              variant="modern"
+              size="lg"
             />
             {validationErrors.url && (
               <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.url}</p>
             )}
           </div>
 
-          <div className="flex items-center space-x-3">
-            <Switch
-              id="import-all"
+          <div className="flex items-center gap-3">
+            <Checkbox
+              id="import-all-pages"
               checked={importAllPages}
-              onCheckedChange={setImportAllPages}
+              onCheckedChange={(checked) => setImportAllPages(checked === true)}
             />
-            <Label htmlFor="import-all" className="text-sm text-slate-700 dark:text-slate-300">
-              Import all pages from this website {isScrapingUrls && <Loader2 className="inline h-4 w-4 animate-spin ml-2" />}
+            <Label htmlFor="import-all-pages" className="text-sm text-slate-700 dark:text-slate-300">
+              Import all pages from this website
             </Label>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-3">
             <Checkbox
               id="add-urls-manually"
               checked={addUrlsManually}
@@ -246,232 +289,175 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
             </Label>
           </div>
 
-          {(importAllPages && scrapedUrls.length > 0) || addUrlsManually ? (
-            <div className="space-y-4">
-              {addUrlsManually && (
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
-                  <div className="flex items-center justify-between mb-3">
-                    <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      Manual URLs
-                    </Label>
+          {addUrlsManually && (
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Manual URLs
+              </Label>
+              <div className="space-y-2">
+                {manualUrls.map((manualUrl, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <ModernInput
+                      type="url"
+                      placeholder="https://example.com/page"
+                      value={manualUrl}
+                      onChange={(e) => updateManualUrl(index, e.target.value)}
+                      className="flex-1"
+                      variant="modern"
+                    />
+                    {manualUrls.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeManualUrl(index)}
+                        className="shrink-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addManualUrl}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Another URL
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {isScrapingUrls && (
+            <div className="flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900 dark:border-white mx-auto mb-2"></div>
+                <p className="text-sm text-slate-600 dark:text-slate-400">Extracting URLs from website...</p>
+              </div>
+            </div>
+          )}
+
+          {((importAllPages && scrapedUrls.length > 0) || (addUrlsManually && manualUrls.some(url => url.trim()))) && (
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    All URLs ({mergedUrls.filter(url => url.selected).length} selected)
+                  </Label>
+                  <div className="flex items-center gap-2">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={addNewManualUrl}
-                      className="h-8"
+                      onClick={handleSortToggle}
                     >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add URL
+                      <ArrowUpDown className="h-4 w-4" />
                     </Button>
                   </div>
-                  
-                  <div className="space-y-2">
-                    {manualUrls.map((manualUrl, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <ModernInput
-                          placeholder="https://example.com/page"
-                          value={manualUrl}
-                          onChange={(e) => updateManualUrl(index, e.target.value)}
-                          className="flex-1"
-                        />
-                        {manualUrls.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeManualUrl(index)}
-                            className="h-10 w-10 p-0 hover:bg-red-50 hover:border-red-300 hover:text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
                 </div>
-              )}
-
-              {((importAllPages && scrapedUrls.length > 0) || (addUrlsManually && manualUrls.some(url => url.trim()))) && (
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                  <div className="bg-gray-50 dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center justify-between mb-3">
-                      <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                        All URLs ({mergedUrls.filter(url => url.selected).length} selected)
-                      </Label>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleSortToggle}
-                          className="h-8"
-                        >
-                          <ArrowUpDown className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <ModernInput
-                        placeholder="Search URLs..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10"
+                
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <ModernInput
+                    placeholder="Search URLs..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10"
+                  />
+                </div>
+              </div>
+              
+              <ScrollArea className="h-64">
+                <div className="p-4 space-y-2">
+                  {mergedUrls.map((urlData, index) => (
+                    <div
+                      key={`${urlData.url}-${index}`}
+                      className="flex items-start gap-3 p-3 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    >
+                      <Checkbox
+                        checked={urlData.selected}
+                        onCheckedChange={(checked) => {
+                          // Handle manual URLs differently from scraped URLs
+                          if (scrapedUrls.some(scraped => scraped.url === urlData.url)) {
+                            toggleUrlSelection(urlData.url);
+                          }
+                          // For manual URLs, we'll keep them selected by default
+                        }}
+                        className="mt-0.5"
                       />
-                    </div>
-                  </div>
-                  
-                  <ScrollArea className="h-64">
-                    <div className="p-4 space-y-2">
-                      {mergedUrls.map((urlData, index) => (
-                        <div
-                          key={`${urlData.url}-${index}`}
-                          className="flex items-start gap-3 p-3 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                        >
-                          <Checkbox
-                            checked={urlData.selected}
-                            onCheckedChange={(checked) => {
-                              // Handle manual URLs differently from scraped URLs
-                              if (scrapedUrls.some(scraped => scraped.url === urlData.url)) {
-                                toggleUrlSelection(urlData.url);
-                              }
-                              // For manual URLs, we'll keep them selected by default
-                            }}
-                            className="mt-0.5"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <Globe className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                              <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                                {urlData.title}
-                              </span>
-                            </div>
-                            <a
-                              href={urlData.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 mt-1"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {urlData.url}
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </div>
-              )}
-            </div>
-          ) : null}
-        </div>
-      )}
-
-      {sourceType === 'document' && (
-        <div className="space-y-4">
-          <div
-            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer ${
-              isDragOver
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/50'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-            }`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={handleFileUploadClick}
-          >
-            <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              Upload Documents
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Drag and drop your files here, or click to browse
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Supports PDF, DOC, DOCX, TXT files up to 10MB each
-            </p>
-            <input
-              id="file-upload"
-              type="file"
-              multiple
-              accept=".pdf,.doc,.docx,.txt"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-          </div>
-
-          {files.length > 0 && (
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Selected Files ({files.length})
-              </Label>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {files.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{file.name}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                          {urlData.title}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                          {urlData.url}
                         </p>
                       </div>
                     </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeFile(index)}
-                      className="text-gray-500 hover:text-red-600"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
-          )}
-
-          {validationErrors.files && (
-            <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.files}</p>
           )}
         </div>
       )}
 
-      {sourceType === 'csv' && (
+      {/* File Upload */}
+      {(sourceType === 'document' || sourceType === 'csv') && (
         <div className="space-y-4">
-          <div
-            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer ${
-              isDragOver
-                ? 'border-green-500 bg-green-50 dark:bg-green-950/50'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-            }`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={handleFileUploadClick}
-          >
-            <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              Upload Spreadsheets
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Drag and drop your CSV or Excel files here, or click to browse
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Supports CSV, XLS, XLSX files up to 10MB each
-            </p>
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              {sourceType === 'document' ? 'Documents' : 'Spreadsheets'} *
+            </Label>
+            
+            <div
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                isDragOver
+                  ? 'border-slate-400 bg-slate-50 dark:bg-slate-800'
+                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+              } ${validationErrors.files ? 'border-red-500 dark:border-red-400' : ''}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <div className="space-y-2">
+                <p className="text-slate-600 dark:text-slate-400">
+                  Drag and drop your {sourceType === 'document' ? 'documents' : 'spreadsheets'} here, or
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleFileUploadClick}
+                  className="mx-auto"
+                >
+                  Choose Files
+                </Button>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                {sourceType === 'document' 
+                  ? 'Supports PDF, DOC, DOCX, TXT files'
+                  : 'Supports CSV, XLS, XLSX files'
+                }
+              </p>
+            </div>
+
             <input
               id="file-upload"
               type="file"
               multiple
-              accept=".csv,.xls,.xlsx"
+              accept={sourceType === 'document' ? '.pdf,.doc,.docx,.txt' : '.csv,.xls,.xlsx'}
               onChange={handleFileChange}
               className="hidden"
             />
+
+            {validationErrors.files && (
+              <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.files}</p>
+            )}
           </div>
 
           {files.length > 0 && (
@@ -479,14 +465,17 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
               <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Selected Files ({files.length})
               </Label>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
+              <div className="space-y-2">
                 {files.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg"
+                  >
                     <div className="flex items-center gap-3">
                       {getFileIcon(file.type)}
                       <div>
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{file.name}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{file.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {(file.size / 1024 / 1024).toFixed(2)} MB
                         </p>
                       </div>
@@ -496,7 +485,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => removeFile(index)}
-                      className="text-gray-500 hover:text-red-600"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -505,188 +494,199 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
               </div>
             </div>
           )}
-
-          {validationErrors.files && (
-            <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.files}</p>
-          )}
         </div>
       )}
 
+      {/* Plain Text */}
       {sourceType === 'plainText' && (
         <div className="space-y-3">
-          <Label htmlFor="plain-text" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-            Text Content *
-          </Label>
+          <Label htmlFor="plainText" className="text-sm font-medium text-slate-700 dark:text-slate-300">Plain Text Content *</Label>
           <Textarea
-            id="plain-text"
-            placeholder="Enter or paste your text content here..."
+            id="plainText"
+            placeholder="Enter your text content here..."
             value={plainText}
             onChange={(e) => setPlainText(e.target.value)}
-            className={`min-h-[200px] resize-y ${validationErrors.plainText ? 'border-red-500 dark:border-red-400' : ''}`}
-            expandable={true}
-            maxExpandedHeight="400px"
+            className={`min-h-32 resize-y ${validationErrors.plainText ? 'border-red-500 dark:border-red-400' : ''}`}
           />
           {validationErrors.plainText && (
             <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.plainText}</p>
           )}
-          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>{plainText.length} characters</span>
-            <span>Minimum 10 characters required</span>
-          </div>
         </div>
       )}
 
+      {/* Third Party */}
       {sourceType === 'thirdParty' && (
-        <div className="space-y-6">
-          {availableThirdPartyProviders.length === 0 ? (
-            <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
-              <Link className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                No Third-Party Integrations Connected
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Connect to external services to import content from your existing platforms.
-              </p>
-              <Button variant="outline" size="sm">
-                View Integrations
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Select Provider *
-                </Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {availableThirdPartyProviders.map(([id, provider]) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => handleQuickConnect(id)}
-                      disabled={isConnecting}
-                      className={`p-4 rounded-xl border-2 transition-all duration-200 text-left hover:shadow-md ${
-                        selectedProvider === id
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/50 shadow-sm'
-                          : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600'
-                      } ${isConnecting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-                          {provider.icon}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
-                            {provider.name}
-                          </h3>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
-                            {provider.description}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {selectedProvider === 'googleDrive' && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      Google Drive Files ({selectedFiles.length} selected)
-                    </Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleRefreshFiles}
-                      disabled={isLoadingGoogleDriveFiles}
-                      className="h-8"
-                    >
-                      <RefreshCw className={`h-4 w-4 ${isLoadingGoogleDriveFiles ? 'animate-spin' : ''}`} />
-                    </Button>
-                  </div>
-
-                  {isLoadingGoogleDriveFiles ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                    </div>
-                  ) : (
-                    <ScrollArea className="h-64 border border-gray-200 dark:border-gray-700 rounded-lg">
-                      <div className="p-4 space-y-2">
-                        {googleDriveFiles.map((file) => (
-                          <div
-                            key={file.id}
-                            className="flex items-start gap-3 p-3 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
-                            onClick={() => toggleFileSelection(file.name)}
-                          >
-                            <Checkbox
-                              checked={selectedFiles.includes(file.name)}
-                              onChange={() => toggleFileSelection(file.name)}
-                              className="mt-0.5"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                {getFileIcon(file.mimeType)}
-                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                                  {file.name}
-                                </span>
-                              </div>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                {file.size ? `${(parseInt(file.size) / 1024 / 1024).toFixed(2)} MB` : 'Size unknown'}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  )}
-
-                  {pageData.nextToken && (
-                    <div className="flex justify-center">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => fetchGoogleDriveData(pageData.nextToken)}
-                        disabled={isLoadingGoogleDriveFiles}
-                      >
-                        Load More
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {selectedProvider && selectedProvider !== 'googleDrive' && selectedFiles.length > 0 && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Selected Files ({selectedFiles.length})
-                  </Label>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {selectedFiles.map((fileName, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="space-y-4">
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Select Provider *</Label>
+            
+            {availableThirdPartyProviders.length > 0 ? (
+              <div className="grid gap-3">
+                {availableThirdPartyProviders.map(([id, provider]) => (
+                  <Card
+                    key={id}
+                    className={`cursor-pointer transition-all hover:shadow-md ${
+                      selectedProvider === id
+                        ? 'ring-2 ring-slate-900 dark:ring-white'
+                        : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{fileName}</span>
+                          <div className={`p-2 rounded-lg border ${provider.color}`}>
+                            {provider.icon}
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-slate-900 dark:text-slate-100">{provider.name}</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{provider.description}</p>
+                          </div>
                         </div>
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant={selectedProvider === id ? "default" : "outline"}
                           size="sm"
-                          onClick={() => handleRemoveSelectedFile(index)}
-                          className="text-gray-500 hover:text-red-600"
+                          onClick={() => handleQuickConnect(id as ThirdPartyProvider)}
+                          disabled={isConnecting}
                         >
-                          <X className="h-4 w-4" />
+                          {isConnecting && selectedProvider === id ? 'Connecting...' : 
+                           selectedProvider === id ? 'Connected' : 'Connect'}
                         </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <Cloud className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-2">No Connected Integrations</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                    Connect to third-party services in your integrations settings to import content.
+                  </p>
+                  <Button variant="outline" size="sm">
+                    Go to Integrations
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {validationErrors.thirdParty && (
+              <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.thirdParty}</p>
+            )}
+          </div>
+
+          {/* Google Drive Files */}
+          {selectedProvider === 'googleDrive' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Google Drive Files
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefreshFiles}
+                  disabled={isLoadingGoogleDriveFiles}
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoadingGoogleDriveFiles ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
+
+              {isLoadingGoogleDriveFiles ? (
+                <div className="flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900 dark:border-white mx-auto mb-2"></div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Loading Google Drive files...</p>
+                  </div>
+                </div>
+              ) : (
+                <ScrollArea className="h-64 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div className="p-4 space-y-2">
+                    {googleDriveFiles.map((file) => (
+                      <div
+                        key={file.id}
+                        className="flex items-start gap-3 p-3 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
+                        onClick={() => toggleFileSelection(file.name)}
+                      >
+                        <Checkbox
+                          checked={selectedFiles.includes(file.name)}
+                          onCheckedChange={() => toggleFileSelection(file.name)}
+                          className="mt-0.5"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            {getFileIcon(file.mimeType)}
+                            <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                              {file.name}
+                            </p>
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {file.size || 'Unknown size'} • Modified {new Date(file.modifiedTime).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
                     ))}
                   </div>
-                </div>
+                </ScrollArea>
               )}
 
-              {validationErrors.thirdParty && (
-                <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.thirdParty}</p>
+              {pageData.nextToken && (
+                <div className="flex justify-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchGoogleDriveData(pageData.prevToken)}
+                    disabled={!pageData.prevToken || isLoadingGoogleDriveFiles}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchGoogleDriveData(pageData.nextToken)}
+                    disabled={isLoadingGoogleDriveFiles}
+                  >
+                    Next
+                  </Button>
+                </div>
               )}
-            </>
+            </div>
+          )}
+
+          {/* Selected Files Display */}
+          {selectedFiles.length > 0 && selectedProvider !== 'googleDrive' && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Selected Files ({selectedFiles.length})
+              </Label>
+              <div className="space-y-2">
+                {selectedFiles.map((fileName, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{fileName}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveSelectedFile(index)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       )}
