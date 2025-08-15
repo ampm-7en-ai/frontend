@@ -1051,7 +1051,7 @@ export const GuidelinesPanel = () => {
                   </div>
                   <span className="text-sm font-medium">Integrations</span>
                   {agentData.ticketing_providers && agentData.ticketing_providers.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs dark:bg-gray-500 dark:text-gray-200">
                       {agentData.ticketing_providers.length}
                     </Badge>
                   )}

@@ -192,7 +192,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
 
     if (canvasMode === 'inline') {
       const assistantUrl = selectedStyle === 'style1' 
-        ? `${window.location.origin}/chat/assistant/${currentAgentId}`
+        ? `${window.location.origin}/chat/assistant/${currentAgentId}?header=false`
         : `${window.location.origin}/chat/preview/${currentAgentId}`;
       
       return (

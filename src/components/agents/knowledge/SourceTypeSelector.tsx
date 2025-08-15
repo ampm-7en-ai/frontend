@@ -253,6 +253,14 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                 Import all linked pages from this domain
                 {isScrapingUrls && <Loader2 className="h-4 w-4 animate-spin" />}
               </Label>
+              <Checkbox 
+                id="add-all" 
+                checked={true} 
+                onCheckedChange={()=>null}
+              />
+              <Label htmlFor="add-all" className="text-sm font-medium cursor-pointer text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                Add Urls manually
+              </Label>
             </div>
 
             {scrapedUrls.length > 0 && (

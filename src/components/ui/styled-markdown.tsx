@@ -2,7 +2,6 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
-
 interface StyledMarkdownProps {
   content: string;
   primaryColor: string;
@@ -19,7 +18,7 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
   const codeBackgroundColor = isDarkTheme ? '#2d2d2d' : '#f6f6f6';
   const codeTextColor = isDarkTheme ? '#e0e0e0' : '#333333';
   const inlineCodeBg = isDarkTheme ? '#3a3a3a' : '#f0f0f0';
-  const linkColor = isDarkTheme ? '#ffffff' : primaryColor;
+  const linkColor = primaryColor;
   const strongTagColor = isDarkTheme ? '#D6BCFA' : primaryColor;
 
   return (
@@ -223,8 +222,14 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
           }
 
           .assistant-content .assistant-li > .assistant-ul {
-            margin-top: 8px;
+            margin-top: 8 px;
             margin-left: 0;
+          }
+
+          .assistant-content .assistant-li > .assistant-ul > .assistant-li {
+            margin: 6px 0;
+            margin-left: 0;
+            line-height: 22px;
           }
 
           .assistant-content .assistant-li > .assistant-ul > .assistant-li::before {

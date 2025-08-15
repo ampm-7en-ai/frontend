@@ -13,6 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { BASE_URL } from '@/utils/api-config';
 import { StyledMarkdown } from '@/components/ui/styled-markdown';
+import { adjustColorForDarkTheme } from '@/utils/adjustColorForDarkTheme';
 
 interface ChatbotConfig {
   agentId: string;
@@ -65,7 +66,8 @@ const SearchAssistant = () => {
   const { agentId } = useParams<{ agentId: string }>();
   const [searchParams] = useSearchParams();
   const isPopupMode = searchParams.get('type') === 'popup';
-  
+  const hasheader = JSON.parse(searchParams.get('header')) == true;
+
   // Core configuration and loading states
   const [config, setConfig] = useState<ChatbotConfig | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -651,13 +653,13 @@ const SearchAssistant = () => {
                         return (
                           <div key={message.id} className="flex items-start gap-2">
                             <Avatar className="h-8 w-8 mt-1" style={{
-                              backgroundColor: primaryColor
+                              backgroundColor: adjustColorForDarkTheme(primaryColor)
                             }}>
                               {config.avatarUrl ? (
                                 <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
                               ) : null}
                               <AvatarFallback style={{
-                                backgroundColor: primaryColor
+                                backgroundColor: adjustColorForDarkTheme(primaryColor)
                               }}>
                                 <Bot className="h-4 w-4 text-white" />
                               </AvatarFallback>
@@ -676,13 +678,13 @@ const SearchAssistant = () => {
                         return (
                           <div key={message.id} className="flex items-start gap-2">
                             <Avatar className="h-8 w-8 mt-1" style={{
-                              backgroundColor: primaryColor
+                              backgroundColor: adjustColorForDarkTheme(primaryColor)
                             }}>
                               {config.avatarUrl ? (
                                 <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
                               ) : null}
                               <AvatarFallback style={{
-                                backgroundColor: primaryColor
+                                backgroundColor: adjustColorForDarkTheme(primaryColor)
                               }}>
                                 <Bot className="h-4 w-4 text-white" />
                               </AvatarFallback>
@@ -763,19 +765,19 @@ const SearchAssistant = () => {
                             <div className="mr-3 flex items-center">
                               <div 
                                 className="w-2 h-2 rounded-full mr-1 animate-pulse"
-                                style={{ backgroundColor: primaryColor }}
+                                style={{ backgroundColor: isDarkTheme ? adjustColorForDarkTheme(primaryColor) : primaryColor }}
                               ></div>
                               <div 
                                 className="w-2 h-2 rounded-full mr-1 animate-pulse"
                                 style={{ 
-                                  backgroundColor: primaryColor,
+                                  backgroundColor: isDarkTheme ? adjustColorForDarkTheme(primaryColor) : primaryColor,
                                   animationDelay: '0.2s'
                                 }}
                               ></div>
                               <div 
                                 className="w-2 h-2 rounded-full animate-pulse"
                                 style={{ 
-                                  backgroundColor: primaryColor,
+                                  backgroundColor: isDarkTheme ? adjustColorForDarkTheme(primaryColor) : primaryColor,
                                   animationDelay: '0.4s'
                                 }}
                               ></div>
@@ -973,42 +975,46 @@ const SearchAssistant = () => {
       }}
     >
       {/* Header with theme toggle - Fixed */}
-      <header 
-        className="p-3 flex items-center justify-between border-b sticky top-0 z-10"
-        style={{ 
-          borderColor: borderColor,
-          background: isDarkTheme 
-            ? `linear-gradient(to right, #1A1F2C, #232838)` 
-            : `linear-gradient(to right, #FFFFFF, #F5F6F7)`
-        }}
-      >
-        <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8" style={{
-            backgroundColor: primaryColor
-          }}>
-            {config.avatarUrl ? (
-              <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
-            ) : null}
-            <AvatarFallback style={{
-              backgroundColor: primaryColor
-            }}>
-              <Bot className="h-4 w-4 text-white" />
-            </AvatarFallback>
-          </Avatar>
-          <span className="ml-2 font-medium text-sm">{config.chatbotName || 'AI Assistant'}</span>
-        </div>
-        <button 
-          onClick={toggleTheme} 
-          className="p-1.5 rounded-full"
-          style={{ backgroundColor: `${primaryColor}30` }}
-        >
-          {currentTheme === 'dark' ? (
-            <Sun size={16} color={textColor} />
-          ) : (
-            <Moon size={16} color={textColor} />
-          )}
-        </button>
-      </header>
+      {
+      hasheader && (
+            <header 
+            className="p-3 flex items-center justify-between border-b sticky top-0 z-10"
+            style={{ 
+              borderColor: borderColor,
+              background: isDarkTheme 
+                ? `linear-gradient(to right, #1A1F2C, #232838)` 
+                : `linear-gradient(to right, #FFFFFF, #F5F6F7)`
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <Avatar className="h-8 w-8" style={{
+                backgroundColor: isDarkTheme ? adjustColorForDarkTheme(primaryColor) : primaryColor
+              }}>
+                {config.avatarUrl ? (
+                  <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
+                ) : null}
+                <AvatarFallback style={{
+                  backgroundColor: isDarkTheme ? adjustColorForDarkTheme(primaryColor) : primaryColor
+                }}>
+                  <Bot className="h-4 w-4 text-white" />
+                </AvatarFallback>
+              </Avatar>
+              <span className="ml-2 font-medium text-sm">{config.chatbotName || 'AI Assistant'}</span>
+            </div>
+            <button 
+              onClick={toggleTheme} 
+              className="p-1.5 rounded-full"
+              style={{ backgroundColor: `${isDarkTheme ? adjustColorForDarkTheme(primaryColor) : primaryColor}30` }}
+            >
+              {currentTheme === 'dark' ? (
+                <Sun size={16} color={textColor} />
+              ) : (
+                <Moon size={16} color={textColor} />
+              )}
+            </button>
+          </header>
+      )
+      }
 
       {/* Main content - Scrollable */}
       <main className="flex-1 overflow-hidden flex flex-col" style={{ backgroundColor: isDarkTheme ? '#1A1F2C' : '#FFFFFF' }}>
@@ -1020,7 +1026,7 @@ const SearchAssistant = () => {
             {chatHistory.length === 0 ? (
               <div>
                 <div className="mb-4">
-                  <h2 className="font-medium mb-2 text-sm" style={{ color: primaryColor }}>Examples</h2>
+                  {suggestions.length > 0 && <h2 className="font-medium mb-2 text-sm" style={{ color: primaryColor }}>Examples</h2> }
                   <div className="space-y-2">
                     {suggestions.map((question, index) => (
                       <div 
@@ -1028,7 +1034,7 @@ const SearchAssistant = () => {
                         onClick={() => handleSelectExample(question)}
                         className="p-2 rounded hover:cursor-pointer flex items-center gap-2 text-sm transition-colors"
                         style={{ 
-                          backgroundColor: isDarkTheme ? 'rgba(120, 120, 128, 0.2)' : 'rgba(120, 120, 128, 0.1)',
+                          backgroundColor: isDarkTheme ? `${adjustColorForDarkTheme(primaryColor)}20` : `${primaryColor}10`,
                           color: textColor
                         }}
                       >
@@ -1061,13 +1067,13 @@ const SearchAssistant = () => {
                     return (
                       <div key={message.id} className="flex items-start gap-2">
                         <Avatar className="h-8 w-8 mt-1" style={{
-                          backgroundColor: primaryColor
+                          backgroundColor: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor
                         }}>
                           {config.avatarUrl ? (
                             <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
                           ) : null}
                           <AvatarFallback style={{
-                            backgroundColor: primaryColor
+                            backgroundColor: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor
                           }}>
                             <Bot className="h-4 w-4 text-white" />
                           </AvatarFallback>
@@ -1076,7 +1082,7 @@ const SearchAssistant = () => {
                         <div className="flex-1 pl-[10px] pt-[5px]">
                           <StyledMarkdown
                             content={message.content}
-                            primaryColor={primaryColor}
+                            primaryColor={isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor}
                             isDarkTheme={isDarkTheme}
                           />
                         </div>
@@ -1086,13 +1092,13 @@ const SearchAssistant = () => {
                     return (
                       <div key={message.id} className="flex items-start gap-2">
                         <Avatar className="h-8 w-8 mt-1" style={{
-                          backgroundColor: primaryColor
+                          backgroundColor: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor
                         }}>
                           {config.avatarUrl ? (
                             <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
                           ) : null}
                           <AvatarFallback style={{
-                            backgroundColor: primaryColor
+                            backgroundColor: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor
                           }}>
                             <Bot className="h-4 w-4 text-white" />
                           </AvatarFallback>
@@ -1120,8 +1126,8 @@ const SearchAssistant = () => {
                                 disabled={!userEmail.trim() || isEmailSubmitting}
                                 className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full p-0"
                                 style={{
-                                  backgroundColor: primaryColor,
-                                  borderColor: primaryColor
+                                  backgroundColor: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor,
+                                  borderColor: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor
                                 }}
                               >
                                 {isEmailSubmitting ? (
@@ -1138,7 +1144,7 @@ const SearchAssistant = () => {
                               className="font-medium border-2 w-auto"
                               style={{
                                 border: 'none',
-                                color: primaryColor,
+                                color: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor,
                                 backgroundColor: 'transparent'
                               }}
                             >
@@ -1157,13 +1163,13 @@ const SearchAssistant = () => {
                 {isProcessing && (
                   <div className="flex items-start gap-2">
                     <Avatar className="h-8 w-8 mt-1" style={{
-                      backgroundColor: primaryColor
+                      backgroundColor: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor
                     }}>
                       {config.avatarUrl ? (
                         <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
                       ) : null}
                       <AvatarFallback style={{
-                        backgroundColor: primaryColor
+                        backgroundColor: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor
                       }}>
                         <Bot className="h-4 w-4 text-white" />
                       </AvatarFallback>
@@ -1185,7 +1191,7 @@ const SearchAssistant = () => {
                 {/* Always show suggestion chips after conversation if hasInteracted is true */}
                 {chatHistory.length > 0 && !isProcessing && (
                   <div className="flex flex-wrap gap-2 mt-3">
-                    {suggestions.slice(0, 3).filter(Boolean).map((suggestion, index) => (
+                    {/* {suggestions.slice(0, 3).filter(Boolean).map((suggestion, index) => (
                       <button
                         key={`follow-${index}`}
                         onClick={() => handleSelectExample(suggestion)}
@@ -1198,7 +1204,7 @@ const SearchAssistant = () => {
                       >
                         {suggestion}
                       </button>
-                    ))}
+                    ))} */}
                   </div>
                 )}
                 
@@ -1220,33 +1226,54 @@ const SearchAssistant = () => {
             : `linear-gradient(to right, #FFFFFF, #F5F6F7)`
         }}
       >
-        <div className="relative">
-          <Input
-            ref={inputRef}
-            className="py-2 pr-10 rounded-md text-sm"
-            placeholder={`Ask ${config.chatbotName} a question...`}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyPress}
-            disabled={isProcessing}
-            style={{ 
-              backgroundColor: isDarkTheme ? '#333333' : '#f0f0f0',
-              color: textColor,
-              border: 'none'
-            }}
-          />
-          <Button 
-            className={`absolute right-1 top-1/2 transform -translate-y-1/2 w-8 h-8 p-0 rounded-full ${!query.trim() ? 'hidden' : ''}`}
-            style={{ backgroundColor: primaryColor }}
-            disabled={isProcessing || !query.trim()}
-            onClick={handleSearch}
-          >
-            {isProcessing ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <ArrowUp size={16} />
-            )}
-          </Button>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+              <Input
+                ref={inputRef}
+                className="py-2 pr-10 rounded-2xl text-sm"
+                placeholder={`Ask ${config.chatbotName} a question...`}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleKeyPress}
+                disabled={isProcessing}
+                style={{ 
+                  backgroundColor: isDarkTheme ? '#3d3d3d' : '#f0f0f0',
+                  color: textColor,
+                  border: '1 px solid'
+                }}
+              />
+              <Button 
+                className={`absolute right-1 top-1/2 transform -translate-y-1/2 w-8 h-8 p-0 rounded-xl`}
+                style={{ backgroundColor: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor }}
+                disabled={isProcessing || !query.trim()}
+                onClick={handleSearch}
+              >
+                {isProcessing ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <ArrowUp size={16} />
+                )}
+              </Button>
+          </div>
+          <div>
+            {
+            !hasheader && (
+              <button 
+                onClick={toggleTheme} 
+                className="p-1.5 rounded-full"
+                style={{ backgroundColor: `none` }}
+              >
+                {currentTheme === 'dark' ? (
+                  <Sun size={16} color={textColor} />
+                ) : (
+                  <Moon size={16} color={textColor} />
+                )}
+              </button>
+            )
+          }
+          </div>
+          
+          
         </div>
       </div>
 
