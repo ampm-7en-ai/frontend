@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Globe, FileText, Table, AlignLeft, ExternalLink, Upload, X, Link, Loader2, Search, RefreshCw, ArrowBigRight, ChevronRight, ChevronLeft, Plus } from 'lucide-react';
+import { Globe, FileText, Table, AlignLeft, ExternalLink, Upload, X, Link, Loader2, Search, RefreshCw, ArrowBigRight, ChevronRight, ChevronLeft } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import { useNavigate } from 'react-router-dom';
@@ -57,7 +57,7 @@ interface SourceTypeSelectorProps {
   importAllPages: boolean;
   setImportAllPages: (checked: boolean) => void;
   selectedProvider: ThirdPartyProvider | null;
-  setSelectedProvider: React.Dispatch<React.SetStateAction<ThirdPartyProvider | null>>;
+  setSelectedProvider: (provider: ThirdPartyProvider | null) => void;
   selectedFiles: string[];
   setSelectedFiles: React.Dispatch<React.SetStateAction<string[]>>;
   validationErrors: ValidationErrors;
@@ -89,11 +89,6 @@ interface SourceTypeSelectorProps {
   handleSortToggle: () => void;
   handleRefreshFiles: () => void;
   pageData: {nextToken: string ,prevToken: string};
-  // New props for manual URL functionality
-  addUrlsManually: boolean;
-  setAddUrlsManually: (checked: boolean) => void;
-  manualUrls: string[];
-  setManualUrls: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 interface SourceConfig {
@@ -147,15 +142,10 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
   sortOrder,
   handleSortToggle,
   handleRefreshFiles,
-  pageData,
-  addUrlsManually,
-  setAddUrlsManually,
-  manualUrls,
-  setManualUrls
+  pageData
 }) => {
   const navigate = useNavigate();
   const [urlSearchQuery, setUrlSearchQuery] = useState('');
-  const [newManualUrl, setNewManualUrl] = useState('');
 
   const sourceConfigs: Record<SourceType, SourceConfig> = {
     url: {
@@ -202,12 +192,6 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
     urlData.title.toLowerCase().includes(urlSearchQuery.toLowerCase())
   );
 
-  // Combine manual URLs with scraped URLs for display
-  const allUrls = [
-    ...manualUrls.map(url => ({ url, title: url, selected: true, isManual: true })),
-    ...filteredScrapedUrls.map(urlData => ({ ...urlData, isManual: false }))
-  ];
-
   const handleRefreshUrls = () => {
     if (url) {
       // Call the same endpoint as the import checkbox - trigger scraping
@@ -227,19 +211,6 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
 
   const areAllUrlsSelected = filteredScrapedUrls.length > 0 && filteredScrapedUrls.every(urlData => urlData.selected);
   const areSomeUrlsSelected = filteredScrapedUrls.some(urlData => urlData.selected);
-
-  // Handle adding manual URL
-  const handleAddManualUrl = () => {
-    if (newManualUrl.trim() && !manualUrls.includes(newManualUrl.trim())) {
-      setManualUrls([...manualUrls, newManualUrl.trim()]);
-      setNewManualUrl('');
-    }
-  };
-
-  // Handle removing manual URL
-  const handleRemoveManualUrl = (index: number) => {
-    setManualUrls(manualUrls.filter((_, i) => i !== index));
-  };
 
   const renderSourceTypeContent = () => {
     switch (sourceType) {
@@ -271,154 +242,83 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
               </p>
             </div>
             
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors duration-200">
-                <Checkbox 
-                  id="import-all" 
-                  checked={importAllPages} 
-                  onCheckedChange={(checked) => setImportAllPages(checked === true)}
-                  disabled={isScrapingUrls}
-                />
-                <Label htmlFor="import-all" className="text-sm font-medium cursor-pointer text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                  Import all linked pages from this domain
-                  {isScrapingUrls && <Loader2 className="h-4 w-4 animate-spin" />}
-                </Label>
-              </div>
-              
-              <div className="flex items-center space-x-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors duration-200">
-                <Checkbox 
-                  id="add-manually" 
-                  checked={addUrlsManually} 
-                  onCheckedChange={(checked) => setAddUrlsManually(checked === true)}
-                />
-                <Label htmlFor="add-manually" className="text-sm font-medium cursor-pointer text-slate-700 dark:text-slate-300">
-                  Add URLs manually
-                </Label>
-              </div>
+            <div className="flex items-center space-x-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors duration-200">
+              <Checkbox 
+                id="import-all" 
+                checked={importAllPages} 
+                onCheckedChange={(checked) => setImportAllPages(checked === true)}
+                disabled={isScrapingUrls}
+              />
+              <Label htmlFor="import-all" className="text-sm font-medium cursor-pointer text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                Import all linked pages from this domain
+                {isScrapingUrls && <Loader2 className="h-4 w-4 animate-spin" />}
+              </Label>
+              <Checkbox 
+                id="add-all" 
+                checked={true} 
+                onCheckedChange={()=>null}
+              />
+              <Label htmlFor="add-all" className="text-sm font-medium cursor-pointer text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                Add Urls manually
+              </Label>
             </div>
 
-            {addUrlsManually && (
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Manual URLs</Label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="https://example.com/page"
-                    value={newManualUrl}
-                    onChange={(e) => setNewManualUrl(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAddManualUrl()}
-                    className="flex-1"
-                  />
-                  <ModernButton
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddManualUrl}
-                    disabled={!newManualUrl.trim()}
-                    type="button"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </ModernButton>
-                </div>
-                
-                {manualUrls.length > 0 && (
-                  <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl max-h-[200px] overflow-y-auto transition-colors duration-200">
-                    {manualUrls.map((manualUrl, index) => (
-                      <div key={index} className={`flex items-center justify-between p-3 ${index > 0 ? 'border-t border-slate-100 dark:border-slate-700' : ''}`}>
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="w-8 h-8 bg-green-50 dark:bg-green-950/50 rounded-lg flex items-center justify-center transition-colors duration-200">
-                            <Link className="h-4 w-4 text-green-600 dark:text-green-400" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{manualUrl}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Manual entry</p>
-                          </div>
-                        </div>
-                        <ModernButton
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleRemoveManualUrl(index)}
-                          type="button"
-                          className="ml-2 h-8 w-8 p-0"
-                        >
-                          <X className="h-4 w-4" />
-                        </ModernButton>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {(scrapedUrls.length > 0 || manualUrls.length > 0) && (
+            {scrapedUrls.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
                   <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    All URLs ({manualUrls.length + scrapedUrls.filter(u => u.selected).length} selected)
+                    Found URLs ({scrapedUrls.filter(u => u.selected).length} selected)
                   </Label>
                   <div className="flex items-center gap-2">
-                    {scrapedUrls.length > 0 && (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id="select-all-urls"
-                            checked={areAllUrlsSelected}
-                            indeterminate={areSomeUrlsSelected && !areAllUrlsSelected}
-                            onCheckedChange={(checked) => handleSelectAllUrls(checked === true)}
-                          />
-                          <Label htmlFor="select-all-urls" className="text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
-                            All
-                          </Label>
-                        </div>
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                          <Input
-                            placeholder="Search URLs..."
-                            value={urlSearchQuery}
-                            onChange={(e) => setUrlSearchQuery(e.target.value)}
-                            className="pl-10 w-64 h-8 text-xs bg-white/80 dark:bg-slate-800/80 border-slate-200/60 dark:border-slate-600/60"
-                          />
-                        </div>
-                        <ModernButton
-                          variant="outline"
-                          size="sm"
-                          onClick={handleRefreshUrls}
-                          disabled={isScrapingUrls || !url}
-                          className="h-8 px-3"
-                          type="button"
-                        >
-                          <RefreshCw className={`h-4 w-4 ${isScrapingUrls ? 'animate-spin' : ''}`} />
-                        </ModernButton>
-                      </>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="select-all-urls"
+                        checked={areAllUrlsSelected}
+                        indeterminate={areSomeUrlsSelected && !areAllUrlsSelected}
+                        onCheckedChange={(checked) => handleSelectAllUrls(checked === true)}
+                      />
+                      <Label htmlFor="select-all-urls" className="text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+                        All
+                      </Label>
+                    </div>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        placeholder="Search URLs..."
+                        value={urlSearchQuery}
+                        onChange={(e) => setUrlSearchQuery(e.target.value)}
+                        className="pl-10 w-64 h-8 text-xs bg-white/80 dark:bg-slate-800/80 border-slate-200/60 dark:border-slate-600/60"
+                      />
+                    </div>
+                    <ModernButton
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRefreshUrls}
+                      disabled={isScrapingUrls || !url}
+                      className="h-8 px-3"
+                      type="button"
+                    >
+                      <RefreshCw className={`h-4 w-4 ${isScrapingUrls ? 'animate-spin' : ''}`} />
+                    </ModernButton>
                   </div>
                 </div>
                 
                 <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl max-h-[300px] overflow-y-auto transition-colors duration-200 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 scrollbar-track-slate-100 dark:scrollbar-track-slate-800">
-                  {allUrls.length > 0 ? (
-                    allUrls.map((urlData, index) => (
+                  {filteredScrapedUrls.length > 0 ? (
+                    filteredScrapedUrls.map((urlData, index) => (
                       <div key={urlData.url} className={`flex items-center justify-between p-3 ${index > 0 ? 'border-t border-slate-100 dark:border-slate-700' : ''}`}>
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                           <Checkbox
                             id={`url-${index}`}
                             checked={urlData.selected}
-                            onCheckedChange={() => !urlData.isManual && toggleUrlSelection(urlData.url)}
-                            disabled={urlData.isManual}
+                            onCheckedChange={() => toggleUrlSelection(urlData.url)}
                           />
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200 ${
-                            urlData.isManual 
-                              ? 'bg-green-50 dark:bg-green-950/50' 
-                              : 'bg-blue-50 dark:bg-blue-950/50'
-                          }`}>
-                            <Link className={`h-4 w-4 ${
-                              urlData.isManual 
-                                ? 'text-green-600 dark:text-green-400' 
-                                : 'text-blue-600 dark:text-blue-400'
-                            }`} />
+                          <div className="w-8 h-8 bg-blue-50 dark:bg-blue-950/50 rounded-lg flex items-center justify-center transition-colors duration-200">
+                            <Link className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{urlData.title}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                              {urlData.isManual ? 'Manual entry' : urlData.url}
-                            </p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{urlData.url}</p>
                           </div>
                         </div>
                         <ModernButton
@@ -441,7 +341,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                   )}
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Manual URLs are always selected. You can uncheck scraped URLs you don't want to import.
+                  Select the URLs you want to include in your knowledge base. You can uncheck any URLs you don't want to import.
                 </p>
               </div>
             )}
@@ -743,7 +643,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                         size='sm'
                         type='button'
                         iconOnly
-                        onClick={() => fetchGoogleDriveData && fetchGoogleDriveData(pageData.prevToken)}
+                        onClick={() => fetchGoogleDriveData(pageData.prevToken)}
                       >
                         <ChevronLeft className='w-4 h-4'/>
                       </ModernButton>
@@ -757,7 +657,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                             size='sm'
                             type='button'
                             iconOnly
-                            onClick={() => fetchGoogleDriveData && fetchGoogleDriveData(pageData.nextToken)}
+                            onClick={() => fetchGoogleDriveData(pageData.nextToken)}
                           >
                             <ChevronRight className='w-4 h-4'/>
                           </ModernButton>
