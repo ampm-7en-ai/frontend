@@ -68,6 +68,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
   const [isScrapingUrls, setIsScrapingUrls] = useState(false);
   const [scrapedUrls, setScrapedUrls] = useState<ScrapedUrl[]>([]);
+  const [manualUrls, setManualUrls] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [pageData, setPageData] = useState({nextToken:"", prevToken:""});
@@ -180,6 +181,11 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
       setIsScrapingUrls(false);
     }
   };
+
+  //getAll manual plus scraped
+  const getAllManualUrls = (urls) => {
+    setManualUrls(urls);
+  }
 
   const handleImportAllPagesChange = async (checked: boolean) => {
     setImportAllPages(checked);
@@ -326,7 +332,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
 
     switch (sourceType) {
       case 'url':
-        if (importAllPages && scrapedUrls.length > 0) {
+        if (importAllPages && scrapedUrls.length > 0 ) {
           const selectedUrls = scrapedUrls.filter(urlData => urlData.selected).map(urlData => urlData.url);
           formData.append('urls', JSON.stringify(selectedUrls));
         } else {
@@ -615,6 +621,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
           fetchGoogleDriveData={fetchGoogleDriveData}
           isScrapingUrls={isScrapingUrls}
           scrapedUrls={scrapedUrls}
+          getManualUrls={getAllManualUrls}
           toggleUrlSelection={toggleUrlSelection}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
