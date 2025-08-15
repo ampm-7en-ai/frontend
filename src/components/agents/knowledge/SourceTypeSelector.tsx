@@ -153,6 +153,18 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
     return sortOrder === 'asc' ? comparison : -comparison;
   });
 
+  // Merge manual URLs with scraped URLs for display
+  const mergedUrls = [
+    ...sortedScrapedUrls,
+    ...manualUrls
+      .filter(url => url.trim() !== '')
+      .map(url => ({
+        url: url.trim(),
+        title: url.trim(),
+        selected: true
+      }))
+  ];
+
   return (
     <div className="space-y-6">
       <div className="space-y-3">
@@ -227,7 +239,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
             <Checkbox
               id="add-urls-manually"
               checked={addUrlsManually}
-              onCheckedChange={setAddUrlsManually}
+              onCheckedChange={(checked) => setAddUrlsManually(checked === true)}
             />
             <Label htmlFor="add-urls-manually" className="text-sm text-slate-700 dark:text-slate-300">
               Add URLs manually
@@ -280,12 +292,12 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                 </div>
               )}
 
-              {importAllPages && scrapedUrls.length > 0 && (
+              {((importAllPages && scrapedUrls.length > 0) || (addUrlsManually && manualUrls.some(url => url.trim()))) && (
                 <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                   <div className="bg-gray-50 dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between mb-3">
                       <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                        Extracted URLs ({scrapedUrls.filter(url => url.selected).length} selected)
+                        All URLs ({mergedUrls.filter(url => url.selected).length} selected)
                       </Label>
                       <div className="flex items-center gap-2">
                         <Button
@@ -300,25 +312,33 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                       </div>
                     </div>
                     
-                    <ModernInput
-                      placeholder="Search URLs..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full"
-                      icon={<Search className="h-4 w-4" />}
-                    />
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <ModernInput
+                        placeholder="Search URLs..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10"
+                      />
+                    </div>
                   </div>
                   
                   <ScrollArea className="h-64">
                     <div className="p-4 space-y-2">
-                      {sortedScrapedUrls.map((urlData, index) => (
+                      {mergedUrls.map((urlData, index) => (
                         <div
-                          key={index}
+                          key={`${urlData.url}-${index}`}
                           className="flex items-start gap-3 p-3 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                         >
                           <Checkbox
                             checked={urlData.selected}
-                            onCheckedChange={() => toggleUrlSelection(urlData.url)}
+                            onCheckedChange={(checked) => {
+                              // Handle manual URLs differently from scraped URLs
+                              if (scrapedUrls.some(scraped => scraped.url === urlData.url)) {
+                                toggleUrlSelection(urlData.url);
+                              }
+                              // For manual URLs, we'll keep them selected by default
+                            }}
                             className="mt-0.5"
                           />
                           <div className="flex-1 min-w-0">
