@@ -5,8 +5,11 @@ import React from 'react';
 
 export const useConversationUtils = () => {
   const getStatusBadge = (status: string) => {
+    // Normalize status to lowercase for comparison
+    const normalizedStatus = status.toLowerCase();
+    
     // Map 'completed' from API to 'resolved' for UI
-    const mappedStatus = status === 'completed' ? 'resolved' : status;
+    const mappedStatus = normalizedStatus === 'completed' ? 'resolved' : normalizedStatus;
     
     switch (mappedStatus) {
       case 'active':
@@ -25,7 +28,10 @@ export const useConversationUtils = () => {
   };
 
   const getSatisfactionIndicator = (satisfaction: string) => {
-    switch (satisfaction) {
+    // Normalize satisfaction to lowercase for comparison
+    const normalizedSatisfaction = satisfaction.toLowerCase();
+    
+    switch (normalizedSatisfaction) {
       case 'high':
         return <div className="flex items-center text-green-600"><ThumbsUp className="h-4 w-4 mr-1" /> High</div>;
       case 'medium':
@@ -47,8 +53,15 @@ export const useConversationUtils = () => {
     }
   };
 
+  // Utility function to normalize status for consistent handling
+  const normalizeStatus = (status: string) => {
+    const normalized = status.toLowerCase();
+    return normalized === 'completed' ? 'resolved' : normalized;
+  };
+
   return {
     getStatusBadge,
-    getSatisfactionIndicator
+    getSatisfactionIndicator,
+    normalizeStatus
   };
 };

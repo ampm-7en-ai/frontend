@@ -66,6 +66,12 @@ const ConversationListPanel = ({
     filterSessionsBySearch
   } = useChatSessions();
 
+  // Helper function to normalize status for case-insensitive comparison
+  const normalizeStatus = (status: string) => {
+    const normalized = status?.toLowerCase() || '';
+    return normalized === 'completed' ? 'resolved' : normalized;
+  };
+
   // Helper function to validate sessions and ensure unique IDs
   const validateSessions = React.useCallback((sessionsToValidate: any[]) => {
     if (!Array.isArray(sessionsToValidate)) {
@@ -152,15 +158,20 @@ const ConversationListPanel = ({
     return agents;
   }, [sessions]);
 
-  // Apply all filters with validation
+  // Apply all filters with validation and case-insensitive status matching
   const filteredSessions = React.useMemo(() => {
     console.log(`Applying filters to ${sessions.length} sessions`);
     let result = sessions;
     
-    // Apply status filter
+    // Apply status filter with case-insensitive matching
     if (filterStatus !== 'all') {
-      result = result.filter(s => s && s.status === filterStatus);
-      console.log(`After status filter: ${result.length} sessions`);
+      const normalizedFilterStatus = normalizeStatus(filterStatus);
+      result = result.filter(s => {
+        if (!s || !s.status) return false;
+        const normalizedSessionStatus = normalizeStatus(s.status);
+        return normalizedSessionStatus === normalizedFilterStatus;
+      });
+      console.log(`After status filter (${filterStatus}): ${result.length} sessions`);
     }
     
     // Apply channel filter (array-based)
