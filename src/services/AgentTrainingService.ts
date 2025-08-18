@@ -1,4 +1,3 @@
-
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
 import { toast } from '@/hooks/use-toast';
 import { trainingSSEService, SSETrainingEvent } from './TrainingSSEService';
@@ -130,6 +129,8 @@ export const AgentTrainingService = {
    */
   subscribeToTrainingUpdates(agentId: string, taskId: string, agentName: string, refetchAgentData?: () => Promise<void>): void {
     const callback = (event: SSETrainingEvent) => {
+      console.log('📡 SSE Event received:', event);
+      
       switch (event.event) {
         case 'training_connected':
           updateTrainingTaskStatus(agentId, 'training');
@@ -147,8 +148,13 @@ export const AgentTrainingService = {
           break;
 
         case 'training_completed':
+          console.log('✅ Training completed, updating status and removing task');
           updateTrainingTaskStatus(agentId, 'completed');
-          removeTrainingTask(agentId);
+          // Don't remove task immediately, let it show completed status for a while
+          setTimeout(() => {
+            removeTrainingTask(agentId);
+          }, 5000); // Remove after 5 seconds
+          
           toast({
             title: "Training Complete",
             description: `${agentName} training completed successfully!`,
@@ -163,19 +169,28 @@ export const AgentTrainingService = {
           }
           
           // Unsubscribe after completion
-          trainingSSEService.unsubscribe(agentId, taskId);
+          setTimeout(() => {
+            trainingSSEService.unsubscribe(agentId, taskId);
+          }, 10000); // Unsubscribe after 10 seconds to allow UI updates
           break;
 
         case 'training_failed':
+          console.log('❌ Training failed, updating status and removing task');
           updateTrainingTaskStatus(agentId, 'failed');
-          removeTrainingTask(agentId);
+          setTimeout(() => {
+            removeTrainingTask(agentId);
+          }, 5000); // Remove after 5 seconds
+          
           toast({
             title: "Training Failed",
             description: event.data.error || `${agentName} training failed.`,
             variant: "destructive"
           });
+          
           // Unsubscribe after failure
-          trainingSSEService.unsubscribe(agentId, taskId);
+          setTimeout(() => {
+            trainingSSEService.unsubscribe(agentId, taskId);
+          }, 10000);
           break;
       }
     };
@@ -242,5 +257,8 @@ export const AgentTrainingService = {
   // Remove training task (for external use)
   removeTask: (agentId: string) => {
     removeTrainingTask(agentId);
-  }
+  },
+
+  // Export the helper function for external use
+  updateTrainingTaskStatus
 };

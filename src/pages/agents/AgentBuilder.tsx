@@ -26,7 +26,7 @@ const AgentBuilderContent = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Check for active training tasks in localStorage
+  // Check for active training tasks in localStorage - reduced frequency since SSE handles real-time updates
   useEffect(() => {
     const checkActiveTrainingTasks = () => {
       const agentId = state.agentData.id?.toString();
@@ -42,10 +42,8 @@ const AgentBuilderContent = () => {
     // Check immediately
     checkActiveTrainingTasks();
     
-    // Set up polling to check periodically (reduced frequency since SSE handles real-time updates)
-    const interval = setInterval(checkActiveTrainingTasks, 5000);
-    
-    return () => clearInterval(interval);
+    // Remove the polling interval - SSE handles real-time updates now
+    // We only need to check once on component mount
   }, [state.agentData.id]);
 
   // Helper function to format knowledge sources

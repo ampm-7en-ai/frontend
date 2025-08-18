@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronUp, ChevronDown, Terminal, Copy, Check, LoaderCircle, Wifi, WifiOff, Activity, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,7 +20,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const [copiedTaskId, setCopiedTaskId] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'open' | 'closed'>('closed');
   const [eventLogs, setEventLogs] = useState<SSEEventLog[]>([]);
-  const [forceUpdate, setForceUpdate] = useState(0);
+  const [currentTaskStatus, setCurrentTaskStatus] = useState<string>('');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const { state } = useBuilder();
@@ -44,44 +43,48 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     };
   }, []);
 
-  // Update event logs periodically
+  // Update event logs and track training completion
   useEffect(() => {
     const updateEventLogs = () => {
       if (agentId) {
         const logs = trainingSSEService.getRecentEventLogs(agentId, 10);
         setEventLogs(logs);
+        
+        // Check for training completion in recent events
+        const latestEvent = logs[0];
+        if (latestEvent) {
+          if (latestEvent.event.event === 'training_completed') {
+            setCurrentTaskStatus('completed');
+          } else if (latestEvent.event.event === 'training_failed') {
+            setCurrentTaskStatus('failed');
+          } else if (latestEvent.event.event === 'training_progress') {
+            setCurrentTaskStatus('training');
+          }
+        }
       }
     };
 
     // Update immediately
     updateEventLogs();
     
-    // Update every 2 seconds to catch new events
-    const interval = setInterval(updateEventLogs, 2000);
+    // Update every 1 second to catch new events
+    const interval = setInterval(updateEventLogs, 1000);
     
     return () => clearInterval(interval);
   }, [agentId]);
 
   // Auto-scroll to bottom when new events arrive
   useEffect(() => {
-    if (scrollAreaRef.current) {
+    if (scrollAreaRef.current && eventLogs.length > 0) {
       const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        // Use setTimeout to ensure DOM is updated
+        setTimeout(() => {
+          scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        }, 100);
       }
     }
   }, [eventLogs]);
-
-  // Force re-render when task status might have changed
-  useEffect(() => {
-    if (currentTask) {
-      const interval = setInterval(() => {
-        setForceUpdate(prev => prev + 1);
-      }, 1000);
-      
-      return () => clearInterval(interval);
-    }
-  }, [currentTask]);
 
   const shouldShowConsole = currentTask || isTraining || connectionStatus === 'open';
 
@@ -100,20 +103,10 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     return date.toLocaleString();
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'training':
-        return 'text-blue-600 bg-blue-50';
-      case 'completed':
-        return 'text-green-600 bg-green-50';
-      case 'failed':
-        return 'text-red-600 bg-red-50';
-      default:
-        return 'text-gray-600 bg-gray-50';
-    }
-  };
-
   const getStatusBadge = (status: string) => {
+    // Use currentTaskStatus from SSE events if available, otherwise use the passed status
+    const effectiveStatus = currentTaskStatus || status;
+    
     const statusConfig = {
       'Active': { label: 'Completed', className: 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/60 dark:text-green-400 dark:border-green-700' },
       'completed': { label: 'Completed', className: 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/60 dark:text-green-400 dark:border-green-700' },
@@ -125,7 +118,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
       'pending': { label: 'Pending', className: 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800' },
     };
 
-    const config = statusConfig[status] || { label: 'Unknown', className: 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800' };
+    const config = statusConfig[effectiveStatus] || { label: 'Unknown', className: 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800' };
     return <Badge className={`${config.className} text-[9px] font-medium`}>{config.label}</Badge>;
   };
 
@@ -252,8 +245,8 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           )}
           
           {/* Real-time Event Log */}
-          <div className="flex-1 flex flex-col">
-            <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <div className="flex items-center gap-2">
                 <Activity className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -265,48 +258,50 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
               </div>
             </div>
             
-            <ScrollArea className="flex-1" ref={scrollAreaRef}>
-              <div className="p-4 space-y-2">
-                {eventLogs.length > 0 ? (
-                  eventLogs.map((log) => (
-                    <div key={log.id} className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded text-xs">
-                      <div className="flex items-center gap-1 min-w-0 flex-1">
-                        {getEventTypeIcon(log.event.event)}
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
-                          {getEventTypeLabel(log.event.event)}
+            <div className="flex-1 min-h-0">
+              <ScrollArea className="h-full" ref={scrollAreaRef}>
+                <div className="p-4 space-y-2">
+                  {eventLogs.length > 0 ? (
+                    eventLogs.map((log) => (
+                      <div key={log.id} className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded text-xs">
+                        <div className="flex items-center gap-1 min-w-0 flex-1">
+                          {getEventTypeIcon(log.event.event)}
+                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                            {getEventTypeLabel(log.event.event)}
+                          </span>
+                          {log.event.data.progress && (
+                            <span className="text-blue-600 dark:text-blue-400">
+                              {log.event.data.progress}%
+                            </span>
+                          )}
+                          {log.event.data.message && (
+                            <span className="text-gray-600 dark:text-gray-400 truncate">
+                              - {log.event.data.message}
+                            </span>
+                          )}
+                          {log.event.data.error && (
+                            <span className="text-red-600 dark:text-red-400 truncate">
+                              - {log.event.data.error}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-gray-500 dark:text-gray-400 text-[10px] whitespace-nowrap">
+                          {log.timestamp.toLocaleTimeString()}
                         </span>
-                        {log.event.data.progress && (
-                          <span className="text-blue-600 dark:text-blue-400">
-                            {log.event.data.progress}%
-                          </span>
-                        )}
-                        {log.event.data.message && (
-                          <span className="text-gray-600 dark:text-gray-400 truncate">
-                            - {log.event.data.message}
-                          </span>
-                        )}
-                        {log.event.data.error && (
-                          <span className="text-red-600 dark:text-red-400 truncate">
-                            - {log.event.data.error}
-                          </span>
-                        )}
                       </div>
-                      <span className="text-gray-500 dark:text-gray-400 text-[10px] whitespace-nowrap">
-                        {log.timestamp.toLocaleTimeString()}
-                      </span>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                      <Terminal className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No events yet</p>
+                      <p className="text-xs mt-1">
+                        {connectionStatus === 'open' ? 'Waiting for training events...' : 'Connect to see real-time events'}
+                      </p>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                    <Terminal className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No events yet</p>
-                    <p className="text-xs mt-1">
-                      {connectionStatus === 'open' ? 'Waiting for training events...' : 'Connect to see real-time events'}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
           </div>
         </div>
       )}
