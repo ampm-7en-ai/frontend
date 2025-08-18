@@ -15,12 +15,14 @@ interface CreateSupportTicketModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   conversation?: any;
+  onTicketCreated?: (updatedConversation: any) => void;
 }
 
 const CreateSupportTicketModal = ({
   open,
   onOpenChange,
-  conversation
+  conversation,
+  onTicketCreated
 }: CreateSupportTicketModalProps) => {
   const [isCreating, setIsCreating] = useState(false);
   const [subject, setSubject] = useState('');
@@ -107,6 +109,17 @@ const CreateSupportTicketModal = ({
           title: "Ticket Created Successfully",
           description: result.message,
         });
+        
+        // Update conversation to reflect ticket creation
+        if (onTicketCreated && conversation) {
+          const updatedConversation = {
+            ...conversation,
+            agentType: 'human',
+            agent: 'Support Team',
+            channel: 'ticketing'
+          };
+          onTicketCreated(updatedConversation);
+        }
         
         // Reset form and close modal
         setSubject('');

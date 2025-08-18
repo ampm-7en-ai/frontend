@@ -115,8 +115,17 @@ const ConversationHeader = ({
     }
   };
 
+  const handleTicketCreated = (updatedConversation: any) => {
+    if (onConversationUpdate) {
+      onConversationUpdate(updatedConversation);
+    }
+  };
+
   const isResolved = conversation.status === 'Resolved';
   const isHumanAgent = conversation.agentType === 'human';
+  const shouldShowCreateTicketButton = !isHumanAgent && 
+    conversation.channel !== "ticketing" && 
+    conversation.status !== 'Resolved';
 
   return (
     <>
@@ -138,7 +147,7 @@ const ConversationHeader = ({
         </div>
         
         <div className="flex items-center gap-2">
-          {!isHumanAgent && conversation.channel !== "ticketing" && conversation.status !== 'Resolved' && (
+          {shouldShowCreateTicketButton && (
             <ModernButton
               variant="outline"
               size="sm"
@@ -160,13 +169,12 @@ const ConversationHeader = ({
         </div>
       </div>
 
-      {!isHumanAgent && (
-        <CreateSupportTicketModal
-          open={isTicketModalOpen}
-          onOpenChange={setIsTicketModalOpen}
-          conversation={conversation}
-        />
-      )}
+      <CreateSupportTicketModal
+        open={isTicketModalOpen}
+        onOpenChange={setIsTicketModalOpen}
+        conversation={conversation}
+        onTicketCreated={handleTicketCreated}
+      />
     </>
   );
 };
