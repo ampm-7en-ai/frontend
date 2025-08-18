@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useToast } from "@/hooks/use-toast";
@@ -123,6 +122,7 @@ const ConversationList = () => {
                   setChannelFilter={setChannelFilter}
                   agentTypeFilter={agentTypeFilter}
                   setAgentTypeFilter={setAgentTypeFilter}
+                  localConversationUpdates={localConversationUpdates}
                 />
               </ConversationListErrorBoundary>
             </div>
@@ -190,6 +190,7 @@ const ConversationList = () => {
               setChannelFilter={setChannelFilter}
               agentTypeFilter={agentTypeFilter}
               setAgentTypeFilter={setAgentTypeFilter}
+              localConversationUpdates={localConversationUpdates}
             />
           </ConversationListErrorBoundary>
         </div>

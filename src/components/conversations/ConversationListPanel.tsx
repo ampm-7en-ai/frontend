@@ -19,6 +19,7 @@ interface ConversationListPanelProps {
   selectedConversation: string | null;
   setSelectedConversation: (id: string) => void;
   isLoading?: boolean;
+  localConversationUpdates?: {[key: string]: any};
 }
 
 interface ReadSessionInfo {
@@ -37,7 +38,8 @@ const ConversationListPanel = ({
   setAgentTypeFilter,
   selectedConversation,
   setSelectedConversation,
-  isLoading: externalLoading = false
+  isLoading: externalLoading = false,
+  localConversationUpdates = {}
 }: ConversationListPanelProps) => {
   const [displayCount, setDisplayCount] = useState(10);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -105,6 +107,14 @@ const ConversationListPanel = ({
     return uniqueSessions;
   }, []);
 
+  // Apply local updates to sessions before filtering
+  const getSessionsWithLocalUpdates = React.useCallback(() => {
+    return sessions.map(session => {
+      const localUpdate = localConversationUpdates[session.id];
+      return localUpdate ? { ...session, ...localUpdate } : session;
+    });
+  }, [sessions, localConversationUpdates]);
+
   // Initialize readSessions with all current sessions on first load
   useEffect(() => {
     if (sessions.length > 0 && !initialLoadCompletedRef.current) {
@@ -149,19 +159,22 @@ const ConversationListPanel = ({
     previousSessionsRef.current = JSON.parse(JSON.stringify(sessions));
   }, [sessions, selectedConversation]);
   
-  // Get unique agent names from sessions
+  // Get unique agent names from sessions (with local updates applied)
   const availableAgents = React.useMemo(() => {
-    const agents = sessions
+    const sessionsWithUpdates = getSessionsWithLocalUpdates();
+    const agents = sessionsWithUpdates
       .map(session => session.agent)
       .filter((agent, index, arr) => agent && arr.indexOf(agent) === index)
       .sort();
     return agents;
-  }, [sessions]);
+  }, [getSessionsWithLocalUpdates]);
 
   // Apply all filters with validation and case-insensitive status matching
   const filteredSessions = React.useMemo(() => {
-    console.log(`Applying filters to ${sessions.length} sessions`);
-    let result = sessions;
+    // First apply local updates to all sessions
+    const sessionsWithUpdates = getSessionsWithLocalUpdates();
+    console.log(`Applying filters to ${sessionsWithUpdates.length} sessions with local updates`);
+    let result = sessionsWithUpdates;
     
     // Apply status filter with case-insensitive matching
     if (filterStatus !== 'all') {
@@ -225,7 +238,7 @@ const ConversationListPanel = ({
     console.log(`Final filtered sessions: ${finalResult.length}`);
     return finalResult;
   }, [
-    sessions, 
+    getSessionsWithLocalUpdates, 
     filterStatus, 
     channelFilter, 
     agentTypeFilter, 
