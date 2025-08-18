@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronUp, ChevronDown, Terminal, Copy, Check, LoaderCircle, Wifi, WifiOff, Activity, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { trainingSSEService, SSEEventLog } from '@/services/TrainingSSEService';
 import { useBuilder } from '@/components/agents/builder/BuilderContext';
@@ -21,11 +23,19 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'open' | 'closed'>('closed');
   const [eventLogs, setEventLogs] = useState<SSEEventLog[]>([]);
   const [currentTaskStatus, setCurrentTaskStatus] = useState<string>('');
+  const [extractingProgress, setExtractingProgress] = useState(0);
+  const [embeddingProgress, setEmbeddingProgress] = useState(0);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [isEmbedding, setIsEmbedding] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const { state } = useBuilder();
   const agentId = state.agentData.id?.toString();
   const currentTask = agentId ? AgentTrainingService.getTrainingTask(agentId) : null;
+
+  // Only show console panel if CURRENT agent is training
+  const shouldShowConsole = state.agentData.status === 'Training' || currentTask?.status === 'training' || isTraining;
 
   // Subscribe to SSE connection status
   useEffect(() => {
@@ -55,10 +65,30 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
         if (latestEvent) {
           if (latestEvent.event.event === 'training_completed') {
             setCurrentTaskStatus('completed');
+            setIsCompleted(true);
+            setIsExtracting(false);
+            setIsEmbedding(false);
+            setExtractingProgress(100);
+            setEmbeddingProgress(100);
           } else if (latestEvent.event.event === 'training_failed') {
             setCurrentTaskStatus('failed');
+            setIsExtracting(false);
+            setIsEmbedding(false);
           } else if (latestEvent.event.event === 'training_progress') {
             setCurrentTaskStatus('training');
+            const progress = latestEvent.event.data.progress || 0;
+            
+            // Simulate step progression based on progress
+            if (progress <= 50) {
+              setIsExtracting(true);
+              setIsEmbedding(false);
+              setExtractingProgress(progress * 2); // 0-100% for first half
+            } else {
+              setIsExtracting(false);
+              setIsEmbedding(true);
+              setExtractingProgress(100);
+              setEmbeddingProgress((progress - 50) * 2); // 0-100% for second half
+            }
           }
         }
       }
@@ -86,8 +116,6 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     }
   }, [eventLogs]);
 
-  const shouldShowConsole = currentTask || isTraining || connectionStatus === 'open';
-
   const handleCopyTaskId = async (taskId: string) => {
     try {
       await navigator.clipboard.writeText(taskId);
@@ -103,25 +131,6 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     return date.toLocaleString();
   };
 
-  const getStatusBadge = (status: string) => {
-    // Use currentTaskStatus from SSE events if available, otherwise use the passed status
-    const effectiveStatus = currentTaskStatus || status;
-    
-    const statusConfig = {
-      'Active': { label: 'Completed', className: 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/60 dark:text-green-400 dark:border-green-700' },
-      'completed': { label: 'Completed', className: 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/60 dark:text-green-400 dark:border-green-700' },
-      'Training': { label: 'Training', className: 'bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800' },
-      'training': { label: 'Training', className: 'bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800' },
-      'Issues': { label: 'Failed', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
-      'failed': { label: 'Failed', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
-      'deleted': { label: 'Deleted', className: 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' },
-      'pending': { label: 'Pending', className: 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800' },
-    };
-
-    const config = statusConfig[effectiveStatus] || { label: 'Unknown', className: 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800' };
-    return <Badge className={`${config.className} text-[9px] font-medium`}>{config.label}</Badge>;
-  };
-
   const getConnectionIcon = () => {
     switch (connectionStatus) {
       case 'open':
@@ -134,34 +143,14 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     }
   };
 
-  const getEventTypeIcon = (eventType: string) => {
-    switch (eventType) {
-      case 'training_connected':
-        return <Wifi className="h-3 w-3 text-blue-600" />;
-      case 'training_progress':
-        return <Activity className="h-3 w-3 text-orange-600" />;
-      case 'training_completed':
-        return <Check className="h-3 w-3 text-green-600" />;
-      case 'training_failed':
-        return <Terminal className="h-3 w-3 text-red-600" />;
-      default:
-        return <Clock className="h-3 w-3 text-gray-600" />;
-    }
-  };
-
-  const getEventTypeLabel = (eventType: string) => {
-    switch (eventType) {
-      case 'training_connected':
-        return 'Connected';
-      case 'training_progress':
-        return 'Progress';
-      case 'training_completed':
-        return 'Completed';
-      case 'training_failed':
-        return 'Failed';
-      default:
-        return eventType;
-    }
+  // Mock data for character counts (since backend doesn't provide this yet)
+  const mockCharacterCounts = {
+    total: 134666,
+    sources: [
+      { name: 'Source 1', count: 134666 },
+      { name: 'Source 2', count: 134666 },
+      { name: 'Source 3', count: 134666 }
+    ]
   };
 
   if (!shouldShowConsole) {
@@ -177,9 +166,6 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Training Console
           </span>
-          {(currentTask || isTraining) && (
-            getStatusBadge(currentTask ? currentTask.status : "training")
-          )}
           
           {/* SSE Connection Status */}
           <div className="flex items-center gap-1 ml-2" title={`SSE Connection: ${connectionStatus}`}>
@@ -213,7 +199,6 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
                     <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
                       {currentTask.agentName}
                     </h4>
-                    {getStatusBadge(currentTask.status)}
                   </div>
                   
                   <div className="text-xs text-gray-600 dark:text-gray-400">
@@ -244,64 +229,114 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             </div>
           )}
           
-          {/* Real-time Event Log */}
-          <div className="flex-1 flex flex-col min-h-0">
-            <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+          {/* Step-wise Progress */}
+          <div className="flex-1 flex flex-col min-h-0 p-4 space-y-4">
+            {/* Extracting Characters Step */}
+            <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Real-time Events
+                {isExtracting ? (
+                  <LoaderCircle className="h-4 w-4 text-blue-600 animate-spin" />
+                ) : extractingProgress === 100 ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <div className="h-4 w-4 rounded-full border-2 border-gray-300 dark:border-gray-600" />
+                )}
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  Extracting Characters
                 </span>
-                <Badge variant="outline" className="text-xs">
-                  {eventLogs.length}
-                </Badge>
               </div>
+              <Progress value={extractingProgress} className="h-2" />
             </div>
-            
-            <div className="flex-1 min-h-0">
-              <ScrollArea className="h-full" ref={scrollAreaRef}>
-                <div className="p-4 space-y-2">
-                  {eventLogs.length > 0 ? (
-                    eventLogs.map((log) => (
-                      <div key={log.id} className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded text-xs">
-                        <div className="flex items-center gap-1 min-w-0 flex-1">
-                          {getEventTypeIcon(log.event.event)}
-                          <span className="font-medium text-gray-900 dark:text-gray-100">
-                            {getEventTypeLabel(log.event.event)}
-                          </span>
-                          {log.event.data.progress && (
-                            <span className="text-blue-600 dark:text-blue-400">
-                              {log.event.data.progress}%
-                            </span>
-                          )}
-                          {log.event.data.message && (
-                            <span className="text-gray-600 dark:text-gray-400 truncate">
-                              - {log.event.data.message}
-                            </span>
-                          )}
-                          {log.event.data.error && (
-                            <span className="text-red-600 dark:text-red-400 truncate">
-                              - {log.event.data.error}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-gray-500 dark:text-gray-400 text-[10px] whitespace-nowrap">
-                          {log.timestamp.toLocaleTimeString()}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                      <Terminal className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No events yet</p>
-                      <p className="text-xs mt-1">
-                        {connectionStatus === 'open' ? 'Waiting for training events...' : 'Connect to see real-time events'}
-                      </p>
-                    </div>
-                  )}
+
+            {/* Embedding Characters Step */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                {isEmbedding ? (
+                  <LoaderCircle className="h-4 w-4 text-blue-600 animate-spin" />
+                ) : embeddingProgress === 100 ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <div className="h-4 w-4 rounded-full border-2 border-gray-300 dark:border-gray-600" />
+                )}
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  Embedding Characters
+                </span>
+              </div>
+              <Progress value={embeddingProgress} className="h-2" />
+            </div>
+
+            {/* Done Section */}
+            {isCompleted && (
+              <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-green-600" />
+                  <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Done
+                  </span>
                 </div>
-              </ScrollArea>
-            </div>
+                
+                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="font-medium">
+                    Total Characters: <span className="text-gray-900 dark:text-gray-100">{mockCharacterCounts.total.toLocaleString()}</span>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    {mockCharacterCounts.sources.map((source, index) => (
+                      <div key={index} className="flex justify-between">
+                        <span>{source.name}:</span>
+                        <span className="text-gray-900 dark:text-gray-100">{source.count.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Real-time Event Log (Collapsed when completed) */}
+            {!isCompleted && eventLogs.length > 0 && (
+              <div className="flex-1 min-h-0">
+                <div className="px-2 py-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-t flex-shrink-0">
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                      Events
+                    </span>
+                    <Badge variant="outline" className="text-xs h-4">
+                      {eventLogs.length}
+                    </Badge>
+                  </div>
+                </div>
+                
+                <div className="flex-1 min-h-0 border border-t-0 border-gray-200 dark:border-gray-700 rounded-b">
+                  <ScrollArea className="h-24" ref={scrollAreaRef}>
+                    <div className="p-2 space-y-1">
+                      {eventLogs.map((log) => (
+                        <div key={log.id} className="flex items-start gap-2 p-1 bg-gray-50 dark:bg-gray-800 rounded text-xs">
+                          <div className="flex items-center gap-1 min-w-0 flex-1">
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-[10px]">
+                              {log.event.event.replace('training_', '')}
+                            </span>
+                            {log.event.data.progress && (
+                              <span className="text-blue-600 dark:text-blue-400 text-[10px]">
+                                {log.event.data.progress}%
+                              </span>
+                            )}
+                            {log.event.data.message && (
+                              <span className="text-gray-600 dark:text-gray-400 truncate text-[10px]">
+                                - {log.event.data.message}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-gray-500 dark:text-gray-400 text-[9px] whitespace-nowrap">
+                            {log.timestamp.toLocaleTimeString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
