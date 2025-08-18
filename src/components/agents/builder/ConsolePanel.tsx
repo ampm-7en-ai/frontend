@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronUp, ChevronDown, Terminal, Copy, Check, LoaderCircle, Wifi, WifiOff } from 'lucide-react';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronUp, ChevronDown, Terminal, Copy, Check, LoaderCircle, Wifi, WifiOff, Activity, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
-import { isPolling, getCurrentPollingAgent } from '@/utils/trainingPoller';
+import { trainingSSEService, SSEEventLog } from '@/services/TrainingSSEService';
 import { useBuilder } from '@/components/agents/builder/BuilderContext';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -19,28 +20,57 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const [isExpanded, setIsExpanded] = useState(true);
   const [copiedTaskId, setCopiedTaskId] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'open' | 'closed'>('closed');
+  const [eventLogs, setEventLogs] = useState<SSEEventLog[]>([]);
   const [forceUpdate, setForceUpdate] = useState(0);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const { state } = useBuilder();
   const agentId = state.agentData.id?.toString();
   const currentTask = agentId ? AgentTrainingService.getTrainingTask(agentId) : null;
 
-  // Check polling connection status
-  // useEffect(() => {
-  //   const checkConnectionStatus = () => {
-  //     const polling = isPolling();
-  //     const currentAgent = getCurrentPollingAgent();
-      
-  //     const status = polling ? 'open' : 'closed';
-  //     setConnectionStatus(status);
-      
-  //     console.log('Console: Polling status:', { polling, currentAgent, status });
-  //   };
+  // Subscribe to SSE connection status
+  useEffect(() => {
+    const statusCallback = (status: 'connecting' | 'open' | 'closed') => {
+      setConnectionStatus(status);
+    };
 
-  //   checkConnectionStatus();
-  //   const interval = setInterval(isPolling() && checkConnectionStatus, 2000);
-  //   return () => clearInterval(interval);
-  // }, []);
+    trainingSSEService.subscribeToConnectionStatus(statusCallback);
+    
+    // Get initial status
+    setConnectionStatus(trainingSSEService.getConnectionStatus());
+
+    return () => {
+      trainingSSEService.unsubscribeFromConnectionStatus(statusCallback);
+    };
+  }, []);
+
+  // Update event logs periodically
+  useEffect(() => {
+    const updateEventLogs = () => {
+      if (agentId) {
+        const logs = trainingSSEService.getRecentEventLogs(agentId, 10);
+        setEventLogs(logs);
+      }
+    };
+
+    // Update immediately
+    updateEventLogs();
+    
+    // Update every 2 seconds to catch new events
+    const interval = setInterval(updateEventLogs, 2000);
+    
+    return () => clearInterval(interval);
+  }, [agentId]);
+
+  // Auto-scroll to bottom when new events arrive
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
+    }
+  }, [eventLogs]);
 
   // Force re-render when task status might have changed
   useEffect(() => {
@@ -53,7 +83,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     }
   }, [currentTask]);
 
-  const shouldShowConsole = currentTask || isTraining;
+  const shouldShowConsole = currentTask || isTraining || connectionStatus === 'open';
 
   const handleCopyTaskId = async (taskId: string) => {
     try {
@@ -65,8 +95,9 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     }
   };
 
-  const formatTimestamp = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString();
+  const formatTimestamp = (timestamp: number | Date) => {
+    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    return date.toLocaleString();
   };
 
   const getStatusColor = (status: string) => {
@@ -110,8 +141,37 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     }
   };
 
+  const getEventTypeIcon = (eventType: string) => {
+    switch (eventType) {
+      case 'training_connected':
+        return <Wifi className="h-3 w-3 text-blue-600" />;
+      case 'training_progress':
+        return <Activity className="h-3 w-3 text-orange-600" />;
+      case 'training_completed':
+        return <Check className="h-3 w-3 text-green-600" />;
+      case 'training_failed':
+        return <Terminal className="h-3 w-3 text-red-600" />;
+      default:
+        return <Clock className="h-3 w-3 text-gray-600" />;
+    }
+  };
+
+  const getEventTypeLabel = (eventType: string) => {
+    switch (eventType) {
+      case 'training_connected':
+        return 'Connected';
+      case 'training_progress':
+        return 'Progress';
+      case 'training_completed':
+        return 'Completed';
+      case 'training_failed':
+        return 'Failed';
+      default:
+        return eventType;
+    }
+  };
+
   if (!shouldShowConsole) {
-    //refetchAgentData(); //refresh agent data
     return null;
   }
 
@@ -122,17 +182,17 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
         <div className="flex items-center gap-2">
           <LoaderCircle className="h-4 w-4 text-gray-600 dark:text-gray-400 animate-spin" />
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Training Status
+            Training Console
           </span>
           {(currentTask || isTraining) && (
-            getStatusBadge(currentTask ? currentTask.hasOwnProperty('status') ? currentTask.status : "training" : "training")
+            getStatusBadge(currentTask ? currentTask.status : "training")
           )}
           
-          {/* Polling Connection Status */}
-          {/* <div className="flex items-center gap-1 ml-2" title={`Polling: ${connectionStatus}`}>
+          {/* SSE Connection Status */}
+          <div className="flex items-center gap-1 ml-2" title={`SSE Connection: ${connectionStatus}`}>
             {getConnectionIcon()}
-            <span className="text-xs text-gray-500">{connectionStatus}</span>
-          </div> */}
+            <span className="text-xs text-gray-500 capitalize">{connectionStatus}</span>
+          </div>
         </div>
         
         <Button
@@ -149,80 +209,107 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
         </Button>
       </div>
       
-      <ScrollArea className="flex-1 h-[calc(100%-40px)]">
-        <div className="p-0">
-          {isExpanded && (
-            <div className="p-4 max-h-60">
-              {currentTask ? (
-                <Card className="p-4 bg-gray-50 dark:bg-gray-800">
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                        Training Task Information
-                      </h4>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 gap-3 text-sm">
-                      <div>
-                        <span className="font-medium text-gray-600 dark:text-gray-400">Agent:</span>
-                        <span className="ml-2 text-gray-900 dark:text-gray-100">
-                          {currentTask.agentName}
-                        </span>
-                      </div>
-                      
-                      <div>
-                        <span className="font-medium text-gray-600 dark:text-gray-400">Status: </span>
-                        {getStatusBadge(currentTask.status)}
-                      </div>
-                      
-                      <div>
-                        <span className="font-medium text-gray-600 dark:text-gray-400">Started:</span>
-                        <span className="ml-2 text-gray-900 dark:text-gray-100">
-                          {formatTimestamp(currentTask.timestamp)}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-end justify-between">
-                        <div className="flex-1 min-w-0">
-                          <span className="font-medium text-gray-600 dark:text-gray-400">Task ID:</span>
-                          <div className="font-mono text-xs text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 px-2 py-1 rounded border break-all">
-                            {currentTask.taskId}
-                          </div>
-                        </div>
-                        <ModernButton
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleCopyTaskId(currentTask.taskId)}
-                          className="ml-2 h-8 w-8 p-2"
-                          title="Copy Task ID"
-                          iconOnly
-                        >
-                          {copiedTaskId === currentTask.taskId ? (
-                            <Check className="h-3 w-3 text-green-600" />
-                          ) : (
-                            <Copy className="h-3 w-3" />
-                          )}
-                        </ModernButton>
-                      </div>
-                    </div>
+      {isExpanded && (
+        <div className="flex flex-col h-80">
+          {/* Task Information */}
+          {currentTask && (
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <Card className="p-3 bg-gray-50 dark:bg-gray-800">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                      {currentTask.agentName}
+                    </h4>
+                    {getStatusBadge(currentTask.status)}
                   </div>
-                </Card>
-              ) : isTraining ? (
-                <div className="text-center text-blue-600 dark:text-blue-400 py-4">
-                  <Terminal className="h-8 w-8 mx-auto mb-2" />
-                  <p className="text-sm">Training in progress...</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Task ID will be available shortly</p>
+                  
+                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                    Started: {formatTimestamp(currentTask.timestamp)}
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="font-mono text-xs text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 px-2 py-1 rounded border break-all flex-1 mr-2">
+                      {currentTask.taskId}
+                    </div>
+                    <ModernButton
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCopyTaskId(currentTask.taskId)}
+                      className="h-6 w-6 p-1"
+                      title="Copy Task ID"
+                      iconOnly
+                    >
+                      {copiedTaskId === currentTask.taskId ? (
+                        <Check className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <Copy className="h-3 w-3" />
+                      )}
+                    </ModernButton>
+                  </div>
                 </div>
-              ) : (
-                <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                  <Terminal className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No training tasks found for this agent</p>
-                </div>
-              )}
+              </Card>
             </div>
           )}
+          
+          {/* Real-time Event Log */}
+          <div className="flex-1 flex flex-col">
+            <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Real-time Events
+                </span>
+                <Badge variant="outline" className="text-xs">
+                  {eventLogs.length}
+                </Badge>
+              </div>
+            </div>
+            
+            <ScrollArea className="flex-1" ref={scrollAreaRef}>
+              <div className="p-4 space-y-2">
+                {eventLogs.length > 0 ? (
+                  eventLogs.map((log) => (
+                    <div key={log.id} className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded text-xs">
+                      <div className="flex items-center gap-1 min-w-0 flex-1">
+                        {getEventTypeIcon(log.event.event)}
+                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                          {getEventTypeLabel(log.event.event)}
+                        </span>
+                        {log.event.data.progress && (
+                          <span className="text-blue-600 dark:text-blue-400">
+                            {log.event.data.progress}%
+                          </span>
+                        )}
+                        {log.event.data.message && (
+                          <span className="text-gray-600 dark:text-gray-400 truncate">
+                            - {log.event.data.message}
+                          </span>
+                        )}
+                        {log.event.data.error && (
+                          <span className="text-red-600 dark:text-red-400 truncate">
+                            - {log.event.data.error}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-gray-500 dark:text-gray-400 text-[10px] whitespace-nowrap">
+                        {log.timestamp.toLocaleTimeString()}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                    <Terminal className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No events yet</p>
+                    <p className="text-xs mt-1">
+                      {connectionStatus === 'open' ? 'Waiting for training events...' : 'Connect to see real-time events'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
-      </ScrollArea>
+      )}
     </div>
   );
 };

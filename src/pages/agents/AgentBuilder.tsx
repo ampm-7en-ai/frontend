@@ -42,8 +42,8 @@ const AgentBuilderContent = () => {
     // Check immediately
     checkActiveTrainingTasks();
     
-    // Set up polling to check periodically
-    const interval = setInterval(checkActiveTrainingTasks, 2000);
+    // Set up polling to check periodically (reduced frequency since SSE handles real-time updates)
+    const interval = setInterval(checkActiveTrainingTasks, 5000);
     
     return () => clearInterval(interval);
   }, [state.agentData.id]);
@@ -183,27 +183,11 @@ const AgentBuilderContent = () => {
         knowledgeSourceIds, 
         state.agentData.name,
         [],
-        refetchAgentData
+        refetchAgentData // SSE will handle the real-time updates and call this when training completes
       );
       
       if (success) {
-        console.log('✅ Training successful, polling will handle data refresh');
-
-        addNotification({
-          title: 'Training Complete',
-          message: `Agent "${state.agentData.name}" training completed successfully.`,
-          type: 'training_completed',
-          agentId,
-          agentName: state.agentData.name
-        });
-      } else {
-        addNotification({
-          title: 'Training Failed',
-          message: `Agent "${state.agentData.name}" training failed.`,
-          type: 'training_failed',
-          agentId,
-          agentName: state.agentData.name
-        });
+        console.log('✅ Training started successfully, SSE will handle real-time updates');
       }
     } catch (error) {
       console.error("Error training agent:", error);

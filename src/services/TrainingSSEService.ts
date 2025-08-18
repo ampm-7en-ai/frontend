@@ -5,14 +5,21 @@ export interface SSETrainingEvent {
   event: 'training_connected' | 'training_progress' | 'training_completed' | 'training_failed';
   data: {
     agent_id: string;
-    task_id: string; // We'll add this locally
+    task_id: string;
     agent_name?: string;
     status: 'training' | 'completed' | 'failed';
-    progress?: number; // 0-100
+    progress?: number;
     message?: string;
     error?: string;
     timestamp: string;
   };
+}
+
+export interface SSEEventLog {
+  id: string;
+  event: SSETrainingEvent;
+  timestamp: Date;
+  agentId: string;
 }
 
 export type SSEEventCallback = (event: SSETrainingEvent) => void;
@@ -20,10 +27,12 @@ export type SSEEventCallback = (event: SSETrainingEvent) => void;
 class TrainingSSEService {
   private eventSource: any;
   private callbacks: Map<string, SSEEventCallback> = new Map();
-  private taskMappings: Map<string, string> = new Map(); // agentId -> taskId
+  private taskMappings: Map<string, string> = new Map();
+  private eventLogs: SSEEventLog[] = [];
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
+  private connectionStatusCallbacks: Set<(status: 'connecting' | 'open' | 'closed') => void> = new Set();
 
   /**
    * Subscribe to training status updates for a specific agent
@@ -58,63 +67,71 @@ class TrainingSSEService {
   }
 
   /**
-   * Create SSE connection - Updated to match backend endpoint
+   * Subscribe to connection status changes
+   */
+  subscribeToConnectionStatus(callback: (status: 'connecting' | 'open' | 'closed') => void): void {
+    this.connectionStatusCallbacks.add(callback);
+  }
+
+  /**
+   * Unsubscribe from connection status changes
+   */
+  unsubscribeFromConnectionStatus(callback: (status: 'connecting' | 'open' | 'closed') => void): void {
+    this.connectionStatusCallbacks.delete(callback);
+  }
+
+  /**
+   * Get recent event logs
+   */
+  getRecentEventLogs(agentId?: string, limit: number = 50): SSEEventLog[] {
+    let logs = this.eventLogs;
+    
+    if (agentId) {
+      logs = logs.filter(log => log.agentId === agentId);
+    }
+    
+    return logs
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      .slice(0, limit);
+  }
+
+  /**
+   * Clear event logs
+   */
+  clearEventLogs(agentId?: string): void {
+    if (agentId) {
+      this.eventLogs = this.eventLogs.filter(log => log.agentId !== agentId);
+    } else {
+      this.eventLogs = [];
+    }
+  }
+
+  /**
+   * Create SSE connection
    */
   private async connect(agentId: string, token: string): Promise<void> {
     try {
       // Close existing connection
       this.disconnect();
 
-      // Backend endpoint: /api/ai/train-status/{agentId}
-      const testUrl = `https://api-staging.7en.ai/api/demo/sse/`
+      // Notify connection status change
+      this.notifyConnectionStatus('connecting');
+
+      // Backend endpoint: /api/ai/train-status-sse/{agentId}/
       const sseUrl = `https://api-staging.7en.ai/api/ai/train-status-sse/${agentId}/`;
-      const urlWithAuth = `${sseUrl}?token=${token}`;
       
-      this.eventSource = new SSE(sseUrl, {headers: {
-        'Content-Type': 'text/event-stream',
-        'Authorization': `Bearer ${getAccessToken()}`
-      },
-      method: 'POST'});
-      // this.eventSource.stream();
-      // this.eventSource.addEventListener('message', function(e) {
-      //   // Assuming we receive JSON-encoded data payloads:
-      //   var payload = JSON.parse(e.data);
-      //   console.log(payload);
-      // });
-      //this.eventSource = new EventSource(urlWithAuth);
-
-      // this.eventSource = new SSE(sseUrl,{headers: {
-      //   'Authorization': `Bearer ${getAccessToken()}`
-      // }
-      // });
-// Send a POST request with the fetch API
-    // const response = await fetch(sseUrl, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Authorization': `Bearer ${getAccessToken()}`,
-    //     'Content-Type': 'text/event-stream',
-    //   } // Your POST payload
-    // });
-
-    // // Check if the response is OK
-    // if (!response.ok) {
-    //   throw new Error(`HTTP error! Status: ${response.status}`);
-    // }
-
-    // // Get the readable stream from the response body
-    // const reader = response.body.getReader();
-    //   console.log(reader);
-
-    //   // Handle connection open
-    //   this.eventSource.onopen = (event) => {
-    //     console.log('SSE connection opened:', event);
-    //     this.reconnectAttempts = 0;
-    //   };
+      this.eventSource = new SSE(sseUrl, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Authorization': `Bearer ${token}`
+        },
+        method: 'POST'
+      });
 
       // Handle incoming messages (for generic message events)
       this.eventSource.onmessage = (event) => {
         try {
-          console.log("SSE event",event);
+          console.log("SSE event", event);
           const data = JSON.parse(event.data);
           console.log('Generic SSE message:', data);
         } catch (error) {
@@ -122,10 +139,18 @@ class TrainingSSEService {
         }
       };
 
+      // Handle connection open
+      this.eventSource.onopen = (event) => {
+        console.log('SSE connection opened:', event);
+        this.reconnectAttempts = 0;
+        this.notifyConnectionStatus('open');
+      };
+
       // Handle connection errors
       this.eventSource.onerror = (event) => {
         console.error('SSE connection error:', event);
-        //this.handleConnectionError(agentId, token);
+        this.notifyConnectionStatus('closed');
+        this.handleConnectionError(agentId, token);
       };
 
       // Setup backend-specific event listeners
@@ -133,6 +158,7 @@ class TrainingSSEService {
 
     } catch (error) {
       console.error('Failed to create SSE connection:', error);
+      this.notifyConnectionStatus('closed');
     }
   }
 
@@ -147,7 +173,16 @@ class TrainingSSEService {
       try {
         const data = JSON.parse(event.data);
         console.log('Training connected:', data);
-        // Could emit this as a separate event if needed
+        
+        const eventData: SSETrainingEvent = {
+          event: 'training_connected',
+          data: {
+            ...data,
+            task_id: this.taskMappings.get(data.agent_id) || 'unknown',
+            status: 'training' as const
+          }
+        };
+        this.handleSSEEvent(eventData);
       } catch (error) {
         console.error('Error parsing training_connected event:', error);
       }
@@ -162,7 +197,7 @@ class TrainingSSEService {
           data: {
             ...backendData,
             task_id: this.taskMappings.get(backendData.agent_id) || 'unknown',
-            status: 'training'
+            status: 'training' as const
           }
         };
         this.handleSSEEvent(eventData);
@@ -180,7 +215,7 @@ class TrainingSSEService {
           data: {
             ...backendData,
             task_id: this.taskMappings.get(backendData.agent_id) || 'unknown',
-            status: 'completed'
+            status: 'completed' as const
           }
         };
         this.handleSSEEvent(eventData);
@@ -198,7 +233,7 @@ class TrainingSSEService {
           data: {
             ...backendData,
             task_id: this.taskMappings.get(backendData.agent_id) || 'unknown',
-            status: 'failed'
+            status: 'failed' as const
           }
         };
         this.handleSSEEvent(eventData);
@@ -212,14 +247,42 @@ class TrainingSSEService {
    * Handle SSE events and notify callbacks
    */
   private handleSSEEvent(event: SSETrainingEvent): void {
-    const callback = this.callbacks.get(event.data.agent_id);
+    // Add to event log
+    const logEntry: SSEEventLog = {
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      event,
+      timestamp: new Date(),
+      agentId: event.data.agent_id
+    };
     
+    this.eventLogs.push(logEntry);
+    
+    // Keep only recent logs (last 100)
+    if (this.eventLogs.length > 100) {
+      this.eventLogs = this.eventLogs.slice(-100);
+    }
+
+    // Notify callback
+    const callback = this.callbacks.get(event.data.agent_id);
     if (callback) {
       callback(event);
     }
 
     // Log event for debugging
     console.log('Received SSE event:', event);
+  }
+
+  /**
+   * Notify connection status callbacks
+   */
+  private notifyConnectionStatus(status: 'connecting' | 'open' | 'closed'): void {
+    this.connectionStatusCallbacks.forEach(callback => {
+      try {
+        callback(status);
+      } catch (error) {
+        console.error('Error in connection status callback:', error);
+      }
+    });
   }
 
   /**
@@ -252,6 +315,7 @@ class TrainingSSEService {
       this.eventSource = null;
     }
     this.reconnectAttempts = 0;
+    this.notifyConnectionStatus('closed');
   }
 
   /**
