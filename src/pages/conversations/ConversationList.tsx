@@ -32,6 +32,9 @@ const ConversationList = () => {
   // Get the sessions from our WebSocket hook
   const { sessions, refreshSessions } = useChatSessions();
   
+  // Local conversation state for immediate UI updates
+  const [localConversationUpdates, setLocalConversationUpdates] = useState<{[key: string]: any}>({});
+  
   useEffect(() => {
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
@@ -41,10 +44,38 @@ const ConversationList = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Find the active conversation
-  const activeConversation = sessions.find(c => c.id === selectedConversation) || null;
+  // Find the active conversation with local updates applied
+  const getActiveConversation = () => {
+    const baseConversation = sessions.find(c => c.id === selectedConversation);
+    if (!baseConversation) return null;
+    
+    // Apply any local updates
+    const localUpdate = localConversationUpdates[selectedConversation];
+    return localUpdate ? { ...baseConversation, ...localUpdate } : baseConversation;
+  };
+
+  const activeConversation = getActiveConversation();
   const isDesktop = windowWidth >= 1024;
   const isTablet = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
+
+  // Handle conversation updates (for resolve functionality)
+  const handleConversationUpdate = (updatedConversation: any) => {
+    console.log('Conversation updated:', updatedConversation);
+    
+    // Update local state immediately for UI responsiveness
+    setLocalConversationUpdates(prev => ({
+      ...prev,
+      [updatedConversation.id]: updatedConversation
+    }));
+    
+    // Refresh sessions data to sync with backend
+    refreshSessions();
+    
+    toast({
+      title: "Conversation updated",
+      description: `Status changed to ${updatedConversation.status}`,
+    });
+  };
 
   const handleHandoffClick = (handoff: any) => {
     setSelectedAgent(handoff.from);
@@ -61,6 +92,8 @@ const ConversationList = () => {
     setSelectedConversation(convId);
     // Reset selected agent when changing conversation
     setSelectedAgent(null);
+    // Clear any local updates for the previously selected conversation
+    setLocalConversationUpdates({});
   };
 
   // Handle error boundary retry
@@ -69,6 +102,7 @@ const ConversationList = () => {
     refreshSessions();
     setSelectedConversation(null);
     setSelectedAgent(null);
+    setLocalConversationUpdates({});
   };
 
   if (isDesktop) {
@@ -110,6 +144,7 @@ const ConversationList = () => {
                     description: "Your message has been sent to the customer.",
                   });
                 }}
+                onConversationUpdate={handleConversationUpdate}
               />
             </div>
           </ResizablePanel>
@@ -172,6 +207,7 @@ const ConversationList = () => {
                 description: "Your message has been sent to the customer.",
               });
             }}
+            onConversationUpdate={handleConversationUpdate}
           />
         </div>
       </div>

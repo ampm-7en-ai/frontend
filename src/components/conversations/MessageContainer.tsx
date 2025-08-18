@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import MessageList from './MessageList';
 import ConversationHeader from './ConversationHeader';
@@ -20,6 +21,7 @@ interface MessageContainerProps {
   getStatusBadge: (status: string) => React.ReactNode;
   onSendMessage: (message: string) => void;
   isTyping?: boolean; // New prop to show typing indicator
+  onConversationUpdate?: (updatedConversation: any) => void;
 }
 
 const MessageContainer = ({
@@ -29,7 +31,8 @@ const MessageContainer = ({
   onInfoClick,
   getStatusBadge,
   onSendMessage,
-  isTyping: externalIsTyping
+  isTyping: externalIsTyping,
+  onConversationUpdate
 }: MessageContainerProps) => {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -108,7 +111,7 @@ const MessageContainer = ({
         getStatusBadge={getStatusBadge}
         messageCount={validMessages?.filter(m => m.sender !== "system").length}
         hideActionButtons={true}
-        onConversationUpdate={()=>console.log("pujanz")}
+        onConversationUpdate={onConversationUpdate}
       />
       
       <div className="flex-1 overflow-hidden bg-gradient-to-br from-slate-50/80 to-slate-100/80 dark:from-slate-900/80 dark:to-slate-800/80"> 
