@@ -24,7 +24,6 @@ import BusinessDetail from './pages/businesses/BusinessDetail';
 import SystemHealth from './pages/system/SystemHealth';
 import PlatformAnalytics from './pages/analytics/PlatformAnalytics';
 import ConversationList from './pages/conversations/ConversationList';
-import ConversationDetail from './pages/conversations/ConversationDetail';
 import KnowledgeBase from './pages/knowledge/KnowledgeBase';
 import FolderSources from './pages/knowledge/FolderSources';
 import KnowledgeUpload from './pages/knowledge/KnowledgeUpload';
@@ -125,7 +124,6 @@ const ProtectedRoutes = () => {
         />
         
         <Route path="/conversations" element={<ConversationList />} />
-        <Route path="/conversations/:conversationId" element={<ConversationDetail />} />
         
         <Route path="/knowledge" element={<KnowledgeBase />} />
         <Route path="/knowledge/sources/:agentId" element={<FolderSources />} />

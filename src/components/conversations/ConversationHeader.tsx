@@ -138,7 +138,7 @@ const ConversationHeader = ({
         </div>
         
         <div className="flex items-center gap-2">
-          {!isHumanAgent && conversation.channel !== "ticketing" && (
+          {!isHumanAgent && conversation.channel !== "ticketing" && conversation.status !== 'Resolved' && (
             <ModernButton
               variant="outline"
               size="sm"
