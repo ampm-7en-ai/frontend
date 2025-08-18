@@ -108,6 +108,7 @@ const MessageContainer = ({
         getStatusBadge={getStatusBadge}
         messageCount={validMessages?.filter(m => m.sender !== "system").length}
         hideActionButtons={true}
+        onConversationUpdate={()=>console.log("pujanz")}
       />
       
       <div className="flex-1 overflow-hidden bg-gradient-to-br from-slate-50/80 to-slate-100/80 dark:from-slate-900/80 dark:to-slate-800/80"> 

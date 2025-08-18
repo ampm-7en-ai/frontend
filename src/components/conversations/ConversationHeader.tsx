@@ -87,10 +87,11 @@ const ConversationHeader = ({
       }
 
       const result = await response.json();
-      console.log('Conversation resolved:', result);
+     
 
       // Update the conversation with the response data
       if (onConversationUpdate && result.data) {
+         //console.log('Conversation resolved:', result);
         onConversationUpdate({
           ...conversation,
           ...result.data,
@@ -114,7 +115,7 @@ const ConversationHeader = ({
     }
   };
 
-  const isResolved = conversation.status === 'Resolved' || conversation.status === 'Completed';
+  const isResolved = conversation.status === 'Resolved';
   const isHumanAgent = conversation.agentType === 'human';
 
   return (
@@ -137,7 +138,7 @@ const ConversationHeader = ({
         </div>
         
         <div className="flex items-center gap-2">
-          {!isHumanAgent && (
+          {!isHumanAgent && conversation.channel !== "ticketing" && (
             <ModernButton
               variant="outline"
               size="sm"

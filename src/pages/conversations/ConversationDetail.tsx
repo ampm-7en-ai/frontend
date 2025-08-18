@@ -107,6 +107,7 @@ const ConversationDetail = () => {
 
   // Handle conversation update (for resolve functionality)
   const handleConversationUpdate = (updatedConversation: any) => {
+    console.log("pujan",updatedConversation);
     setConversation(updatedConversation);
   };
   
