@@ -26,21 +26,21 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const currentTask = agentId ? AgentTrainingService.getTrainingTask(agentId) : null;
 
   // Check polling connection status
-  useEffect(() => {
-    const checkConnectionStatus = () => {
-      const polling = isPolling();
-      const currentAgent = getCurrentPollingAgent();
+  // useEffect(() => {
+  //   const checkConnectionStatus = () => {
+  //     const polling = isPolling();
+  //     const currentAgent = getCurrentPollingAgent();
       
-      const status = polling ? 'open' : 'closed';
-      setConnectionStatus(status);
+  //     const status = polling ? 'open' : 'closed';
+  //     setConnectionStatus(status);
       
-      console.log('Console: Polling status:', { polling, currentAgent, status });
-    };
+  //     console.log('Console: Polling status:', { polling, currentAgent, status });
+  //   };
 
-    checkConnectionStatus();
-    const interval = setInterval(isPolling() && checkConnectionStatus, 2000);
-    return () => clearInterval(interval);
-  }, []);
+  //   checkConnectionStatus();
+  //   const interval = setInterval(isPolling() && checkConnectionStatus, 2000);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   // Force re-render when task status might have changed
   useEffect(() => {
@@ -149,7 +149,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
         </Button>
       </div>
       
-      {/* <ScrollArea className="flex-1 h-[calc(100%-40px)]">
+      <ScrollArea className="flex-1 h-[calc(100%-40px)]">
         <div className="p-0">
           {isExpanded && (
             <div className="p-4 max-h-60">
@@ -222,7 +222,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             </div>
           )}
         </div>
-      </ScrollArea> */}
+      </ScrollArea>
     </div>
   );
 };

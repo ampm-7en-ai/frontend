@@ -1,7 +1,7 @@
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
 import { toast } from '@/hooks/use-toast';
 import { startPollingAgent } from '@/utils/trainingPoller';
-
+import { trainingSSEService, SSETrainingEvent } from './TrainingSSEService';
 export interface TrainingResponse {
   message: string;
   task_id: string;
@@ -78,7 +78,6 @@ export const AgentTrainingService = {
       const res = await response.json();
       
       if (!response.ok) {
-        console.log("pipip", res);
         const errorText = res.error;
         throw new Error(errorText || "Train agent request failed.");
       }
@@ -87,33 +86,35 @@ export const AgentTrainingService = {
       if (res.task_id) {
         saveTrainingTask(agentId, res.task_id, agentName);
 
-        console.log('🚀 Starting polling with refetchAgentData callback:', !!refetchAgentData);
+
+        //subscribe to SSE updates
+        this.subscribeToTrainingUpdates(agentId, res.task_id, agentName);
         
         // Start simple polling with refetch callback - ensure it's passed correctly
-        startPollingAgent(agentId, (status, message) => {
-          console.log("Training status received:", { status, message });
+        // startPollingAgent(agentId, (status, message) => {
+        // console.log("Training status received:", { status, message });
           
-          if (status === 'Active') {
-            console.log(`Training completed for agent ${agentId}.`);
-            removeTrainingTask(agentId);
+        //   if (status === 'Active') {
+        //     console.log(`Training completed for agent ${agentId}.`);
+        //     removeTrainingTask(agentId);
             
-            toast({
-              title: "Training Completed",
-              description: `${agentName} training completed successfully.`,
-              variant: "default"
-            });
+        //     toast({
+        //       title: "Training Completed",
+        //       description: `${agentName} training completed successfully.`,
+        //       variant: "default"
+        //     });
             
-          } else if (status === 'Issues') {
-            console.log(`Training failed for agent ${agentId}.`);
-            removeTrainingTask(agentId);
+        //   } else if (status === 'Issues') {
+        //     console.log(`Training failed for agent ${agentId}.`);
+        //     removeTrainingTask(agentId);
             
-            toast({
-              title: "Training Failed", 
-              description: `${agentName} training encountered issues.`,
-              variant: "destructive"
-            });
-          }
-        }, refetchAgentData);
+        //     toast({
+        //       title: "Training Failed", 
+        //       description: `${agentName} training encountered issues.`,
+        //       variant: "destructive"
+        //     });
+        //   }
+        // }, refetchAgentData);
       }
       
       toast({
@@ -125,7 +126,7 @@ export const AgentTrainingService = {
       return true;
     } catch (error) {
       console.error("Training failed:", error);
-      
+      updateTrainingTaskStatus(agentId, 'failed');
       toast({
         title: "Training failed",
         description: error instanceof Error ? error.message : "An error occurred while training agent.",
@@ -134,6 +135,71 @@ export const AgentTrainingService = {
       
       return false;
     }
+  },
+  
+  /**
+   * Subscribe to real-time training updates via SSE
+   */
+  subscribeToTrainingUpdates(agentId: string, taskId: string, agentName: string): void {
+    const callback = (event: SSETrainingEvent) => {
+      switch (event.event) {
+        case 'training_connected':
+          updateTrainingTaskStatus(agentId, 'training');
+          toast({
+            title: "Training Started",
+            description: `Training has started for ${agentName}`,
+            variant: "default"
+          });
+          break;
+
+        case 'training_progress':
+          // Update progress if your UI supports it
+          console.log(`Training progress: ${event.data.progress}%`);
+          break;
+
+        case 'training_completed':
+          updateTrainingTaskStatus(agentId, 'completed');
+          toast({
+            title: "Training Complete",
+            description: `${agentName} training completed successfully!`,
+            variant: "default"
+          });
+          // Unsubscribe after completion
+          trainingSSEService.unsubscribe(agentId, taskId);
+          break;
+
+        case 'training_failed':
+          updateTrainingTaskStatus(agentId, 'failed');
+          toast({
+            title: "Training Failed",
+            description: event.data.error || `${agentName} training failed.`,
+            variant: "destructive"
+          });
+          // Unsubscribe after failure
+          trainingSSEService.unsubscribe(agentId, taskId);
+          break;
+
+        case 'training_failed':
+          updateTrainingTaskStatus(agentId, 'failed'); // Or add 'cancelled' status
+          toast({
+            title: "Training Cancelled",
+            description: `${agentName} training was cancelled.`,
+            variant: "default"
+          });
+          // Unsubscribe after cancellation
+          trainingSSEService.unsubscribe(agentId, taskId);
+          break;
+      }
+    };
+
+    trainingSSEService.subscribe(agentId, taskId, callback);
+  },
+
+  /**
+   * Unsubscribe from training updates
+   */
+  unsubscribeFromTrainingUpdates(agentId: string, taskId: string): void {
+    trainingSSEService.unsubscribe(agentId, taskId);
   },
 
   async cancelTraining(agentId: string): Promise<boolean> {
@@ -190,3 +256,7 @@ export const AgentTrainingService = {
     removeTrainingTask(agentId);
   }
 };
+function updateTrainingTaskStatus(agentId: string, arg1: string) {
+  throw new Error('Function not implemented.');
+}
+

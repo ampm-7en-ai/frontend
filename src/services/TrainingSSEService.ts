@@ -60,30 +60,56 @@ class TrainingSSEService {
   /**
    * Create SSE connection - Updated to match backend endpoint
    */
-  private connect(agentId: string, token: string): void {
+  private async connect(agentId: string, token: string): Promise<void> {
     try {
       // Close existing connection
       this.disconnect();
 
       // Backend endpoint: /api/ai/train-status/{agentId}
       const testUrl = `https://api-staging.7en.ai/api/demo/sse/`
-      const sseUrl = `https://api-staging.7en.ai/api/ai/train-status/${agentId}/`;
+      const sseUrl = `https://api-staging.7en.ai/api/ai/train-status-sse/${agentId}/`;
       const urlWithAuth = `${sseUrl}?token=${token}`;
       
-     // this.eventSource = new EventSource(urlWithAuth);
-
-      this.eventSource = new SSE(sseUrl,{headers: {
+      this.eventSource = new SSE(sseUrl, {headers: {
+        'Content-Type': 'text/event-stream',
         'Authorization': `Bearer ${getAccessToken()}`
-      }
-      });
+      },
+      method: 'POST'});
+      // this.eventSource.stream();
+      // this.eventSource.addEventListener('message', function(e) {
+      //   // Assuming we receive JSON-encoded data payloads:
+      //   var payload = JSON.parse(e.data);
+      //   console.log(payload);
+      // });
+      //this.eventSource = new EventSource(urlWithAuth);
 
-      
+      // this.eventSource = new SSE(sseUrl,{headers: {
+      //   'Authorization': `Bearer ${getAccessToken()}`
+      // }
+      // });
+// Send a POST request with the fetch API
+    // const response = await fetch(sseUrl, {
+    //   method: 'POST',
+    //   headers: {
+    //     'Authorization': `Bearer ${getAccessToken()}`,
+    //     'Content-Type': 'text/event-stream',
+    //   } // Your POST payload
+    // });
 
-      // Handle connection open
-      this.eventSource.onopen = (event) => {
-        console.log('SSE connection opened:', event);
-        this.reconnectAttempts = 0;
-      };
+    // // Check if the response is OK
+    // if (!response.ok) {
+    //   throw new Error(`HTTP error! Status: ${response.status}`);
+    // }
+
+    // // Get the readable stream from the response body
+    // const reader = response.body.getReader();
+    //   console.log(reader);
+
+    //   // Handle connection open
+    //   this.eventSource.onopen = (event) => {
+    //     console.log('SSE connection opened:', event);
+    //     this.reconnectAttempts = 0;
+    //   };
 
       // Handle incoming messages (for generic message events)
       this.eventSource.onmessage = (event) => {
