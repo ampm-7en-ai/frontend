@@ -953,7 +953,7 @@ export const GuidelinesPanel = () => {
                   <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
                     <Settings className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-sm font-medium">Behavior Settings</span>
+                  <span className="text-sm font-medium">Escalation</span>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pb-4 px-1">
@@ -963,10 +963,10 @@ export const GuidelinesPanel = () => {
                   <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
                     <div className="space-y-1">
                       <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        Expert Handoff
+                        Ticket Creation
                       </Label>
                       <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Allow the agent to escalate to human domain experts when needed
+                        Allow the agent to create ticket for human support
                       </p>
                     </div>
                     <Switch
