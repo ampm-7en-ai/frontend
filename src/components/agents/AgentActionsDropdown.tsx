@@ -127,6 +127,11 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
     }
   };
 
+  // Stop propagation for the dropdown trigger button
+  const handleDropdownTriggerClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   const actionOptions = [
     {
       value: 'configure',
@@ -142,7 +147,7 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
 
   return (
     <>
-      <div className="relative">
+      <div className="relative" onClick={handleDropdownTriggerClick}>
         <ModernDropdown
           value=""
           onValueChange={handleActionSelect}
@@ -189,7 +194,7 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
       </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Agent</AlertDialogTitle>
             <AlertDialogDescription>
@@ -205,9 +210,12 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete();
+              }}
               disabled={deleting}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-500"
             >
