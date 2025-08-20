@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Edit, Copy, Trash2, MoreVertical } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { agentApi } from '@/utils/api-config';
-import { removeAgentFromCache } from '@/utils/agentCacheUtils';
+import { removeAgentFromCache, updateCachesAfterAgentCreation } from '@/utils/agentCacheUtils';
 import { useQueryClient } from '@tanstack/react-query';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
@@ -23,10 +23,10 @@ interface AgentActionsDropdownProps {
   agentId: string;
   agentName: string;
   onDelete?: (agentId: string) => void;
-  onDuplicate?: (agentId: string) => void;
+  agent: {};
 }
 
-const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: AgentActionsDropdownProps) => {
+const AgentActionsDropdown = ({ agentId, agentName, onDelete, agent }: AgentActionsDropdownProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -76,15 +76,45 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
 
   const handleDuplicate = async () => {
     if (duplicating) return;
+    let copyData = {
+      name: "",
+      description: "",
+      appearance: "",
+      behavior: "",
+      model: "",
+      systemPrompt: ""
+    };
     setDuplicating(true);
     try {
-      const response = await agentApi.duplicate(agentId);
-      
+
+      const response = await agentApi.getById(agentId);
       if (!response.ok) {
         let detail;
         try {
           const errJson = await response.json();
           detail = (errJson && errJson.error.message) || await response.text();
+        } catch { /* ignore */ }
+        throw new Error(detail || response.statusText || 'Failed to duplicate agent');
+      }
+
+      const agentData = await response.json();
+
+      //copying data
+      copyData.name = agentName + "(copy)";
+      copyData.description = "Duplicate of "+ agentName;
+      copyData.appearance = agentData.data.appearance;
+      copyData.behavior = agentData.data.behavior;
+      copyData.model = agentData.data.model;
+      copyData.systemPrompt = agentData.data.systemPrompt;
+      console.log("agent-copy",copyData);
+
+      const data = await agentApi.duplicate(copyData);
+      
+      if (!data.ok) {
+        let detail;
+        try {
+          const errJson = await data.json();
+          detail = (errJson && errJson.error.message) || await data.text();
         } catch { /* ignore */ }
         throw new Error(detail || response.statusText || 'Failed to duplicate agent');
       }
@@ -94,10 +124,10 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
         description: `A copy of "${agentName}" has been created successfully.`,
         variant: "default"
       });
-      
-      if (onDuplicate) {
-        onDuplicate(agentId);
-      }
+      const res = await data.json();
+      //updating cache after creation
+      updateCachesAfterAgentCreation(queryClient, res);
+        
     } catch (err: any) {
       toast({
         title: "Failed to duplicate agent",

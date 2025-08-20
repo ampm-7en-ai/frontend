@@ -87,12 +87,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
 
   const shouldUseCarousel = agent.knowledgeSources && agent.knowledgeSources.length > 4;
   
-  const handleDuplicate = async (_agentId: string) => {
-    // Refresh the list after duplication
-    if (onDelete) {
-      onDelete(_agentId);
-    }
-  };
+
   
   const handleConfigure = (agentId) => {
     navigate(`/agents/builder/${agentId}`);
@@ -126,7 +121,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                   agentId={agent.id} 
                   agentName={agent.name}
                   onDelete={onDelete}
-                  onDuplicate={handleDuplicate}
+                  agent={agent}
                 />
               </div>
             </div>

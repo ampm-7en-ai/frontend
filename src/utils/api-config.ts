@@ -385,8 +385,8 @@ export const agentApi = {
     return response;
   },
 
-  duplicate: async (agentId: string) => {
-    const response = await apiPost(getApiUrl(`${API_ENDPOINTS.AGENTS}${agentId}/duplicate/`), {});
+  duplicate: async (data: {}) => {
+    const response = await apiPost(getApiUrl(`${API_ENDPOINTS.AGENTS}`), data);
     return response;
   },
 
