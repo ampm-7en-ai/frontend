@@ -4,11 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { Edit, Copy, Trash2, MoreVertical } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { agentApi } from '@/utils/api-config';
-import { removeAgentFromCache, updateCachesAfterAgentCreation } from '@/utils/agentCacheUtils';
+import { removeAgentFromCache } from '@/utils/agentCacheUtils';
 import { useQueryClient } from '@tanstack/react-query';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
-import { Agent } from '@/hooks/useAgentFiltering';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,27 +20,13 @@ import {
 } from '@/components/ui/alert-dialog';
 
 interface AgentActionsDropdownProps {
-  agent: Agent;
+  agentId: string;
+  agentName: string;
   onDelete?: (agentId: string) => void;
   onDuplicate?: (agentId: string) => void;
 }
 
-// Transform agent data for duplication API payload
-const transformAgentForDuplication = (agent: Agent) => {
-  return {
-    name: `${agent.name} (Copy)`,
-    description: agent.description,
-    model: agent.model,
-    knowledge_sources: agent.knowledgeSources?.map(ks => ({
-      id: ks.id,
-      name: ks.name,
-      type: ks.type
-    })) || [],
-    default_ticketing_provider: agent.default_ticketing_provider || ''
-  };
-};
-
-const AgentActionsDropdown = ({ agent, onDelete, onDuplicate }: AgentActionsDropdownProps) => {
+const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: AgentActionsDropdownProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -53,7 +38,7 @@ const AgentActionsDropdown = ({ agent, onDelete, onDuplicate }: AgentActionsDrop
     if (deleting) return;
     setDeleting(true);
     try {
-      const response = await agentApi.delete(agent.id);
+      const response = await agentApi.delete(agentId);
       
       if (!response.ok) {
         let detail;
@@ -65,8 +50,8 @@ const AgentActionsDropdown = ({ agent, onDelete, onDuplicate }: AgentActionsDrop
       }
       
       // CACHE-FIRST: Remove agent from cache immediately
-      console.log('🗑️ AgentActionsDropdown: Removing agent from cache:', agent.id);
-      removeAgentFromCache(queryClient, agent.id);
+      console.log('🗑️ AgentActionsDropdown: Removing agent from cache:', agentId);
+      removeAgentFromCache(queryClient, agentId);
       
       toast({
         title: "Agent deleted",
@@ -75,7 +60,7 @@ const AgentActionsDropdown = ({ agent, onDelete, onDuplicate }: AgentActionsDrop
       });
       
       if (onDelete) {
-        onDelete(agent.id);
+        onDelete(agentId);
       }
     } catch (err: any) {
       toast({
@@ -93,13 +78,7 @@ const AgentActionsDropdown = ({ agent, onDelete, onDuplicate }: AgentActionsDrop
     if (duplicating) return;
     setDuplicating(true);
     try {
-      console.log('🔄 Duplicating agent with data:', agent);
-      
-      // Transform agent data for API payload
-      const duplicatePayload = transformAgentForDuplication(agent);
-      console.log('📦 Duplicate payload:', duplicatePayload);
-      
-      const response = await agentApi.duplicate(agent.id, duplicatePayload);
+      const response = await agentApi.duplicate(agentId);
       
       if (!response.ok) {
         let detail;
@@ -110,26 +89,16 @@ const AgentActionsDropdown = ({ agent, onDelete, onDuplicate }: AgentActionsDrop
         throw new Error(detail || response.statusText || 'Failed to duplicate agent');
       }
       
-      const data = await response.json();
-      console.log('✅ Duplicate response:', data);
-      
-      // CACHE-FIRST: Update cache immediately with new agent
-      if (data.data) {
-        console.log('🔄 Updating caches after duplication (CACHE-FIRST)');
-        updateCachesAfterAgentCreation(queryClient, data);
-      }
-      
       toast({
         title: "Agent duplicated",
-        description: `A copy of "${agent.name}" has been created successfully.`,
+        description: `A copy of "${agentName}" has been created successfully.`,
         variant: "default"
       });
       
       if (onDuplicate) {
-        onDuplicate(agent.id);
+        onDuplicate(agentId);
       }
     } catch (err: any) {
-      console.error('❌ Duplication failed:', err);
       toast({
         title: "Failed to duplicate agent",
         description: err?.message || "An error occurred.",
@@ -141,7 +110,7 @@ const AgentActionsDropdown = ({ agent, onDelete, onDuplicate }: AgentActionsDrop
   };
 
   const handleConfigure = () => {
-    navigate(`/agents/builder/${agent.id}`);
+    navigate(`/agents/builder/${agentId}`);
   };
 
   const handleActionSelect = (value: string) => {
@@ -234,7 +203,7 @@ const AgentActionsDropdown = ({ agent, onDelete, onDuplicate }: AgentActionsDrop
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Agent</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{agent.name}"? This action cannot be undone and will permanently remove:
+              Are you sure you want to delete "{agentName}"? This action cannot be undone and will permanently remove:
               <br />
               <br />
               • The agent and all its conversations
