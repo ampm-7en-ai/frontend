@@ -1037,7 +1037,7 @@ export const ChatboxPreview = ({
     >
       {/* Header */}
       <div 
-        className="p-5 rounded-t-xl flex items-center justify-between relative overflow-hidden flex-shrink-0"
+        className="p-5 rounded-t-2xl flex items-center justify-between relative overflow-hidden flex-shrink-0"
         style={{ 
           background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)}, ${adjustColor(primaryColor, -50)})`
         }}
