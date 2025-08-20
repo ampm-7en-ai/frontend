@@ -139,6 +139,11 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, onDuplicate }: Age
       description: 'Edit settings and behavior'
     },
     {
+      value: 'duplicate',
+      label: duplicating ? 'Duplicating...' : 'Duplicate',
+      description: 'Create a copy of this agent'
+    },
+    {
       value: 'delete',
       label: deleting ? 'Deleting...' : 'Delete',
       description: ''
