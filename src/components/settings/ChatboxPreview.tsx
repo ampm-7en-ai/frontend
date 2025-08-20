@@ -1031,13 +1031,14 @@ export const ChatboxPreview = ({
         fontFamily: fontFamily,
         height: '100%',
         boxShadow: `0`,
-        border: `1px solid ${primaryColor}10`,
+        border: `none`,
         transformOrigin: showFloatingButton ? (position === 'bottom-left' ? 'bottom left' : 'bottom right') : 'center',
+        borderRadius: "14px"
       }}
     >
       {/* Header */}
       <div 
-        className="p-5 rounded-t-2xl flex items-center justify-between relative overflow-hidden flex-shrink-0"
+        className="p-4 rounded-t-xl flex items-center justify-between relative overflow-hidden flex-shrink-0"
         style={{ 
           background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)}, ${adjustColor(primaryColor, -50)})`
         }}

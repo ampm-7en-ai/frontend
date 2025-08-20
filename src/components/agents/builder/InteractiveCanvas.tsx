@@ -123,7 +123,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
             }}
           >
             {/* ChatboxPreview - unmount/mount based on loading state */}
-            <div className={`w-full h-full overflow-hidden ${isChatMinimized ? 'hidden' : 'block'}`} style={{borderRadius:"0px 0px 20px 20px"}}>
+            <div className={`w-full h-full overflow-hidden ${isChatMinimized ? 'hidden' : 'block'}`} style={{borderRadius:"0px 0px 12px 12px"}}>
               {!isLoading && (
                 <ChatboxPreview
                   agentId={currentAgentId}
