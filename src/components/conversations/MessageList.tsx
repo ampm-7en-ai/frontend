@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Bot, RefreshCw, User, Info, Copy, RotateCcw, ThumbsUp, ThumbsDown, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -13,9 +13,8 @@ import {
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import MessageRevisionModal from './MessageRevisionModal';
 import { StyledMarkdown } from '@/components/ui/styled-markdown';
-import { adjustColorForDarkTheme } from '@/utils/adjustColorForDarkTheme';
-
 import { useAppTheme } from '@/hooks/useAppTheme';
+
 interface MessageProps {
   message: any;
   selectedAgent: string | null;
@@ -23,8 +22,6 @@ interface MessageProps {
   isTyping?: boolean;
   allMessages: any[];
   sessionId?: string;
-  theme?: string;
-  toggleTheme?: any;
 }
 
 const MessageList = ({ 
@@ -33,18 +30,14 @@ const MessageList = ({
   messageContainerRef,
   isTyping,
   allMessages,
-  sessionId,
-  theme,
-  toggleTheme
+  sessionId
 }: MessageProps) => {
   const isHighlighted = selectedAgent && message.sender === 'bot' && message.agent === selectedAgent;
   const [showControls, setShowControls] = useState(false);
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
   const [feedback, setFeedback] = useState<'helpful' | 'unhelpful' | null>(null);
   const { showToast } = useFloatingToast();
-  //const { theme, toggleTheme } = useAppTheme();
-
-
+  const { theme } = useAppTheme();
 
   const handleCopy = () => {
     if (typeof message.content === 'string') {
@@ -61,7 +54,6 @@ const MessageList = ({
   };
 
   const handleRevisionSave = (revisedAnswer: string) => {
-    // Here you would typically update the message in your state/context
     console.log('Revised answer:', revisedAnswer);
     showToast({
       title: "Answer improved successfully",
@@ -84,7 +76,6 @@ const MessageList = ({
     
     const currentMessageIndex = allMessages.findIndex(msg => msg.id === message.id);
     
-    // Look for the previous user message
     for (let i = currentMessageIndex - 1; i >= 0; i--) {
       if (allMessages[i].sender === 'user') {
         return allMessages[i].content;
@@ -99,7 +90,6 @@ const MessageList = ({
     
     const currentMessageIndex = allMessages.findIndex(msg => msg.id === message.id);
     
-    // Look for the previous user message
     for (let i = currentMessageIndex - 1; i >= 0; i--) {
       if (allMessages[i].sender === 'user') {
         return allMessages[i].id;
@@ -206,7 +196,6 @@ const MessageList = ({
                   >
                     {message.content}
                   </ReactMarkdown>
-                  
                 )}
               </div>
               <div className="text-xs mt-2 opacity-70 text-right">
@@ -228,22 +217,10 @@ const MessageList = ({
               >
                 <div className="prose-sm max-w-none break-words text-slate-800 dark:text-slate-200">
                   {typeof message.content === 'string' && (
-                    // <ReactMarkdown
-                    //   components={{
-                    //     p: ({ children }) => <p className="m-0 leading-relaxed">{children}</p>,
-                    //     ul: ({ children }) => <ul className="m-0 mt-2 pl-4">{children}</ul>,
-                    //     ol: ({ children }) => <ol className="m-0 mt-2 pl-4">{children}</ol>,
-                    //     li: ({ children }) => <li className="mb-1">{children}</li>,
-                    //     strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                    //     em: ({ children }) => <em className="italic">{children}</em>
-                    //   }}
-                    // >
-                    //   {message.content}
-                    // </ReactMarkdown>
                     <StyledMarkdown
-                      key={`${message.id}-${theme}`}
+                      key={`markdown-${message.id}-${theme}`}
                       content={message.content}
-                      primaryColor={theme === 'dark' ?  adjustColorForDarkTheme("#0f172a") : `#0f172a`}
+                      primaryColor={theme === 'dark' ? '#60a5fa' : '#2563eb'}
                       isDarkTheme={theme === 'dark'}
                     />
                   )}
@@ -352,7 +329,6 @@ const MessageList = ({
         )}
       </div>
 
-      {/* Message Revision Modal */}
       <MessageRevisionModal
         open={revisionModalOpen}
         onOpenChange={setRevisionModalOpen}

@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import MessageList from './MessageList';
 import ConversationHeader from './ConversationHeader';
@@ -8,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader } from 'lucide-react';
 import { useAppTheme } from '@/hooks/useAppTheme';
+
 interface MessageContainerProps {
   conversation: {
     id: string;
@@ -62,7 +62,6 @@ const MessageContainer = ({
     autoConnect: !!conversationId
   });
 
-
   // Pass sentiment data to parent when it changes
   // useEffect(() => {
   //   if (onSentimentDataChange) {
@@ -84,7 +83,6 @@ const MessageContainer = ({
     }
   }, [sentimentData, onSentimentDataChange]);
 
-  
   // Effect to scroll to agent messages when selectedAgent changes
   useEffect(() => {
     if (selectedAgent && messageContainerRef.current && messages) {
@@ -177,17 +175,17 @@ const MessageContainer = ({
               ) : (
                 <div className="space-y-6" ref={messageContainerRef}>
                 {  
-                    validMessages.map((message: any) => (
+                    validMessages
+                      .filter(msg => !msg.isSystemMessage || msg.sender === 'system')
+                      .map((message, index) => (
                       <MessageList 
-                        key={message.id}
+                        key={`${message.id}-${index}`}
                         message={message}
                         selectedAgent={selectedAgent}
                         messageContainerRef={messageContainerRef}
-                        isTyping={isTyping} 
+                        isTyping={isTyping && index === validMessages.length - 1}
                         allMessages={validMessages}
                         sessionId={conversationId}
-                        theme={theme}
-                        toggleTheme={toggleTheme}
                       />
                     ))
                 }
