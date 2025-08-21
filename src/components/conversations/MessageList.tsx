@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Bot, RefreshCw, User, Info, Copy, RotateCcw, ThumbsUp, ThumbsDown, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,7 @@ import MessageRevisionModal from './MessageRevisionModal';
 import { StyledMarkdown } from '@/components/ui/styled-markdown';
 import { adjustColorForDarkTheme } from '@/utils/adjustColorForDarkTheme';
 
+import { useAppTheme } from '@/hooks/useAppTheme';
 interface MessageProps {
   message: any;
   selectedAgent: string | null;
@@ -23,6 +24,7 @@ interface MessageProps {
   allMessages: any[];
   sessionId?: string;
   theme?: string;
+  toggleTheme?: any;
 }
 
 const MessageList = ({ 
@@ -32,13 +34,17 @@ const MessageList = ({
   isTyping,
   allMessages,
   sessionId,
-  theme
+  theme,
+  toggleTheme
 }: MessageProps) => {
   const isHighlighted = selectedAgent && message.sender === 'bot' && message.agent === selectedAgent;
   const [showControls, setShowControls] = useState(false);
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
   const [feedback, setFeedback] = useState<'helpful' | 'unhelpful' | null>(null);
   const { showToast } = useFloatingToast();
+  //const { theme, toggleTheme } = useAppTheme();
+
+
 
   const handleCopy = () => {
     if (typeof message.content === 'string') {
@@ -235,6 +241,7 @@ const MessageList = ({
                     //   {message.content}
                     // </ReactMarkdown>
                     <StyledMarkdown
+                      key={`${message.id}-${theme}`}
                       content={message.content}
                       primaryColor={theme === 'dark' ?  adjustColorForDarkTheme("#0f172a") : `#0f172a`}
                       isDarkTheme={theme === 'dark'}

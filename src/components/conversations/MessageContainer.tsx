@@ -187,6 +187,7 @@ const MessageContainer = ({
                         allMessages={validMessages}
                         sessionId={conversationId}
                         theme={theme}
+                        toggleTheme={toggleTheme}
                       />
                     ))
                 }
