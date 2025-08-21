@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { WebSocketService } from '@/services/WebSocketService';
 import { WS_BASE_URL } from '@/config/env';
@@ -37,17 +38,10 @@ export function useChatMessagesWebSocket({
   const currentSessionId = useRef<string | null>(null);
   const messagesMapRef = useRef<Map<string, Message[]>>(new Map());
 
-
-  // sentiment scores
-  const [sentimentScores, setSentimentScores] = useState<Array<{
-        score: number;
-        timestamp: string;
-      }>>([]);
-
-   // function to extract sentiment scores from messages
-  const extractSentimentScores = useCallback((messages: Message[]) => {
+  // Memoized sentiment scores calculation to prevent loops
+  const sentimentScores = useMemo(() => {
     const scores = messages
-      .filter(message => message.sender === 'agent' && typeof message.sentiment_score === 'number')
+      .filter(message => message.sender === 'user' && typeof message.sentiment_score === 'number')
       .map(message => ({
         score: message.sentiment_score!,
         timestamp: message.timestamp
@@ -55,9 +49,9 @@ export function useChatMessagesWebSocket({
       .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
     
     return scores;
-  }, []);
+  }, [messages]);
 
-  // Calculate average sentiment
+  // Memoized average sentiment calculation
   const averageSentiment = useMemo(() => {
     if (sentimentScores.length === 0) return null;
     return Math.round(sentimentScores.reduce((sum, s) => sum + s.score, 0) / sentimentScores.length);
@@ -111,14 +105,10 @@ export function useChatMessagesWebSocket({
         const validMessages = data.data.filter((msg: any) => 
           msg && msg.content && typeof msg.content === 'string' && msg.content.trim() !== ''
         );
-
-        //Extract sentiment scores
-        const scores = extractSentimentScores(validMessages);
         
         // Only update if this is still the current session
         if (sessionId === currentSessionId.current) {
           setMessages(validMessages);
-          setSentimentScores(scores);
           onMessagesReceived?.(validMessages);
         }
         
@@ -136,18 +126,6 @@ export function useChatMessagesWebSocket({
           // Update messages array with the new message
           setMessages(prev => {
             const updated = [...prev, data];
-
-            if (data.sender === 'agent' && typeof data.sentiment_score === 'number') {
-              setSentimentScores(prevScores => {
-                const newScore = {
-                  score: data.sentiment_score,
-                  timestamp: data.timestamp
-                };
-                return [...prevScores, newScore].sort((a, b) => 
-                  new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-                );
-              });
-            }
             // Update cache
             messagesMapRef.current.set(sessionId, updated);
             return updated;
@@ -206,7 +184,7 @@ export function useChatMessagesWebSocket({
         currentSessionId.current = null;
       }
     };
-  }, [sessionId]);
+  }, [sessionId, onMessage, onMessagesReceived, onTypingStart, onTypingEnd, autoConnect]);
   
   // Function to send a message
   const sendMessage = useCallback((content: string) => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/context/AuthContext';
@@ -27,10 +27,10 @@ const ConversationList = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  
+  // Stabilized sentiment data state to prevent loops
   const [activeSentimentData, setActiveSentimentData] = useState<{
     sentimentScores: Array<{
-      messageId: string;
-      content: string;
       score: number;
       timestamp: string;
     }>;
@@ -42,8 +42,6 @@ const ConversationList = () => {
 
   // Get the sessions from our WebSocket hook
   const { sessions, refreshSessions } = useChatSessions();
-
-
     
   // Local conversation state for immediate UI updates
   const [localConversationUpdates, setLocalConversationUpdates] = useState<{[key: string]: any}>({});
@@ -57,10 +55,16 @@ const ConversationList = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Handle sentiment data changes from MessageContainer
-  const handleSentimentDataChange = (data: typeof activeSentimentData) => {
-    setActiveSentimentData(data);
-  };
+  // Memoized handler to prevent recreation on every render
+  const handleSentimentDataChange = useCallback((data: typeof activeSentimentData) => {
+    // Only update if data has actually changed
+    setActiveSentimentData(prevData => {
+      if (JSON.stringify(prevData) === JSON.stringify(data)) {
+        return prevData; // Return same reference to prevent re-renders
+      }
+      return data;
+    });
+  }, []);
 
   // Reset sentiment data when conversation changes
   useEffect(() => {
@@ -75,7 +79,6 @@ const ConversationList = () => {
   // Find the active conversation with local updates applied
   const getActiveConversation = () => {
     const baseConversation = sessions.find(c => c.id === selectedConversation);
-    console.log("active",baseConversation);
     if (!baseConversation) return null;
     
     // Apply any local updates
@@ -86,7 +89,7 @@ const ConversationList = () => {
   const activeConversation = getActiveConversation();
   const isDesktop = windowWidth >= 1024;
   const isTablet = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
-  console.log("pipipi",activeConversation);
+
   // Handle conversation updates (for resolve functionality)
   const handleConversationUpdate = (updatedConversation: any) => {
     console.log('Conversation updated:', updatedConversation);
@@ -241,6 +244,7 @@ const ConversationList = () => {
               });
             }}
             onConversationUpdate={handleConversationUpdate}
+            onSentimentDataChange={handleSentimentDataChange}
           />
         </div>
       </div>
@@ -252,6 +256,7 @@ const ConversationList = () => {
         selectedAgent={selectedAgent}
         onHandoffClick={handleHandoffClick}
         getSatisfactionIndicator={getSatisfactionIndicator}
+        sentimentData={activeSentimentData}
       />
       
       <style dangerouslySetInnerHTML={{ __html: `
