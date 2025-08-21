@@ -176,7 +176,7 @@ const MessageContainer = ({
                 <div className="space-y-6" ref={messageContainerRef}>
                 {  
                     validMessages
-                      .filter(msg => !msg.isSystemMessage || msg.sender === 'system')
+                      .filter(msg => msg.sender !== 'system')
                       .map((message, index) => (
                       <MessageList 
                         key={`${message.id}-${index}`}
