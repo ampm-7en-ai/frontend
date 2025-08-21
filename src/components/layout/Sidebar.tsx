@@ -186,7 +186,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       highlight: true 
     },
     { id: 'settings', label: 'Settings', href: '/settings', icon: Settings, permission: 'settings' },
-    { id: 'help', label: 'Help & Support', href: '/help/support', icon: HelpCircle },
+    { id: 'help', label: 'Help & Support', href: '#', icon: HelpCircle },
   ];
 
   const superAdminItems: SidebarItem[] = [
@@ -233,6 +233,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       child.label.toLowerCase().includes(searchQuery.toLowerCase())
     ))
   );
+
+  const handlehelp = (href) => {
+    window.open(href,'_blank');
+  }
 
   return (
     <div className="relative flex">
@@ -304,6 +308,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                 <div className="relative group">
                   <NavLink
                     to={item.href}
+                    onClick={item.id === "help" ? () => handlehelp("https://docs.7en.ai/") : null}
                     className="flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
                   >
                     <div className="flex items-center">

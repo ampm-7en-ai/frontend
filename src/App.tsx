@@ -27,8 +27,6 @@ import ConversationList from './pages/conversations/ConversationList';
 import KnowledgeBase from './pages/knowledge/KnowledgeBase';
 import FolderSources from './pages/knowledge/FolderSources';
 import KnowledgeUpload from './pages/knowledge/KnowledgeUpload';
-import Documentation from './pages/help/Documentation';
-import SupportTicket from './pages/help/SupportTicket';
 import { ProtectedRoute } from './utils/routeUtils';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -129,8 +127,7 @@ const ProtectedRoutes = () => {
         <Route path="/knowledge/sources/:agentId" element={<FolderSources />} />
         <Route path="/knowledge/upload" element={<KnowledgeUpload />} />
         
-        <Route path="/help/documentation" element={<Documentation />} />
-        <Route path="/help/support" element={<SupportTicket />} />
+
         
         <Route path="/settings" element={<BusinessSettings />} />
         <Route path="/settings/business" element={<BusinessSettings />} />

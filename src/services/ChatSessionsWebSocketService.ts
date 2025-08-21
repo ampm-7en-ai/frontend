@@ -25,6 +25,7 @@ export interface ChatSessionMessage {
   timestamp: string;
   sender: 'user' | 'bot' | 'system';
   sessionId?: string;
+  sentiment_score?: number;
   metadata?: {
     model?: string;
     temperature?: number;
@@ -159,6 +160,7 @@ export class ChatSessionsWebSocketService {
     const messageTimestamp = data.timestamp || data.message?.timestamp || new Date().toISOString();
     const messageSender = data.sender || data.message?.sender || 'bot';
     const messageId = data.id || data.message?.id || `${messageContent}-${messageTimestamp}`;
+    const sentimentScore = data.sentiment_score || data.message?.sentiment_score || 5;
     
     // Extract metadata if available
     const metadata = data.metadata || {};
@@ -191,6 +193,7 @@ export class ChatSessionsWebSocketService {
       content: messageContent,
       timestamp: messageTimestamp,
       sender: messageSender as 'user' | 'bot' | 'system',
+      sentiment_score: sentimentScore,
       metadata: {
         model: metadata.model || data.model,
         temperature: metadata.temperature || data.temperature,

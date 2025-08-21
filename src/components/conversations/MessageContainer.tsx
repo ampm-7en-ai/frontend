@@ -22,6 +22,13 @@ interface MessageContainerProps {
   onSendMessage: (message: string) => void;
   isTyping?: boolean; // New prop to show typing indicator
   onConversationUpdate?: (updatedConversation: any) => void;
+  onSentimentDataChange?: (data: {    
+    sentimentScores: Array<{
+      score: number;
+      timestamp: string;
+    }>;
+    averageSentiment: number | null;
+  }) => void;
 }
 
 const MessageContainer = ({
@@ -32,7 +39,8 @@ const MessageContainer = ({
   getStatusBadge,
   onSendMessage,
   isTyping: externalIsTyping,
-  onConversationUpdate
+  onConversationUpdate,
+  onSentimentDataChange
 }: MessageContainerProps) => {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -45,11 +53,23 @@ const MessageContainer = ({
     messages, 
     isTyping: wsIsTyping,
     isConnected,
-    sendMessage
+    sendMessage,
+    sentimentScores,
+    averageSentiment
   } = useChatMessagesWebSocket({
     sessionId: conversationId,
     autoConnect: !!conversationId
   });
+
+  // Pass sentiment data to parent when it changes
+  useEffect(() => {
+    if (onSentimentDataChange) {
+      onSentimentDataChange({
+        sentimentScores,
+        averageSentiment
+      });
+    }
+  }, [sentimentScores, averageSentiment, onSentimentDataChange]);
   
   // Effect to scroll to agent messages when selectedAgent changes
   useEffect(() => {

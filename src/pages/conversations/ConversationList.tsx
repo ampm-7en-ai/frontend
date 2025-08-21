@@ -27,10 +27,24 @@ const ConversationList = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [activeSentimentData, setActiveSentimentData] = useState<{
+    sentimentScores: Array<{
+      messageId: string;
+      content: string;
+      score: number;
+      timestamp: string;
+    }>;
+    averageSentiment: number | null;
+  }>({
+    sentimentScores: [],
+    averageSentiment: null
+  });
 
   // Get the sessions from our WebSocket hook
   const { sessions, refreshSessions } = useChatSessions();
-  
+
+
+    
   // Local conversation state for immediate UI updates
   const [localConversationUpdates, setLocalConversationUpdates] = useState<{[key: string]: any}>({});
   
@@ -43,9 +57,25 @@ const ConversationList = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Handle sentiment data changes from MessageContainer
+  const handleSentimentDataChange = (data: typeof activeSentimentData) => {
+    setActiveSentimentData(data);
+  };
+
+  // Reset sentiment data when conversation changes
+  useEffect(() => {
+    if (selectedConversation) {
+      setActiveSentimentData({
+        sentimentScores: [],
+        averageSentiment: null
+      });
+    }
+  }, [selectedConversation]);
+
   // Find the active conversation with local updates applied
   const getActiveConversation = () => {
     const baseConversation = sessions.find(c => c.id === selectedConversation);
+    console.log("active",baseConversation);
     if (!baseConversation) return null;
     
     // Apply any local updates
@@ -56,7 +86,7 @@ const ConversationList = () => {
   const activeConversation = getActiveConversation();
   const isDesktop = windowWidth >= 1024;
   const isTablet = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
-
+  console.log("pipipi",activeConversation);
   // Handle conversation updates (for resolve functionality)
   const handleConversationUpdate = (updatedConversation: any) => {
     console.log('Conversation updated:', updatedConversation);
@@ -145,6 +175,7 @@ const ConversationList = () => {
                   });
                 }}
                 onConversationUpdate={handleConversationUpdate}
+                onSentimentDataChange={handleSentimentDataChange}
               />
             </div>
           </ResizablePanel>
@@ -158,6 +189,7 @@ const ConversationList = () => {
                 selectedAgent={selectedAgent}
                 onHandoffClick={handleHandoffClick}
                 getSatisfactionIndicator={getSatisfactionIndicator}
+                sentimentData={activeSentimentData}
               />
             </div>
           </ResizablePanel>

@@ -9,22 +9,36 @@ import { Clock, MessageSquare, User, Star, TrendingUp, Phone, Mail, MapPin, Cale
 import { cn } from '@/lib/utils';
 import HandoffHistory from './HandoffHistory';
 import CreateSupportTicketModal from './CreateSupportTicketModal';
-import TicketInformation from './TicketInformation';
+import { analyzeSentiment } from '@/lib/sentiment';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface ConversationDetailsPanelProps {
   conversation: any;
   selectedAgent: string | null;
   onHandoffClick: (handoff: any) => void;
   getSatisfactionIndicator: (satisfaction: string) => React.ReactNode;
+  sentimentData: {  
+    sentimentScores: Array<{
+      messageId: string;
+      content: string;
+      score: number;
+      timestamp: string;
+    }>;
+    averageSentiment: number | null;
+  };
 }
 
 const ConversationDetailsPanel = ({ 
   conversation, 
   selectedAgent, 
   onHandoffClick, 
-  getSatisfactionIndicator 
+  getSatisfactionIndicator ,
+  sentimentData
 }: ConversationDetailsPanelProps) => {
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+  const { sentimentScores, averageSentiment } = sentimentData;
+  const scores = sentimentScores.map(item => item.score);
+  const {weightedAverage, sentimentCategory, movingAverages, trend } = analyzeSentiment(scores);
 
   // Extract real handoff data from messages
   const handoffData = useMemo(() => {
@@ -75,20 +89,14 @@ const ConversationDetailsPanel = ({
   }, [conversation?.messages, conversation?.agent, conversation?.assignedAgent]);
 
   const getSentimentEmoji = (sentiment: string) => {
-    switch (sentiment.toLowerCase()) {
-      case 'satisfied':
-      case 'happy':
-        return '😊';
-      case 'frustrated':
-      case 'angry':
-        return '😤';
-      case 'confused':
-        return '😕';
-      case 'excited':
-        return '🤩';
-      case 'neutral':
+    switch (sentiment) {
+      case 'Frustrated':
+        return '😤 Frustrated';
+      case 'Satisfied':
+        return '😊 Satisfied';
+      case 'Neutral':
       default:
-        return '😐';
+        return '😐 Neutral';
     }
   };
 
@@ -132,6 +140,14 @@ const ConversationDetailsPanel = ({
   };
 
   const logoUrl = getTicketLogo(conversation.ticket_by);
+
+  // Transform data for Recharts
+  const chartData = scores.map((score, index) => ({
+    index: index + 1,
+    score: score,
+    movingAverage: index >= 2 ? movingAverages[index - 2] : null
+  }));
+
 
   return (
     <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
@@ -253,7 +269,7 @@ const ConversationDetailsPanel = ({
                     <Star className="h-3 w-3" />
                     Satisfaction
                   </h4>
-                  <div>{getSatisfactionIndicator(conversation.satisfaction)}</div>
+                  <div>{getSentimentEmoji(sentimentCategory)}</div>
                 </div>
               )}
             </div>
@@ -262,20 +278,53 @@ const ConversationDetailsPanel = ({
           {/* Customer Sentiment - Only show if satisfaction data exists */}
           {hasSatisfactionData && (
             <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-4">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
-                  <TrendingUp className="h-4 w-4 text-white" />
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
+                    <TrendingUp className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">Customer Sentiment Journey</h3>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Customer Sentiment</h3>
-                </div>
-              </div>
 
-              <div className="text-center py-4">
-                <div className="text-3xl mb-2">{getSentimentEmoji(conversation.satisfaction)}</div>
-                <p className="font-medium text-gray-900 dark:text-gray-100 capitalize">
-                  {conversation.satisfaction}
-                </p>
+                <div className="text-center py-4">
+                  <div className="scale-90">
+                    <LineChart
+                      width={400}
+                      height={300}
+                      data={chartData}
+                      margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="index"
+                        label={{ value: "Message Number", position: "insideBottom", offset: -5 }}
+                      />
+                      <YAxis
+                        domain={[0, 10]}
+                        label={{ value: "Score", angle: -90, position: "insideLeft" }}
+                        ticks={[0, 2, 4, 6, 8, 10]}
+                      />
+                      <Tooltip />
+                      <Legend verticalAlign="top" height={36} />
+                      <Line
+                        type="monotone"
+                        dataKey="score"
+                        stroke="#4CAF50"
+                        strokeWidth={2}
+                        name="Sentiment Score"
+                        activeDot={{ r: 8 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="movingAverage"
+                        stroke="#2196F3"
+                        strokeWidth={2}
+                        name="3-Message Moving Average"
+                        activeDot={{ r: 8 }}
+                      />
+                    </LineChart>
+                  </div>
               </div>
             </div>
           )}

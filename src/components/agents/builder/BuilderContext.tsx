@@ -427,7 +427,6 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           agentType: state.agentData.agentType,
           systemPrompt: state.agentData.systemPrompt,
           knowledgeSources: state.agentData.knowledgeSources.map(ks => ks.id),
-          ticketing_providers: state.agentData.ticketing_providers,
           default_ticketing_provider: state.agentData.default_ticketing_provider
         };
 
