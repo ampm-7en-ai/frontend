@@ -668,7 +668,7 @@ const SearchAssistant = () => {
                             <div className="flex-1 pl-[10px] pt-[5px] w-full">
                               <StyledMarkdown
                                 content={message.content}
-                                primaryColor={primaryColor}
+                                primaryColor={isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor}
                                 isDarkTheme={isDarkTheme}
                               />
                             </div>

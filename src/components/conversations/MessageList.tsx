@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import MessageRevisionModal from './MessageRevisionModal';
+import { StyledMarkdown } from '@/components/ui/styled-markdown';
+import { adjustColorForDarkTheme } from '@/utils/adjustColorForDarkTheme';
 
 interface MessageProps {
   message: any;
@@ -20,6 +22,7 @@ interface MessageProps {
   isTyping?: boolean;
   allMessages: any[];
   sessionId?: string;
+  theme?: string;
 }
 
 const MessageList = ({ 
@@ -28,7 +31,8 @@ const MessageList = ({
   messageContainerRef,
   isTyping,
   allMessages,
-  sessionId
+  sessionId,
+  theme
 }: MessageProps) => {
   const isHighlighted = selectedAgent && message.sender === 'bot' && message.agent === selectedAgent;
   const [showControls, setShowControls] = useState(false);
@@ -196,6 +200,7 @@ const MessageList = ({
                   >
                     {message.content}
                   </ReactMarkdown>
+                  
                 )}
               </div>
               <div className="text-xs mt-2 opacity-70 text-right">
@@ -211,24 +216,29 @@ const MessageList = ({
               <div 
                 className={cn(
                   "p-3 transition-all max-w-full",
-                  "rounded-2xl rounded-tl-sm bg-white dark:bg-slate-800/90 backdrop-blur-sm",
+                  "rounded-2xl rounded-tl-sm bg-white dark:bg-slate-900/90 backdrop-blur-sm",
                   "border border-slate-200/60 dark:border-slate-700/60 shadow-none"
                 )}
               >
                 <div className="prose-sm max-w-none break-words text-slate-800 dark:text-slate-200">
                   {typeof message.content === 'string' && (
-                    <ReactMarkdown
-                      components={{
-                        p: ({ children }) => <p className="m-0 leading-relaxed">{children}</p>,
-                        ul: ({ children }) => <ul className="m-0 mt-2 pl-4">{children}</ul>,
-                        ol: ({ children }) => <ol className="m-0 mt-2 pl-4">{children}</ol>,
-                        li: ({ children }) => <li className="mb-1">{children}</li>,
-                        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                        em: ({ children }) => <em className="italic">{children}</em>
-                      }}
-                    >
-                      {message.content}
-                    </ReactMarkdown>
+                    // <ReactMarkdown
+                    //   components={{
+                    //     p: ({ children }) => <p className="m-0 leading-relaxed">{children}</p>,
+                    //     ul: ({ children }) => <ul className="m-0 mt-2 pl-4">{children}</ul>,
+                    //     ol: ({ children }) => <ol className="m-0 mt-2 pl-4">{children}</ol>,
+                    //     li: ({ children }) => <li className="mb-1">{children}</li>,
+                    //     strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                    //     em: ({ children }) => <em className="italic">{children}</em>
+                    //   }}
+                    // >
+                    //   {message.content}
+                    // </ReactMarkdown>
+                    <StyledMarkdown
+                      content={message.content}
+                      primaryColor={theme === 'dark' ?  adjustColorForDarkTheme("#0f172a") : `#0f172a`}
+                      isDarkTheme={theme === 'dark'}
+                    />
                   )}
                 </div>
                 <div className="text-xs mt-2 text-slate-500 dark:text-slate-400">

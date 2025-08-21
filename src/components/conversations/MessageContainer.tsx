@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import MessageList from './MessageList';
 import ConversationHeader from './ConversationHeader';
 import ConversationEmptyState from './ConversationEmptyState';
@@ -7,7 +7,7 @@ import { useChatMessagesWebSocket } from '@/hooks/useChatMessagesWebSocket';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader } from 'lucide-react';
-
+import { useAppTheme } from '@/hooks/useAppTheme';
 interface MessageContainerProps {
   conversation: {
     id: string;
@@ -45,6 +45,7 @@ const MessageContainer = ({
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
+  const { theme, toggleTheme } = useAppTheme();
   // Use conversation ID as key to force WebSocket hook to reinitialize when conversation changes
   const conversationId = conversation?.id || null;
   
@@ -61,15 +62,28 @@ const MessageContainer = ({
     autoConnect: !!conversationId
   });
 
+
   // Pass sentiment data to parent when it changes
+  // useEffect(() => {
+  //   if (onSentimentDataChange) {
+  //     onSentimentDataChange({
+  //       sentimentScores,
+  //       averageSentiment
+  //     });
+  //   }
+  // }, [sentimentScores, averageSentiment, onSentimentDataChange]);
+  // Replace lines 65-72 with this memoized version
+  const sentimentData = useMemo(() => ({
+    sentimentScores,
+    averageSentiment
+  }), [sentimentScores, averageSentiment]);
+
   useEffect(() => {
     if (onSentimentDataChange) {
-      onSentimentDataChange({
-        sentimentScores,
-        averageSentiment
-      });
+      onSentimentDataChange(sentimentData);
     }
-  }, [sentimentScores, averageSentiment, onSentimentDataChange]);
+  }, [sentimentData, onSentimentDataChange]);
+
   
   // Effect to scroll to agent messages when selectedAgent changes
   useEffect(() => {
@@ -172,6 +186,7 @@ const MessageContainer = ({
                         isTyping={isTyping} 
                         allMessages={validMessages}
                         sessionId={conversationId}
+                        theme={theme}
                       />
                     ))
                 }

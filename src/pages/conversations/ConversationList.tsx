@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/context/AuthContext';
@@ -58,9 +58,17 @@ const ConversationList = () => {
   }, []);
 
   // Handle sentiment data changes from MessageContainer
-  const handleSentimentDataChange = (data: typeof activeSentimentData) => {
-    setActiveSentimentData(data);
-  };
+  const handleSentimentDataChange = useCallback((data: typeof activeSentimentData) => {
+    // Only update if the data has actually changed to prevent infinite loops
+    setActiveSentimentData(prevData => {
+      // Simple comparison to check if data is different
+      const hasChanged = 
+        JSON.stringify(prevData.sentimentScores) !== JSON.stringify(data.sentimentScores) ||
+        prevData.averageSentiment !== data.averageSentiment;
+      
+      return hasChanged ? data : prevData;
+    });
+  }, []);
 
   // Reset sentiment data when conversation changes
   useEffect(() => {
@@ -73,17 +81,15 @@ const ConversationList = () => {
   }, [selectedConversation]);
 
   // Find the active conversation with local updates applied
-  const getActiveConversation = () => {
+  const activeConversation = useMemo(() => {
     const baseConversation = sessions.find(c => c.id === selectedConversation);
-    console.log("active",baseConversation);
     if (!baseConversation) return null;
     
     // Apply any local updates
     const localUpdate = localConversationUpdates[selectedConversation];
     return localUpdate ? { ...baseConversation, ...localUpdate } : baseConversation;
-  };
+  }, [sessions, selectedConversation, localConversationUpdates]);
 
-  const activeConversation = getActiveConversation();
   const isDesktop = windowWidth >= 1024;
   const isTablet = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
   console.log("pipipi",activeConversation);

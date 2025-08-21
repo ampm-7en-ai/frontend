@@ -38,9 +38,9 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
               if (isInline) {
                 return (
                   <code
-                    className="px-2 py-1 rounded-md font-mono text-sm font-medium"
+                    className="px-1.5 py-0.5 rounded-md !font-mono !text-xs font-medium"
                     style={{ 
-                      backgroundColor: inlineCodeBg,
+                      backgroundColor: `${isDarkTheme ? inlineCodeBg : inlineCodeBg}`+`${isDarkTheme ? "40" : "80"}`,
                       color: primaryColor,
                       fontSize: '0.875rem'
                     }}

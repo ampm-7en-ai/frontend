@@ -266,7 +266,7 @@ const ConversationDetailsPanel = ({
               {hasSatisfactionData && (
                 <div>
                   <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2 text-sm">
-                    <Star className="h-3 w-3" />
+              
                     Satisfaction
                   </h4>
                   <div>{getSentimentEmoji(sentimentCategory)}</div>
@@ -294,11 +294,12 @@ const ConversationDetailsPanel = ({
                       height={300}
                       data={chartData}
                       margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+                      className="pb-4"
                     >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis
                         dataKey="index"
-                        label={{ value: "Message Number", position: "insideBottom", offset: -5 }}
+                        label={{ value: "No. of Messages", position: "insideBottom", offset: -5 }}
                       />
                       <YAxis
                         domain={[0, 10]}
