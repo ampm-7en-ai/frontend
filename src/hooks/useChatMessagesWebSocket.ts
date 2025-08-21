@@ -38,11 +38,13 @@ export function useChatMessagesWebSocket({
   const currentSessionId = useRef<string | null>(null);
   const messagesMapRef = useRef<Map<string, Message[]>>(new Map());
 
-  // Memoized sentiment scores calculation to prevent loops
+  // Memoized sentiment scores calculation to prevent loops - matching expected interface
   const sentimentScores = useMemo(() => {
     const scores = messages
       .filter(message => message.sender === 'user' && typeof message.sentiment_score === 'number')
       .map(message => ({
+        messageId: message.id,
+        content: message.content,
         score: message.sentiment_score!,
         timestamp: message.timestamp
       }))
