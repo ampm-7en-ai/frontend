@@ -184,14 +184,14 @@ const ProtectedRoutes = () => {
             </ProtectedRoute>
           } 
         />
-        <Route 
+        {/* <Route 
           path="/settings/platform/compliance" 
           element={
             <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
               <ComplianceSettings />
             </ProtectedRoute>
           } 
-        />
+        /> */}
         <Route 
           path="/settings/platform/customization" 
           element={

@@ -36,6 +36,8 @@ import { CreateInvoiceDialog } from '@/components/settings/platform/CreateInvoic
 import { useSubscription, SubscriptionPlan } from '@/hooks/useSubscription';
 import DeleteSubscriptionPlanDialog from '@/components/settings/platform/DeleteSubscriptionPlanDialog';
 import { useBillingConfig, useUpdateBillingConfig } from '@/hooks/useBillingConfig';
+import ModernButton from '@/components/dashboard/ModernButton';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
 interface Invoice {
   id: string;
@@ -288,24 +290,24 @@ const BillingSettings = () => {
       description="Manage subscription plans and platform billing configurations"
     >
       <Tabs defaultValue="plans">
-        <TabsList className="grid w-full grid-cols-3 mb-8">
-          <TabsTrigger value="plans">Subscription Plans</TabsTrigger>
-          <TabsTrigger value="invoices">Invoices</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-8 rounded-xl">
+          <TabsTrigger value="plans" className="rounded-lg">Subscription Plans</TabsTrigger>
+          <TabsTrigger value="invoices" className="rounded-lg">Invoices</TabsTrigger>
+          <TabsTrigger value="settings" className="rounded-lg">Settings</TabsTrigger>
         </TabsList>
         
         <TabsContent value="plans">
-          <Card>
+          <Card className="!p-6">
             <CardHeader>
               <div className="flex justify-between items-center">
                 <div>
-                  <CardTitle>Subscription Plans</CardTitle>
+                  <CardTitle className="pl-0">Subscription Plans</CardTitle>
                   <CardDescription>Manage plans and pricing packages</CardDescription>
                 </div>
-                <Button onClick={handleCreatePlan}>
+                <ModernButton onClick={handleCreatePlan} variant="primary">
                   <Plus className="mr-2 h-4 w-4" />
                   Create New Plan
-                </Button>
+                </ModernButton>
               </div>
             </CardHeader>
             <CardContent>
@@ -318,7 +320,7 @@ const BillingSettings = () => {
                   </div>
                 ) : subscriptionPlans && subscriptionPlans.length > 0 ? (
                   subscriptionPlans.map((plan) => (
-                    <Card key={plan.id} className="border">
+                    <Card key={plan.id} className="border dark:text-gray-200">
                       <div className="p-6">
                         <div className="flex justify-between items-start mb-4">
                           <div>
@@ -326,15 +328,15 @@ const BillingSettings = () => {
                             <div className="text-2xl font-bold mt-1">${plan.price}<span className="text-sm font-normal text-muted-foreground">/month</span></div>
                           </div>
                           <div className="flex gap-2">
-                            <Button 
+                            <ModernButton 
                               variant="outline" 
                               size="sm"
                               onClick={() => handleEditPlan(plan.id!)}
                             >
                               <Edit className="h-4 w-4 mr-1" />
                               Edit
-                            </Button>
-                            <Button 
+                            </ModernButton>
+                            <ModernButton 
                               variant="outline" 
                               size="sm" 
                               className="text-red-500 hover:bg-red-50"
@@ -342,7 +344,7 @@ const BillingSettings = () => {
                             >
                               <Trash2 className="h-4 w-4 mr-1" />
                               Delete
-                            </Button>
+                            </ModernButton>
                           </div>
                         </div>
                         
@@ -371,22 +373,22 @@ const BillingSettings = () => {
         </TabsContent>
         
         <TabsContent value="invoices">
-          <Card>
+          <Card className="p-6">
             <CardHeader>
               <div className="flex justify-between items-center">
                 <div>
-                  <CardTitle>Invoice Management</CardTitle>
+                  <CardTitle className="pl-0">Invoice Management</CardTitle>
                   <CardDescription>View and manage all platform invoices</CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={handleExportCsv}>
+                  <ModernButton variant="outline" onClick={handleExportCsv}>
                     <Download className="h-4 w-4 mr-2" /> 
                     Export CSV
-                  </Button>
-                  <Button onClick={() => setIsCreateInvoiceOpen(true)}>
+                  </ModernButton>
+                  <ModernButton onClick={() => setIsCreateInvoiceOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" /> 
                     Create Invoice
-                  </Button>
+                  </ModernButton>
                 </div>
               </div>
             </CardHeader>
@@ -394,11 +396,12 @@ const BillingSettings = () => {
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
                   <div className="relative flex-1">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
                     <Input 
                       placeholder="Search invoices..." 
                       className="pl-10" 
                       value={searchTerm}
+                      variant="modern"
                       onChange={(e) => {
                         setSearchTerm(e.target.value);
                         setCurrentPage(1); // Reset to first page on new search
@@ -407,7 +410,22 @@ const BillingSettings = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Filter className="h-4 w-4 text-muted-foreground" />
-                    <Select 
+                    <ModernDropdown
+                      value={statusFilter}
+                      onValueChange={(value) => {
+                        setStatusFilter(value);
+                        setCurrentPage(1); // Reset to first page on filter change
+                      }}
+                      options={[
+                        { label: "All Statuses", value: "all"},
+                        { label: "Paid", value: "paid"},
+                        { label: "Pending", value: "pending"},
+                        { label: "Overdue", value: "overdue"}
+                      ]}
+                      placeholder="Select Members"
+                      className="text-xs rounded-xl border-slate-200 dark:border-slate-700"
+                    />
+                    {/* <Select 
                       value={statusFilter} 
                       onValueChange={(value) => {
                         setStatusFilter(value);
@@ -423,7 +441,7 @@ const BillingSettings = () => {
                         <SelectItem value="pending">Pending</SelectItem>
                         <SelectItem value="overdue">Overdue</SelectItem>
                       </SelectContent>
-                    </Select>
+                    </Select> */}
                   </div>
                 </div>
                 
@@ -518,9 +536,9 @@ const BillingSettings = () => {
         </TabsContent>
         
         <TabsContent value="settings">
-          <Card>
+          <Card className="p-6 dark:text-gray-200">
             <CardHeader>
-              <CardTitle>Billing Configuration</CardTitle>
+              <CardTitle className="pl-0">Billing Configuration</CardTitle>
               <CardDescription>Manage global billing settings and defaults</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -540,22 +558,24 @@ const BillingSettings = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="billingCurrency">Default Currency</Label>
-                        <Select value={defaultCurrency} onValueChange={setDefaultCurrency}>
-                          <SelectTrigger id="billingCurrency">
-                            <SelectValue placeholder="Select currency" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="usd">USD ($)</SelectItem>
-                            <SelectItem value="eur">EUR (€)</SelectItem>
-                            <SelectItem value="gbp">GBP (£)</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <ModernDropdown
+                          value={defaultCurrency}
+                          onValueChange={setDefaultCurrency}
+                          options={[
+                            { label: "USD ($)", value: "usd"},
+                            { label: "EUR (€)", value: "eur"},
+                            { label: "GBP (£)", value: "gbp"}
+                          ]}
+                          placeholder="Select Members"
+                          className="text-xs rounded-xl border-slate-200 dark:border-slate-700"
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="taxRate">Default Tax Rate (%)</Label>
                         <Input 
                           id="taxRate" 
                           type="number" 
+                          variant="modern"
                           value={defaultTaxRate}
                           onChange={(e) => setDefaultTaxRate(e.target.value)}
                         />
@@ -598,6 +618,7 @@ const BillingSettings = () => {
                         <Input 
                           id="companyName" 
                           value={companyName}
+                          variant="modern"
                           onChange={(e) => setCompanyName(e.target.value)}
                         />
                       </div>
@@ -628,6 +649,7 @@ const BillingSettings = () => {
                         id="reminderDays" 
                         type="number" 
                         value={reminderDays}
+                        variant="modern"
                         onChange={(e) => setReminderDays(e.target.value)}
                       />
                     </div>
@@ -641,9 +663,10 @@ const BillingSettings = () => {
                     </div>
                   </div>
                   
-                  <Button 
+                  <ModernButton 
                     onClick={handleSaveBillingSettings}
                     disabled={updateConfigMutation.isPending}
+                    variant="primary"
                   >
                     {updateConfigMutation.isPending ? (
                       <>
@@ -653,7 +676,7 @@ const BillingSettings = () => {
                     ) : (
                       'Save Settings'
                     )}
-                  </Button>
+                  </ModernButton>
                 </>
               )}
             </CardContent>

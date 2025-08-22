@@ -16,6 +16,8 @@ import { useAgentPrompts } from '@/hooks/useAgentPrompts';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import ModernButton from '@/components/dashboard/ModernButton';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
 const LLMProvidersSettings = () => {
   const [isAddProviderDialogOpen, setIsAddProviderDialogOpen] = useState(false);
@@ -171,16 +173,16 @@ const LLMProvidersSettings = () => {
       description="Configure integrations with language model providers"
     >
       {/* Providers Section */}
-      <Card>
+      <Card className="p-6 dark:text-gray-200">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Provider Configuration</CardTitle>
+            <CardTitle className="pl-0">Provider Configuration</CardTitle>
             <CardDescription>Manage LLM provider API connections and their models</CardDescription>
           </div>
-          <Button onClick={() => setIsAddProviderDialogOpen(true)}>
+          <ModernButton onClick={() => setIsAddProviderDialogOpen(true)} variant='primary'>
             <Plus className="mr-2 h-4 w-4" />
             Add Provider
-          </Button>
+          </ModernButton>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -219,7 +221,7 @@ const LLMProvidersSettings = () => {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="space-y-4 pt-2">
+                    <div className="space-y-4 bg-gray-50/70 dark:bg-slate-950/60 p-6 rounded-2xl">
                       {/* Provider Details */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
                         <div>
@@ -243,14 +245,14 @@ const LLMProvidersSettings = () => {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <h4 className="font-medium">Models</h4>
-                          <Button 
+                          <ModernButton 
                             size="sm" 
                             variant="outline"
                             onClick={() => handleAddModel(provider.id, provider.provider_name)}
                           >
                             <Plus className="mr-1 h-3 w-3" />
                             Add Model
-                          </Button>
+                          </ModernButton>
                         </div>
                         
                         {provider.models && provider.models.length > 0 ? (
@@ -264,12 +266,12 @@ const LLMProvidersSettings = () => {
                                                (typeof provider.default_model === 'string' && provider.default_model === modelObj.name);
                               
                               return (
-                                <div key={modelObj.id || modelObj.name} className="flex items-center justify-between p-3 border rounded-lg">
+                                <div key={modelObj.id || modelObj.name} className="flex items-center justify-between p-3 border rounded-2xl pl-6 dark:hover:bg-slate-900/20">
                                   <div className="flex items-center space-x-3">
                                     <div>
                                       <div className="font-medium">
                                         {modelObj.display_name}<br/>
-                                        <span className='text-[9px]'>{modelObj.name}</span>
+                                        <span className='text-[10px] dark:text-gray-200/50'>{modelObj.name}</span>
                                       </div>
                                       {isDefault && (
                                         <Badge variant="outline" className="text-xs mt-1">Default</Badge>
@@ -278,24 +280,26 @@ const LLMProvidersSettings = () => {
                                   </div>
                                   <div className="flex items-center space-x-2">
                                     {!isDefault && typeof model === 'object' && model && 'id' in model && (
-                                      <Button
+                                      <ModernButton
                                         size="sm"
                                         variant="ghost"
                                         onClick={() => handleSetDefaultModel(provider.id, model.id)}
-                                        className="text-yellow-600 hover:text-yellow-700"
+                                        className="h-10 w-10 text-yellow-600 hover:text-yellow-700"
+                                        iconOnly
                                       >
-                                        <Star className="h-3 w-3" />
-                                      </Button>
+                                        <Star className="h-4 w-4" />
+                                      </ModernButton>
                                     )}
                                     {typeof model === 'object' && model && 'id' in model && (
-                                      <Button
+                                      <ModernButton
                                         size="sm"
                                         variant="ghost"
                                         onClick={() => handleDeleteModel(model.id)}
-                                        className="text-destructive hover:text-destructive"
+                                        className="h-10 w-10 hover:text-destructive"
+                                        iconOnly
                                       >
-                                        <Trash2 className="h-3 w-3" />
-                                      </Button>
+                                        <Trash2 className="h-4 w-4 hover:text-destructive" />
+                                      </ModernButton>
                                     )}
                                   </div>
                                 </div>
@@ -311,15 +315,15 @@ const LLMProvidersSettings = () => {
 
                       {/* Action Buttons */}
                       <div className="flex justify-end space-x-2 pt-2">
-                        <Button
+                        <ModernButton
                           size="sm"
                           variant="outline"
                           onClick={() => handleEditProvider(provider)}
                         >
                           <Edit className="mr-1 h-3 w-3" />
                           Edit Provider
-                        </Button>
-                        <Button
+                        </ModernButton>
+                        <ModernButton
                           size="sm"
                           variant="outline"
                           onClick={() => handleDeleteProvider(provider.id)}
@@ -327,7 +331,7 @@ const LLMProvidersSettings = () => {
                         >
                           <Trash2 className="mr-1 h-3 w-3" />
                           Delete Provider
-                        </Button>
+                        </ModernButton>
                       </div>
                     </div>
                   </AccordionContent>
@@ -339,20 +343,21 @@ const LLMProvidersSettings = () => {
       </Card>
       
       {/* Agent System Prompts Section */}
-      <Card className="mt-8">
+      <Card className="mt-8 p-6">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Agent System Prompts</CardTitle>
+            <CardTitle className="pl-0">Agent System Prompts</CardTitle>
             <CardDescription>Configure system prompts by agent type</CardDescription>
           </div>
-          <Button 
+          <ModernButton 
             variant="outline" 
             size="sm"
             onClick={() => setIsAddPromptDialogOpen(true)}
           >
             <Plus className="mr-1 h-4 w-4" />
             Add New
-          </Button>
+          </ModernButton>
+          
         </CardHeader>
         <CardContent className="space-y-4">
           {isLoadingPrompts ? (
@@ -368,7 +373,7 @@ const LLMProvidersSettings = () => {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="agentType">Agent Type</Label>
-                <Select value={selectedAgentType} onValueChange={setSelectedAgentType}>
+                {/* <Select value={selectedAgentType} onValueChange={setSelectedAgentType}>
                   <SelectTrigger id="agentType" variant="modern">
                     <SelectValue placeholder="Select agent type" />
                   </SelectTrigger>
@@ -379,7 +384,14 @@ const LLMProvidersSettings = () => {
                       </SelectItem>
                     ))}
                   </SelectContent>
-                </Select>
+                </Select> */}
+                <ModernDropdown
+                  value={selectedAgentType}
+                  onValueChange={setSelectedAgentType}
+                  options={availableAgentTypes.map(u => ({value: u, label: u}))}
+                  placeholder="Select Members"
+                  className="w-full text-xs rounded-xl border-slate-200 dark:border-slate-700"
+                />
               </div>
               
               <div className="space-y-2">
@@ -388,7 +400,7 @@ const LLMProvidersSettings = () => {
                   id="systemPrompt" 
                   value={systemPrompt}
                   onChange={(e) => setSystemPrompt(e.target.value)}
-                  className="min-h-[150px]"
+                  className="min-h-[450px]"
                   placeholder="Enter system prompt for this agent type..."
                 />
               </div>
@@ -402,7 +414,7 @@ const LLMProvidersSettings = () => {
                 <Label htmlFor="fallbackProvider">Enable fallback provider if primary fails</Label>
               </div>
               
-              <Button 
+              <ModernButton 
                 onClick={handleSaveConfiguration}
                 disabled={isSavingPrompt || !systemPrompt.trim()}
               >
@@ -414,7 +426,7 @@ const LLMProvidersSettings = () => {
                 ) : (
                   'Save Configuration'
                 )}
-              </Button>
+              </ModernButton>
             </div>
           )}
         </CardContent>

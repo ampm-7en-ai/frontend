@@ -396,10 +396,10 @@ const SuperAdminDashboard = () => {
         </div>
 
         {/* Platform Growth - Full Width with Admin Style Controls */}
-        <Card className="bg-transparent border-0 rounded-3xl shadow-none overflow-hidden h-full pl-0">
+        <Card className="bg-transparent border-0 rounded-3xl shadow-none overflow-hidden h-full pl-0 dark:bg-transparent">
           <CardHeader className="pb-4 pl-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 pl-2">
                 Platform Growth
               </CardTitle>
               <div className="flex items-center gap-3">
@@ -433,7 +433,7 @@ const SuperAdminDashboard = () => {
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
+                  <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center pl-4">
                     Conversation Volume
                   </CardTitle>
                 </div>
@@ -495,7 +495,7 @@ const SuperAdminDashboard = () => {
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
+                  <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center pl-4">
                     Revenue Trends
                   </CardTitle>
                 </div>
@@ -550,10 +550,10 @@ const SuperAdminDashboard = () => {
         </div>
 
         {/* Business Team Members Chart - Admin Style with Controls */}
-        <Card className="bg-transparent border-0 rounded-3xl shadow-none overflow-hidden h-full pl-0">
+        <Card className="!bg-transparent border-0 rounded-3xl shadow-none overflow-hidden h-full pl-0">
           <CardHeader className="pb-4 pl-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 pl-2">
                 Business Team Member Status
               </CardTitle>
               <div className="flex items-center gap-3">

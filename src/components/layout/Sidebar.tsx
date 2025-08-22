@@ -207,7 +207,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         { label: 'General', href: '/settings/platform/general',permission: 'dashboard' },
         { label: 'Security', href: '/settings/platform/security',permission: 'dashboard' },
         { label: 'LLM Providers', href: '/settings/platform/llm-providers',permission: 'dashboard' },
-        { label: 'Compliance', href: '/settings/platform/compliance',permission: 'dashboard' },
+        // { label: 'Compliance', href: '/settings/platform/compliance',permission: 'dashboard' },
         { label: 'Billing & Subscriptions', href: '/settings/platform/billing',permission: 'dashboard' },
         { label: 'Customization', href: '/settings/platform/customization',permission: 'dashboard' },
       ]

@@ -90,7 +90,7 @@ const SecuritySettings = () => {
       >
         <div className="space-y-8">
           {/* Role Management Section */}
-          <ModernCard variant="glass" className="p-8">
+          <ModernCard variant="glass" className="p-8 dark:bg-slate-800/50 rounded-2xl">
             <ModernCardHeader className="pb-6">
               <div className="flex items-center justify-between">
                 <div>

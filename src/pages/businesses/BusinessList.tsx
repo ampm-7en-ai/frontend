@@ -182,7 +182,7 @@ const BusinessList = () => {
 
                           {/* Business Info */}
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate text-lg">
+                            <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate text-md capitalize">
                               {business.name || 'Business Name'}
                             </h3>
                             

@@ -16,6 +16,8 @@ import { CreateEmailTemplateDialog } from '@/components/settings/platform/Create
 import { UploadCloud, FileImage, Loader2 } from 'lucide-react';
 import { usePlatformSettings, useUpdateCustomizationSettings } from '@/hooks/usePlatformSettings';
 import { useEmailTemplateTypes, useEmailTemplate, useUpdateEmailTemplate } from '@/hooks/useEmailTemplates';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 const CustomizationSettings = () => {
   const { toast } = useToast();
@@ -237,15 +239,15 @@ const CustomizationSettings = () => {
       description="Personalize your platform's look and feel"
     >
       <Tabs defaultValue="branding">
-        <TabsList className="grid w-full grid-cols-2 mb-8">
-          <TabsTrigger value="branding">Branding</TabsTrigger>
-          <TabsTrigger value="emails">Email Templates</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 mb-8 rounded-lg">
+          <TabsTrigger value="branding" className="rounded-lg">Branding</TabsTrigger>
+          <TabsTrigger value="emails" className="rounded-lg">Email Templates</TabsTrigger>
         </TabsList>
         
         <TabsContent value="branding">
-          <Card>
+          <Card className="p-6">
             <CardHeader>
-              <CardTitle>Platform Branding</CardTitle>
+              <CardTitle className="pl-0">Platform Branding</CardTitle>
               <CardDescription>Customize your platform's logo and branding elements</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -330,11 +332,13 @@ const CustomizationSettings = () => {
                             type="color" 
                             id="primaryColor" 
                             value={primaryColor}
+                            variant='modern'
                             onChange={(e) => setPrimaryColor(e.target.value)}
                             className="w-20 h-10" 
                           />
                           <Input 
                             value={primaryColor}
+                            variant='modern'
                             onChange={(e) => setPrimaryColor(e.target.value)}
                             className="flex-1" 
                           />
@@ -348,11 +352,13 @@ const CustomizationSettings = () => {
                             type="color" 
                             id="secondaryColor" 
                             value={secondaryColor}
+                            variant='modern'
                             onChange={(e) => setSecondaryColor(e.target.value)}
                             className="w-20 h-10" 
                           />
                           <Input 
                             value={secondaryColor}
+                            variant='modern'
                             onChange={(e) => setSecondaryColor(e.target.value)}
                             className="flex-1" 
                           />
@@ -366,11 +372,13 @@ const CustomizationSettings = () => {
                             type="color" 
                             id="accentColor" 
                             value={accentColor}
+                            variant='modern'
                             onChange={(e) => setAccentColor(e.target.value)}
                             className="w-20 h-10" 
                           />
                           <Input 
                             value={accentColor}
+                            variant='modern'
                             onChange={(e) => setAccentColor(e.target.value)}
                             className="flex-1" 
                           />
@@ -382,6 +390,7 @@ const CustomizationSettings = () => {
                         <Input 
                           id="fontImport" 
                           value={fontImportUrl}
+                          variant='modern'
                           onChange={(e) => setFontImportUrl(e.target.value)}
                           placeholder="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
                           className="font-mono text-sm"
@@ -396,11 +405,12 @@ const CustomizationSettings = () => {
                         <Input 
                           id="fontFamily" 
                           value={fontFamily}
+                          variant='modern'
                           onChange={(e) => setFontFamily(e.target.value)}
                           placeholder="Roboto, sans-serif"
                           className="font-mono text-sm"
                         />
-                        <div className="mt-2 p-3 border rounded-md">
+                        <div className="mt-2 p-3 border rounded-md dark:text-gray-200/40">
                           <p style={{ fontFamily }}>This is preview text using your selected font family</p>
                         </div>
                       </div>
@@ -429,9 +439,10 @@ const CustomizationSettings = () => {
                     </div>
                   </div>
                   
-                  <Button 
+                  <ModernButton 
                     onClick={handleSaveBrandingSettings}
                     disabled={updateMutation.isPending}
+                    variant="primary"
                   >
                     {updateMutation.isPending ? (
                       <>
@@ -441,7 +452,7 @@ const CustomizationSettings = () => {
                     ) : (
                       'Save Branding Settings'
                     )}
-                  </Button>
+                  </ModernButton>
                 </>
               )}
             </CardContent>
@@ -449,10 +460,10 @@ const CustomizationSettings = () => {
         </TabsContent>
         
         <TabsContent value="emails">
-          <Card className="mb-6">
+          <Card className="mb-6 p-6">
             <CardHeader>
               <div>
-                <CardTitle>Email Templates</CardTitle>
+                <CardTitle className="pl-0">Email Templates</CardTitle>
                 <CardDescription>Customize email notifications and templates</CardDescription>
               </div>
             </CardHeader>
@@ -467,7 +478,16 @@ const CustomizationSettings = () => {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="emailTemplate">Select Template</Label>
-                      <Select value={selectedTemplateType || ''} onValueChange={handleTemplateTypeChange}>
+                      <ModernDropdown
+                        value={selectedTemplateType || ''}
+                        onValueChange={handleTemplateTypeChange}
+                        options={ emailTemplateTypes?.map(u => (
+                          { label: u.name, value: u.type}
+                        ))}
+                        placeholder="Select Members"
+                        className="text-xs rounded-xl border-slate-200 dark:border-slate-700"
+                      />
+                      {/* <Select value={selectedTemplateType || ''} onValueChange={handleTemplateTypeChange}>
                         <SelectTrigger id="emailTemplate">
                           <SelectValue placeholder="Select email template" />
                         </SelectTrigger>
@@ -478,7 +498,7 @@ const CustomizationSettings = () => {
                             </SelectItem>
                           ))}
                         </SelectContent>
-                      </Select>
+                      </Select> */}
                     </div>
 
                     {isLoadingTemplate ? (
@@ -493,6 +513,7 @@ const CustomizationSettings = () => {
                           <Input 
                             id="templateName" 
                             value={templateName}
+                            variant="modern"
                             onChange={(e) => setTemplateName(e.target.value)}
                           />
                         </div>
@@ -502,6 +523,7 @@ const CustomizationSettings = () => {
                           <Input 
                             id="emailSubject" 
                             value={templateSubject}
+                            variant="modern"
                             onChange={(e) => setTemplateSubject(e.target.value)}
                           />
                         </div>
@@ -510,7 +532,7 @@ const CustomizationSettings = () => {
                           <Label htmlFor="templateContent">Email Content</Label>
                           <Textarea
                             id="templateContent"
-                            className="h-64"
+                            className="h-96"
                             value={templateContent}
                             onChange={(e) => setTemplateContent(e.target.value)}
                           />
@@ -523,7 +545,7 @@ const CustomizationSettings = () => {
                               {selectedTemplate.allowed_placeholders.map((placeholder) => (
                                 <Badge
                                   key={placeholder}
-                                  variant="outline"
+                                  variant="default"
                                   className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
                                   onClick={() => handlePlaceholderClick(placeholder)}
                                 >
@@ -560,7 +582,7 @@ const CustomizationSettings = () => {
                   </div>
                   
                   <div className="flex items-center gap-4">
-                    <Button 
+                    <ModernButton 
                       onClick={handleSaveEmailTemplate}
                       disabled={updateEmailTemplateMutation.isPending || !selectedTemplateType}
                     >
@@ -572,7 +594,7 @@ const CustomizationSettings = () => {
                       ) : (
                         'Save Template'
                       )}
-                    </Button>
+                    </ModernButton>
                   </div>
                 </>
               )}

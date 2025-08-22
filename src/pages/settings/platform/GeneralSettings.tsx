@@ -72,7 +72,7 @@ const GeneralSettings = () => {
       title="General Settings"
       description="Configure platform-wide settings and defaults"
     >
-      <ModernCard variant="glass" className="p-8">
+      <ModernCard variant="glass" className="p-8 dark:bg-slate-800/50 rounded-2xl">
         <ModernCardHeader className="pb-6">
           <ModernCardTitle className="text-2xl">Platform Information</ModernCardTitle>
           <ModernCardDescription className="text-base">
