@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import RoleEditDialog, { Role } from '@/components/settings/platform/RoleEditDia
 import RoleCreateDialog from '@/components/settings/platform/RoleCreateDialog';
 import PlatformSettingsLayout from '@/components/settings/platform/PlatformSettingsLayout';
 import { useAuditLogs } from '@/hooks/useAuditLogs';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface RolesResponse {
   message: string;
@@ -140,13 +141,13 @@ const SecuritySettings = () => {
                   <TableBody>
                     {roles.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                        <TableCell colSpan={5} className="text-center py-6 text-muted-foreground dark:text-gray-200">
                           No roles found. Add a new role to get started.
                         </TableCell>
                       </TableRow>
                     ) : (
                       roles.map((role) => (
-                        <TableRow key={role.id}>
+                        <TableRow key={role.id} className="dark:text-gray-200">
                           <TableCell className="font-medium">{role.name}</TableCell>
                           <TableCell>{role.description}</TableCell>
                           <TableCell>
@@ -164,13 +165,13 @@ const SecuritySettings = () => {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button 
+                            <ModernButton 
                               variant="ghost" 
                               size="sm"
                               onClick={() => handleEditRole(role)}
                             >
                               Edit
-                            </Button>
+                            </ModernButton>
                           </TableCell>
                         </TableRow>
                       ))
@@ -179,15 +180,17 @@ const SecuritySettings = () => {
                 </Table>
               )}
               
-              <Button className="mt-4" onClick={handleOpenCreateDialog}>
+              <CardFooter className="text-right flex w-full justify-end">
+                <ModernButton className="mt-4" variant="primary" onClick={handleOpenCreateDialog}>
                 <Plus className="mr-1 h-4 w-4" />
                 Add New Role
-              </Button>
+              </ModernButton>
+              </CardFooter>
             </CardContent>
           </Card>
 
           {/* Audit Logs Section */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle>Audit Logs</CardTitle>
               <CardDescription>View a log of all Super Admin actions for compliance</CardDescription>
@@ -295,7 +298,7 @@ const SecuritySettings = () => {
                 )}
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         {/* Role Edit Dialog */}

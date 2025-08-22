@@ -23,8 +23,23 @@ import {
   MessageSquare,
   Receipt,
   User,
-  Zap
+  Zap,
+  ZapOff
 } from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend
+} from 'recharts';
 import { useBusinessDetail } from '@/hooks/useBusinesses';
 
 const BusinessDetail = () => {
@@ -131,6 +146,17 @@ const BusinessDetail = () => {
     phone: businessData.business_info.phone
   };
 
+    const conversationData = [
+    { week: 'W1', conversations: 2800 },
+    { week: 'W2', conversations: 3200 },
+    { week: 'W3', conversations: 3500 },
+    { week: 'W4', conversations: 3700 },
+    { week: 'W5', conversations: 3400 },
+    { week: 'W6', conversations: 3800 },
+    { week: 'W7', conversations: 4100 },
+    { week: 'W8', conversations: 4500 }
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
       <div className="container max-w-7xl mx-auto p-6 space-y-8">
@@ -155,8 +181,8 @@ const BusinessDetail = () => {
               Edit Business
             </ModernButton>
             <ModernButton size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
+              <ZapOff className="h-4 w-4 mr-2" />
+              Disable
             </ModernButton>
           </div>
         </div>
@@ -257,7 +283,7 @@ const BusinessDetail = () => {
                           <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Status</p>
                           <Badge 
                             variant={
-                              business.status?.toLowerCase() === 'active' ? 'default' : 
+                              business.status?.toLowerCase() === 'active' ? 'success' : 
                               business.status?.toLowerCase() === 'trial' ? 'secondary' : 
                               'outline'
                             }
@@ -389,11 +415,49 @@ const BusinessDetail = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64 flex items-center justify-center bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
-                    <div className="text-center">
-                      <BarChart3 className="h-12 w-12 text-slate-400 mx-auto mb-2" />
-                      <p className="text-slate-600 dark:text-slate-400">Chart visualization coming soon</p>
-                    </div>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={conversationData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                        <defs>
+                          <linearGradient id="conversationGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#8884d8" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+                        <XAxis 
+                          dataKey="week" 
+                          tick={{ fontSize: 12, fill: 'currentColor' }}
+                          className="text-slate-600 dark:text-slate-400"
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 12, fill: 'currentColor' }}
+                          className="text-slate-600 dark:text-slate-400"
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--background))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '12px',
+                            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                            color: 'hsl(var(--foreground))',
+                            fontSize: '12px'
+                          }}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="conversations" 
+                          stroke="#8884d8" 
+                          fill="url(#conversationGradient)" 
+                          fillOpacity={1} 
+                          strokeWidth={2}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </div>
                 </CardContent>
               </Card>

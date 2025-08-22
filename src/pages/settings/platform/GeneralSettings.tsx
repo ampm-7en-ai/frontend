@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Loader2 } from 'lucide-react';
 import PlatformSettingsLayout from '@/components/settings/platform/PlatformSettingsLayout';
 import { usePlatformSettings, useUpdatePlatformSettings } from '@/hooks/usePlatformSettings';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 const GeneralSettings = () => {
   const { data: settings, isLoading, error } = usePlatformSettings();
@@ -72,7 +73,7 @@ const GeneralSettings = () => {
       title="General Settings"
       description="Configure platform-wide settings and defaults"
     >
-      <Card>
+      <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl p-6">
         <CardHeader>
           <CardTitle>Platform Information</CardTitle>
           <CardDescription>Update your platform name and details</CardDescription>
@@ -91,6 +92,7 @@ const GeneralSettings = () => {
                   <Input 
                     id="platformName" 
                     value={formData.platform_name}
+                    variant="modern"
                     onChange={(e) => handleInputChange('platform_name', e.target.value)}
                   />
                 </div>
@@ -110,6 +112,7 @@ const GeneralSettings = () => {
                     id="supportEmail" 
                     type="email" 
                     value={formData.support_email}
+                    variant="modern"
                     onChange={(e) => handleInputChange('support_email', e.target.value)}
                   />
                 </div>
@@ -124,9 +127,10 @@ const GeneralSettings = () => {
                   />
                   <Label htmlFor="enableMaintenance">Maintenance Mode</Label>
                 </div>
-                <Button 
+                <ModernButton 
                   type="submit" 
                   disabled={updateMutation.isPending}
+                  variant="primary"
                 >
                   {updateMutation.isPending ? (
                     <>
@@ -136,7 +140,7 @@ const GeneralSettings = () => {
                   ) : (
                     'Save Changes'
                   )}
-                </Button>
+                </ModernButton>
               </div>
             </form>
           )}

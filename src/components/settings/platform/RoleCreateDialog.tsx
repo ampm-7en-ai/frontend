@@ -106,6 +106,7 @@ const RoleCreateDialog: React.FC<RoleCreateDialogProps> = ({ isOpen, onClose, on
             <Input 
               id="name" 
               value={name} 
+              variant="modern"
               onChange={(e) => setName(e.target.value)} 
               placeholder="e.g., Support Agent"
               required

@@ -123,6 +123,7 @@ const RoleEditDialog: React.FC<RoleEditDialogProps> = ({ isOpen, onClose, role, 
               <Input 
                 id="name" 
                 value={name} 
+                variant="modern"
                 onChange={(e) => setName(e.target.value)} 
                 placeholder="e.g., Support Agent"
                 required
