@@ -1,9 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { ModernCard, ModernCardContent, ModernCardHeader, ModernCardTitle, ModernCardDescription } from '@/components/ui/modern-card';
+import { ModernInput } from '@/components/ui/modern-input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Loader2 } from 'lucide-react';
@@ -57,13 +56,13 @@ const GeneralSettings = () => {
         title="General Settings"
         description="Configure platform-wide settings and defaults"
       >
-        <Card>
-          <CardContent className="py-8">
+        <ModernCard variant="elevated">
+          <ModernCardContent className="py-8">
             <div className="text-center text-red-600">
               Failed to load platform settings. Please try again.
             </div>
-          </CardContent>
-        </Card>
+          </ModernCardContent>
+        </ModernCard>
       </PlatformSettingsLayout>
     );
   }
@@ -73,64 +72,70 @@ const GeneralSettings = () => {
       title="General Settings"
       description="Configure platform-wide settings and defaults"
     >
-      <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl p-6">
-        <CardHeader>
-          <CardTitle>Platform Information</CardTitle>
-          <CardDescription>Update your platform name and details</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <ModernCard variant="glass" className="p-8">
+        <ModernCardHeader className="pb-6">
+          <ModernCardTitle className="text-2xl">Platform Information</ModernCardTitle>
+          <ModernCardDescription className="text-base">
+            Update your platform name and details
+          </ModernCardDescription>
+        </ModernCardHeader>
+        <ModernCardContent className="pt-0">
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
+            <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
-              <span className="ml-2 text-sm text-muted-foreground">Loading settings...</span>
+              <span className="ml-3 text-muted-foreground">Loading settings...</span>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="platformName">Platform Name</Label>
-                  <Input 
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid gap-6">
+                <div className="space-y-3">
+                  <Label htmlFor="platformName" className="text-sm font-medium">Platform Name</Label>
+                  <ModernInput 
                     id="platformName" 
                     value={formData.platform_name}
                     variant="modern"
                     onChange={(e) => handleInputChange('platform_name', e.target.value)}
+                    className="h-12"
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="description">Platform Description</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="description" className="text-sm font-medium">Platform Description</Label>
                   <Textarea 
                     id="description" 
                     value={formData.platform_description}
                     onChange={(e) => handleInputChange('platform_description', e.target.value)}
+                    className="min-h-[100px] bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl resize-none"
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="supportEmail">Support Email</Label>
-                  <Input 
+                <div className="space-y-3">
+                  <Label htmlFor="supportEmail" className="text-sm font-medium">Support Email</Label>
+                  <ModernInput 
                     id="supportEmail" 
                     type="email" 
                     value={formData.support_email}
                     variant="modern"
                     onChange={(e) => handleInputChange('support_email', e.target.value)}
+                    className="h-12"
                   />
                 </div>
               </div>
               
-              <div className="flex items-center justify-between pt-4">
-                <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-between pt-8 border-t border-border/20">
+                <div className="flex items-center space-x-3">
                   <Switch 
                     id="enableMaintenance" 
                     checked={formData.maintenance_mode}
                     onCheckedChange={(checked) => handleInputChange('maintenance_mode', checked)}
                   />
-                  <Label htmlFor="enableMaintenance">Maintenance Mode</Label>
+                  <Label htmlFor="enableMaintenance" className="text-sm font-medium">Maintenance Mode</Label>
                 </div>
                 <ModernButton 
                   type="submit" 
                   disabled={updateMutation.isPending}
                   variant="primary"
+                  className="px-8 py-3"
                 >
                   {updateMutation.isPending ? (
                     <>
@@ -144,8 +149,8 @@ const GeneralSettings = () => {
               </div>
             </form>
           )}
-        </CardContent>
-      </Card>
+        </ModernCardContent>
+      </ModernCard>
     </PlatformSettingsLayout>
   );
 };

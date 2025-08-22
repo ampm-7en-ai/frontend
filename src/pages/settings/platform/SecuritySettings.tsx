@@ -1,19 +1,16 @@
 
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { ModernCard, ModernCardContent, ModernCardDescription, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS, getAuthHeaders, getApiUrl } from '@/utils/api-config';
 import { useAuth } from '@/context/AuthContext';
-import { Loader2, Plus, Search, Download } from 'lucide-react';
-import { PermissionProvider, Permission } from '@/context/PermissionContext';
+import { Loader2, Plus } from 'lucide-react';
+import { PermissionProvider } from '@/context/PermissionContext';
 import RoleEditDialog, { Role } from '@/components/settings/platform/RoleEditDialog';
 import RoleCreateDialog from '@/components/settings/platform/RoleCreateDialog';
 import PlatformSettingsLayout from '@/components/settings/platform/PlatformSettingsLayout';
-import { useAuditLogs } from '@/hooks/useAuditLogs';
 import ModernButton from '@/components/dashboard/ModernButton';
 
 interface RolesResponse {
@@ -32,22 +29,6 @@ const SecuritySettings = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { getToken } = useAuth();
-  
-  // Use the audit logs hook
-  const {
-    logs: auditLogs,
-    isLoading: isAuditLogsLoading,
-    activePeriod,
-    searchTerm,
-    isExporting,
-    setPeriod,
-    setSearchTerm,
-    loadMore,
-    hasMore,
-    exportToExcel,
-    formatEventType,
-    formatTimestamp
-  } = useAuditLogs();
 
   const fetchRoles = async () => {
     try {
@@ -101,13 +82,6 @@ const SecuritySettings = () => {
     setIsCreateDialogOpen(false);
   };
 
-  const periodButtons = [
-    { key: 'today', label: 'Today' },
-    { key: 'week', label: 'This Week' },
-    { key: 'month', label: 'This Month' },
-    { key: '3months', label: 'Past 3 Months' }
-  ] as const;
-
   return (
     <PermissionProvider>
       <PlatformSettingsLayout 
@@ -116,189 +90,88 @@ const SecuritySettings = () => {
       >
         <div className="space-y-8">
           {/* Role Management Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Role Management</CardTitle>
-              <CardDescription>Define custom roles for agents with specific permissions</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <ModernCard variant="glass" className="p-8">
+            <ModernCardHeader className="pb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <ModernCardTitle className="text-2xl">Role Management</ModernCardTitle>
+                  <ModernCardDescription className="text-base mt-2">
+                    Define custom roles for agents with specific permissions
+                  </ModernCardDescription>
+                </div>
+                <ModernButton 
+                  variant="primary" 
+                  onClick={handleOpenCreateDialog}
+                  className="px-6 py-3"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add New Role
+                </ModernButton>
+              </div>
+            </ModernCardHeader>
+            <ModernCardContent className="pt-0">
               {isLoading ? (
-                <div className="flex items-center justify-center py-6">
+                <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
-                  <span className="ml-2 text-sm text-muted-foreground">Loading roles...</span>
+                  <span className="ml-3 text-muted-foreground">Loading roles...</span>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Role Name</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Permissions</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {roles.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-6 text-muted-foreground dark:text-gray-200">
-                          No roles found. Add a new role to get started.
-                        </TableCell>
+                <div className="bg-white/50 dark:bg-slate-800/50 rounded-xl border border-border/20 overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-border/20">
+                        <TableHead className="py-4 px-6 font-semibold">Role Name</TableHead>
+                        <TableHead className="py-4 px-6 font-semibold">Description</TableHead>
+                        <TableHead className="py-4 px-6 font-semibold">Permissions</TableHead>
+                        <TableHead className="py-4 px-6 font-semibold">Status</TableHead>
+                        <TableHead className="py-4 px-6 font-semibold text-right">Actions</TableHead>
                       </TableRow>
-                    ) : (
-                      roles.map((role) => (
-                        <TableRow key={role.id} className="dark:text-gray-200">
-                          <TableCell className="font-medium">{role.name}</TableCell>
-                          <TableCell>{role.description}</TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-1 max-w-md">
-                              {role.permissions.map((permission) => (
-                                <Badge key={permission.id} variant="outline" className="text-xs">
-                                  {permission.name.replace(/_/g, ' ')}
-                                </Badge>
-                              ))}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={role.is_active ? "success" : "secondary"}>
-                              {role.is_active ? "Active" : "Inactive"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <ModernButton 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleEditRole(role)}
-                            >
-                              Edit
-                            </ModernButton>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-              
-              <CardFooter className="text-right flex w-full justify-end">
-                <ModernButton className="mt-4" variant="primary" onClick={handleOpenCreateDialog}>
-                <Plus className="mr-1 h-4 w-4" />
-                Add New Role
-              </ModernButton>
-              </CardFooter>
-            </CardContent>
-          </Card>
-
-          {/* Audit Logs Section */}
-          {/* <Card>
-            <CardHeader>
-              <CardTitle>Audit Logs</CardTitle>
-              <CardDescription>View a log of all Super Admin actions for compliance</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center gap-4">
-                  <div className="flex items-center gap-2 flex-1 max-w-md">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <Input
-                        placeholder="Search by username or user ID..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={exportToExcel}
-                      disabled={isExporting}
-                    >
-                      {isExporting ? (
-                        <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Download className="mr-1 h-4 w-4" />
-                      )}
-                      Export
-                    </Button>
-                  </div>
-                  <div className="space-x-2">
-                    {periodButtons.map(({ key, label }) => (
-                      <Button
-                        key={key}
-                        variant={activePeriod === key ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setPeriod(key)}
-                      >
-                        {label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-                
-                {isAuditLogsLoading ? (
-                  <div className="flex items-center justify-center py-6">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
-                    <span className="ml-2 text-sm text-muted-foreground">Loading audit logs...</span>
-                  </div>
-                ) : (
-                  <>
-                    <Table>
-                      <TableHeader>
+                    </TableHeader>
+                    <TableBody>
+                      {roles.length === 0 ? (
                         <TableRow>
-                          <TableHead>Date & Time</TableHead>
-                          <TableHead>User</TableHead>
-                          <TableHead>Action</TableHead>
-                          <TableHead>Entity</TableHead>
-                          <TableHead>Details</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">IP Address</TableHead>
+                          <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                            No roles found. Add a new role to get started.
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {auditLogs.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                              {searchTerm ? 'No audit logs found matching your search.' : 'No audit logs found for the selected period.'}
+                      ) : (
+                        roles.map((role) => (
+                          <TableRow key={role.id} className="border-border/10 hover:bg-muted/30">
+                            <TableCell className="py-4 px-6 font-medium">{role.name}</TableCell>
+                            <TableCell className="py-4 px-6">{role.description}</TableCell>
+                            <TableCell className="py-4 px-6">
+                              <div className="flex flex-wrap gap-2 max-w-md">
+                                {role.permissions.map((permission) => (
+                                  <Badge key={permission.id} variant="outline" className="text-xs">
+                                    {permission.name.replace(/_/g, ' ')}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-4 px-6">
+                              <Badge variant={role.is_active ? "success" : "secondary"}>
+                                {role.is_active ? "Active" : "Inactive"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="py-4 px-6 text-right">
+                              <ModernButton 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleEditRole(role)}
+                                className="px-4 py-2"
+                              >
+                                Edit
+                              </ModernButton>
                             </TableCell>
                           </TableRow>
-                        ) : (
-                          auditLogs.map((log) => (
-                            <TableRow key={log.id}>
-                              <TableCell>{formatTimestamp(log.timestamp)}</TableCell>
-                              <TableCell><a href={"/businesses/"+log.user} target='_blank'>{log.user}</a></TableCell>
-                              <TableCell>{formatEventType(log.event_type)}</TableCell>
-                              <TableCell>{log.entity_type} #{log.entity_id}</TableCell>
-                              <TableCell>
-                                {log.details.name ? `Name: ${log.details.name}` : log.details.message ? `Message: ${log.details.message}` : 'N/A'}
-                               
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant={log.status === 'success' ? 'success' : 'destructive'}>
-                                  {log.status}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {log.ip_address || 'N/A'}
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
-                    
-                    {hasMore && (
-                      <div className="flex justify-center">
-                        <Button variant="outline" size="sm" onClick={loadMore}>
-                          Load More
-                        </Button>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </CardContent>
-          </Card> */}
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </ModernCardContent>
+          </ModernCard>
         </div>
 
         {/* Role Edit Dialog */}

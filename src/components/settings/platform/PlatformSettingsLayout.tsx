@@ -1,6 +1,6 @@
 
 import React, { ReactNode } from 'react';
-import { Card } from '@/components/ui/card';
+import { ModernCard, ModernCardContent } from '@/components/ui/modern-card';
 
 interface PlatformSettingsLayoutProps {
   children: ReactNode;
@@ -14,11 +14,11 @@ const PlatformSettingsLayout = ({
   description 
 }: PlatformSettingsLayoutProps) => {
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-6">
+    <div className="container max-w-6xl mx-auto px-6 py-8">
       <div className="mb-8 text-left">
-        <h1 className="text-3xl font-bold">{title}</h1>
+        <h1 className="text-3xl font-bold text-foreground">{title}</h1>
         {description && (
-          <p className="text-muted-foreground mt-2">{description}</p>
+          <p className="text-muted-foreground mt-2 text-lg">{description}</p>
         )}
       </div>
       
