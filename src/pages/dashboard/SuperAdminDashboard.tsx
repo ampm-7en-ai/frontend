@@ -136,17 +136,37 @@ const SuperAdminDashboard = () => {
     if (selectedMetric === 'all') {
       return (
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={growthData} margin={{ bottom: 40, left: 10, right: 10, top: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+          <LineChart data={growthData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
             <XAxis 
               dataKey="month" 
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fontSize: 12, fill: 'currentColor' }}
+              className="text-slate-600 dark:text-slate-400"
               axisLine={false}
               tickLine={false}
             />
-            <YAxis yAxisId="left" orientation="left" stroke="#0088FE" />
-            <YAxis yAxisId="right" orientation="right" stroke="#00C49F" />
-            <Tooltip contentStyle={{ borderRadius: '8px' }} />
+            <YAxis yAxisId="left" orientation="left" stroke="#0088FE" 
+              tick={{ fontSize: 12, fill: 'currentColor' }}
+              className="text-slate-600 dark:text-slate-400"
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis yAxisId="right" orientation="right" stroke="#00C49F" 
+              tick={{ fontSize: 12, fill: 'currentColor' }}
+              className="text-slate-600 dark:text-slate-400"
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '12px',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                color: 'hsl(var(--foreground))',
+                fontSize: '12px'
+              }}
+            />
             <Legend />
             <Line 
               yAxisId="right"
@@ -154,6 +174,7 @@ const SuperAdminDashboard = () => {
               dataKey="users" 
               stroke="#00C49F" 
               strokeWidth={2} 
+              dot={{ r: 4 }}
               activeDot={{ r: 8 }} 
               name="Users"
             />
@@ -163,6 +184,7 @@ const SuperAdminDashboard = () => {
               dataKey="businesses" 
               stroke="#0088FE" 
               strokeWidth={2} 
+              dot={{ r: 4 }}
               name="Businesses"
             />
           </LineChart>
@@ -171,26 +193,37 @@ const SuperAdminDashboard = () => {
     } else {
       return (
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={growthData} margin={{ bottom: 40, left: 10, right: 10, top: 10 }}>
+          <AreaChart data={growthData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
             <defs>
               <linearGradient id="metricGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
                 <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
             <XAxis 
               dataKey="month" 
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fontSize: 12, fill: 'currentColor' }}
+              className="text-slate-600 dark:text-slate-400"
               axisLine={false}
               tickLine={false}
             />
             <YAxis 
-              tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fontSize: 12, fill: 'currentColor' }}
+              className="text-slate-600 dark:text-slate-400"
               axisLine={false}
               tickLine={false}
             />
-            <Tooltip contentStyle={{ borderRadius: '12px' }} />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '12px',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                color: 'hsl(var(--foreground))',
+                fontSize: '12px'
+              }}
+            />
             <Area 
               type="monotone" 
               dataKey={selectedMetric}
@@ -198,6 +231,7 @@ const SuperAdminDashboard = () => {
               fillOpacity={1} 
               fill="url(#metricGradient)"
               strokeWidth={2}
+              dot={{ r: 4 }}
               name={selectedMetric.charAt(0).toUpperCase() + selectedMetric.slice(1)}
             />
           </AreaChart>
@@ -211,20 +245,31 @@ const SuperAdminDashboard = () => {
     if (businessTeamMetric === 'all') {
       return (
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={businessTeamMembersData} margin={{ bottom: 40, left: 10, right: 10, top: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+          <LineChart data={businessTeamMembersData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
             <XAxis 
               dataKey="month" 
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fontSize: 12, fill: 'currentColor' }}
+              className="text-slate-600 dark:text-slate-400"
               axisLine={false}
               tickLine={false}
             />
             <YAxis 
-              tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fontSize: 12, fill: 'currentColor' }}
+              className="text-slate-600 dark:text-slate-400"
               axisLine={false}
               tickLine={false}
             />
-            <Tooltip contentStyle={{ borderRadius: '12px' }} />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '12px',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                color: 'hsl(var(--foreground))',
+                fontSize: '12px'
+              }}
+            />
             <Legend />
             <Line
               type="monotone"
@@ -257,26 +302,37 @@ const SuperAdminDashboard = () => {
     } else {
       return (
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={businessTeamMembersData} margin={{ bottom: 40, left: 10, right: 10, top: 10 }}>
+          <AreaChart data={businessTeamMembersData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
             <defs>
               <linearGradient id="teamGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
                 <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
             <XAxis 
               dataKey="month" 
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fontSize: 12, fill: 'currentColor' }}
+              className="text-slate-600 dark:text-slate-400"
               axisLine={false}
               tickLine={false}
             />
             <YAxis 
-              tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fontSize: 12, fill: 'currentColor' }}
+              className="text-slate-600 dark:text-slate-400"
               axisLine={false}
               tickLine={false}
             />
-            <Tooltip contentStyle={{ borderRadius: '12px' }} />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '12px',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                color: 'hsl(var(--foreground))',
+                fontSize: '12px'
+              }}
+            />
             <Area 
               type="monotone" 
               dataKey={businessTeamMetric}
@@ -284,6 +340,7 @@ const SuperAdminDashboard = () => {
               fillOpacity={1} 
               fill="url(#teamGradient)"
               strokeWidth={2}
+              dot={{ r: 4 }}
               name={businessTeamMetric.charAt(0).toUpperCase() + businessTeamMetric.slice(1)}
             />
           </AreaChart>
