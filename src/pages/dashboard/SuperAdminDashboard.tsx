@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -174,8 +173,7 @@ const SuperAdminDashboard = () => {
               dataKey="users" 
               stroke="#00C49F" 
               strokeWidth={2} 
-              dot={{ r: 4 }}
-              activeDot={{ r: 8 }} 
+              dot={false}
               name="Users"
             />
             <Line 
@@ -184,7 +182,7 @@ const SuperAdminDashboard = () => {
               dataKey="businesses" 
               stroke="#0088FE" 
               strokeWidth={2} 
-              dot={{ r: 4 }}
+              dot={false}
               name="Businesses"
             />
           </LineChart>
@@ -231,7 +229,7 @@ const SuperAdminDashboard = () => {
               fillOpacity={1} 
               fill="url(#metricGradient)"
               strokeWidth={2}
-              dot={{ r: 4 }}
+              dot={false}
               name={selectedMetric.charAt(0).toUpperCase() + selectedMetric.slice(1)}
             />
           </AreaChart>
@@ -277,8 +275,7 @@ const SuperAdminDashboard = () => {
               name="Active"
               stroke="#10b981"
               strokeWidth={2}
-              dot={{ r: 4 }}
-              activeDot={{ r: 8 }}
+              dot={false}
             />
             <Line
               type="monotone"
@@ -286,7 +283,7 @@ const SuperAdminDashboard = () => {
               name="Inactive"
               stroke="#9ca3af"
               strokeWidth={2}
-              dot={{ r: 4 }}
+              dot={false}
             />
             <Line
               type="monotone"
@@ -294,7 +291,7 @@ const SuperAdminDashboard = () => {
               name="New"
               stroke="#3b82f6"
               strokeWidth={2}
-              dot={{ r: 4 }}
+              dot={false}
             />
           </LineChart>
         </ResponsiveContainer>
@@ -340,7 +337,7 @@ const SuperAdminDashboard = () => {
               fillOpacity={1} 
               fill="url(#teamGradient)"
               strokeWidth={2}
-              dot={{ r: 4 }}
+              dot={false}
               name={businessTeamMetric.charAt(0).toUpperCase() + businessTeamMetric.slice(1)}
             />
           </AreaChart>
