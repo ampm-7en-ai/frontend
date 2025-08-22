@@ -1,9 +1,9 @@
-
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import ModernButton from '@/components/dashboard/ModernButton';
+import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   ArrowLeft, 
@@ -18,15 +18,36 @@ import {
   CreditCard,
   Activity,
   UserPlus,
-  Edit
+  Edit,
+  BarChart3,
+  MessageSquare,
+  Receipt,
+  User,
+  Zap
 } from 'lucide-react';
 import { useBusinessDetail } from '@/hooks/useBusinesses';
 
 const BusinessDetail = () => {
   const { businessId } = useParams();
+  const [activeAgentTab, setActiveAgentTab] = useState('human');
   
-  // Use the proper hook for fetching business details
+  // Refs for scroll sections
+  const overviewRef = useRef<HTMLDivElement>(null);
+  const agentsRef = useRef<HTMLDivElement>(null);
+  const analyticsRef = useRef<HTMLDivElement>(null);
+  const conversationsRef = useRef<HTMLDivElement>(null);
+  const paymentRef = useRef<HTMLDivElement>(null);
+  
   const { data: businessData, isLoading, isError, error } = useBusinessDetail(businessId);
+
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const agentTabs = [
+    { id: 'human', label: 'Human Agents' },
+    { id: 'ai', label: 'AI Agents' },
+  ];
 
   if (isLoading) {
     return (
@@ -142,163 +163,335 @@ const BusinessDetail = () => {
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Main Info */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* Left Column - Scrollable Content */}
+          <div className="lg:col-span-2 space-y-8 overflow-y-auto">
             {/* Business Overview */}
-            <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
-                  Business Overview
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <Globe className="h-5 w-5 text-slate-500" />
-                      <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Domain</p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                          {business.domain || 'No domain set'}
-                        </p>
+            <div ref={overviewRef}>
+              <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                    Business Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
+                          <Globe className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Domain</p>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                            {business.domain || 'No domain set'}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <Users className="h-5 w-5 text-slate-500" />
-                      <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Admins</p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                          {business.admins} administrator{business.admins !== 1 ? 's' : ''}
-                        </p>
+                      
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
+                          <Users className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Admins</p>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                            {business.admins} administrator{business.admins !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
+                          <Bot className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Agents</p>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                            {business.agents} active agent{business.agents !== 1 ? 's' : ''}
+                          </p>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <Bot className="h-5 w-5 text-slate-500" />
-                      <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Agents</p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                          {business.agents} active agent{business.agents !== 1 ? 's' : ''}
-                        </p>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600">
+                          <Calendar className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Created</p>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                            {new Date(business.created).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600">
+                          <CreditCard className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Current Plan</p>
+                          <Badge 
+                            variant={
+                              business.plan?.toLowerCase() === 'premium' ? 'default' : 
+                              business.plan?.toLowerCase() === 'pro' ? 'secondary' : 
+                              'outline'
+                            } 
+                            className="capitalize mt-1"
+                          >
+                            {business.plan === 'None' || !business.plan ? 'Free' : business.plan}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600">
+                          <Activity className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Status</p>
+                          <Badge 
+                            variant={
+                              business.status?.toLowerCase() === 'active' ? 'default' : 
+                              business.status?.toLowerCase() === 'trial' ? 'secondary' : 
+                              'outline'
+                            }
+                            className="mt-1"
+                          >
+                            {business.status === 'None' || !business.status ? 'New' : business.status}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </div>
 
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="h-5 w-5 text-slate-500" />
-                      <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Created</p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                          {new Date(business.created).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </p>
+            {/* Agents Section */}
+            <div ref={agentsRef}>
+              <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                      Team & Agents
+                    </CardTitle>
+                    <ModernTabNavigation
+                      tabs={agentTabs}
+                      activeTab={activeAgentTab}
+                      onTabChange={setActiveAgentTab}
+                      className="text-xs"
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {activeAgentTab === 'human' ? (
+                    <div className="space-y-4">
+                      {businessData.administrators.map((admin) => (
+                        <div key={admin.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600">
+                              <User className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-slate-900 dark:text-slate-100">{admin.name}</p>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">{admin.email}</p>
+                            </div>
+                          </div>
+                          <Badge variant="outline" className="capitalize">
+                            {admin.role}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {businessData.agents.map((agent) => (
+                        <div key={agent.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600">
+                              <Bot className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-slate-900 dark:text-slate-100">{agent.name}</p>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">{agent.agentType}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge 
+                              variant={agent.status === 'active' ? 'default' : 'outline'}
+                              className="capitalize"
+                            >
+                              {agent.status}
+                            </Badge>
+                            <span className="text-sm text-slate-600 dark:text-slate-400">
+                              {agent.conversations} chats
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Analytics Section */}
+            <div ref={analyticsRef}>
+              <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                    Analytics Overview
+                  </CardTitle>
+                  <CardDescription>
+                    Current month's performance metrics
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
+                      <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                        {businessData.account_statistics.conversations}
                       </div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400">Conversations</div>
                     </div>
-
-                    <div className="flex items-center gap-3">
-                      <CreditCard className="h-5 w-5 text-slate-500" />
-                      <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Current Plan</p>
-                        <Badge 
-                          variant={
-                            business.plan?.toLowerCase() === 'premium' ? 'default' : 
-                            business.plan?.toLowerCase() === 'pro' ? 'secondary' : 
-                            'outline'
-                          } 
-                          className="capitalize mt-1"
-                        >
-                          {business.plan === 'None' || !business.plan ? 'Free' : business.plan}
-                        </Badge>
+                    <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
+                      <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                        {business.admins + business.agents}
                       </div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400">Active Users</div>
                     </div>
-
-                    <div className="flex items-center gap-3">
-                      <Activity className="h-5 w-5 text-slate-500" />
-                      <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Status</p>
-                        <Badge 
-                          variant={
-                            business.status?.toLowerCase() === 'active' ? 'default' : 
-                            business.status?.toLowerCase() === 'trial' ? 'secondary' : 
-                            'outline'
-                          }
-                          className="mt-1"
-                        >
-                          {business.status === 'None' || !business.status ? 'New' : business.status}
-                        </Badge>
+                    <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
+                      <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                        {businessData.account_statistics.documents}
                       </div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400">Knowledge Sources</div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
 
-            {/* Statistics */}
-            <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
-                  Usage Statistics
-                </CardTitle>
-                <CardDescription>
-                  Current month's activity overview
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
-                    <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                      {businessData.account_statistics.conversations}
+            {/* Conversations Volume Chart */}
+            <div ref={conversationsRef}>
+              <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                    Conversations Volume
+                  </CardTitle>
+                  <CardDescription>
+                    Daily conversation trends over the last 30 days
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64 flex items-center justify-center bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
+                    <div className="text-center">
+                      <BarChart3 className="h-12 w-12 text-slate-400 mx-auto mb-2" />
+                      <p className="text-slate-600 dark:text-slate-400">Chart visualization coming soon</p>
                     </div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400">Conversations</div>
                   </div>
-                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
-                    <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                      {business.admins + business.agents}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Payment History */}
+            <div ref={paymentRef}>
+              <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                    Payment History
+                  </CardTitle>
+                  <CardDescription>
+                    Recent billing and subscription changes
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/30 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-green-600">
+                          <Receipt className="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-900 dark:text-slate-100">
+                            {business.plan === 'None' || !business.plan ? 'Free Plan' : `${business.plan} Plan`}
+                          </p>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Current subscription</p>
+                        </div>
+                      </div>
+                      <Badge variant="default">Active</Badge>
                     </div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400">Active Users</div>
-                  </div>
-                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
-                    <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                      {businessData.account_statistics.documents}
+                    <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/30 rounded-lg">
+                      <span className="text-slate-600 dark:text-slate-400">Next billing</span>
+                      <span className="text-slate-900 dark:text-slate-100">
+                        {businessData.subscription.next_billing_date ? 
+                          new Date(businessData.subscription.next_billing_date).toLocaleDateString() : 
+                          'N/A'
+                        }
+                      </span>
                     </div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400">Knowledge Sources</div>
+                    <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/30 rounded-lg">
+                      <span className="text-slate-600 dark:text-slate-400">Billing cycle</span>
+                      <span className="text-slate-900 dark:text-slate-100 capitalize">
+                        {businessData.subscription.billing_cycle || 'Monthly'}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
-          {/* Right Column - Actions & Info */}
-          <div className="space-y-6">
-            {/* Quick Actions */}
+          {/* Right Column - Sticky Sidebar */}
+          <div className="lg:sticky lg:top-6 lg:h-fit space-y-6">
+            {/* Quick Links */}
             <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                  Quick Actions
+                  Quick Links
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <ModernButton variant="outline" className="w-full justify-start">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Add Team Member
-                </ModernButton>
-                <ModernButton variant="outline" className="w-full justify-start">
-                  <Bot className="h-4 w-4 mr-2" />
-                  View Agents
-                </ModernButton>
-                <ModernButton variant="outline" className="w-full justify-start">
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Billing Details
-                </ModernButton>
-                <ModernButton variant="outline" className="w-full justify-start">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Business Settings
-                </ModernButton>
+              <CardContent className="space-y-2">
+                <button
+                  onClick={() => scrollToSection(overviewRef)}
+                  className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/30 rounded-lg transition-colors"
+                >
+                  <BarChart3 className="h-4 w-4 inline mr-2" />
+                  Business Overview
+                </button>
+                <button
+                  onClick={() => scrollToSection(agentsRef)}
+                  className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/30 rounded-lg transition-colors"
+                >
+                  <Users className="h-4 w-4 inline mr-2" />
+                  Team & Agents
+                </button>
+                <button
+                  onClick={() => scrollToSection(analyticsRef)}
+                  className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/30 rounded-lg transition-colors"
+                >
+                  <Activity className="h-4 w-4 inline mr-2" />
+                  Analytics
+                </button>
+                <button
+                  onClick={() => scrollToSection(conversationsRef)}
+                  className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/30 rounded-lg transition-colors"
+                >
+                  <MessageSquare className="h-4 w-4 inline mr-2" />
+                  Conversations
+                </button>
+                <button
+                  onClick={() => scrollToSection(paymentRef)}
+                  className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/30 rounded-lg transition-colors"
+                >
+                  <CreditCard className="h-4 w-4 inline mr-2" />
+                  Payment History
+                </button>
               </CardContent>
             </Card>
 
