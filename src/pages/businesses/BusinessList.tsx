@@ -173,11 +173,11 @@ const BusinessList = () => {
                       to={`/businesses/${business.id}`}
                       className="block"
                     >
-                      <Card className="p-6 bg-slate-50 dark:bg-slate-800/30 border-0 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all duration-200 cursor-pointer group">
+                      <Card className="p-5 bg-slate-50 dark:bg-slate-800/30 border-0 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all duration-200 cursor-pointer group shadow-none">
                         <div className="flex items-center gap-4">
                           {/* Business Icon */}
-                          <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex-shrink-0">
-                            <Building className="h-5 w-5 text-white" />
+                          <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex-shrink-0">
+                            <Building className="h-4 w-4 text-white" />
                           </div>
 
                           {/* Business Info */}
@@ -185,20 +185,7 @@ const BusinessList = () => {
                             <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate text-lg">
                               {business.name || 'Business Name'}
                             </h3>
-                            <div className="flex items-center gap-6 mt-2">
-                              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                                <Globe className="h-4 w-4" />
-                                <span className="truncate">{business.domain || 'No domain'}</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                                <Users className="h-4 w-4" />
-                                <span>{business.admins} admins</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                                <Bot className="h-4 w-4" />
-                                <span>{business.agents} agents</span>
-                              </div>
-                            </div>
+                            
                           </div>
 
                           {/* Plan and Status Badges */}

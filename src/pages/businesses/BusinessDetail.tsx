@@ -23,10 +23,10 @@ import {
 import { useBusinessDetail } from '@/hooks/useBusinesses';
 
 const BusinessDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { businessId } = useParams();
   
   // Use the proper hook for fetching business details
-  const { data: businessData, isLoading, isError, error } = useBusinessDetail(id);
+  const { data: businessData, isLoading, isError, error } = useBusinessDetail(businessId);
 
   if (isLoading) {
     return (
@@ -122,16 +122,10 @@ const BusinessDetail = () => {
                 Back
               </Link>
             </ModernButton>
-            <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-              <Building className="h-6 w-6 text-white" />
-            </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 capitalize">
                 {business.name || 'Business Name'}
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Business details and management
-              </p>
+              </h2>
             </div>
           </div>
           <div className="flex items-center gap-3">
