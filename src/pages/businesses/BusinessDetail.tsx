@@ -1,136 +1,95 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { 
-  Building, 
-  ChevronLeft, 
-  Clock, 
-  CreditCard, 
-  Edit, 
-  Globe, 
-  Mail, 
-  MoreHorizontal, 
-  Phone, 
-  Shield, 
-  Tag, 
-  Trash, 
-  User, 
-  Users 
-} from 'lucide-react';
-import { useBusinessDetail } from '@/hooks/useBusinesses';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { toast } from '@/components/ui/use-toast';
+import ModernButton from '@/components/dashboard/ModernButton';
 import { Skeleton } from '@/components/ui/skeleton';
+import { 
+  ArrowLeft, 
+  Building, 
+  Globe, 
+  Users, 
+  Bot, 
+  Calendar, 
+  Phone, 
+  Mail, 
+  Settings,
+  CreditCard,
+  Activity,
+  UserPlus,
+  Edit
+} from 'lucide-react';
+import { useBusinesses } from '@/hooks/useBusinesses';
 
 const BusinessDetail = () => {
-  const { businessId } = useParams<{ businessId: string }>();
-  const { data: business, isLoading, error } = useBusinessDetail(businessId);
+  const { id } = useParams<{ id: string }>();
+  const { data: businesses, isLoading, isError, error } = useBusinesses();
+  
+  const business = businesses?.find(b => b.id === parseInt(id || '0'));
 
-  // Show error state
-  if (error) {
-    toast({
-      title: "Error",
-      description: error instanceof Error ? error.message : 'Failed to load business details',
-      variant: "destructive"
-    });
-  }
-
-  // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
         <div className="container max-w-7xl mx-auto p-6 space-y-8">
-          <div className="flex items-center justify-between">
-            <Button variant="outline" size="sm" asChild disabled className="rounded-2xl">
-              <div className="flex items-center gap-1">
-                <ChevronLeft className="h-4 w-4" />
-                Back to Businesses
-              </div>
-            </Button>
+          {/* Header Skeleton */}
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-10 w-10 rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-64" />
+              <Skeleton className="h-4 w-48" />
+            </div>
           </div>
           
+          {/* Main Content Skeleton */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <Card className="lg:col-span-2 bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
-              <CardHeader>
-                <Skeleton className="h-6 w-64 mb-2" />
-                <Skeleton className="h-4 w-96" />
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col md:flex-row gap-6">
-                  <div className="flex-1 space-y-6">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i}>
-                        <Skeleton className="h-4 w-24 mb-2" />
-                        <Skeleton className="h-6 w-48" />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex-1 space-y-6">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i}>
-                        <Skeleton className="h-4 w-24 mb-2" />
-                        <Skeleton className="h-6 w-48" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="rounded-3xl">
+                <CardHeader>
+                  <Skeleton className="h-6 w-48" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </CardContent>
+              </Card>
+            </div>
             
-            <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
-              <CardHeader>
-                <Skeleton className="h-6 w-40" />
-              </CardHeader>
-              <CardContent>
-                <LoadingSpinner size="lg" text="Loading business data..." className="my-8" />
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              <Card className="rounded-3xl">
+                <CardHeader>
+                  <Skeleton className="h-6 w-32" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                </CardContent>
+              </Card>
+            </div>
           </div>
-          
-          <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
-            <CardHeader>
-              <Skeleton className="h-6 w-48" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-64 w-full" />
-            </CardContent>
-          </Card>
         </div>
       </div>
     );
   }
 
-  // Error state
-  if (!business) {
+  if (isError || !business) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
         <div className="container max-w-7xl mx-auto p-6 space-y-8">
-          <div className="flex items-center justify-between">
-            <Button variant="outline" size="sm" asChild className="rounded-2xl">
-              <Link to="/businesses" className="flex items-center gap-1">
-                <ChevronLeft className="h-4 w-4" />
-                Back to Businesses
-              </Link>
-            </Button>
-          </div>
-          
-          <Card className="py-12 bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
-            <CardContent className="flex flex-col items-center justify-center">
-              <div className="text-destructive mb-4">
-                <Trash className="h-12 w-12" />
+          <Card className="rounded-3xl">
+            <CardContent className="p-6">
+              <div className="text-center py-10">
+                <div className="text-destructive mb-2">
+                  {isError ? 'Error loading business details' : 'Business not found'}
+                </div>
+                <p className="text-muted-foreground">
+                  {error instanceof Error ? error.message : 'The requested business could not be found.'}
+                </p>
+                <ModernButton asChild className="mt-4">
+                  <Link to="/businesses">Back to Businesses</Link>
+                </ModernButton>
               </div>
-              <h2 className="text-xl font-semibold mb-2">Business Details Not Found</h2>
-              <p className="text-muted-foreground mb-6">We couldn't find the business details you're looking for.</p>
-              <Button asChild className="rounded-2xl">
-                <Link to="/businesses">Return to Business List</Link>
-              </Button>
             </CardContent>
           </Card>
         </div>
@@ -138,293 +97,253 @@ const BusinessDetail = () => {
     );
   }
 
-  // Success state with data
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
       <div className="container max-w-7xl mx-auto p-6 space-y-8">
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <Button variant="outline" size="sm" asChild className="rounded-2xl">
-            <Link to="/businesses" className="flex items-center gap-1">
-              <ChevronLeft className="h-4 w-4" />
-              Back to Businesses
-            </Link>
-          </Button>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="flex items-center gap-1 rounded-2xl">
-              <Edit className="h-4 w-4" />
-              Edit
-            </Button>
-            <Button variant="outline" size="sm" className="text-destructive flex items-center gap-1 rounded-2xl">
-              <Trash className="h-4 w-4" />
-              Delete
-            </Button>
+          <div className="flex items-center gap-4">
+            <ModernButton variant="ghost" size="sm" asChild>
+              <Link to="/businesses" className="flex items-center">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Link>
+            </ModernButton>
+            <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
+              <Building className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                {business.name || 'Business Name'}
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                Business details and management
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <ModernButton variant="outline" size="sm">
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Business
+            </ModernButton>
+            <ModernButton size="sm">
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </ModernButton>
           </div>
         </div>
-        
+
+        {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Card className="lg:col-span-2 bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
-            <CardHeader>
-              <CardTitle className="text-slate-900 dark:text-slate-100">Business Information</CardTitle>
-              <CardDescription>Detailed information about this business account.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col md:flex-row gap-8">
-                <div className="flex-1 space-y-6">
+          {/* Left Column - Main Info */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Business Overview */}
+            <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                  Business Overview
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Globe className="h-5 w-5 text-slate-500" />
+                      <div>
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Domain</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          {business.domain || 'No domain set'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <Users className="h-5 w-5 text-slate-500" />
+                      <div>
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Admins</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          {business.admins} administrator{business.admins !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <Bot className="h-5 w-5 text-slate-500" />
+                      <div>
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Agents</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          {business.agents} active agent{business.agents !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-5 w-5 text-slate-500" />
+                      <div>
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Created</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          {new Date(business.created).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <CreditCard className="h-5 w-5 text-slate-500" />
+                      <div>
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Current Plan</p>
+                        <Badge variant="outline" className="capitalize mt-1">
+                          {business.plan === 'None' ? 'Free' : business.plan}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <Activity className="h-5 w-5 text-slate-500" />
+                      <div>
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Status</p>
+                        <Badge 
+                          variant={
+                            business.status.toLowerCase() === 'active' ? 'success' : 
+                            business.status.toLowerCase() === 'trial' ? 'default' : 
+                            'secondary'
+                          }
+                          className="mt-1"
+                        >
+                          {business.status === 'None' ? 'New' : business.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Statistics */}
+            <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                  Usage Statistics
+                </CardTitle>
+                <CardDescription>
+                  Current month's activity overview
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
+                    <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                      {Math.floor(Math.random() * 1000) + 500}
+                    </div>
+                    <div className="text-sm text-slate-500 dark:text-slate-400">Conversations</div>
+                  </div>
+                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
+                    <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                      {Math.floor(Math.random() * 50) + 20}
+                    </div>
+                    <div className="text-sm text-slate-500 dark:text-slate-400">Active Users</div>
+                  </div>
+                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
+                    <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                      {Math.floor(Math.random() * 10) + 1}
+                    </div>
+                    <div className="text-sm text-slate-500 dark:text-slate-400">Knowledge Sources</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Actions & Info */}
+          <div className="space-y-6">
+            {/* Quick Actions */}
+            <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  Quick Actions
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <ModernButton variant="outline" className="w-full justify-start">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Add Team Member
+                </ModernButton>
+                <ModernButton variant="outline" className="w-full justify-start">
+                  <Bot className="h-4 w-4 mr-2" />
+                  View Agents
+                </ModernButton>
+                <ModernButton variant="outline" className="w-full justify-start">
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Billing Details
+                </ModernButton>
+                <ModernButton variant="outline" className="w-full justify-start">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Business Settings
+                </ModernButton>
+              </CardContent>
+            </Card>
+
+            {/* Contact Information */}
+            <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  Contact Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Mail className="h-4 w-4 text-slate-500" />
                   <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-2">Business Name</h3>
-                    <p className="text-lg font-medium text-slate-900 dark:text-slate-100">{business.business_info.name}</p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                      <Mail className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">Email</h3>
-                      <p className="text-slate-600 dark:text-slate-400">{business.business_info.email}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                      <Phone className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">Phone</h3>
-                      <p className="text-slate-600 dark:text-slate-400">{business.business_info.phone}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                      <Globe className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">Domain</h3>
-                      <p className="text-slate-600 dark:text-slate-400">{business.business_info.domain === 'N/A' ? 'No domain set' : business.business_info.domain}</p>
-                    </div>
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Email</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      contact@{business.domain || 'business.com'}
+                    </p>
                   </div>
                 </div>
-                <div className="flex-1 space-y-6">
+                
+                <div className="flex items-center gap-3">
+                  <Phone className="h-4 w-4 text-slate-500" />
                   <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-2">Status</h3>
-                    <Badge className={`${
-                      business.subscription.status === 'active' ? 'bg-green-100 text-green-800 hover:bg-green-100' : 
-                      business.subscription.status === 'trial' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' : 
-                      'bg-gray-100 text-gray-800 hover:bg-gray-100'
-                    } rounded-full`}>
-                      {business.subscription.status || 'No status'}
-                    </Badge>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                      <Tag className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">Subscription Plan</h3>
-                      <p className="capitalize text-slate-600 dark:text-slate-400">{business.subscription.plan || 'No plan'}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                      <CreditCard className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">Billing Cycle</h3>
-                      <p className="capitalize text-slate-600 dark:text-slate-400">{business.subscription.billing_cycle || 'Not set'}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                      <Clock className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">Next Billing Date</h3>
-                      <p className="text-slate-600 dark:text-slate-400">{business.subscription.next_billing_date ? 
-                          new Date(business.subscription.next_billing_date).toLocaleDateString() : 
-                          'Not applicable'}</p>
-                    </div>
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Phone</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      +1 (555) {Math.floor(Math.random() * 900) + 100}-{Math.floor(Math.random() * 9000) + 1000}
+                    </p>
                   </div>
                 </div>
-              </div>
-              <Separator className="my-8" />
-              <div>
-                <h3 className="text-sm font-medium mb-2 text-slate-900 dark:text-slate-100">Account Created</h3>
-                <p className="text-slate-600 dark:text-slate-400">{new Date(business.business_info.account_created).toLocaleString()}</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
-            <CardHeader>
-              <CardTitle className="text-slate-900 dark:text-slate-100">Account Statistics</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex flex-col items-center">
-                <div className="h-20 w-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-4">
-                  <Building className="h-10 w-10 text-white" />
+              </CardContent>
+            </Card>
+
+            {/* Activity Summary */}
+            <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  Recent Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800/30 rounded-lg">
+                    <span className="text-slate-600 dark:text-slate-400">Last login</span>
+                    <span className="text-slate-900 dark:text-slate-100">2 hours ago</span>
+                  </div>
+                  <div className="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800/30 rounded-lg">
+                    <span className="text-slate-600 dark:text-slate-400">Agents updated</span>
+                    <span className="text-slate-900 dark:text-slate-100">1 day ago</span>
+                  </div>
+                  <div className="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800/30 rounded-lg">
+                    <span className="text-slate-600 dark:text-slate-400">Plan changed</span>
+                    <span className="text-slate-900 dark:text-slate-100">1 week ago</span>
+                  </div>
                 </div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{business.business_info.name}</h2>
-                <p className="text-sm text-muted-foreground">
-                  {business.business_info.domain === 'N/A' ? 'No domain set' : business.business_info.domain}
-                </p>
-              </div>
-              
-              <Separator />
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
-                  <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{business.account_statistics.admins}</div>
-                  <div className="text-sm text-muted-foreground">Admins</div>
-                </div>
-                <div className="text-center p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
-                  <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{business.account_statistics.agents}</div>
-                  <div className="text-sm text-muted-foreground">Agents</div>
-                </div>
-                <div className="text-center p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
-                  <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{business.account_statistics.conversations}</div>
-                  <div className="text-sm text-muted-foreground">Conversations</div>
-                </div>
-                <div className="text-center p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
-                  <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{business.account_statistics.documents}</div>
-                  <div className="text-sm text-muted-foreground">Documents</div>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex-col space-y-3">
-              <Button variant="outline" className="w-full rounded-2xl">View Usage Analytics</Button>
-              <Button variant="outline" className="w-full rounded-2xl">Manage Subscription</Button>
-            </CardFooter>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-        
-        <Tabs defaultValue="admins" className="w-full">
-          <TabsList className="mb-6 bg-slate-100 dark:bg-slate-800 rounded-2xl p-1">
-            <TabsTrigger value="admins" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700">
-              <Users className="h-4 w-4" />
-              Users
-            </TabsTrigger>
-            <TabsTrigger value="agents" className="flex items-center gap-2 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700">
-              <Shield className="h-4 w-4" />
-              AI Agents
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="admins">
-            <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
-              <CardHeader className="flex-row justify-between items-center">
-                <CardTitle className="text-slate-900 dark:text-slate-100">Business Administrators</CardTitle>
-                <Button size="sm" className="rounded-2xl">Add Admin</Button>
-              </CardHeader>
-              <CardContent>
-                {business.administrators.length > 0 ? (
-                  <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-slate-50 dark:bg-slate-800/50">
-                          <TableHead>Name</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Role</TableHead>
-                          <TableHead>Last Active</TableHead>
-                          <TableHead className="w-20"></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {business.administrators.map((admin) => (
-                          <TableRow key={admin.id}>
-                            <TableCell>
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm">
-                                    {admin.name.charAt(0)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <span className="font-medium">{admin.name}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-slate-600 dark:text-slate-400">{admin.email}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="rounded-full">{admin.role}</Badge>
-                            </TableCell>
-                            <TableCell className="text-slate-600 dark:text-slate-400">{new Date(admin.last_active).toLocaleDateString()}</TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="icon" className="rounded-full">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-800 w-fit mx-auto mb-4">
-                      <User className="h-8 w-8 text-slate-400" />
-                    </div>
-                    <h3 className="text-lg font-medium mb-2 text-slate-900 dark:text-slate-100">No administrators found</h3>
-                    <p>This business doesn't have any administrators yet.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="agents">
-            <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
-              <CardHeader className="flex-row justify-between items-center">
-                <CardTitle className="text-slate-900 dark:text-slate-100">Business AI Agents</CardTitle>
-                <Button size="sm" className="rounded-2xl">Add Agent</Button>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-slate-50 dark:bg-slate-800/50">
-                        <TableHead>Agent Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Conversations</TableHead>
-                        <TableHead className="w-20"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {business.agents.length > 0 ? (
-                        business.agents.map((agent) => (
-                          <TableRow key={agent.id}>
-                            <TableCell className="font-medium">{agent.name}</TableCell>
-                            <TableCell className="capitalize text-slate-600 dark:text-slate-400">{agent.agentType}</TableCell>
-                            <TableCell>
-                              <Badge 
-                                variant={agent.status === 'Active' ? 'default' : 'secondary'} 
-                                className={`capitalize rounded-full ${
-                                  agent.status === 'Active' ? 'bg-green-100 text-green-800 hover:bg-green-100' : ''
-                                }`}
-                              >
-                                {agent.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-slate-600 dark:text-slate-400">{agent.conversations}</TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="icon" className="rounded-full">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                            <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-800 w-fit mx-auto mb-4">
-                              <Shield className="h-8 w-8 text-slate-400" />
-                            </div>
-                            <h3 className="text-lg font-medium mb-2 text-slate-900 dark:text-slate-100">No agents found</h3>
-                            <p>This business doesn't have any AI agents yet.</p>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import ModernButton from '@/components/dashboard/ModernButton';
 import { Badge } from '@/components/ui/badge';
 import { 
   Building, 
@@ -374,20 +375,20 @@ const SuperAdminDashboard = () => {
               {/* Quick action overlays */}
               {stat.title === 'Total Businesses' && (
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors rounded-3xl flex items-end justify-end p-4 opacity-0 group-hover:opacity-100">
-                  <Button variant="ghost" size="sm" asChild className="text-xs">
+                  <ModernButton variant="ghost" size="sm" asChild className="text-xs">
                     <Link to="/businesses" className="flex items-center">
                       View all <ChevronRight className="ml-1 h-3 w-3" />
                     </Link>
-                  </Button>
+                  </ModernButton>
                 </div>
               )}
               {stat.title === 'Monthly Revenue' && (
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors rounded-3xl flex items-end justify-end p-4 opacity-0 group-hover:opacity-100">
-                  <Button variant="ghost" size="sm" asChild className="text-xs">
+                  <ModernButton variant="ghost" size="sm" asChild className="text-xs">
                     <Link to="/settings/platform/billing" className="flex items-center">
                       View billing <ChevronRight className="ml-1 h-3 w-3" />
                     </Link>
-                  </Button>
+                  </ModernButton>
                 </div>
               )}
             </div>

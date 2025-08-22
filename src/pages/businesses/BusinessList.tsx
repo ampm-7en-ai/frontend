@@ -208,12 +208,12 @@ const BusinessList = () => {
                             </Badge>
                             
                             <Badge 
-                              className={`text-xs px-3 py-1 rounded-full ${
-                                business.status.toLowerCase() === 'active' ? 'bg-green-100 text-green-800 hover:bg-green-100' : 
-                                business.status.toLowerCase() === 'trial' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' : 
-                                business.status.toLowerCase() === 'none' ? 'bg-gray-100 text-gray-800 hover:bg-gray-100' :
-                                'bg-gray-100 text-gray-800 hover:bg-gray-100'
-                              }`}
+                              variant={
+                                business.status.toLowerCase() === 'active' ? 'success' : 
+                                business.status.toLowerCase() === 'trial' ? 'default' : 
+                                'secondary'
+                              }
+                              className="text-xs px-3 py-1 rounded-full"
                             >
                               {business.status.toLowerCase() === 'active' ? (
                                 <Check className="h-3 w-3 mr-1" />
