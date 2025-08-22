@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +11,9 @@ import {
   ChevronRight, 
   Zap, 
   TrendingUp,
-  CreditCard
+  CreditCard,
+  BarChart3,
+  Heart
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -28,9 +31,15 @@ import {
   Legend
 } from 'recharts';
 import { ModernStatCard } from '@/components/ui/modern-stat-card';
-import { PlatformInsightsCard } from '@/components/dashboard/PlatformInsightsCard';
+import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
 const SuperAdminDashboard = () => {
+  const [activeTab, setActiveTab] = useState('Today');
+  const [selectedMetric, setSelectedMetric] = useState('all');
+  const [businessTeamTab, setBusinessTeamTab] = useState('Today');
+  const [businessTeamMetric, setBusinessTeamMetric] = useState('all');
+
   // Sample data for charts (imported from PlatformAnalytics)
   const growthData = [
     { month: 'Jan', businesses: 95, users: 1800 },
@@ -102,6 +111,187 @@ const SuperAdminDashboard = () => {
     }
   ];
 
+  const timeTabs = [
+    { id: 'Today', label: 'Today' },
+    { id: '1W', label: '1W' },
+    { id: '1M', label: '1M' },
+    { id: '1Y', label: '1Y' }
+  ];
+
+  const metricOptions = [
+    { value: 'all', label: 'All Metrics' },
+    { value: 'businesses', label: 'Businesses' },
+    { value: 'users', label: 'Users' }
+  ];
+
+  const businessTeamOptions = [
+    { value: 'all', label: 'All Members' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+    { value: 'new', label: 'New' }
+  ];
+
+  // Render chart based on selected metric for platform growth
+  const renderPlatformGrowthChart = () => {
+    if (selectedMetric === 'all') {
+      return (
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={growthData} margin={{ bottom: 40, left: 10, right: 10, top: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis 
+              dataKey="month" 
+              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis yAxisId="left" orientation="left" stroke="#0088FE" />
+            <YAxis yAxisId="right" orientation="right" stroke="#00C49F" />
+            <Tooltip contentStyle={{ borderRadius: '8px' }} />
+            <Legend />
+            <Line 
+              yAxisId="right"
+              type="monotone" 
+              dataKey="users" 
+              stroke="#00C49F" 
+              strokeWidth={2} 
+              activeDot={{ r: 8 }} 
+              name="Users"
+            />
+            <Line 
+              yAxisId="left"
+              type="monotone" 
+              dataKey="businesses" 
+              stroke="#0088FE" 
+              strokeWidth={2} 
+              name="Businesses"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      );
+    } else {
+      return (
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={growthData} margin={{ bottom: 40, left: 10, right: 10, top: 10 }}>
+            <defs>
+              <linearGradient id="metricGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis 
+              dataKey="month" 
+              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis 
+              tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip contentStyle={{ borderRadius: '12px' }} />
+            <Area 
+              type="monotone" 
+              dataKey={selectedMetric}
+              stroke="#3b82f6"
+              fillOpacity={1} 
+              fill="url(#metricGradient)"
+              strokeWidth={2}
+              name={selectedMetric.charAt(0).toUpperCase() + selectedMetric.slice(1)}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      );
+    }
+  };
+
+  // Render chart for business team members based on selected metric
+  const renderBusinessTeamChart = () => {
+    if (businessTeamMetric === 'all') {
+      return (
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={businessTeamMembersData} margin={{ bottom: 40, left: 10, right: 10, top: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis 
+              dataKey="month" 
+              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis 
+              tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip contentStyle={{ borderRadius: '12px' }} />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="active"
+              name="Active"
+              stroke="#10b981"
+              strokeWidth={2}
+              dot={{ r: 4 }}
+              activeDot={{ r: 8 }}
+            />
+            <Line
+              type="monotone"
+              dataKey="inactive"
+              name="Inactive"
+              stroke="#9ca3af"
+              strokeWidth={2}
+              dot={{ r: 4 }}
+            />
+            <Line
+              type="monotone"
+              dataKey="new"
+              name="New"
+              stroke="#3b82f6"
+              strokeWidth={2}
+              dot={{ r: 4 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      );
+    } else {
+      return (
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={businessTeamMembersData} margin={{ bottom: 40, left: 10, right: 10, top: 10 }}>
+            <defs>
+              <linearGradient id="teamGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis 
+              dataKey="month" 
+              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis 
+              tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip contentStyle={{ borderRadius: '12px' }} />
+            <Area 
+              type="monotone" 
+              dataKey={businessTeamMetric}
+              stroke="#3b82f6"
+              fillOpacity={1} 
+              fill="url(#teamGradient)"
+              strokeWidth={2}
+              name={businessTeamMetric.charAt(0).toUpperCase() + businessTeamMetric.slice(1)}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
       <div className="container max-w-7xl mx-auto p-6 space-y-8">
@@ -150,200 +340,188 @@ const SuperAdminDashboard = () => {
           ))}
         </div>
 
-        {/* Platform Insights Card */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                  Platform Growth
-                </CardTitle>
-                <CardDescription className="text-gray-600 dark:text-gray-400">
-                  Business and user growth over time
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
+        {/* Platform Growth - Full Width with Admin Style Controls */}
+        <Card className="bg-transparent border-0 rounded-3xl shadow-none overflow-hidden h-full pl-0">
+          <CardHeader className="pb-4 pl-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Platform Growth
+              </CardTitle>
+              <div className="flex items-center gap-3">
+                <ModernTabNavigation 
+                  tabs={timeTabs}
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                  className="text-xs"
+                />
+                <ModernDropdown
+                  value={selectedMetric}
+                  onValueChange={setSelectedMetric}
+                  options={metricOptions}
+                  placeholder="Select Metric"
+                  className="w-32 h-8 text-xs rounded-xl border-slate-200 dark:border-slate-700"
+                />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 pl-0 pb-0">
+            <div className="h-80">
+              {renderPlatformGrowthChart()}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Analytics Charts - Admin Style */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Conversation Volume - Admin Style with Bar Chart Icon */}
+          <Card className="bg-white dark:bg-gray-800/50 border-0 rounded-3xl overflow-hidden h-full">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
+                    Conversation Volume
+                  </CardTitle>
+                </div>
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600">
+                  <BarChart3 className="h-4 w-4 text-white" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1">
+              <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={growthData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                    <XAxis dataKey="month" />
-                    <YAxis yAxisId="left" orientation="left" stroke="#0088FE" />
-                    <YAxis yAxisId="right" orientation="right" stroke="#00C49F" />
-                    <Tooltip contentStyle={{ borderRadius: '8px' }} />
-                    <Legend />
-                    <Line 
-                      yAxisId="right"
+                  <AreaChart data={conversationData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                    <defs>
+                      <linearGradient id="conversationGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+                    <XAxis 
+                      dataKey="week" 
+                      tick={{ fontSize: 12, fill: 'currentColor' }}
+                      className="text-slate-600 dark:text-slate-400"
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 12, fill: 'currentColor' }}
+                      className="text-slate-600 dark:text-slate-400"
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                        color: 'hsl(var(--foreground))',
+                        fontSize: '12px'
+                      }}
+                    />
+                    <Area 
                       type="monotone" 
-                      dataKey="users" 
-                      stroke="#00C49F" 
-                      strokeWidth={2} 
-                      activeDot={{ r: 8 }} 
-                      name="Users"
+                      dataKey="conversations" 
+                      stroke="#8884d8" 
+                      fill="url(#conversationGradient)" 
+                      fillOpacity={1} 
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Revenue Trends - Admin Style with Heart Icon */}
+          <Card className="bg-white dark:bg-gray-800/50 border-0 rounded-3xl overflow-hidden h-full">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
+                    Revenue Trends
+                  </CardTitle>
+                </div>
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-green-500 to-green-600">
+                  <TrendingUp className="h-4 w-4 text-white" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1">
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={revenueData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+                    <XAxis 
+                      dataKey="month" 
+                      tick={{ fontSize: 12, fill: 'currentColor' }}
+                      className="text-slate-600 dark:text-slate-400"
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 12, fill: 'currentColor' }}
+                      className="text-slate-600 dark:text-slate-400"
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(value) => `$${value/1000}k`}
+                    />
+                    <Tooltip 
+                      formatter={(value) => [`$${value.toLocaleString()}`, 'Revenue']}
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                        color: 'hsl(var(--foreground))',
+                        fontSize: '12px'
+                      }}
                     />
                     <Line 
-                      yAxisId="left"
                       type="monotone" 
-                      dataKey="businesses" 
-                      stroke="#0088FE" 
-                      strokeWidth={2} 
-                      name="Businesses"
+                      dataKey="revenue" 
+                      stroke="#22c55e" 
+                      strokeWidth={2}
+                      dot={false}
+                      name="Revenue"
                     />
                   </LineChart>
                 </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <div className="space-y-6">
-            <PlatformInsightsCard />
-            
-            {/* Quick Stats */}
-            <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-2xl">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Quick Stats
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Growth Rate</span>
-                  <Badge variant="outline" className="bg-green-100 text-green-800">
-                    +12%
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Active Sessions</span>
-                  <Badge variant="outline" className="bg-blue-100 text-blue-800">
-                    1,247
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Response Time</span>
-                  <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
-                    124ms
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Analytics Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Conversation Volume
-              </CardTitle>
-              <CardDescription className="text-gray-600 dark:text-gray-400">
-                Total conversations by week
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={conversationData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                  <XAxis dataKey="week" />
-                  <YAxis />
-                  <Tooltip contentStyle={{ borderRadius: '8px' }} />
-                  <Area 
-                    type="monotone" 
-                    dataKey="conversations" 
-                    stroke="#8884d8" 
-                    fill="#8884d8" 
-                    fillOpacity={0.3} 
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Revenue Trends
-              </CardTitle>
-              <CardDescription className="text-gray-600 dark:text-gray-400">
-                Monthly recurring revenue
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                  <XAxis dataKey="month" />
-                  <YAxis 
-                    tickFormatter={(value) => `$${value/1000}k`}
-                  />
-                  <Tooltip 
-                    formatter={(value) => [`$${value.toLocaleString()}`, 'Revenue']}
-                    contentStyle={{ borderRadius: '8px' }}
-                  />
-                  <Bar 
-                    dataKey="revenue" 
-                    fill="#82ca9d" 
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Business Team Members Chart - Full Width */}
-        <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-2xl">
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Business Team Member Status
-            </CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
-              Active, inactive and new team members across businesses
-            </CardDescription>
+        {/* Business Team Members Chart - Admin Style with Controls */}
+        <Card className="bg-transparent border-0 rounded-3xl shadow-none overflow-hidden h-full pl-0">
+          <CardHeader className="pb-4 pl-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Business Team Member Status
+              </CardTitle>
+              <div className="flex items-center gap-3">
+                <ModernTabNavigation 
+                  tabs={timeTabs}
+                  activeTab={businessTeamTab}
+                  onTabChange={setBusinessTeamTab}
+                  className="text-xs"
+                />
+                <ModernDropdown
+                  value={businessTeamMetric}
+                  onValueChange={setBusinessTeamMetric}
+                  options={businessTeamOptions}
+                  placeholder="Select Members"
+                  className="w-32 h-8 text-xs rounded-xl border-slate-200 dark:border-slate-700"
+                />
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={businessTeamMembersData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value, name) => [
-                    `${value} members`, 
-                    typeof name === 'string' ? name.charAt(0).toUpperCase() + name.slice(1) : name
-                  ]}
-                  contentStyle={{ 
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                  }}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="active"
-                  name="Active"
-                  stroke="#10b981"
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                  activeDot={{ r: 8 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="inactive"
-                  name="Inactive"
-                  stroke="#9ca3af"
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="new"
-                  name="New"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <CardContent className="flex-1 pl-0 pb-0">
+            <div className="h-80">
+              {renderBusinessTeamChart()}
+            </div>
           </CardContent>
         </Card>
       </div>
