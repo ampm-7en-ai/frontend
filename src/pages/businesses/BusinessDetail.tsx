@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,13 +20,13 @@ import {
   UserPlus,
   Edit
 } from 'lucide-react';
-import { useBusinesses } from '@/hooks/useBusinesses';
+import { useBusinessDetail } from '@/hooks/useBusinesses';
 
 const BusinessDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { data: businesses, isLoading, isError, error } = useBusinesses();
   
-  const business = businesses?.find(b => b.id === id || b.id === parseInt(id || '0'));
+  // Use the proper hook for fetching business details
+  const { data: businessData, isLoading, isError, error } = useBusinessDetail(id);
 
   if (isLoading) {
     return (
@@ -72,7 +73,7 @@ const BusinessDetail = () => {
     );
   }
 
-  if (isError || !business) {
+  if (isError || !businessData) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
         <div className="container max-w-7xl mx-auto p-6 space-y-8">
@@ -95,6 +96,19 @@ const BusinessDetail = () => {
       </div>
     );
   }
+
+  // Extract business info from the detailed response
+  const business = {
+    name: businessData.business_info.name,
+    domain: businessData.business_info.domain,
+    plan: businessData.subscription.plan,
+    status: businessData.subscription.status,
+    admins: businessData.account_statistics.admins,
+    agents: businessData.account_statistics.agents,
+    created: businessData.business_info.account_created,
+    email: businessData.business_info.email,
+    phone: businessData.business_info.phone
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
@@ -196,8 +210,15 @@ const BusinessDetail = () => {
                       <CreditCard className="h-5 w-5 text-slate-500" />
                       <div>
                         <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Current Plan</p>
-                        <Badge variant="outline" className="capitalize mt-1">
-                          {business.plan === 'None' ? 'Free' : business.plan}
+                        <Badge 
+                          variant={
+                            business.plan?.toLowerCase() === 'premium' ? 'default' : 
+                            business.plan?.toLowerCase() === 'pro' ? 'secondary' : 
+                            'outline'
+                          } 
+                          className="capitalize mt-1"
+                        >
+                          {business.plan === 'None' || !business.plan ? 'Free' : business.plan}
                         </Badge>
                       </div>
                     </div>
@@ -208,13 +229,13 @@ const BusinessDetail = () => {
                         <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Status</p>
                         <Badge 
                           variant={
-                            business.status.toLowerCase() === 'active' ? 'success' : 
-                            business.status.toLowerCase() === 'trial' ? 'default' : 
-                            'secondary'
+                            business.status?.toLowerCase() === 'active' ? 'default' : 
+                            business.status?.toLowerCase() === 'trial' ? 'secondary' : 
+                            'outline'
                           }
                           className="mt-1"
                         >
-                          {business.status === 'None' ? 'New' : business.status}
+                          {business.status === 'None' || !business.status ? 'New' : business.status}
                         </Badge>
                       </div>
                     </div>
@@ -237,19 +258,19 @@ const BusinessDetail = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
                     <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                      {Math.floor(Math.random() * 1000) + 500}
+                      {businessData.account_statistics.conversations}
                     </div>
                     <div className="text-sm text-slate-500 dark:text-slate-400">Conversations</div>
                   </div>
                   <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
                     <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                      {Math.floor(Math.random() * 50) + 20}
+                      {business.admins + business.agents}
                     </div>
                     <div className="text-sm text-slate-500 dark:text-slate-400">Active Users</div>
                   </div>
                   <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
                     <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                      {Math.floor(Math.random() * 10) + 1}
+                      {businessData.account_statistics.documents}
                     </div>
                     <div className="text-sm text-slate-500 dark:text-slate-400">Knowledge Sources</div>
                   </div>
@@ -300,7 +321,7 @@ const BusinessDetail = () => {
                   <div>
                     <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Email</p>
                     <p className="text-sm text-slate-600 dark:text-slate-400">
-                      contact@{business.domain || 'business.com'}
+                      {business.email || `contact@${business.domain || 'business.com'}`}
                     </p>
                   </div>
                 </div>
@@ -310,7 +331,7 @@ const BusinessDetail = () => {
                   <div>
                     <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Phone</p>
                     <p className="text-sm text-slate-600 dark:text-slate-400">
-                      +1 (555) {Math.floor(Math.random() * 900) + 100}-{Math.floor(Math.random() * 9000) + 1000}
+                      {business.phone || '+1 (555) 123-4567'}
                     </p>
                   </div>
                 </div>
