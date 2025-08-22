@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,7 +25,7 @@ const BusinessDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { data: businesses, isLoading, isError, error } = useBusinesses();
   
-  const business = businesses?.find(b => b.id === parseInt(id || '0'));
+  const business = businesses?.find(b => b.id === id || b.id === parseInt(id || '0'));
 
   if (isLoading) {
     return (
