@@ -23,11 +23,14 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'open' | 'closed'>('closed');
   const [eventLogs, setEventLogs] = useState<SSEEventLog[]>([]);
   const [currentTaskStatus, setCurrentTaskStatus] = useState<string>('');
-  const [extractingProgress, setExtractingProgress] = useState(0);
-  const [embeddingProgress, setEmbeddingProgress] = useState(0);
-  const [isExtracting, setIsExtracting] = useState(false);
-  const [isEmbedding, setIsEmbedding] = useState(false);
+  
+  // Updated progress tracking based on your example
+  const [progress, setProgress] = useState(0);
+  const [statusMessage, setStatusMessage] = useState('Connecting to training stream...');
+  const [currentPhase, setCurrentPhase] = useState<'connecting' | 'extracting' | 'embedding' | 'completed' | 'failed'>('connecting');
   const [isCompleted, setIsCompleted] = useState(false);
+  const lastEventRef = useRef<string | null>(null);
+  
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const { state } = useBuilder();
@@ -53,42 +56,64 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     };
   }, []);
 
-  // Update event logs and track training completion
+  // Updated event processing based on your example logic
   useEffect(() => {
     const updateEventLogs = () => {
       if (agentId) {
         const logs = trainingSSEService.getRecentEventLogs(agentId, 10);
         setEventLogs(logs);
         
-        // Check for training completion in recent events
+        // Process the latest event with your logic
         const latestEvent = logs[0];
         if (latestEvent) {
-          if (latestEvent.event.event === 'training_completed') {
+          const eventData = latestEvent.event.data;
+          const eventType = latestEvent.event.event;
+
+          // Filter duplicate events
+          const eventKey = `${eventType}-${JSON.stringify(eventData)}`;
+          if (eventKey === lastEventRef.current) return;
+          lastEventRef.current = eventKey;
+
+          if (eventType === 'training_connected') {
+            setProgress(0);
+            setStatusMessage('Connected to training stream');
+            setCurrentPhase('connecting');
+            setCurrentTaskStatus('training');
+            setIsCompleted(false);
+          } else if (eventType === 'training_progress') {
+            // Handle training_training event (renamed to training_progress in our system)
+            const message = eventData.message || 'Processing...';
+            const progressValue = eventData.progress || 0;
+            
+            // Determine phase based on progress value or message content
+            if (message.toLowerCase().includes('extract') || progressValue <= 50) {
+              setCurrentPhase('extracting');
+              // Progress from 10% to 50% during extraction
+              const adjustedProgress = Math.max(10, Math.min(progressValue, 50));
+              setProgress(adjustedProgress);
+              setStatusMessage(message);
+            } else if (message.toLowerCase().includes('embed') || progressValue > 50) {
+              setCurrentPhase('embedding');
+              // Progress from 50% to 90% during embedding
+              const adjustedProgress = Math.max(50, Math.min(progressValue, 90));
+              setProgress(adjustedProgress);
+              setStatusMessage(message);
+            } else {
+              setProgress(progressValue);
+              setStatusMessage(message);
+            }
+            
+            setCurrentTaskStatus('training');
+          } else if (eventType === 'training_completed') {
+            setProgress(100);
+            setStatusMessage('Training completed successfully');
+            setCurrentPhase('completed');
             setCurrentTaskStatus('completed');
             setIsCompleted(true);
-            setIsExtracting(false);
-            setIsEmbedding(false);
-            setExtractingProgress(100);
-            setEmbeddingProgress(100);
-          } else if (latestEvent.event.event === 'training_failed') {
+          } else if (eventType === 'training_failed') {
+            setCurrentPhase('failed');
+            setStatusMessage(eventData.error || 'Training failed');
             setCurrentTaskStatus('failed');
-            setIsExtracting(false);
-            setIsEmbedding(false);
-          } else if (latestEvent.event.event === 'training_progress') {
-            setCurrentTaskStatus('training');
-            const progress = latestEvent.event.data.progress || 0;
-            
-            // Simulate step progression based on progress
-            if (progress <= 50) {
-              setIsExtracting(true);
-              setIsEmbedding(false);
-              setExtractingProgress(progress * 2); // 0-100% for first half
-            } else {
-              setIsExtracting(false);
-              setIsEmbedding(true);
-              setExtractingProgress(100);
-              setEmbeddingProgress((progress - 50) * 2); // 0-100% for second half
-            }
           }
         }
       }
@@ -142,6 +167,56 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
         return <WifiOff className="h-3 w-3 text-gray-400" />;
     }
   };
+
+  // Get phase-specific display info
+  const getPhaseDisplayInfo = () => {
+    switch (currentPhase) {
+      case 'connecting':
+        return {
+          extractingActive: false,
+          embeddingActive: false,
+          extractingProgress: 0,
+          embeddingProgress: 0
+        };
+      case 'extracting':
+        return {
+          extractingActive: true,
+          embeddingActive: false,
+          extractingProgress: Math.min(progress * 2, 100), // Scale to 0-100% for extraction step
+          embeddingProgress: 0
+        };
+      case 'embedding':
+        return {
+          extractingActive: false,
+          embeddingActive: true,
+          extractingProgress: 100,
+          embeddingProgress: Math.min((progress - 50) * 2, 100) // Scale remaining progress for embedding
+        };
+      case 'completed':
+        return {
+          extractingActive: false,
+          embeddingActive: false,
+          extractingProgress: 100,
+          embeddingProgress: 100
+        };
+      case 'failed':
+        return {
+          extractingActive: false,
+          embeddingActive: false,
+          extractingProgress: progress >= 25 ? 100 : 0,
+          embeddingProgress: progress >= 75 ? 100 : 0
+        };
+      default:
+        return {
+          extractingActive: false,
+          embeddingActive: false,
+          extractingProgress: 0,
+          embeddingProgress: 0
+        };
+    }
+  };
+
+  const phaseInfo = getPhaseDisplayInfo();
 
   // Mock data for character counts (since backend doesn't provide this yet)
   const mockCharacterCounts = {
@@ -229,40 +304,57 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             </div>
           )}
           
-          {/* Step-wise Progress */}
+          {/* Main Progress Display */}
           <div className="flex-1 flex flex-col min-h-0 p-4 space-y-4">
-            {/* Extracting Characters Step */}
+            {/* Overall Progress Bar */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                {isExtracting ? (
-                  <LoaderCircle className="h-4 w-4 text-blue-600 animate-spin" />
-                ) : extractingProgress === 100 ? (
-                  <Check className="h-4 w-4 text-green-600" />
-                ) : (
-                  <div className="h-4 w-4 rounded-full border-2 border-gray-300 dark:border-gray-600" />
-                )}
+              <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  Extracting Characters
+                  Training Progress
+                </span>
+                <span className="text-xs text-gray-500">
+                  {Math.round(progress)}%
                 </span>
               </div>
-              <Progress value={extractingProgress} className="h-2" />
+              <Progress value={progress} className="h-3" />
+              <p className="text-xs text-gray-600 dark:text-gray-400">{statusMessage}</p>
             </div>
 
-            {/* Embedding Characters Step */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                {isEmbedding ? (
-                  <LoaderCircle className="h-4 w-4 text-blue-600 animate-spin" />
-                ) : embeddingProgress === 100 ? (
-                  <Check className="h-4 w-4 text-green-600" />
-                ) : (
-                  <div className="h-4 w-4 rounded-full border-2 border-gray-300 dark:border-gray-600" />
-                )}
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  Embedding Characters
-                </span>
+            {/* Step-wise Progress */}
+            <div className="space-y-3">
+              {/* Extracting Characters Step */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  {phaseInfo.extractingActive ? (
+                    <LoaderCircle className="h-4 w-4 text-blue-600 animate-spin" />
+                  ) : phaseInfo.extractingProgress === 100 ? (
+                    <Check className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <div className="h-4 w-4 rounded-full border-2 border-gray-300 dark:border-gray-600" />
+                  )}
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Extracting Characters
+                  </span>
+                </div>
+                <Progress value={phaseInfo.extractingProgress} className="h-2" />
               </div>
-              <Progress value={embeddingProgress} className="h-2" />
+
+              {/* Embedding Characters Step */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  {phaseInfo.embeddingActive ? (
+                    <LoaderCircle className="h-4 w-4 text-blue-600 animate-spin" />
+                  ) : phaseInfo.embeddingProgress === 100 ? (
+                    <Check className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <div className="h-4 w-4 rounded-full border-2 border-gray-300 dark:border-gray-600" />
+                  )}
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Embedding Characters
+                  </span>
+                </div>
+                <Progress value={phaseInfo.embeddingProgress} className="h-2" />
+              </div>
             </div>
 
             {/* Done Section */}
