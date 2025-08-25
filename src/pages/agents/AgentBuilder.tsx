@@ -222,13 +222,13 @@ const AgentBuilderContent = () => {
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Training Alert Badge */}
-      <TrainingAlertBadge 
+      {/* <TrainingAlertBadge 
         isVisible={isTraining}
         message="Training knowledge sources..."
         agentStatus={state.agentData.status}
         agentName={state.agentData.name}
         hasUntrainedAlert={showUntrainedAlert && !hasActiveTrainingTasks}
-      />
+      /> */}
       
       {/* Untrained Sources Alert - Hide when training is active */}
       <UntrainedSourcesAlert

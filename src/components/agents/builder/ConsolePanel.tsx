@@ -235,11 +235,10 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             if (message?.includes('Starting text extraction')) {
               const progressState = sourceTracker.getProgressState();
               addTerminalLine('$ sudo apt-get update && apt-get install knowledge-extractor', 'command');
-              addTerminalLine('Reading package lists... Done', 'output');
-              addTerminalLine('Building dependency tree... Done', 'output');
+              addTerminalLine('Reading sources lists... Done', 'output');
               addTerminalLine(`Found ${progressState.totalSources} knowledge source(s) to process`, 'info');
               addTerminalLine('', 'output');
-              addTerminalLine('The following packages will be INSTALLED:', 'output');
+              addTerminalLine('The following sources will be extracted:', 'output');
               addTerminalLine(`  knowledge-sources (${progressState.totalSources} sources)`, 'output');
               addTerminalLine('', 'output');
             } else if (current_source?.id) {
@@ -289,11 +288,11 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             const chunkMatch = message?.match(/(\d+)\s+chunks/);
             const totalChunks = chunkMatch ? parseInt(chunkMatch[1]) : 1000; // Default fallback
             
-            addTerminalLine('$ npm install --upgrade ai-embeddings-engine', 'command');
+            addTerminalLine('$ 7en embed --upgrade ai-embeddings-engine', 'command');
             addTerminalLine('Collecting ai-embeddings-engine', 'output');
             addTerminalLine('  Using cached ai_embeddings_engine-3.0.0.tgz', 'output');
             addTerminalLine(`Generating embeddings for ${totalChunks} text chunks`, 'info', '[EMB]');
-            addTerminalLine('This process may take 1-2 minutes...', 'info', '[EMB]');
+            addTerminalLine(`This process may take upto ${Math.round((totalChunks*0.25)/60)} minutes...`, 'info', '[EMB]');
             addTerminalLine('', 'output');
             
             // Start the embedding progress simulation
@@ -429,34 +428,20 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   }
 
   return (
-    <div className={`bg-black border border-green-500/30 rounded-lg overflow-hidden shadow-2xl shadow-green-500/10 ${className}`}>
+    <div className={`bg-black border border-green-500/30 rounded-none overflow-hidden shadow-2xl shadow-green-500/10 ${className}`}>
       {/* Terminal Header */}
       <div className="flex items-center justify-between px-3 py-2 bg-gray-800 border-b border-green-500/30">
         <div className="flex items-center gap-3">
-          {/* Terminal Control Buttons */}
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-          </div>
           
           <div className="flex items-center gap-2">
             <Terminal className="h-4 w-4 text-green-400" />
             <span className="text-sm font-mono text-green-300">
-              root@7en-training:~$ agent-{agentId}
+              Training Console
             </span>
           </div>
         </div>
         
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsMinimized(!isMinimized)}
-            className="h-6 w-6 text-gray-400 hover:text-green-300 hover:bg-gray-700"
-          >
-            {isMinimized ? <Maximize2 className="h-3 w-3" /> : <Minimize2 className="h-3 w-3" />}
-          </Button>
           <Button
             variant="ghost"
             size="icon"
