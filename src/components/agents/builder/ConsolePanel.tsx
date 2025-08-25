@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronUp, ChevronDown, Terminal, Minimize2, Maximize2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -48,7 +49,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
   // Get actual knowledge sources count from BuilderContext (excluding deleted ones)
   const actualKnowledgeSourcesCount = state.agentData.knowledgeSources?.filter(
-    source => source.status !== 'Deleted' && source.trainingStatus !== 'Deleted'
+    source => source.status !== 'deleted' && source.trainingStatus !== 'deleted'
   ).length || 0;
 
   // Only show console panel if CURRENT agent is training
@@ -116,7 +117,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
             if (phase === 'extracting') {
               if (message?.includes('Starting text extraction')) {
-                addTerminalLine('$ sudo apt-get update && apt-get install knowledge-extractor', 'command');
+                addTerminalLine('$ apt-get update && apt-get install knowledge-extractor', 'command');
                 addTerminalLine('Reading package lists... Done', 'output');
                 addTerminalLine('Building dependency tree... Done', 'output');
                 addTerminalLine(`Found ${actualTotal} knowledge source(s) to process`, 'info');
