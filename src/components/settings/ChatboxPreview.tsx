@@ -1023,7 +1023,7 @@ export const ChatboxPreview = ({
   return (
     <Card 
       className={cn(
-        "flex flex-col backdrop-blur-sm relative",
+        "flex flex-col backdrop-blur-sm relative dark:bg-white",
         showFloatingButton && !isMinimized ? "animate-chatbox-expand" : "animate-scale-in",
         className
       )}
@@ -1404,7 +1404,7 @@ export const ChatboxPreview = ({
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
-              className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200 resize-none overflow-hidden pr-12"
+              className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white dark:text-gray-700 dark:border-border rounded-xl transition-all duration-200 resize-none overflow-hidden pr-12"
               style={{ 
                 borderColor: `${primaryColor}20`,
                 minHeight: "44px",

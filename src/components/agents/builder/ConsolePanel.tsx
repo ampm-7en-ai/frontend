@@ -489,7 +489,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   }
 
   return (
-    <div className={`bg-background border border-border rounded-lg overflow-hidden shadow-lg ${className}`}>
+    <div className={`bg-background border border-border rounded-none overflow-hidden ${className}`}>
       {/* Terminal Header */}
       <div className="flex items-center justify-between px-3 py-2 bg-muted border-b border-border">
         <div className="flex items-center gap-3">
@@ -507,7 +507,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             variant="ghost"
             size="icon"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-accent"
+            className="h-5 w-5 transition-opacity dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-300"
           >
             {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
           </Button>

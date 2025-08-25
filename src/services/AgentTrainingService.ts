@@ -105,11 +105,11 @@ export const AgentTrainingService = {
         this.subscribeToTrainingUpdates(agentId, res.task_id, agentName, refetchAgentData);
       }
       
-      toast({
-        title: "Training Started",
-        description: res.message || `${agentName} training started successfully.`,
-        variant: "default"
-      });
+      // toast({
+      //   title: "Training Started",
+      //   description: res.message || `${agentName} training started successfully.`,
+      //   variant: "default"
+      // });
       
       return true;
     } catch (error) {
@@ -138,8 +138,8 @@ export const AgentTrainingService = {
         case 'training_connected':
           updateTrainingTaskStatus(agentId, 'training');
           toast({
-            title: "Training Connected",
-            description: `Training connection established for ${agentName}`,
+            title: "Training Started",
+            description: `Training has been started for ${agentName}`,
             variant: "default"
           });
           break;
