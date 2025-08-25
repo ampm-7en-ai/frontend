@@ -1,4 +1,3 @@
-
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
 import { toast } from '@/hooks/use-toast';
 import { trainingSSEService, SSETrainingEvent } from './TrainingSSEService';
@@ -152,7 +151,7 @@ export const AgentTrainingService = {
           break;
 
         case 'training_completed':
-          console.log('✅ Training completed via SSE, updating status and removing task');
+          console.log('✅ Training completed via SSE, updating status and closing connection');
           updateTrainingTaskStatus(agentId, 'completed');
           
           toast({
@@ -174,14 +173,13 @@ export const AgentTrainingService = {
             removeTrainingTask(agentId);
           }, 5000);
           
-          // Unsubscribe from SSE
-          setTimeout(() => {
-            trainingSSEService.unsubscribe(agentId, taskId);
-          }, 10000);
+          // Immediately close SSE connection
+          console.log('🔌 Closing SSE connection after training completion');
+          trainingSSEService.unsubscribe(agentId, taskId);
           break;
 
         case 'training_failed':
-          console.log('❌ Training failed via SSE, updating status and removing task');
+          console.log('❌ Training failed via SSE, updating status and closing connection');
           updateTrainingTaskStatus(agentId, 'failed');
           
           toast({
@@ -195,10 +193,9 @@ export const AgentTrainingService = {
             removeTrainingTask(agentId);
           }, 5000);
           
-          // Unsubscribe from SSE
-          setTimeout(() => {
-            trainingSSEService.unsubscribe(agentId, taskId);
-          }, 10000);
+          // Immediately close SSE connection
+          console.log('🔌 Closing SSE connection after training failure');
+          trainingSSEService.unsubscribe(agentId, taskId);
           break;
       }
     };
