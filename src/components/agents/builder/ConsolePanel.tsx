@@ -16,9 +16,17 @@ interface ConsolePanelProps {
 interface TerminalLine {
   id: string;
   content: string;
-  type: 'command' | 'output' | 'success' | 'warning' | 'error' | 'info';
+  type: 'command' | 'output' | 'success' | 'warning' | 'error' | 'info' | 'system';
   timestamp: Date;
   prefix?: string;
+}
+
+interface SourceProgress {
+  id: number;
+  title: string;
+  type: string;
+  status: 'pending' | 'active' | 'completed';
+  processed: boolean;
 }
 
 export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTraining = false, refetchAgentData }) => {
@@ -29,6 +37,8 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const [totalSources, setTotalSources] = useState(0);
   const [currentPhase, setCurrentPhase] = useState<string>('');
   const [isCompleted, setIsCompleted] = useState(false);
+  const [sources, setSources] = useState<SourceProgress[]>([]);
+  const [processedSources, setProcessedSources] = useState<Set<number>>(new Set());
   
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastEventRef = useRef<string | null>(null);
@@ -65,17 +75,22 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           const eventData = latestEvent.event.data;
           const eventType = latestEvent.event.event;
 
-          // Filter duplicate events
-          const eventKey = `${eventType}-${eventData.status}-${JSON.stringify(eventData.train_data)}`;
+          // Create a more specific event key to avoid duplicates
+          const eventKey = `${eventType}-${eventData.status}-${eventData.train_data?.phase}-${eventData.train_data?.processed_count}-${eventData.train_data?.current_source?.id}`;
           if (eventKey === lastEventRef.current) return;
           lastEventRef.current = eventKey;
 
           if (eventType === 'training_connected') {
             // Clear terminal and start fresh
             setTerminalLines([]);
-            addTerminalLine('Agent Training System v2.0.1', 'info', '🤖');
-            addTerminalLine('Initializing training environment...', 'info', '⚡');
-            addTerminalLine(`Connected to agent ${agentId}`, 'success', '✓');
+            setSources([]);
+            setProcessedSources(new Set());
+            addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
+            addTerminalLine('║                     7EN AI Training Terminal v2.1                    ║', 'system');
+            addTerminalLine('╚═══════════════════════════════════════════════════════════════════════╝', 'system');
+            addTerminalLine('', 'output');
+            addTerminalLine('🚀 Initializing agent training environment...', 'info', '[INIT]');
+            addTerminalLine(`✓ Connected to agent-${agentId}`, 'success', '[CONN]');
             addTerminalLine('', 'output');
             setCurrentProgress(0);
             setTotalSources(0);
@@ -91,52 +106,124 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
             if (phase === 'extracting') {
               if (message?.includes('Starting text extraction')) {
-                addTerminalLine(`$ train-agent --sources=${total_count} --mode=extract`, 'command', '$');
-                addTerminalLine(`Preparing to extract text from ${total_count} knowledge sources...`, 'output');
+                addTerminalLine('$ apt-get update && apt-get install knowledge-extractor', 'command', 'root@7en:~#');
+                addTerminalLine('Reading package lists... Done', 'output');
+                addTerminalLine('Building dependency tree... Done', 'output');
+                addTerminalLine(`Found ${total_count} knowledge source(s) to process`, 'info');
                 addTerminalLine('', 'output');
-              } else if (current_source) {
+                addTerminalLine('The following packages will be INSTALLED:', 'output');
+                addTerminalLine(`  knowledge-sources (${total_count} sources)`, 'output');
+                addTerminalLine('', 'output');
+              } else if (current_source && !processedSources.has(current_source.id)) {
                 const sourceType = current_source.type === 'website' ? '🌐' : '📄';
                 const sourceName = current_source.type === 'website' 
                   ? new URL(current_source.source).hostname 
                   : current_source.title;
                 
-                addTerminalLine(`[${processed_count + 1}/${total_count}] Extracting ${sourceType} ${sourceName}...`, 'info', '⚙️');
+                // Update sources state
+                setSources(prev => {
+                  const existing = prev.find(s => s.id === current_source.id);
+                  if (!existing) {
+                    return [...prev, {
+                      id: current_source.id,
+                      title: sourceName,
+                      type: sourceType,
+                      status: 'active',
+                      processed: false
+                    }];
+                  }
+                  return prev.map(s => 
+                    s.id === current_source.id 
+                      ? { ...s, status: 'active' as const }
+                      : { ...s, status: s.processed ? 'completed' as const : 'pending' as const }
+                  );
+                });
+
+                // Add extraction line
+                const currentIndex = processed_count + 1;
+                addTerminalLine(`[${currentIndex}/${total_count}] Extracting ${sourceType} ${sourceName}...`, 'info', 'GET');
                 
-                // Show progress bar for extraction
-                const progressBar = '█'.repeat(Math.floor((processed_count / total_count) * 20)) + 
-                                  '░'.repeat(20 - Math.floor((processed_count / total_count) * 20));
-                addTerminalLine(`[${progressBar}] ${Math.round((processed_count / total_count) * 100)}%`, 'output');
+                // Show progress bar
+                const progressPercentage = Math.round((currentIndex / total_count) * 100);
+                const filledBars = Math.floor(progressPercentage / 5);
+                const emptyBars = 20 - filledBars;
+                const progressBar = '█'.repeat(filledBars) + '░'.repeat(emptyBars);
+                addTerminalLine(`[${progressBar}] ${progressPercentage}% complete`, 'output', '    ');
+                
+                // Mark as processed
+                setProcessedSources(prev => new Set([...prev, current_source.id]));
               }
             } else if (phase === 'extraction_completed') {
-              addTerminalLine('✓ Text extraction completed successfully', 'success', '✓');
-              addTerminalLine(`Extracted content from ${processed_count} sources`, 'success');
+              // Mark current source as completed
+              setSources(prev => prev.map(s => ({ ...s, status: 'completed' as const, processed: true })));
+              
+              addTerminalLine('', 'output');
+              addTerminalLine('✓ Text extraction completed successfully', 'success', '[DONE]');
+              addTerminalLine(`✓ Processed ${processed_count} knowledge sources`, 'success', '[INFO]');
               addTerminalLine('', 'output');
             } else if (phase === 'embedding_start') {
               const chunkMatch = message?.match(/(\d+)\s+chunks/);
               const totalChunks = chunkMatch ? parseInt(chunkMatch[1]) : 0;
               
-              addTerminalLine('$ generate-embeddings --engine=openai --chunks=' + totalChunks, 'command', '$');
-              addTerminalLine('Initializing OpenAI embedding engine...', 'output');
-              addTerminalLine(`Processing ${totalChunks} text chunks with AI embeddings`, 'info');
+              addTerminalLine('$ pip install --upgrade openai-embeddings', 'command', 'root@7en:~#');
+              addTerminalLine('Collecting openai-embeddings', 'output');
+              addTerminalLine('  Using cached openai_embeddings-3.0.0.whl', 'output');
+              addTerminalLine(`Processing ${totalChunks} text chunks with AI embeddings`, 'info', '[AI] ');
               addTerminalLine('', 'output');
+              
+              // Show embedding progress
+              for (let i = 0; i < Math.min(totalChunks, 10); i++) {
+                setTimeout(() => {
+                  const chunkProgress = Math.round(((i + 1) / totalChunks) * 100);
+                  const dots = '.'.repeat((i % 3) + 1);
+                  addTerminalLine(`Generating embeddings${dots} [${i + 1}/${totalChunks}] ${chunkProgress}%`, 'info', '[AI] ');
+                }, i * 200);
+              }
             }
           } else if (eventType === 'training_completed' && eventData.train_data) {
             const trainData = eventData.train_data;
             if (trainData.phase === 'embedding_completed') {
-              addTerminalLine('✓ AI embedding generation completed', 'success', '✓');
-              addTerminalLine('✓ Knowledge base updated successfully', 'success', '✓');
-              addTerminalLine('✓ Agent training completed', 'success', '✓');
               addTerminalLine('', 'output');
-              addTerminalLine('Training process finished. Agent is ready for deployment.', 'success');
-              addTerminalLine('$ exit', 'command', '$');
+              addTerminalLine('✓ AI embedding generation completed', 'success', '[AI] ');
+              addTerminalLine('✓ Knowledge base updated successfully', 'success', '[DB] ');
+              addTerminalLine('✓ Agent training pipeline finished', 'success', '[SYS]');
+              addTerminalLine('', 'output');
+              addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
+              addTerminalLine('║                     🎉 TRAINING COMPLETED 🎉                         ║', 'success');
+              addTerminalLine('╚═══════════════════════════════════════════════════════════════════════╝', 'system');
+              addTerminalLine('', 'output');
+              addTerminalLine('Agent is ready for deployment. Exiting...', 'success', '[SYS]');
+              
               setCurrentPhase('completed');
               setIsCompleted(true);
+              
+              // Refetch agent data and clear floating loader
+              if (refetchAgentData) {
+                setTimeout(() => {
+                  refetchAgentData().then(() => {
+                    // The refetch should update the agent status, which will hide the console
+                  }).catch(error => {
+                    console.error('Error refetching agent data:', error);
+                  });
+                }, 1000);
+              }
             }
           } else if (eventType === 'training_failed') {
-            addTerminalLine('✗ Training failed', 'error', '✗');
-            addTerminalLine(eventData.error || 'Unknown error occurred', 'error');
-            addTerminalLine('$ exit 1', 'command', '$');
+            addTerminalLine('', 'output');
+            addTerminalLine('✗ Training process failed', 'error', '[ERR]');
+            addTerminalLine(eventData.error || 'Unknown error occurred', 'error', '[ERR]');
+            addTerminalLine('', 'output');
+            addTerminalLine('Process exited with code 1', 'error', '[SYS]');
             setCurrentPhase('failed');
+            
+            // Clear floating loader on failure too
+            if (refetchAgentData) {
+              setTimeout(() => {
+                refetchAgentData().catch(error => {
+                  console.error('Error refetching agent data:', error);
+                });
+              }, 1000);
+            }
           }
         }
       }
@@ -145,7 +232,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     updateEventLogs();
     const interval = setInterval(updateEventLogs, 500);
     return () => clearInterval(interval);
-  }, [agentId]);
+  }, [agentId, refetchAgentData]);
 
   // Auto-scroll to bottom when new lines are added
   useEffect(() => {
@@ -171,6 +258,8 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
         return 'text-yellow-400';
       case 'info':
         return 'text-blue-300';
+      case 'system':
+        return 'text-cyan-300';
       default:
         return 'text-gray-300';
     }
@@ -185,9 +274,9 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   }
 
   return (
-    <div className={`bg-gray-900 border border-gray-700 rounded-lg overflow-hidden ${className}`}>
+    <div className={`bg-black border border-green-500/30 rounded-lg overflow-hidden shadow-2xl shadow-green-500/10 ${className}`}>
       {/* Terminal Header */}
-      <div className="flex items-center justify-between px-3 py-2 bg-gray-800 border-b border-gray-700">
+      <div className="flex items-center justify-between px-3 py-2 bg-gray-800 border-b border-green-500/30">
         <div className="flex items-center gap-3">
           {/* Terminal Control Buttons */}
           <div className="flex items-center gap-1.5">
@@ -197,9 +286,9 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           </div>
           
           <div className="flex items-center gap-2">
-            <Terminal className="h-4 w-4 text-gray-400" />
-            <span className="text-sm font-mono text-gray-300">
-              training@7en:~$ agent-{agentId}
+            <Terminal className="h-4 w-4 text-green-400" />
+            <span className="text-sm font-mono text-green-300">
+              root@7en-training:~$ agent-{agentId}
             </span>
           </div>
         </div>
@@ -209,7 +298,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             variant="ghost"
             size="icon"
             onClick={() => setIsMinimized(!isMinimized)}
-            className="h-6 w-6 text-gray-400 hover:text-gray-300 hover:bg-gray-700"
+            className="h-6 w-6 text-gray-400 hover:text-green-300 hover:bg-gray-700"
           >
             {isMinimized ? <Maximize2 className="h-3 w-3" /> : <Minimize2 className="h-3 w-3" />}
           </Button>
@@ -217,7 +306,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             variant="ghost"
             size="icon"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="h-6 w-6 text-gray-400 hover:text-gray-300 hover:bg-gray-700"
+            className="h-6 w-6 text-gray-400 hover:text-green-300 hover:bg-gray-700"
           >
             {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
           </Button>
@@ -227,23 +316,20 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
       {isExpanded && !isMinimized && (
         <div className="h-96">
           <ScrollArea ref={scrollAreaRef} className="h-full">
-            <div className="p-4 font-mono text-sm bg-gray-900 min-h-full">
+            <div className="p-4 font-mono text-sm bg-black min-h-full">
               {terminalLines.length === 0 && (
-                <div className="text-gray-500">
-                  <span className="text-gray-600">{formatTime(new Date())}</span> Waiting for training to start...
+                <div className="text-green-400 animate-pulse">
+                  <span className="text-gray-500">{formatTime(new Date())}</span> Waiting for training to start...
                 </div>
               )}
               
               {terminalLines.map((line) => (
                 <div key={line.id} className="flex items-start gap-2 mb-1 leading-relaxed">
                   {line.prefix && (
-                    <span className="text-gray-500 flex-shrink-0">
+                    <span className="text-green-500 flex-shrink-0 min-w-[60px]">
                       {line.prefix}
                     </span>
                   )}
-                  <span className="text-gray-600 text-xs flex-shrink-0 w-20">
-                    {formatTime(line.timestamp)}
-                  </span>
                   <span className={`${getLineColor(line.type)} flex-1 whitespace-pre-wrap`}>
                     {line.content}
                   </span>
@@ -253,8 +339,8 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
               {/* Blinking cursor when active */}
               {currentPhase && currentPhase !== 'completed' && currentPhase !== 'failed' && (
                 <div className="flex items-center gap-2 mt-2">
-                  <span className="text-gray-600 text-xs w-20">
-                    {formatTime(new Date())}
+                  <span className="text-green-500 flex-shrink-0 min-w-[60px]">
+                    [SYS]
                   </span>
                   <span className="text-green-400 animate-pulse">█</span>
                 </div>
@@ -266,7 +352,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
       
       {/* Minimized state */}
       {isMinimized && (
-        <div className="px-4 py-2 bg-gray-900">
+        <div className="px-4 py-2 bg-black">
           <div className="flex items-center gap-2 font-mono text-sm">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             <span className="text-green-400">
