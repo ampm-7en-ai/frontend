@@ -124,8 +124,8 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           }
           
           // Update the last embedding progress line - using reverse iteration instead of findLastIndex
-          setTerminalLines(prev => {
-            const newLines = [...prev];
+          setTerminalLines(prevLines => {
+            const newLines = [...prevLines];
             let lastProgressIndex = -1;
             
             // Find the last progress line by iterating backwards
