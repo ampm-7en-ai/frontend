@@ -20,6 +20,7 @@ const AgentBuilderContent = () => {
   const [isTraining, setIsTraining] = useState(false);
   const [showUntrainedAlert, setShowUntrainedAlert] = useState(false);
   const [hasActiveTrainingTasks, setHasActiveTrainingTasks] = useState(false);
+  const [canvasRef, setCanvasRef] = useState<any>(null);
 
   const { state, updateAgentData } = useBuilder();
   const { addNotification } = useNotifications();
@@ -194,6 +195,10 @@ const AgentBuilderContent = () => {
       
       if (success) {
         console.log('✅ Training started successfully, SSE will handle real-time updates');
+        // Signal canvas to show console
+        if (canvasRef?.handleTrainingStarted) {
+          canvasRef.handleTrainingStarted();
+        }
       }
     } catch (error) {
       console.error("Error training agent:", error);
@@ -207,6 +212,14 @@ const AgentBuilderContent = () => {
       });
     } finally {
       setIsTraining(false);
+    }
+  };
+
+  // Handle training started from toolbar
+  const handleTrainingStarted = () => {
+    console.log('🚀 Toolbar signaled training started - forwarding to canvas');
+    if (canvasRef?.handleTrainingStarted) {
+      canvasRef.handleTrainingStarted();
     }
   };
 
@@ -243,6 +256,7 @@ const AgentBuilderContent = () => {
       <BuilderToolbar 
         onTrainingStateChange={setIsTraining} 
         onAgentDataRefresh={refetchAgentData}
+        onTrainingStarted={handleTrainingStarted}
       />
       
       <div className="flex-1 flex overflow-hidden">
@@ -261,7 +275,11 @@ const AgentBuilderContent = () => {
         
         {/* Center Canvas */}
         <div className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-700 relative">
-          <InteractiveCanvas isTraining={isTraining} onAgentDataRefresh={refetchAgentData} />
+          <InteractiveCanvas 
+            ref={setCanvasRef}
+            isTraining={isTraining} 
+            onAgentDataRefresh={refetchAgentData}
+          />
         </div>
         
         {/* Right Sidebar - Configuration & Guidelines */}

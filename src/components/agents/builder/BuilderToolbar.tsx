@@ -24,11 +24,13 @@ import { agentApi } from '@/utils/api-config';
 interface BuilderToolbarProps {
   onTrainingStateChange?: (isTraining: boolean) => void;
   onAgentDataRefresh?: () => Promise<void>;
+  onTrainingStarted?: () => void;
 }
 
 export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
   onTrainingStateChange,
-  onAgentDataRefresh
+  onAgentDataRefresh,
+  onTrainingStarted
 }) => {
   const navigate = useNavigate();
   const { state, saveAgent, deleteAgent, setCanvasMode, updateAgentData } = useBuilder();
@@ -127,19 +129,7 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
       const websiteUrls: string[] = [];
       
       agentData.knowledgeSources.forEach(source => {
-        // Only include sources that are not deleted or failed
-       
-       // if (source.trainingStatus !== 'deleted' && source.trainingStatus !== 'failed') {
-          //if (source.type === 'website') {
-            // For website sources, extract URLs
-         //   if (source.metadata?.url) {
-          //    websiteUrls.push(source.metadata.url);
-           // }
-         // } else {
-            // For other source types (docs, csv, etc.), include the ID
-            knowledgeSourceIds.push(source.id);
-          //}
-       // }
+        knowledgeSourceIds.push(source.id);
       });
 
       console.log('Extracted knowledge source IDs:', knowledgeSourceIds);
@@ -154,7 +144,10 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
       );
       
       if (success) {
-        console.log('✅ Training started successfully, updating agent status to Training');
+        console.log('✅ Training API call successful, signaling console to show');
+        
+        // Signal that training started successfully (step 2 complete)
+        onTrainingStarted?.();
         
         // Update agent status to "Training" to keep the alert badge visible
         updateAgentData({ status: 'Training' });
