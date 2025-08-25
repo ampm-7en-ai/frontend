@@ -249,9 +249,47 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
         // Handle training completion - hide console panel when training is completed
         if (eventType === 'training_completed') {
-          // Hide console panel immediately when training_completed is received
-          console.log('🔥 Training completed event received - hiding console panel');
-          setShowConsole(false);
+          // Handle different phases of completion
+          const trainData = eventData.train_data;
+          if (trainData && trainData.phase === 'embedding_completed') {
+            // Stop embedding progress and show completion
+            stopEmbeddingProgress();
+            
+            addTerminalLine('', 'output');
+            addTerminalLine('[████████████████████] 100% complete', 'success', '[EMB]');
+            addTerminalLine('✓ AI embedding generation completed', 'success');
+            addTerminalLine('✓ Knowledge base updated successfully', 'success');
+            addTerminalLine('✓ Agent training pipeline finished', 'success');
+            addTerminalLine('', 'output');
+            addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
+            addTerminalLine('║                     🎉 TRAINING COMPLETED 🎉                         ║', 'success');
+            addTerminalLine('╚═══════════════════════════════════════════════════════════════════════╝', 'system');
+            addTerminalLine('', 'output');
+            addTerminalLine('Agent is ready for deployment. Exiting...', 'success');
+            
+            setCurrentPhase('completed');
+            setIsCompleted(true);
+            
+            // Hide console after 2 seconds
+            hideTimeoutRef.current = setTimeout(() => {
+              setShowConsole(false);
+            }, 2000);
+            
+            // Refetch agent data and clear floating loader
+            if (refetchAgentData) {
+              setTimeout(() => {
+                refetchAgentData().then(() => {
+                  // The refetch should update the agent status, which will hide the console
+                }).catch(error => {
+                  console.error('Error refetching agent data:', error);
+                });
+              }, 1000);
+            }
+          } else {
+            // Hide console panel immediately when training_completed is received
+            console.log('🔥 Training completed event received - hiding console panel');
+            setShowConsole(false);
+          }
         } else if (eventType === 'training_connected') {
           // Clear terminal and reset source tracker
           setTerminalLines([]);
@@ -341,43 +379,6 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             
             // Start the embedding progress simulation
             startEmbeddingProgress(totalChunks);
-          }
-        } else if (eventType === 'training_completed' && eventData.train_data) {
-          const trainData = eventData.train_data;
-          if (trainData.phase === 'embedding_completed') {
-            // Stop embedding progress and show completion
-            stopEmbeddingProgress();
-            
-            addTerminalLine('', 'output');
-            addTerminalLine('[████████████████████] 100% complete', 'success', '[EMB]');
-            addTerminalLine('✓ AI embedding generation completed', 'success');
-            addTerminalLine('✓ Knowledge base updated successfully', 'success');
-            addTerminalLine('✓ Agent training pipeline finished', 'success');
-            addTerminalLine('', 'output');
-            addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
-            addTerminalLine('║                     🎉 TRAINING COMPLETED 🎉                         ║', 'success');
-            addTerminalLine('╚═══════════════════════════════════════════════════════════════════════╝', 'system');
-            addTerminalLine('', 'output');
-            addTerminalLine('Agent is ready for deployment. Exiting...', 'success');
-            
-            setCurrentPhase('completed');
-            setIsCompleted(true);
-            
-            // Hide console after 2 seconds
-            hideTimeoutRef.current = setTimeout(() => {
-              setShowConsole(false);
-            }, 2000);
-            
-            // Refetch agent data and clear floating loader
-            if (refetchAgentData) {
-              setTimeout(() => {
-                refetchAgentData().then(() => {
-                  // The refetch should update the agent status, which will hide the console
-                }).catch(error => {
-                  console.error('Error refetching agent data:', error);
-                });
-              }, 1000);
-            }
           }
         } else if (eventType === 'training_failed') {
           stopEmbeddingProgress();
