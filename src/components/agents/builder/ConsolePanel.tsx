@@ -35,6 +35,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const [terminalLines, setTerminalLines] = useState<TerminalLine[]>([]);
   const [currentPhase, setCurrentPhase] = useState<string>('');
   const [isCompleted, setIsCompleted] = useState(false);
+  const [showConsole, setShowConsole] = useState(true);
   const [sourceTracker, setSourceTracker] = useState<SourceTracker | null>(null);
   const [embeddingProgress, setEmbeddingProgress] = useState<EmbeddingProgress | null>(null);
   
@@ -49,8 +50,8 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const agentId = state.agentData.id?.toString();
   const currentTask = agentId ? AgentTrainingService.getTrainingTask(agentId) : null;
 
-  // Console is always visible when rendered (visibility is controlled by parent)
-  const shouldShowConsole = true;
+  // Only show console panel if CURRENT agent is training AND showConsole is true
+  const shouldShowConsole = showConsole && (state.agentData.status === 'Training' || currentTask?.status === 'training' || isTraining);
 
   // Reset console state completely
   const resetConsoleState = () => {
@@ -70,11 +71,20 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     }
   };
 
-  // Initialize with empty console on mount
+  // Show console and reset everything when training starts (isTraining becomes true)
   useEffect(() => {
-    console.log('🚀 ConsolePanel mounted - initializing with empty state');
+    if (isTraining) {
+      console.log('🚀 Training started - showing console and resetting state');
+      setShowConsole(true);
+      resetConsoleState();
+    }
+  }, [isTraining]); // Reset when training starts
+
+  // Clear terminal contents when component is mounted/re-mounted
+  useEffect(() => {
     resetConsoleState();
-  }, [agentId]);
+    setShowConsole(true);
+  }, [agentId]); // Reset when agentId changes (re-mount)
 
   // Initialize source tracker when knowledge sources are available
   useEffect(() => {
@@ -239,8 +249,12 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           // Create a new session identifier for this training session
           const newSessionId = `${agentId}-${Date.now()}`;
           
-          // Always reset for new training session
-          console.log('🔄 New training session detected - resetting console');
+          // Check if this is a new session (different from current)
+          if (currentSessionIdRef.current && currentSessionIdRef.current !== newSessionId) {
+            console.log('🔄 New training session detected while previous was active - resetting console');
+          }
+          
+          // Always reset for training_connected event
           resetConsoleState();
           currentSessionIdRef.current = newSessionId;
           
@@ -353,18 +367,25 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             setCurrentPhase('completed');
             setIsCompleted(true);
             
-            // Refetch agent data
+            // Hide console after 2 seconds
+            hideTimeoutRef.current = setTimeout(() => {
+              setShowConsole(false);
+            }, 2000);
+            
+            // Refetch agent data and clear floating loader
             if (refetchAgentData) {
               setTimeout(() => {
                 refetchAgentData().then(() => {
-                  // The refetch should update the agent status, parent will handle hiding
+                  // The refetch should update the agent status, which will hide the console
                 }).catch(error => {
                   console.error('Error refetching agent data:', error);
                 });
               }, 1000);
             }
           } else {
-            console.log('🔥 Training completed event received');
+            // Hide console panel immediately when training_completed is received
+            console.log('🔥 Training completed event received - hiding console panel');
+            setShowConsole(false);
           }
         } else if (eventType === 'training_failed') {
           stopEmbeddingProgress();
