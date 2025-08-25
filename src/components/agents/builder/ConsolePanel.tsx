@@ -247,10 +247,10 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
         console.log('🎯 Processing new SSE event:', eventType, eventData);
 
-        // Handle training_active event by checking the event name as string
-        if (event.event === 'training_active') {
-          // Hide console panel immediately when training_active is received
-          console.log('🔥 Training active event received - hiding console panel');
+        // Handle training completion - hide console panel when training is completed
+        if (eventType === 'training_completed') {
+          // Hide console panel immediately when training_completed is received
+          console.log('🔥 Training completed event received - hiding console panel');
           setShowConsole(false);
         } else if (eventType === 'training_connected') {
           // Clear terminal and reset source tracker
