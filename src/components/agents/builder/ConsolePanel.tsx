@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronUp, ChevronDown, Terminal, Minimize2, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,26 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
   // Only show console panel if CURRENT agent is training AND showConsole is true
   const shouldShowConsole = showConsole && (state.agentData.status === 'Training' || currentTask?.status === 'training' || isTraining);
+
+  // Show console and reset everything when training starts (isTraining becomes true)
+  useEffect(() => {
+    if (isTraining) {
+      console.log('🚀 Training started - showing console and resetting state');
+      setShowConsole(true);
+      setTerminalLines([]);
+      processedEventsRef.current.clear();
+      lastProcessedTimestampRef.current = 0;
+      setCurrentPhase('');
+      setIsCompleted(false);
+      stopEmbeddingProgress(); // Stop any existing embedding progress
+      
+      // Clear any existing hide timeout
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+        hideTimeoutRef.current = null;
+      }
+    }
+  }, [isTraining]); // Reset when training starts
 
   // Clear terminal contents when component is mounted/re-mounted
   useEffect(() => {
@@ -537,3 +558,4 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     </div>
   );
 };
+
