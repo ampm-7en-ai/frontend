@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { BuilderProvider, useBuilder } from '@/components/agents/builder/BuilderContext';
 import { BuilderToolbar } from '@/components/agents/builder/BuilderToolbar';

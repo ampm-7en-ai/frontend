@@ -1,3 +1,4 @@
+
 import { getAccessToken, getAuthHeaders, BASE_URL } from '@/utils/api-config';
 import { toast } from '@/hooks/use-toast';
 import { trainingSSEService, SSETrainingEvent } from './TrainingSSEService';
@@ -100,7 +101,8 @@ export const AgentTrainingService = {
       if (res.task_id) {
         saveTrainingTask(agentId, res.task_id, agentName);
 
-        // Subscribe to SSE updates
+        // Subscribe to SSE updates - NO POLLING
+        console.log('🚀 Starting SSE subscription for training updates');
         this.subscribeToTrainingUpdates(agentId, res.task_id, agentName, refetchAgentData);
       }
       
@@ -125,11 +127,13 @@ export const AgentTrainingService = {
   },
   
   /**
-   * Subscribe to real-time training updates via SSE
+   * Subscribe to real-time training updates via SSE ONLY - no polling
    */
   subscribeToTrainingUpdates(agentId: string, taskId: string, agentName: string, refetchAgentData?: () => Promise<void>): void {
+    console.log('📡 Subscribing to SSE training updates for agent:', agentId);
+    
     const callback = (event: SSETrainingEvent) => {
-      console.log('📡 SSE Event received:', event);
+      console.log('📡 SSE Training Event received:', event);
       
       switch (event.event) {
         case 'training_connected':
@@ -142,18 +146,14 @@ export const AgentTrainingService = {
           break;
 
         case 'training_progress':
-          // Update progress if your UI supports it
-          console.log(`Training progress: ${event.data.progress}%`);
+          // Update progress - status remains training
+          console.log(`📊 Training progress update for ${agentName}`);
           updateTrainingTaskStatus(agentId, 'training');
           break;
 
         case 'training_completed':
-          console.log('✅ Training completed, updating status and removing task');
+          console.log('✅ Training completed via SSE, updating status and removing task');
           updateTrainingTaskStatus(agentId, 'completed');
-          // Don't remove task immediately, let it show completed status for a while
-          setTimeout(() => {
-            removeTrainingTask(agentId);
-          }, 5000); // Remove after 5 seconds
           
           toast({
             title: "Training Complete",
@@ -163,23 +163,26 @@ export const AgentTrainingService = {
           
           // Refetch agent data if callback provided
           if (refetchAgentData) {
+            console.log('🔄 Refetching agent data after SSE training completion');
             refetchAgentData().catch(error => {
               console.error('Error refetching agent data:', error);
             });
           }
           
-          // Unsubscribe after completion
+          // Remove task after a delay to show completion status
+          setTimeout(() => {
+            removeTrainingTask(agentId);
+          }, 5000);
+          
+          // Unsubscribe from SSE
           setTimeout(() => {
             trainingSSEService.unsubscribe(agentId, taskId);
-          }, 10000); // Unsubscribe after 10 seconds to allow UI updates
+          }, 10000);
           break;
 
         case 'training_failed':
-          console.log('❌ Training failed, updating status and removing task');
+          console.log('❌ Training failed via SSE, updating status and removing task');
           updateTrainingTaskStatus(agentId, 'failed');
-          setTimeout(() => {
-            removeTrainingTask(agentId);
-          }, 5000); // Remove after 5 seconds
           
           toast({
             title: "Training Failed",
@@ -187,7 +190,12 @@ export const AgentTrainingService = {
             variant: "destructive"
           });
           
-          // Unsubscribe after failure
+          // Remove task after a delay
+          setTimeout(() => {
+            removeTrainingTask(agentId);
+          }, 5000);
+          
+          // Unsubscribe from SSE
           setTimeout(() => {
             trainingSSEService.unsubscribe(agentId, taskId);
           }, 10000);
@@ -195,6 +203,7 @@ export const AgentTrainingService = {
       }
     };
 
+    // Subscribe to SSE - this is the ONLY method for real-time updates
     trainingSSEService.subscribe(agentId, taskId, callback);
   },
 
@@ -202,6 +211,7 @@ export const AgentTrainingService = {
    * Unsubscribe from training updates
    */
   unsubscribeFromTrainingUpdates(agentId: string, taskId: string): void {
+    console.log('🔌 Unsubscribing from SSE training updates for agent:', agentId);
     trainingSSEService.unsubscribe(agentId, taskId);
   },
 
@@ -224,6 +234,9 @@ export const AgentTrainingService = {
         const errorText = await response.text();
         throw new Error(errorText || "Cancel training request failed.");
       }
+      
+      // Remove training task from localStorage
+      removeTrainingTask(agentId);
       
       toast({
         title: "Training cancelled",
