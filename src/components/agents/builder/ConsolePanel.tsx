@@ -25,7 +25,7 @@ interface TerminalLine {
 interface EmbeddingProgress {
   startTime: number;
   totalChunks: number;
-  chunkProcessingTimeMs: number; // 500ms per chunk (0.5 seconds)
+  chunkProcessingTimeMs: number; // ~228ms per chunk (50 seconds / 219 chunks)
   processedChunks: number;
 }
 
@@ -81,9 +81,11 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     setTerminalLines(prev => [...prev, newLine]);
   };
 
-  // Start embedding progress simulation based on chunk processing rate
+  // Start embedding progress simulation based on actual chunk processing rate
   const startEmbeddingProgress = (totalChunks: number) => {
-    const chunkProcessingTimeMs = 500; // 0.5 seconds per chunk
+    // Based on actual performance: 219 chunks = 50-60 seconds
+    // Average: 55 seconds / 219 chunks = ~251ms per chunk
+    const chunkProcessingTimeMs = 251; 
     const startTime = Date.now();
     
     setEmbeddingProgress({
@@ -98,7 +100,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
       clearInterval(embeddingIntervalRef.current);
     }
 
-    // Update progress every 5 seconds to show realistic progression
+    // Update progress every 3 seconds to show realistic progression
     embeddingIntervalRef.current = setInterval(() => {
       setEmbeddingProgress(prev => {
         if (!prev) return null;
@@ -112,13 +114,14 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           const progressBar = createProgressBar(progress);
           const remainingChunks = prev.totalChunks - actualProcessedChunks;
           const remainingTimeMs = remainingChunks * prev.chunkProcessingTimeMs;
-          const remainingMinutes = Math.ceil(remainingTimeMs / (60 * 1000));
-          const remainingSeconds = Math.ceil((remainingTimeMs % (60 * 1000)) / 1000);
+          const remainingSeconds = Math.ceil(remainingTimeMs / 1000);
           
           // Format ETA display
           let etaText = '';
-          if (remainingMinutes > 0) {
-            etaText = remainingMinutes === 1 ? `${remainingMinutes}min ${remainingSeconds}sec` : `${remainingMinutes}min`;
+          if (remainingSeconds > 60) {
+            const minutes = Math.floor(remainingSeconds / 60);
+            const seconds = remainingSeconds % 60;
+            etaText = `${minutes}min ${seconds}sec`;
           } else {
             etaText = `${remainingSeconds}sec`;
           }
@@ -163,7 +166,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           processedChunks: actualProcessedChunks
         };
       });
-    }, 5000); // Update every 5 seconds
+    }, 3000); // Update every 3 seconds for smoother updates
   };
 
   // Stop embedding progress
@@ -290,7 +293,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             addTerminalLine('Collecting ai-embeddings-engine', 'output');
             addTerminalLine('  Using cached ai_embeddings_engine-3.0.0.tgz', 'output');
             addTerminalLine(`Generating embeddings for ${totalChunks} text chunks`, 'info', '[EMB]');
-            addTerminalLine('This process may take 10-15 minutes...', 'info', '[EMB]');
+            addTerminalLine('This process may take 1-2 minutes...', 'info', '[EMB]');
             addTerminalLine('', 'output');
             
             // Start the embedding progress simulation
