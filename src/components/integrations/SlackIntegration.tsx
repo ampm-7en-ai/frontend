@@ -201,7 +201,7 @@ const SlackIntegration: React.FC = () => {
       }
 
       const response = await fetch(getApiUrl('slack/oauth/init/'), {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -258,6 +258,15 @@ const SlackIntegration: React.FC = () => {
   };
 
   const handleUnlinkConfig = async () => {
+    // Show confirmation dialog before proceeding
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete the Slack configuration? This will remove all saved credentials and disconnect any connected workspaces. This action cannot be undone."
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
     setIsUnlinking(true);
     setError(null);
 
