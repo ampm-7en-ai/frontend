@@ -277,46 +277,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
       </div>
       
       {isExpanded && (
-        <div className="flex flex-col h-96">
-          {/* Task Information */}
-          {currentTask && (
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <Card className="p-3 bg-gray-50 dark:bg-gray-800">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                      {currentTask.agentName}
-                    </h4>
-                  </div>
-                  
-                  <div className="text-xs text-gray-600 dark:text-gray-400">
-                    Started: {formatTimestamp(currentTask.timestamp)}
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="font-mono text-xs text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 px-2 py-1 rounded border break-all flex-1 mr-2">
-                      {currentTask.taskId}
-                    </div>
-                    <ModernButton
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleCopyTaskId(currentTask.taskId)}
-                      className="h-6 w-6 p-1"
-                      title="Copy Task ID"
-                      iconOnly
-                    >
-                      {copiedTaskId === currentTask.taskId ? (
-                        <Check className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <Copy className="h-3 w-3" />
-                      )}
-                    </ModernButton>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          )}
-          
+        <div className="flex flex-col h-96">          
           {/* Main Progress Display */}
           <div className="flex-1 flex flex-col min-h-0 p-4 space-y-4">
             {/* Overall Progress Bar */}
@@ -439,52 +400,6 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
                       Your agent is now ready to use with the updated knowledge base
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
-
-            {/* Real-time Event Log (Collapsed when completed) */}
-            {!isCompleted && eventLogs.length > 0 && (
-              <div className="flex-1 min-h-0">
-                <div className="px-2 py-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-t flex-shrink-0">
-                  <div className="flex items-center gap-2">
-                    <Activity className="h-3 w-3 text-gray-600 dark:text-gray-400" />
-                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Live Events
-                    </span>
-                    <Badge variant="outline" className="text-xs h-4">
-                      {eventLogs.length}
-                    </Badge>
-                  </div>
-                </div>
-                
-                <div className="flex-1 min-h-0 border border-t-0 border-gray-200 dark:border-gray-700 rounded-b">
-                  <ScrollArea className="h-32" ref={scrollAreaRef}>
-                    <div className="p-2 space-y-1">
-                      {eventLogs.map((log) => (
-                        <div key={log.id} className="flex items-start gap-2 p-1 bg-gray-50 dark:bg-gray-800 rounded text-xs">
-                          <div className="flex items-center gap-1 min-w-0 flex-1">
-                            <span className="font-medium text-gray-900 dark:text-gray-100 text-[10px]">
-                              {log.event.event.replace('training_', '')}
-                            </span>
-                            {log.event.data.train_data?.phase && (
-                              <span className="text-blue-600 dark:text-blue-400 text-[10px]">
-                                {log.event.data.train_data.phase}
-                              </span>
-                            )}
-                            {log.event.data.train_data?.message && (
-                              <span className="text-gray-600 dark:text-gray-400 truncate text-[10px]">
-                                - {log.event.data.train_data.message}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-gray-500 dark:text-gray-400 text-[9px] whitespace-nowrap">
-                            {log.timestamp.toLocaleTimeString()}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
                 </div>
               </div>
             )}
