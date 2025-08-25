@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronUp, ChevronDown, Terminal, Minimize2, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -426,19 +424,19 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const getLineColor = (type: TerminalLine['type']) => {
     switch (type) {
       case 'command':
-        return 'text-green-400';
+        return 'text-green-400 dark:text-green-400';
       case 'success':
-        return 'text-green-300';
+        return 'text-green-600 dark:text-green-300';
       case 'error':
-        return 'text-red-400';
+        return 'text-red-600 dark:text-red-400';
       case 'warning':
-        return 'text-yellow-400';
+        return 'text-yellow-600 dark:text-yellow-400';
       case 'info':
-        return 'text-blue-300';
+        return 'text-blue-600 dark:text-blue-300';
       case 'system':
-        return 'text-cyan-300';
+        return 'text-cyan-600 dark:text-cyan-300';
       default:
-        return 'text-gray-300';
+        return 'text-foreground';
     }
   };
 
@@ -476,14 +474,14 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   }
 
   return (
-    <div className={`bg-black border border-green-500/30 rounded-none overflow-hidden shadow-2xl shadow-green-500/10 ${className}`}>
+    <div className={`bg-background border border-border rounded-lg overflow-hidden shadow-lg ${className}`}>
       {/* Terminal Header */}
-      <div className="flex items-center justify-between px-3 py-2 bg-gray-800 border-b border-green-500/30">
+      <div className="flex items-center justify-between px-3 py-2 bg-muted border-b border-border">
         <div className="flex items-center gap-3">
           
           <div className="flex items-center gap-2">
-            <Terminal className="h-4 w-4 text-green-400" />
-            <span className="text-sm font-mono text-green-300">
+            <Terminal className="h-4 w-4 text-green-500" />
+            <span className="text-sm font-mono text-foreground">
               Training Console
             </span>
           </div>
@@ -494,7 +492,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             variant="ghost"
             size="icon"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="h-6 w-6 text-gray-400 hover:text-green-300 hover:bg-gray-700"
+            className="h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-accent"
           >
             {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
           </Button>
@@ -504,16 +502,16 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
       {isExpanded && !isMinimized && (
         <div className="h-96">
           <ScrollArea ref={scrollAreaRef} className="h-full">
-            <div className="p-4 font-mono text-sm bg-black min-h-full">
+            <div className="p-4 font-mono text-sm bg-card dark:bg-black min-h-full">
               {terminalLines.length === 0 && (
-                <div className="text-green-400 animate-pulse">
-                  <span className="text-gray-500">{formatTime(new Date())}</span> Waiting for training to start...
+                <div className="text-green-500 animate-pulse">
+                  <span className="text-muted-foreground">{formatTime(new Date())}</span> Waiting for training to start...
                 </div>
               )}
               
               {terminalLines.map((line) => (
                 <div key={line.id} className="flex items-start gap-2 mb-1 leading-relaxed">
-                  <span className="text-gray-500 text-xs flex-shrink-0 min-w-[70px]">
+                  <span className="text-muted-foreground text-xs flex-shrink-0 min-w-[70px]">
                     {formatTime(line.timestamp)}
                   </span>
                   {line.prefix && (
@@ -530,13 +528,13 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
               {/* Blinking cursor when active */}
               {currentPhase && currentPhase !== 'completed' && currentPhase !== 'failed' && (
                 <div className="flex items-center gap-2 mt-2">
-                  <span className="text-gray-500 text-xs flex-shrink-0 min-w-[70px]">
+                  <span className="text-muted-foreground text-xs flex-shrink-0 min-w-[70px]">
                     {formatTime(new Date())}
                   </span>
                   <span className="text-green-500 flex-shrink-0 min-w-[60px]">
                     [SYS]
                   </span>
-                  <span className="text-green-400 animate-pulse">█</span>
+                  <span className="text-green-500 animate-pulse">█</span>
                 </div>
               )}
             </div>
@@ -546,10 +544,10 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
       
       {/* Minimized state */}
       {isMinimized && (
-        <div className="px-4 py-2 bg-black">
+        <div className="px-4 py-2 bg-card dark:bg-black">
           <div className="flex items-center gap-2 font-mono text-sm">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-green-400">
+            <span className="text-green-500">
               {getCurrentProgressText()}
             </span>
           </div>
@@ -558,4 +556,3 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     </div>
   );
 };
-
