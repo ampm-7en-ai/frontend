@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronUp, ChevronDown, Terminal, Minimize2, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -106,12 +107,18 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
         const estimatedRemaining = Math.max(0, targetDuration - elapsed);
         const remainingMinutes = Math.ceil(estimatedRemaining / (60 * 1000));
         
-        // Update the last embedding progress line
+        // Update the last embedding progress line - using reverse iteration instead of findLastIndex
         setTerminalLines(prev => {
           const newLines = [...prev];
-          const lastProgressIndex = newLines.findLastIndex(line => 
-            line.content.includes('Generating embeddings') || line.content.includes('[█')
-          );
+          let lastProgressIndex = -1;
+          
+          // Find the last progress line by iterating backwards
+          for (let i = newLines.length - 1; i >= 0; i--) {
+            if (newLines[i].content.includes('Generating embeddings') || newLines[i].content.includes('[█')) {
+              lastProgressIndex = i;
+              break;
+            }
+          }
           
           if (lastProgressIndex !== -1 && newLines[lastProgressIndex].content.includes('[█')) {
             // Update existing progress line
