@@ -50,6 +50,22 @@ interface SlackConfigResponse {
   permissions: string[];
 }
 
+interface SlackStatusResponse {
+  message: string;
+  data: {
+    connected: boolean;
+    configured: boolean;
+    workspace_id?: string;
+    workspace_name?: string;
+    client_id?: string;
+    client_secret: boolean;
+    signing_secret: boolean;
+    bot_token?: string;
+  };
+  status: string;
+  permissions: string[];
+}
+
 const SlackIntegration: React.FC = () => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
@@ -58,7 +74,8 @@ const SlackIntegration: React.FC = () => {
   const [connectedChannelName, setConnectedChannelName] = useState<string>('');
   const [connectedChannelId, setConnectedChannelId] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
-  const [hasConfig, setHasConfig] = useState<boolean>(false);
+  const [isConfigured, setIsConfigured] = useState<boolean>(false);
+  const [workspaceInfo, setWorkspaceInfo] = useState<{ id?: string; name?: string }>({});
   const [config, setConfig] = useState<SlackConfig>({
     client_id: '',
     client_secret: '',
@@ -69,14 +86,41 @@ const SlackIntegration: React.FC = () => {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const status = await checkSlackStatus();
-        setIsConnected(status.isLinked);
-        if (status.isLinked && status.channelName) {
-          setConnectedChannelName(status.channelName);
+        const token = getAccessToken();
+        if (!token) {
+          setIsCheckingStatus(false);
+          return;
         }
-        
-        // Check if configurations exist
-        await checkSlackConfig();
+
+        const response = await fetch(getApiUrl('slack/status/'), {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data: SlackStatusResponse = await response.json();
+          
+          setIsConnected(data.data.connected || false);
+          setIsConfigured(data.data.configured || false);
+          
+          if (data.data.workspace_name) {
+            setConnectedChannelName(data.data.workspace_name);
+            setWorkspaceInfo({
+              id: data.data.workspace_id,
+              name: data.data.workspace_name
+            });
+          }
+          
+          if (data.data.client_id) {
+            setConfig(prev => ({
+              ...prev,
+              client_id: data.data.client_id || ''
+            }));
+          }
+        }
       } catch (err: any) {
         setError(err.message || 'Failed to check Slack status');
       } finally {
@@ -85,35 +129,6 @@ const SlackIntegration: React.FC = () => {
     };
     checkStatus();
   }, []);
-
-  const checkSlackConfig = async () => {
-    try {
-      const token = getAccessToken();
-      if (!token) return;
-
-      const response = await fetch(getApiUrl('slack/'), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.data && data.data.client_id) {
-          setHasConfig(true);
-          setConfig({
-            client_id: data.data.client_id || '',
-            client_secret: data.data.client_secret || '',
-            signing_secret: data.data.signing_secret || ''
-          });
-        }
-      }
-    } catch (err) {
-      console.log('No existing Slack configuration found');
-    }
-  };
 
   const handleSaveConfig = async () => {
     if (!config.client_id || !config.client_secret || !config.signing_secret) {
@@ -150,7 +165,7 @@ const SlackIntegration: React.FC = () => {
       const data: SlackConfigResponse = await response.json();
       
       if (data.status === 'success') {
-        setHasConfig(true);
+        setIsConfigured(true);
         toast({
           title: "Configuration Saved",
           description: "Slack app credentials have been saved successfully.",
@@ -220,15 +235,16 @@ const SlackIntegration: React.FC = () => {
       setIsConnected(false);
       setConnectedChannelName('');
       setConnectedChannelId('');
+      setWorkspaceInfo({});
       toast({
         title: "Slack Disconnected",
-        description: "Your Slack channel has been disconnected.",
+        description: "Your Slack workspace has been disconnected.",
       });
     } catch (err: any) {
-      setError(err.message || 'Failed to disconnect Slack channel');
+      setError(err.message || 'Failed to disconnect Slack workspace');
       toast({
         title: "Disconnection Failed",
-        description: err.message || "Failed to disconnect Slack channel",
+        description: err.message || "Failed to disconnect Slack workspace",
         variant: "destructive",
       });
     } finally {
@@ -257,7 +273,7 @@ const SlackIntegration: React.FC = () => {
         <>
           <ModernAlert variant="success">
             <ModernAlertDescription>
-              Connected to your Slack channel: #{connectedChannelName}. Your bot is now active and ready to respond.
+              Connected to your Slack workspace: {workspaceInfo.name}. Your bot is now active and ready to respond.
             </ModernAlertDescription>
           </ModernAlert>
           
@@ -267,12 +283,12 @@ const SlackIntegration: React.FC = () => {
             </ModernCardHeader>
             <ModernCardContent className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-muted-foreground">Channel:</span>
-                <span className="text-sm font-medium text-foreground">#{connectedChannelName}</span>
+                <span className="text-sm font-medium text-muted-foreground">Workspace:</span>
+                <span className="text-sm font-medium text-foreground">{workspaceInfo.name}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-muted-foreground">Channel ID:</span>
-                <span className="text-sm font-medium text-foreground">{connectedChannelId}</span>
+                <span className="text-sm font-medium text-muted-foreground">Workspace ID:</span>
+                <span className="text-sm font-medium text-foreground">{workspaceInfo.id}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-muted-foreground">Connected:</span>
@@ -298,7 +314,7 @@ const SlackIntegration: React.FC = () => {
                       Disconnecting...
                     </>
                   ) : (
-                    'Disconnect Channel'
+                    'Disconnect Workspace'
                   )}
                 </ModernButton>
               </div>
@@ -307,7 +323,7 @@ const SlackIntegration: React.FC = () => {
         </>
       ) : (
         <>
-          {!hasConfig ? (
+          {!isConfigured ? (
             <ModernCard variant="glass">
               <ModernCardHeader>
                 <ModernCardTitle className="flex items-center gap-3">
@@ -392,6 +408,28 @@ const SlackIntegration: React.FC = () => {
               <ModernCardContent className="space-y-6">
                 <div className="space-y-4">
                   <div>
+                    <h4 className="font-medium text-foreground mb-3">Configuration Details</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Client ID:</span>
+                        <span className="text-foreground font-mono">{config.client_id}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Client Secret:</span>
+                        <ModernStatusBadge status="connected" className="text-xs">
+                          Configured
+                        </ModernStatusBadge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Signing Secret:</span>
+                        <ModernStatusBadge status="connected" className="text-xs">
+                          Configured
+                        </ModernStatusBadge>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
                     <h4 className="font-medium text-foreground mb-3">Integration Benefits</h4>
                     <ul className="space-y-2 text-sm text-muted-foreground">
                       <li className="flex gap-2 items-center">
@@ -408,29 +446,7 @@ const SlackIntegration: React.FC = () => {
                       </li>
                       <li className="flex gap-2 items-center">
                         <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                        <span>Automate routine customer interactions</span>
-                      </li>
-                      <li className="flex gap-2 items-center">
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
                         <span>Team collaboration on customer issues</span>
-                      </li>
-                      <li className="flex gap-2 items-center">
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                        <span>Real-time alerts and escalation workflows</span>
-                      </li>
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-medium text-foreground mb-3">Prerequisites</h4>
-                    <ul className="space-y-2 text-sm text-muted-foreground">
-                      <li className="flex gap-2 items-center">
-                        <div className="h-1.5 w-1.5 rounded-full bg-warning"></div>
-                        <span>You must have admin access to a Slack workspace</span>
-                      </li>
-                      <li className="flex gap-2 items-center">
-                        <div className="h-1.5 w-1.5 rounded-full bg-warning"></div>
-                        <span>Your workspace must allow app installations</span>
                       </li>
                     </ul>
                   </div>
