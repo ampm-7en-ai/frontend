@@ -47,11 +47,6 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const agentId = state.agentData.id?.toString();
   const currentTask = agentId ? AgentTrainingService.getTrainingTask(agentId) : null;
 
-  // Get actual knowledge sources count from BuilderContext (excluding deleted ones)
-  const actualKnowledgeSourcesCount = state.agentData.knowledgeSources?.filter(
-    source => source.status !== 'deleted' && source.trainingStatus !== 'deleted'
-  ).length || 0;
-
   // Only show console panel if CURRENT agent is training
   const shouldShowConsole = state.agentData.status === 'Training' || currentTask?.status === 'training' || isTraining;
 
@@ -90,11 +85,6 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             setTerminalLines([]);
             setSources([]);
             setProcessedSources(new Set());
-            
-            // Use actual knowledge sources count from BuilderContext
-            const actualTotal = actualKnowledgeSourcesCount;
-            setTotalSources(actualTotal);
-            
             addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
             addTerminalLine('║                     7EN AI Training Terminal v2.1                    ║', 'system');
             addTerminalLine('╚═══════════════════════════════════════════════════════════════════════╝', 'system');
@@ -103,27 +93,26 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             addTerminalLine(`✓ Connected to agent-${agentId}`, 'success', '[CONN]');
             addTerminalLine('', 'output');
             setCurrentProgress(0);
+            setTotalSources(0);
             setCurrentPhase('connecting');
             setIsCompleted(false);
           } else if (eventType === 'training_progress' && eventData.train_data) {
             const trainData = eventData.train_data;
             const { phase, message, processed_count = 0, total_count = 0, current_source } = trainData;
             
-            // Use actual knowledge sources count instead of API total_count
-            const actualTotal = actualKnowledgeSourcesCount;
-            setTotalSources(actualTotal);
             setCurrentProgress(processed_count);
+            setTotalSources(total_count);
             setCurrentPhase(phase);
 
             if (phase === 'extracting') {
               if (message?.includes('Starting text extraction')) {
-                addTerminalLine('$ apt-get update && apt-get install knowledge-extractor', 'command');
+                addTerminalLine('$ sudo apt-get update && apt-get install knowledge-extractor', 'command');
                 addTerminalLine('Reading package lists... Done', 'output');
                 addTerminalLine('Building dependency tree... Done', 'output');
-                addTerminalLine(`Found ${actualTotal} knowledge source(s) to process`, 'info');
+                addTerminalLine(`Found ${total_count} knowledge source(s) to process`, 'info');
                 addTerminalLine('', 'output');
                 addTerminalLine('The following packages will be INSTALLED:', 'output');
-                addTerminalLine(`  knowledge-sources (${actualTotal} sources)`, 'output');
+                addTerminalLine(`  knowledge-sources (${total_count} sources)`, 'output');
                 addTerminalLine('', 'output');
               } else if (current_source && !processedSources.has(current_source.id)) {
                 const sourceType = current_source.type === 'website' ? '🌐' : '📄';
@@ -150,18 +139,16 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
                   );
                 });
 
-                // Calculate current source index based on completed sources + 1
-                const completedSourcesCount = sources.filter(s => s.status === 'completed').length;
-                const currentIndex = completedSourcesCount + 1;
+                // Add extraction line with current progress (not processed_count)
+                const currentIndex = sources.filter(s => s.status === 'completed').length + 1;
+                addTerminalLine(`[${currentIndex}/${total_count}] Extracting ${sourceType} ${sourceName}...`, 'info');
                 
-                addTerminalLine(`[${currentIndex}/${actualTotal}] Extracting ${sourceType} ${sourceName}...`, 'info');
-                
-                // Show progress bar based on current source progress within the total
-                const sourceProgressPercentage = Math.round((currentIndex / actualTotal) * 100);
-                const filledBars = Math.floor(sourceProgressPercentage / 5);
+                // Show progress bar
+                const progressPercentage = Math.round((currentIndex / total_count) * 100);
+                const filledBars = Math.floor(progressPercentage / 5);
                 const emptyBars = 20 - filledBars;
                 const progressBar = '█'.repeat(filledBars) + '░'.repeat(emptyBars);
-                addTerminalLine(`[${progressBar}] ${sourceProgressPercentage}% complete`, 'output');
+                addTerminalLine(`[${progressBar}] ${progressPercentage}% complete`, 'output');
                 
                 // Mark as processed
                 setProcessedSources(prev => new Set([...prev, current_source.id]));
@@ -172,7 +159,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
               
               addTerminalLine('', 'output');
               addTerminalLine('✓ Text extraction completed successfully', 'success');
-              addTerminalLine(`✓ Processed ${actualTotal} knowledge sources`, 'success');
+              addTerminalLine(`✓ Processed ${processed_count} knowledge sources`, 'success');
               addTerminalLine('', 'output');
             } else if (phase === 'embedding_start') {
               const chunkMatch = message?.match(/(\d+)\s+chunks/);
@@ -245,7 +232,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     updateEventLogs();
     const interval = setInterval(updateEventLogs, 500);
     return () => clearInterval(interval);
-  }, [agentId, refetchAgentData, sources, actualKnowledgeSourcesCount]);
+  }, [agentId, refetchAgentData, sources]);
 
   // Auto-scroll to bottom when new lines are added
   useEffect(() => {
