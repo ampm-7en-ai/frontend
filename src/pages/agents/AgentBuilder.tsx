@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { BuilderProvider, useBuilder } from '@/components/agents/builder/BuilderContext';
 import { BuilderToolbar } from '@/components/agents/builder/BuilderToolbar';
@@ -26,24 +27,32 @@ const AgentBuilderContent = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Check for active training tasks in localStorage - reduced frequency since SSE handles real-time updates
+  // Check for active training tasks and subscribe to existing SSE connections
   useEffect(() => {
-    const checkActiveTrainingTasks = () => {
-      const agentId = state.agentData.id?.toString();
-      if (!agentId) return;
+    const agentId = state.agentData.id?.toString();
+    if (!agentId) return;
 
+    const checkAndSubscribeToActiveTraining = () => {
       const allTasks = AgentTrainingService.getAllTrainingTasks();
       const agentTask = allTasks[agentId];
       const isAgentTraining = agentTask && agentTask.status === 'training';
       
       setHasActiveTrainingTasks(isAgentTraining);
+
+      // If there's an active training task, subscribe to SSE updates
+      if (isAgentTraining) {
+        console.log('🔄 Found active training task on page load, subscribing to SSE updates');
+        AgentTrainingService.subscribeToTrainingUpdates(
+          agentId,
+          agentTask.taskId,
+          agentTask.agentName,
+          refetchAgentData
+        );
+      }
     };
 
-    // Check immediately
-    checkActiveTrainingTasks();
-    
-    // Remove the polling interval - SSE handles real-time updates now
-    // We only need to check once on component mount
+    // Check immediately on mount
+    checkAndSubscribeToActiveTraining();
   }, [state.agentData.id]);
 
   // Helper function to format knowledge sources
