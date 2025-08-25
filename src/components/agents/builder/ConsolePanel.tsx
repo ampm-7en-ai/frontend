@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronUp, ChevronDown, Terminal, Minimize2, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,7 +25,8 @@ interface TerminalLine {
 interface EmbeddingProgress {
   startTime: number;
   totalChunks: number;
-  targetDuration: number; // 15 minutes in milliseconds
+  chunkProcessingTimeMs: number; // 500ms per chunk (0.5 seconds)
+  processedChunks: number;
 }
 
 export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTraining = false, refetchAgentData }) => {
@@ -81,15 +81,16 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     setTerminalLines(prev => [...prev, newLine]);
   };
 
-  // Start embedding progress simulation
+  // Start embedding progress simulation based on chunk processing rate
   const startEmbeddingProgress = (totalChunks: number) => {
-    const targetDuration = 15 * 60 * 1000; // 15 minutes
+    const chunkProcessingTimeMs = 500; // 0.5 seconds per chunk
     const startTime = Date.now();
     
     setEmbeddingProgress({
       startTime,
       totalChunks,
-      targetDuration
+      chunkProcessingTimeMs,
+      processedChunks: 0
     });
 
     // Clear any existing interval
@@ -97,51 +98,72 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
       clearInterval(embeddingIntervalRef.current);
     }
 
-    // Update progress every 10 seconds
+    // Update progress every 5 seconds to show realistic progression
     embeddingIntervalRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min((elapsed / targetDuration) * 100, 99); // Cap at 99% until completion
-      
-      if (progress < 99) {
-        const progressBar = createProgressBar(progress);
-        const estimatedRemaining = Math.max(0, targetDuration - elapsed);
-        const remainingMinutes = Math.ceil(estimatedRemaining / (60 * 1000));
+      setEmbeddingProgress(prev => {
+        if (!prev) return null;
         
-        // Update the last embedding progress line - using reverse iteration instead of findLastIndex
-        setTerminalLines(prev => {
-          const newLines = [...prev];
-          let lastProgressIndex = -1;
+        const elapsed = Date.now() - prev.startTime;
+        const expectedProcessedChunks = Math.floor(elapsed / prev.chunkProcessingTimeMs);
+        const actualProcessedChunks = Math.min(expectedProcessedChunks, prev.totalChunks - 1); // Cap at total-1 until completion
+        const progress = (actualProcessedChunks / prev.totalChunks) * 100;
+        
+        if (actualProcessedChunks < prev.totalChunks - 1) {
+          const progressBar = createProgressBar(progress);
+          const remainingChunks = prev.totalChunks - actualProcessedChunks;
+          const remainingTimeMs = remainingChunks * prev.chunkProcessingTimeMs;
+          const remainingMinutes = Math.ceil(remainingTimeMs / (60 * 1000));
+          const remainingSeconds = Math.ceil((remainingTimeMs % (60 * 1000)) / 1000);
           
-          // Find the last progress line by iterating backwards
-          for (let i = newLines.length - 1; i >= 0; i--) {
-            if (newLines[i].content.includes('Generating embeddings') || newLines[i].content.includes('[█')) {
-              lastProgressIndex = i;
-              break;
-            }
-          }
-          
-          if (lastProgressIndex !== -1 && newLines[lastProgressIndex].content.includes('[█')) {
-            // Update existing progress line
-            newLines[lastProgressIndex] = {
-              ...newLines[lastProgressIndex],
-              content: `[${progressBar}] ${Math.floor(progress)}% complete - ETA: ${remainingMinutes}min`,
-              timestamp: new Date()
-            };
+          // Format ETA display
+          let etaText = '';
+          if (remainingMinutes > 0) {
+            etaText = remainingMinutes === 1 ? `${remainingMinutes}min ${remainingSeconds}sec` : `${remainingMinutes}min`;
           } else {
-            // Add new progress line
-            newLines.push({
-              id: `${Date.now()}-progress`,
-              content: `[${progressBar}] ${Math.floor(progress)}% complete - ETA: ${remainingMinutes}min`,
-              type: 'info',
-              timestamp: new Date(),
-              prefix: '[EMB]'
-            });
+            etaText = `${remainingSeconds}sec`;
           }
           
-          return newLines;
-        });
-      }
-    }, 10000); // Update every 10 seconds
+          // Update the last embedding progress line - using reverse iteration instead of findLastIndex
+          setTerminalLines(prev => {
+            const newLines = [...prev];
+            let lastProgressIndex = -1;
+            
+            // Find the last progress line by iterating backwards
+            for (let i = newLines.length - 1; i >= 0; i--) {
+              if (newLines[i].content.includes('Generating embeddings') || newLines[i].content.includes('[█')) {
+                lastProgressIndex = i;
+                break;
+              }
+            }
+            
+            if (lastProgressIndex !== -1 && newLines[lastProgressIndex].content.includes('[█')) {
+              // Update existing progress line
+              newLines[lastProgressIndex] = {
+                ...newLines[lastProgressIndex],
+                content: `[${progressBar}] ${Math.floor(progress)}% complete (${actualProcessedChunks}/${prev.totalChunks} chunks) - ETA: ${etaText}`,
+                timestamp: new Date()
+              };
+            } else {
+              // Add new progress line
+              newLines.push({
+                id: `${Date.now()}-progress`,
+                content: `[${progressBar}] ${Math.floor(progress)}% complete (${actualProcessedChunks}/${prev.totalChunks} chunks) - ETA: ${etaText}`,
+                type: 'info',
+                timestamp: new Date(),
+                prefix: '[EMB]'
+              });
+            }
+            
+            return newLines;
+          });
+        }
+        
+        return {
+          ...prev,
+          processedChunks: actualProcessedChunks
+        };
+      });
+    }, 5000); // Update every 5 seconds
   };
 
   // Stop embedding progress
@@ -386,8 +408,10 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     } else if (currentPhase === 'embedding_start' || currentPhase === 'embedding') {
       if (embeddingProgress) {
         const elapsed = Date.now() - embeddingProgress.startTime;
-        const progressPercentage = Math.min((elapsed / embeddingProgress.targetDuration) * 100, 99);
-        return `Generating embeddings... ${Math.floor(progressPercentage)}%`;
+        const expectedProcessedChunks = Math.floor(elapsed / embeddingProgress.chunkProcessingTimeMs);
+        const actualProcessedChunks = Math.min(expectedProcessedChunks, embeddingProgress.totalChunks - 1);
+        const progressPercentage = (actualProcessedChunks / embeddingProgress.totalChunks) * 100;
+        return `Generating embeddings... ${Math.floor(progressPercentage)}% (${actualProcessedChunks}/${embeddingProgress.totalChunks})`;
       }
       return 'Generating AI embeddings...';
     } else if (currentPhase === 'completed') {
