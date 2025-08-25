@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Slack, AlertCircle, Settings, CheckCircle } from 'lucide-react';
@@ -66,6 +65,7 @@ const SlackIntegration: React.FC = () => {
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState<boolean>(true);
   const [isSavingConfig, setIsSavingConfig] = useState<boolean>(false);
+  const [isUnlinking, setIsUnlinking] = useState<boolean>(false);
   const [connectedChannelName, setConnectedChannelName] = useState<string>('');
   const [connectedChannelId, setConnectedChannelId] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -257,6 +257,62 @@ const SlackIntegration: React.FC = () => {
     }
   };
 
+  const handleUnlinkConfig = async () => {
+    setIsUnlinking(true);
+    setError(null);
+
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      const response = await fetch(getApiUrl('slack/unlink/'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to unlink Slack integration: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        // Reset all state
+        setIsConfigured(false);
+        setIsConnected(false);
+        setConnectedChannelName('');
+        setConnectedChannelId('');
+        setWorkspaceInfo({});
+        setConfig({
+          client_id: '',
+          client_secret: '',
+          signing_secret: ''
+        });
+        
+        toast({
+          title: "Configuration Deleted",
+          description: "Slack integration has been unlinked and all configurations removed.",
+        });
+      } else {
+        throw new Error('Failed to unlink Slack integration');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to unlink Slack integration');
+      toast({
+        title: "Unlink Failed",
+        description: err.message || "Failed to unlink Slack integration. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUnlinking(false);
+    }
+  };
+
   if (isCheckingStatus) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -338,23 +394,41 @@ const SlackIntegration: React.FC = () => {
               </ModernStatusBadge>
             </div>
             
-            {!isConfigured && (
-              <ModernButton 
-                onClick={handleSaveConfig}
-                disabled={isSavingConfig}
-                variant="gradient"
-                className="w-auto"
-              >
-                {isSavingConfig ? (
-                  <>
-                    <LoadingSpinner size="sm" className="!mb-0" />
-                    Saving...
-                  </>
-                ) : (
-                  'Save Configuration'
-                )}
-              </ModernButton>
-            )}
+            <div className="flex gap-2">
+              {!isConfigured ? (
+                <ModernButton 
+                  onClick={handleSaveConfig}
+                  disabled={isSavingConfig}
+                  variant="gradient"
+                  className="w-auto"
+                >
+                  {isSavingConfig ? (
+                    <>
+                      <LoadingSpinner size="sm" className="!mb-0" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Configuration'
+                  )}
+                </ModernButton>
+              ) : (
+                <ModernButton 
+                  onClick={handleUnlinkConfig}
+                  disabled={isUnlinking}
+                  variant="outline"
+                  className="w-auto border-destructive/20 text-destructive hover:bg-destructive/10"
+                >
+                  {isUnlinking ? (
+                    <>
+                      <LoadingSpinner size="sm" className="!mb-0" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete Configuration'
+                  )}
+                </ModernButton>
+              )}
+            </div>
           </div>
         </ModernCardContent>
       </ModernCard>
