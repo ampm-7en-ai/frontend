@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronUp, ChevronDown, Terminal, Minimize2, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,7 +31,8 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const [sourceTracker, setSourceTracker] = useState<SourceTracker | null>(null);
   
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const lastEventRef = useRef<string | null>(null);
+  const processedEventsRef = useRef<Set<string>>(new Set());
+  const lastProcessedTimestampRef = useRef<number>(0);
   
   const { state } = useBuilder();
   const agentId = state.agentData.id?.toString();
@@ -63,166 +63,177 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     setTerminalLines(prev => [...prev, newLine]);
   };
 
-  // Enhanced event processing with accurate progress tracking
+  // Enhanced event processing with better duplicate detection
   useEffect(() => {
+    if (!agentId || !sourceTracker) return;
+
     const updateEventLogs = () => {
-      if (!agentId || !sourceTracker) return;
-
-      const logs = trainingSSEService.getRecentEventLogs(agentId, 10);
+      const logs = trainingSSEService.getRecentEventLogs(agentId, 20);
       
-      // Process the latest event
-      const latestEvent = logs[0];
-      if (!latestEvent) return;
+      // Process only new events since last timestamp
+      const newEvents = logs.filter(log => 
+        log.timestamp.getTime() > lastProcessedTimestampRef.current
+      );
 
-      const eventData = latestEvent.event.data;
-      const eventType = latestEvent.event.event;
+      if (newEvents.length === 0) return;
 
-      // Create a more specific event key to avoid duplicates
-      const eventKey = `${eventType}-${eventData.status}-${eventData.train_data?.phase}-${eventData.train_data?.current_source?.id}-${Date.now()}`;
-      if (eventKey === lastEventRef.current) return;
-      lastEventRef.current = eventKey;
+      // Sort by timestamp to process in correct order
+      newEvents.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
-      if (eventType === 'training_connected') {
-        // Clear terminal and reset source tracker
-        setTerminalLines([]);
-        sourceTracker.reset();
-        addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
-        addTerminalLine('║                     7EN AI Training Terminal v2.1                    ║', 'system');
-        addTerminalLine('╚═══════════════════════════════════════════════════════════════════════╝', 'system');
-        addTerminalLine('', 'output');
-        addTerminalLine('🚀 Initializing agent training environment...', 'info', '[INIT]');
-        addTerminalLine(`✓ Connected to agent-${agentId}`, 'success', '[CONN]');
-        addTerminalLine('', 'output');
-        setCurrentPhase('connecting');
-        setIsCompleted(false);
-      } else if (eventType === 'training_progress' && eventData.train_data) {
-        const trainData = eventData.train_data;
-        const { phase, message, current_source } = trainData;
+      newEvents.forEach(eventLog => {
+        const { event } = eventLog;
+        const eventData = event.data;
+        const eventType = event.event;
+
+        // Create unique event key without timestamp to avoid duplicates
+        const eventKey = `${eventType}-${eventData.status}-${eventData.train_data?.phase}-${eventData.train_data?.current_source?.id || 'none'}`;
         
-        setCurrentPhase(phase);
+        if (processedEventsRef.current.has(eventKey)) return;
+        processedEventsRef.current.add(eventKey);
 
-        if (phase === 'extracting') {
-          if (message?.includes('Starting text extraction')) {
-            const progressState = sourceTracker.getProgressState();
-            addTerminalLine('$ sudo apt-get update && apt-get install knowledge-extractor', 'command');
-            addTerminalLine('Reading package lists... Done', 'output');
-            addTerminalLine('Building dependency tree... Done', 'output');
-            addTerminalLine(`Found ${progressState.totalSources} knowledge source(s) to process`, 'info');
-            addTerminalLine('', 'output');
-            addTerminalLine('The following packages will be INSTALLED:', 'output');
-            addTerminalLine(`  knowledge-sources (${progressState.totalSources} sources)`, 'output');
-            addTerminalLine('', 'output');
-          } else if (current_source?.id) {
-            // Update source tracker with current source
-            const sourceFromTracker = sourceTracker.getSourceById(current_source.id);
-            
-            if (sourceFromTracker) {
-              // Mark current source as active
-              sourceTracker.updateSourceStatus(current_source.id, 'active');
-              
-              // Get accurate progress
-              const progress = sourceTracker.getCurrentProgress();
-              const sourceName = formatSourceName(sourceFromTracker);
-              
-              // Display progress with accurate position
-              const progressDisplay = formatProgressDisplay(
-                progress.current,
-                progress.total,
-                progress.percentage,
-                sourceName
-              );
-              
-              addTerminalLine(progressDisplay.currentText, 'info');
-              addTerminalLine(progressDisplay.progressBar, 'output');
-              
-              console.log('📊 Source progress update:', {
-                sourceId: current_source.id,
-                sourceName: sourceFromTracker.title,
-                position: sourceFromTracker.position,
-                progress: progress
-              });
-            }
-          }
-        } else if (phase === 'extraction_completed') {
-          // Mark current source as completed
-          const currentSource = sourceTracker.getCurrentSource();
-          if (currentSource) {
-            sourceTracker.updateSourceStatus(currentSource.id, 'completed');
-            const completionProgress = sourceTracker.getCompletionProgress();
-            
-            addTerminalLine('', 'output');
-            addTerminalLine('✓ Text extraction completed successfully', 'success');
-            addTerminalLine(`✓ Processed ${completionProgress.completed}/${completionProgress.total} knowledge sources`, 'success');
-            addTerminalLine('', 'output');
-          }
-        } else if (phase === 'embedding_start') {
-          const chunkMatch = message?.match(/(\d+)\s+chunks/);
-          const totalChunks = chunkMatch ? parseInt(chunkMatch[1]) : 0;
+        console.log('🎯 Processing new SSE event:', eventType, eventData);
+
+        if (eventType === 'training_connected') {
+          // Clear terminal and reset source tracker
+          setTerminalLines([]);
+          sourceTracker.reset();
+          processedEventsRef.current.clear();
+          processedEventsRef.current.add(eventKey);
           
-          addTerminalLine('$ npm install --upgrade ai-embeddings-engine', 'command');
-          addTerminalLine('Collecting ai-embeddings-engine', 'output');
-          addTerminalLine('  Using cached ai_embeddings_engine-3.0.0.tgz', 'output');
-          addTerminalLine(`Processing ${totalChunks} text chunks with AI embeddings`, 'info');
-          addTerminalLine('', 'output');
-          
-          // Show embedding progress
-          for (let i = 0; i < Math.min(totalChunks, 10); i++) {
-            setTimeout(() => {
-              const chunkProgress = Math.round(((i + 1) / totalChunks) * 100);
-              const dots = '.'.repeat((i % 3) + 1);
-              addTerminalLine(`Generating embeddings${dots} [${i + 1}/${totalChunks}] ${chunkProgress}%`, 'info');
-            }, i * 200);
-          }
-        }
-      } else if (eventType === 'training_completed' && eventData.train_data) {
-        const trainData = eventData.train_data;
-        if (trainData.phase === 'embedding_completed') {
-          addTerminalLine('', 'output');
-          addTerminalLine('✓ AI embedding generation completed', 'success');
-          addTerminalLine('✓ Knowledge base updated successfully', 'success');
-          addTerminalLine('✓ Agent training pipeline finished', 'success');
-          addTerminalLine('', 'output');
           addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
-          addTerminalLine('║                     🎉 TRAINING COMPLETED 🎉                         ║', 'success');
+          addTerminalLine('║                     7EN AI Training Terminal v2.1                    ║', 'system');
           addTerminalLine('╚═══════════════════════════════════════════════════════════════════════╝', 'system');
           addTerminalLine('', 'output');
-          addTerminalLine('Agent is ready for deployment. Exiting...', 'success');
+          addTerminalLine('🚀 Initializing agent training environment...', 'info', '[INIT]');
+          addTerminalLine(`✓ Connected to agent-${agentId}`, 'success', '[CONN]');
+          addTerminalLine('', 'output');
+          setCurrentPhase('connecting');
+          setIsCompleted(false);
+        } else if (eventType === 'training_progress' && eventData.train_data) {
+          const trainData = eventData.train_data;
+          const { phase, message, current_source } = trainData;
           
-          setCurrentPhase('completed');
-          setIsCompleted(true);
+          setCurrentPhase(phase);
+
+          if (phase === 'extracting') {
+            if (message?.includes('Starting text extraction')) {
+              const progressState = sourceTracker.getProgressState();
+              addTerminalLine('$ sudo apt-get update && apt-get install knowledge-extractor', 'command');
+              addTerminalLine('Reading package lists... Done', 'output');
+              addTerminalLine('Building dependency tree... Done', 'output');
+              addTerminalLine(`Found ${progressState.totalSources} knowledge source(s) to process`, 'info');
+              addTerminalLine('', 'output');
+              addTerminalLine('The following packages will be INSTALLED:', 'output');
+              addTerminalLine(`  knowledge-sources (${progressState.totalSources} sources)`, 'output');
+              addTerminalLine('', 'output');
+            } else if (current_source?.id) {
+              // Update source tracker with current source
+              const sourceFromTracker = sourceTracker.getSourceById(current_source.id);
+              
+              if (sourceFromTracker) {
+                // Mark current source as active
+                sourceTracker.updateSourceStatus(current_source.id, 'active');
+                
+                // Get accurate progress
+                const progress = sourceTracker.getCurrentProgress();
+                const sourceName = formatSourceName(sourceFromTracker);
+                
+                // Display progress with accurate position
+                const progressDisplay = formatProgressDisplay(
+                  progress.current,
+                  progress.total,
+                  progress.percentage,
+                  sourceName
+                );
+                
+                addTerminalLine(progressDisplay.currentText, 'info');
+                addTerminalLine(progressDisplay.progressBar, 'output');
+                
+                console.log('📊 Source progress update:', {
+                  sourceId: current_source.id,
+                  sourceName: sourceFromTracker.title,
+                  position: sourceFromTracker.position,
+                  progress: progress
+                });
+              }
+            }
+          } else if (phase === 'extraction_completed') {
+            // Mark current source as completed
+            const currentSource = sourceTracker.getCurrentSource();
+            if (currentSource) {
+              sourceTracker.updateSourceStatus(currentSource.id, 'completed');
+              const completionProgress = sourceTracker.getCompletionProgress();
+              
+              addTerminalLine('', 'output');
+              addTerminalLine('✓ Text extraction completed successfully', 'success');
+              addTerminalLine(`✓ Processed ${completionProgress.completed}/${completionProgress.total} knowledge sources`, 'success');
+              addTerminalLine('', 'output');
+            }
+          } else if (phase === 'embedding_start') {
+            const chunkMatch = message?.match(/(\d+)\s+chunks/);
+            const totalChunks = chunkMatch ? parseInt(chunkMatch[1]) : 0;
+            
+            addTerminalLine('$ npm install --upgrade ai-embeddings-engine', 'command');
+            addTerminalLine('Collecting ai-embeddings-engine', 'output');
+            addTerminalLine('  Using cached ai_embeddings_engine-3.0.0.tgz', 'output');
+            addTerminalLine(`Processing ${totalChunks} text chunks with AI embeddings`, 'info');
+            addTerminalLine('', 'output');
+          }
+        } else if (eventType === 'training_completed' && eventData.train_data) {
+          const trainData = eventData.train_data;
+          if (trainData.phase === 'embedding_completed') {
+            addTerminalLine('', 'output');
+            addTerminalLine('✓ AI embedding generation completed', 'success');
+            addTerminalLine('✓ Knowledge base updated successfully', 'success');
+            addTerminalLine('✓ Agent training pipeline finished', 'success');
+            addTerminalLine('', 'output');
+            addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
+            addTerminalLine('║                     🎉 TRAINING COMPLETED 🎉                         ║', 'success');
+            addTerminalLine('╚═══════════════════════════════════════════════════════════════════════╝', 'system');
+            addTerminalLine('', 'output');
+            addTerminalLine('Agent is ready for deployment. Exiting...', 'success');
+            
+            setCurrentPhase('completed');
+            setIsCompleted(true);
+            
+            // Refetch agent data and clear floating loader
+            if (refetchAgentData) {
+              setTimeout(() => {
+                refetchAgentData().then(() => {
+                  // The refetch should update the agent status, which will hide the console
+                }).catch(error => {
+                  console.error('Error refetching agent data:', error);
+                });
+              }, 1000);
+            }
+          }
+        } else if (eventType === 'training_failed') {
+          addTerminalLine('', 'output');
+          addTerminalLine('✗ Training process failed', 'error');
+          addTerminalLine(eventData.error || 'Unknown error occurred', 'error');
+          addTerminalLine('', 'output');
+          addTerminalLine('Process exited with code 1', 'error');
+          setCurrentPhase('failed');
           
-          // Refetch agent data and clear floating loader
+          // Clear floating loader on failure too
           if (refetchAgentData) {
             setTimeout(() => {
-              refetchAgentData().then(() => {
-                // The refetch should update the agent status, which will hide the console
-              }).catch(error => {
+              refetchAgentData().catch(error => {
                 console.error('Error refetching agent data:', error);
               });
             }, 1000);
           }
         }
-      } else if (eventType === 'training_failed') {
-        addTerminalLine('', 'output');
-        addTerminalLine('✗ Training process failed', 'error');
-        addTerminalLine(eventData.error || 'Unknown error occurred', 'error');
-        addTerminalLine('', 'output');
-        addTerminalLine('Process exited with code 1', 'error');
-        setCurrentPhase('failed');
-        
-        // Clear floating loader on failure too
-        if (refetchAgentData) {
-          setTimeout(() => {
-            refetchAgentData().catch(error => {
-              console.error('Error refetching agent data:', error);
-            });
-          }, 1000);
-        }
+      });
+
+      // Update last processed timestamp
+      if (newEvents.length > 0) {
+        lastProcessedTimestampRef.current = Math.max(...newEvents.map(e => e.timestamp.getTime()));
       }
     };
 
     updateEventLogs();
-    const interval = setInterval(updateEventLogs, 500);
+    const interval = setInterval(updateEventLogs, 1000); // Reduced frequency
     return () => clearInterval(interval);
   }, [agentId, refetchAgentData, sourceTracker]);
 
