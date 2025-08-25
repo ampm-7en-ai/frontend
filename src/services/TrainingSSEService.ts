@@ -12,6 +12,18 @@ export interface SSETrainingEvent {
     message?: string;
     error?: string;
     timestamp: string;
+    train_data?: {
+      phase?: string;
+      message?: string;
+      processed_count?: number;
+      total_count?: number;
+      current_source?: {
+        id: number;
+        type: string;
+        title: string;
+        source: string;
+      };
+    };
   };
 }
 
@@ -197,7 +209,8 @@ class TrainingSSEService {
           data: {
             ...backendData,
             task_id: this.taskMappings.get(backendData.agent_id) || 'unknown',
-            status: 'training' as const
+            status: 'training' as const,
+            train_data: backendData.train_data
           }
         };
         this.handleSSEEvent(eventData);
@@ -215,12 +228,32 @@ class TrainingSSEService {
           data: {
             ...backendData,
             task_id: this.taskMappings.get(backendData.agent_id) || 'unknown',
-            status: 'completed' as const
+            status: 'completed' as const,
+            train_data: backendData.train_data
           }
         };
         this.handleSSEEvent(eventData);
       } catch (error) {
         console.error('Error parsing training_completed event:', error);
+      }
+    });
+
+    // Backend sends: training_active (map to training_completed)
+    this.eventSource.addEventListener('training_active', (event) => {
+      try {
+        const backendData = JSON.parse(event.data);
+        const eventData: SSETrainingEvent = {
+          event: 'training_completed',
+          data: {
+            ...backendData,
+            task_id: this.taskMappings.get(backendData.agent_id) || 'unknown',
+            status: 'completed' as const,
+            train_data: backendData.train_data
+          }
+        };
+        this.handleSSEEvent(eventData);
+      } catch (error) {
+        console.error('Error parsing training_active event:', error);
       }
     });
 
@@ -233,7 +266,8 @@ class TrainingSSEService {
           data: {
             ...backendData,
             task_id: this.taskMappings.get(backendData.agent_id) || 'unknown',
-            status: 'failed' as const
+            status: 'failed' as const,
+            train_data: backendData.train_data
           }
         };
         this.handleSSEEvent(eventData);

@@ -86,7 +86,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             setProcessedCount(0);
             setTotalCount(0);
             setChunkInfo('');
-          } else if (eventType === 'training_training' && eventData.train_data) {
+          } else if (eventType === 'training_progress' && eventData.train_data) {
             const trainData = eventData.train_data;
             const { phase, message, processed_count = 0, total_count = 0, current_source } = trainData;
             
@@ -115,7 +115,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
                 setChunkInfo(`Processing ${chunkMatch[1]} text chunks`);
               }
             }
-          } else if (eventType === 'training_active' && eventData.train_data) {
+          } else if (eventType === 'training_completed' && eventData.train_data) {
             const trainData = eventData.train_data;
             if (trainData.phase === 'embedding_completed') {
               setProgress(100);
