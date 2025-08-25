@@ -44,7 +44,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const lastProcessedTimestampRef = useRef<number>(0);
   const embeddingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const currentSessionIdRef = useRef<string | null>(null);
+  const currentTaskIdRef = useRef<string | null>(null); // Track current task ID for session detection
   
   const { state } = useBuilder();
   const agentId = state.agentData.id?.toString();
@@ -58,11 +58,10 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     console.log('🔄 Resetting console state for new training session');
     setTerminalLines([]);
     processedEventsRef.current.clear();
-    lastProcessedTimestampRef.current = 0;
+    lastProcessedTimestampRef.current = Date.now(); // Set to current time to ignore old events
     setCurrentPhase('');
     setIsCompleted(false);
     stopEmbeddingProgress();
-    currentSessionIdRef.current = null;
     
     // Clear any existing hide timeout
     if (hideTimeoutRef.current) {
@@ -215,7 +214,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     setEmbeddingProgress(null);
   };
 
-  // Enhanced event processing with better duplicate detection and session management
+  // Enhanced event processing with better session detection using task_id
   useEffect(() => {
     if (!agentId || !sourceTracker) return;
 
@@ -236,6 +235,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
         const { event } = eventLog;
         const eventData = event.data;
         const eventType = event.event;
+        const taskId = eventData.task_id;
 
         // Create unique event key without timestamp to avoid duplicates
         const eventKey = `${eventType}-${eventData.status}-${eventData.train_data?.phase}-${eventData.train_data?.current_source?.id || 'none'}`;
@@ -246,17 +246,16 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
         console.log('🎯 Processing new SSE event:', eventType, eventData);
 
         if (eventType === 'training_connected') {
-          // Create a new session identifier for this training session
-          const newSessionId = `${agentId}-${Date.now()}`;
+          // Detect new training session by comparing task_id
+          const isNewSession = currentTaskIdRef.current !== null && currentTaskIdRef.current !== taskId;
           
-          // Check if this is a new session (different from current)
-          if (currentSessionIdRef.current && currentSessionIdRef.current !== newSessionId) {
-            console.log('🔄 New training session detected while previous was active - resetting console');
+          if (isNewSession) {
+            console.log('🔄 New training session detected (different task_id) - resetting console');
           }
           
-          // Always reset for training_connected event
+          // Always reset for training_connected event and update current task ID
           resetConsoleState();
-          currentSessionIdRef.current = newSessionId;
+          currentTaskIdRef.current = taskId;
           
           // Reset source tracker
           sourceTracker.reset();
@@ -367,6 +366,9 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             setCurrentPhase('completed');
             setIsCompleted(true);
             
+            // Clear current task ID as training is completed
+            currentTaskIdRef.current = null;
+            
             // Hide console after 2 seconds
             hideTimeoutRef.current = setTimeout(() => {
               setShowConsole(false);
@@ -385,6 +387,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           } else {
             // Hide console panel immediately when training_completed is received
             console.log('🔥 Training completed event received - hiding console panel');
+            currentTaskIdRef.current = null;
             setShowConsole(false);
           }
         } else if (eventType === 'training_failed') {
@@ -396,6 +399,9 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           addTerminalLine('', 'output');
           addTerminalLine('Process exited with code 1', 'error');
           setCurrentPhase('failed');
+          
+          // Clear current task ID as training failed
+          currentTaskIdRef.current = null;
           
           // Clear floating loader on failure too
           if (refetchAgentData) {

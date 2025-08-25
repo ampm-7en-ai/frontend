@@ -119,6 +119,14 @@ class TrainingSSEService {
   }
 
   /**
+   * Clear event logs for a specific agent - used when new training starts
+   */
+  clearAgentEventLogs(agentId: string): void {
+    console.log(`🧹 Clearing event logs for agent ${agentId} before new training session`);
+    this.eventLogs = this.eventLogs.filter(log => log.agentId !== agentId);
+  }
+
+  /**
    * Create SSE connection
    */
   private async connect(agentId: string, token: string): Promise<void> {
@@ -185,6 +193,9 @@ class TrainingSSEService {
       try {
         const data = JSON.parse(event.data);
         console.log('Training connected:', data);
+        
+        // Clear existing event logs for this agent when new training starts
+        this.clearAgentEventLogs(data.agent_id);
         
         const eventData: SSETrainingEvent = {
           event: 'training_connected',
