@@ -7,19 +7,27 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ModernCard, ModernCardContent, ModernCardDescription, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
 import { ModernAlert, ModernAlertDescription } from '@/components/ui/modern-alert';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
-import { authenticateSlack, fetchSlackChannels, connectSlackChannel, disconnectSlackChannel, checkSlackStatus } from '@/utils/slackSDK';
+import { checkSlackStatus, disconnectSlackChannel } from '@/utils/slackSDK';
+import { getApiUrl, getAccessToken } from '@/utils/api-config';
 
 interface SlackChannel {
   id: string;
   name: string;
 }
 
+interface SlackOAuthResponse {
+  message: string;
+  data: {
+    oauth_url: string;
+  };
+  status: string;
+  permissions: string[];
+}
+
 const SlackIntegration: React.FC = () => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState<boolean>(true);
-  const [channels, setChannels] = useState<SlackChannel[]>([]);
-  const [selectedChannel, setSelectedChannel] = useState<SlackChannel | null>(null);
   const [connectedChannelName, setConnectedChannelName] = useState<string>('');
   const [connectedChannelId, setConnectedChannelId] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -42,90 +50,44 @@ const SlackIntegration: React.FC = () => {
     checkStatus();
   }, []);
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const slackToken = urlParams.get('slack_token');
-    const teamId = urlParams.get('team_id');
-    if (slackToken && teamId) {
-      fetchChannels(slackToken);
-    }
-  }, []);
-
-  const fetchChannels = async (accessToken: string) => {
+  const handleConnect = async () => {
     setIsConnecting(true);
+    setError(null);
+    
     try {
-      const fetchedChannels = await fetchSlackChannels(accessToken);
-      setChannels(fetchedChannels);
-      setIsConnecting(false);
-      if (fetchedChannels.length === 0) {
-        setError('No public channels found in your Slack workspace.');
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      const response = await fetch(getApiUrl('slack/oauth/init/'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to initiate Slack OAuth: ${response.status}`);
+      }
+
+      const data: SlackOAuthResponse = await response.json();
+      
+      if (data.status === 'success' && data.data?.oauth_url) {
+        // Redirect to the OAuth URL
+        window.location.href = data.data.oauth_url;
+      } else {
+        throw new Error('Invalid response from server');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch Slack channels');
-      setIsConnecting(false);
-    }
-  };
-
-  const handleConnect = () => {
-    setIsConnecting(true);
-    setError(null);
-    
-    const success = authenticateSlack();
-    
-    if (!success) {
-      setError('Failed to open Slack authorization. Please check your browser settings and try again.');
+      setError(err.message || 'Failed to initiate Slack connection');
       setIsConnecting(false);
       toast({
         title: "Connection Failed",
-        description: "Failed to open Slack authorization. Please check your browser settings and try again.",
+        description: err.message || "Failed to initiate Slack connection. Please try again.",
         variant: "destructive"
       });
-    }
-  };
-
-  const handleChannelSelection = async () => {
-    if (!selectedChannel) {
-      setError('Please select a channel to connect.');
-      return;
-    }
-
-    setIsConnecting(true);
-    setError(null);
-
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const accessToken = urlParams.get('slack_token') || '';
-      const teamId = urlParams.get('team_id') || '';
-      const chatbotId = 'YOUR_CHATBOT_ID';
-
-      const result = await connectSlackChannel(
-        accessToken,
-        teamId,
-        selectedChannel.id,
-        selectedChannel.name,
-        chatbotId
-      );
-
-      setIsConnected(true);
-      setConnectedChannelName(result.channelName);
-      setConnectedChannelId(selectedChannel.id);
-      setChannels([]);
-      setSelectedChannel(null);
-      window.history.replaceState({}, document.title, window.location.pathname);
-
-      toast({
-        title: "Slack Connected",
-        description: `Your Slack channel #${result.channelName} has been successfully connected.`,
-      });
-    } catch (err: any) {
-      setError(err.message || 'Failed to connect Slack channel');
-      toast({
-        title: "Connection Failed",
-        description: err.message || "Failed to connect Slack channel",
-        variant: "destructive",
-      });
-    } finally {
-      setIsConnecting(false);
     }
   };
 
@@ -164,8 +126,6 @@ const SlackIntegration: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      
-
       {error && (
         <ModernAlert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -283,31 +243,11 @@ const SlackIntegration: React.FC = () => {
                 </ul>
               </div>
             </div>
-
-            {channels.length > 0 && (
-              <div className="space-y-4">
-                <h4 className="font-medium text-foreground">Select a Channel</h4>
-                <div className="space-y-2">
-                  {channels.map(channel => (
-                    <label key={channel.id} className="flex items-center gap-2 p-3 rounded-lg border border-border/50 hover:bg-muted/50 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="slackChannel"
-                        value={channel.id}
-                        onChange={() => setSelectedChannel(channel)}
-                        className="h-4 w-4 text-primary"
-                      />
-                      <span className="text-sm font-medium">#{channel.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
             
             <div className="pt-2">
               <ModernButton 
-                onClick={channels.length > 0 ? handleChannelSelection : handleConnect}
-                disabled={isConnecting || (channels.length > 0 && !selectedChannel)}
+                onClick={handleConnect}
+                disabled={isConnecting}
                 variant="gradient"
                 className="w-full sm:w-auto"
                 icon={isConnecting ? undefined : Slack}
@@ -315,10 +255,10 @@ const SlackIntegration: React.FC = () => {
                 {isConnecting ? (
                   <>
                     <LoadingSpinner size="sm" className="!mb-0" />
-                    {channels.length > 0 ? 'Connecting...' : 'Authorizing...'}
+                    Connecting...
                   </>
                 ) : (
-                  channels.length > 0 ? 'Connect Channel' : 'Connect to Slack'
+                  'Connect to Slack'
                 )}
               </ModernButton>
             </div>
