@@ -106,7 +106,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
             if (phase === 'extracting') {
               if (message?.includes('Starting text extraction')) {
-                addTerminalLine('$ apt-get update && apt-get install knowledge-extractor', 'command', 'root@7en:~#');
+                addTerminalLine('$ sudo apt-get update && apt-get install knowledge-extractor', 'command');
                 addTerminalLine('Reading package lists... Done', 'output');
                 addTerminalLine('Building dependency tree... Done', 'output');
                 addTerminalLine(`Found ${total_count} knowledge source(s) to process`, 'info');
@@ -139,16 +139,16 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
                   );
                 });
 
-                // Add extraction line
-                const currentIndex = processed_count + 1;
-                addTerminalLine(`[${currentIndex}/${total_count}] Extracting ${sourceType} ${sourceName}...`, 'info', 'GET');
+                // Add extraction line with current progress (not processed_count)
+                const currentIndex = sources.filter(s => s.status === 'completed').length + 1;
+                addTerminalLine(`[${currentIndex}/${total_count}] Extracting ${sourceType} ${sourceName}...`, 'info');
                 
                 // Show progress bar
                 const progressPercentage = Math.round((currentIndex / total_count) * 100);
                 const filledBars = Math.floor(progressPercentage / 5);
                 const emptyBars = 20 - filledBars;
                 const progressBar = '█'.repeat(filledBars) + '░'.repeat(emptyBars);
-                addTerminalLine(`[${progressBar}] ${progressPercentage}% complete`, 'output', '    ');
+                addTerminalLine(`[${progressBar}] ${progressPercentage}% complete`, 'output');
                 
                 // Mark as processed
                 setProcessedSources(prev => new Set([...prev, current_source.id]));
@@ -158,17 +158,17 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
               setSources(prev => prev.map(s => ({ ...s, status: 'completed' as const, processed: true })));
               
               addTerminalLine('', 'output');
-              addTerminalLine('✓ Text extraction completed successfully', 'success', '[DONE]');
-              addTerminalLine(`✓ Processed ${processed_count} knowledge sources`, 'success', '[INFO]');
+              addTerminalLine('✓ Text extraction completed successfully', 'success');
+              addTerminalLine(`✓ Processed ${processed_count} knowledge sources`, 'success');
               addTerminalLine('', 'output');
             } else if (phase === 'embedding_start') {
               const chunkMatch = message?.match(/(\d+)\s+chunks/);
               const totalChunks = chunkMatch ? parseInt(chunkMatch[1]) : 0;
               
-              addTerminalLine('$ pip install --upgrade openai-embeddings', 'command', 'root@7en:~#');
-              addTerminalLine('Collecting openai-embeddings', 'output');
-              addTerminalLine('  Using cached openai_embeddings-3.0.0.whl', 'output');
-              addTerminalLine(`Processing ${totalChunks} text chunks with AI embeddings`, 'info', '[AI] ');
+              addTerminalLine('$ npm install --upgrade ai-embeddings-engine', 'command');
+              addTerminalLine('Collecting ai-embeddings-engine', 'output');
+              addTerminalLine('  Using cached ai_embeddings_engine-3.0.0.tgz', 'output');
+              addTerminalLine(`Processing ${totalChunks} text chunks with AI embeddings`, 'info');
               addTerminalLine('', 'output');
               
               // Show embedding progress
@@ -176,7 +176,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
                 setTimeout(() => {
                   const chunkProgress = Math.round(((i + 1) / totalChunks) * 100);
                   const dots = '.'.repeat((i % 3) + 1);
-                  addTerminalLine(`Generating embeddings${dots} [${i + 1}/${totalChunks}] ${chunkProgress}%`, 'info', '[AI] ');
+                  addTerminalLine(`Generating embeddings${dots} [${i + 1}/${totalChunks}] ${chunkProgress}%`, 'info');
                 }, i * 200);
               }
             }
@@ -184,15 +184,15 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             const trainData = eventData.train_data;
             if (trainData.phase === 'embedding_completed') {
               addTerminalLine('', 'output');
-              addTerminalLine('✓ AI embedding generation completed', 'success', '[AI] ');
-              addTerminalLine('✓ Knowledge base updated successfully', 'success', '[DB] ');
-              addTerminalLine('✓ Agent training pipeline finished', 'success', '[SYS]');
+              addTerminalLine('✓ AI embedding generation completed', 'success');
+              addTerminalLine('✓ Knowledge base updated successfully', 'success');
+              addTerminalLine('✓ Agent training pipeline finished', 'success');
               addTerminalLine('', 'output');
               addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
               addTerminalLine('║                     🎉 TRAINING COMPLETED 🎉                         ║', 'success');
               addTerminalLine('╚═══════════════════════════════════════════════════════════════════════╝', 'system');
               addTerminalLine('', 'output');
-              addTerminalLine('Agent is ready for deployment. Exiting...', 'success', '[SYS]');
+              addTerminalLine('Agent is ready for deployment. Exiting...', 'success');
               
               setCurrentPhase('completed');
               setIsCompleted(true);
@@ -210,10 +210,10 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             }
           } else if (eventType === 'training_failed') {
             addTerminalLine('', 'output');
-            addTerminalLine('✗ Training process failed', 'error', '[ERR]');
-            addTerminalLine(eventData.error || 'Unknown error occurred', 'error', '[ERR]');
+            addTerminalLine('✗ Training process failed', 'error');
+            addTerminalLine(eventData.error || 'Unknown error occurred', 'error');
             addTerminalLine('', 'output');
-            addTerminalLine('Process exited with code 1', 'error', '[SYS]');
+            addTerminalLine('Process exited with code 1', 'error');
             setCurrentPhase('failed');
             
             // Clear floating loader on failure too
@@ -232,7 +232,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     updateEventLogs();
     const interval = setInterval(updateEventLogs, 500);
     return () => clearInterval(interval);
-  }, [agentId, refetchAgentData]);
+  }, [agentId, refetchAgentData, sources]);
 
   // Auto-scroll to bottom when new lines are added
   useEffect(() => {
@@ -325,6 +325,9 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
               
               {terminalLines.map((line) => (
                 <div key={line.id} className="flex items-start gap-2 mb-1 leading-relaxed">
+                  <span className="text-gray-500 text-xs flex-shrink-0 min-w-[70px]">
+                    {formatTime(line.timestamp)}
+                  </span>
                   {line.prefix && (
                     <span className="text-green-500 flex-shrink-0 min-w-[60px]">
                       {line.prefix}
@@ -339,6 +342,9 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
               {/* Blinking cursor when active */}
               {currentPhase && currentPhase !== 'completed' && currentPhase !== 'failed' && (
                 <div className="flex items-center gap-2 mt-2">
+                  <span className="text-gray-500 text-xs flex-shrink-0 min-w-[70px]">
+                    {formatTime(new Date())}
+                  </span>
                   <span className="text-green-500 flex-shrink-0 min-w-[60px]">
                     [SYS]
                   </span>
