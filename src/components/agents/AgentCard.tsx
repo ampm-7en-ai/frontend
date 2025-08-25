@@ -101,7 +101,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-3">
-                  <CardTitle className="text-xl font-bold text-slate-900 dark:text-slate-100 truncate">
+                  <CardTitle className="text-xl font-bold text-slate-900 dark:text-slate-100 truncate pl-0">
                     {agent.name}
                   </CardTitle>
                   {/* Status Badge */}

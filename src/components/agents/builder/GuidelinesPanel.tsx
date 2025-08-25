@@ -29,7 +29,6 @@ export const GuidelinesPanel = () => {
     //track accrodion id opened
   const [openedAccordions, setOpenedAccordions] = useState<Set<string>>(new Set(['basic']));
 
-  console.log("pipip",openedAccordions);
   const { prompts, isLoading: promptsLoading } = useAgentPrompts(true, openedAccordions.has('guidelines'));
   const { modelOptionsForDropdown, isLoading: modelsLoading } = useAIModels(openedAccordions.has('model'));
   const { toast } = useToast();
@@ -827,15 +826,23 @@ export const GuidelinesPanel = () => {
                   {/* Agent Type Selection */}
                   <div>
                     <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Agent Type</Label>
-                    <div className="mt-1.5">
-                       <ModernDropdown
-                         value={agentData.agentType || 'general-assistant'}
-                         onValueChange={handleAgentTypeChange}
-                         options={agentTypeOptions}
-                         placeholder="Select agent type"
-                         disabled={promptsLoading}
-                       />
-                    </div>
+                    { promptsLoading ? (
+                       <div className="flex items-center gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                        <LoadingSpinner size="sm" />
+                        <span className="text-sm text-gray-500">Loading models...</span>
+                      </div>
+                    ) : (
+                      <div className="mt-1.5">
+                        <ModernDropdown
+                          value={agentData.agentType || 'general-assistant'}
+                          onValueChange={handleAgentTypeChange}
+                          options={agentTypeOptions}
+                          placeholder="Select agent type"
+                          disabled={promptsLoading}
+                        />
+                      </div>
+                    )}
+                    
                   </div>
 
                   {/* Simplified System Prompt */}

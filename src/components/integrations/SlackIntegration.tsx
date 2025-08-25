@@ -44,6 +44,7 @@ interface SlackConfigResponse {
   permissions: string[];
 }
 
+
 interface SlackStatusResponse {
   message: string;
   data: {
@@ -60,7 +61,7 @@ interface SlackStatusResponse {
   permissions: string[];
 }
 
-const SlackIntegration: React.FC = () => {
+const SlackIntegration = ({setSlackConnected}: any) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState<boolean>(true);
@@ -100,6 +101,7 @@ const SlackIntegration: React.FC = () => {
           
           setIsConnected(data.data.connected || false);
           setIsConfigured(data.data.configured || false);
+          setSlackConnected(data.data.connected ? "connected" : "not connected");
           
           if (data.data.workspace_name) {
             setConnectedChannelName(data.data.workspace_name);
@@ -480,7 +482,7 @@ const SlackIntegration: React.FC = () => {
                   </ModernStatusBadge>
                 </div>
                 
-                <div className="pt-4 border-t border-border/50">
+                {/* <div className="pt-4 border-t border-border/50">
                   <ModernButton 
                     variant="outline" 
                     onClick={handleDisconnect}
@@ -496,7 +498,7 @@ const SlackIntegration: React.FC = () => {
                       'Disconnect Workspace'
                     )}
                   </ModernButton>
-                </div>
+                </div> */}
               </div>
             </>
           ) : (

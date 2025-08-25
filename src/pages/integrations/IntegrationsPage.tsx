@@ -40,6 +40,7 @@ const IntegrationsPage = () => {
   const [isDisconnectingGoogleDrive, setIsDisconnectingGoogleDrive] = useState(false);
   const [showStatusBadge, setShowStatusBadge] = useState(false);
   const [statusBadgeInfo, setStatusBadgeInfo] = useState<{name: string, status: 'success' | 'failed'} | null>(null);
+  const [isSlackConnected, setSlackConnected] = useState("");
   const { toast } = useToast();
 
   // Use the centralized integration store
@@ -356,7 +357,7 @@ const IntegrationsPage = () => {
       case 'whatsapp':
         return <WhatsAppIntegration shouldCheckStatus={initialLoadComplete} />;
       case 'slack':
-        return <SlackIntegration />;
+        return <SlackIntegration setSlackConnected={setSlackConnected} />;
       case 'instagram':
         return <InstagramIntegration />;
       case 'messenger':
@@ -578,6 +579,7 @@ const IntegrationsPage = () => {
                         <div className="flex flex-col gap-2">
                           {integration && getStatusBadge(integration.status)}
                           {integration && integration.type === 'ticketing' && integration.status === 'connected' && getDefaultBadge(integration.id)}
+                          {/* {isSlackConnected !== "" && getStatusBadge(isSlackConnected)} */}
                         </div>
                       </>
                     );

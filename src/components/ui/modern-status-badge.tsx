@@ -9,11 +9,11 @@ const modernStatusBadgeVariants = cva(
   {
     variants: {
       variant: {
-        connected: "bg-success/10 text-success-foreground border border-success/20",
-        disconnected: "bg-muted/50 text-muted-foreground border border-border/50",
-        error: "bg-destructive/10 text-destructive-foreground border border-destructive/20",
-        loading: "bg-warning/10 text-warning-foreground border border-warning/20",
-        default: "bg-primary/10 text-primary-foreground border border-primary/20"
+        connected: "text-green-600 border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400",
+        disconnected: "text-gray-600 border-gray-200 bg-gray-50 dark:bg-gray-900/20 dark:border-gray-800 dark:text-gray-400",
+        error: "text-red-600 border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400",
+        loading: "text-yellow-600 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-400",
+        default: "text-purple-600 border-purple-200 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-800 dark:text-purple-400"
       },
     },
     defaultVariants: {

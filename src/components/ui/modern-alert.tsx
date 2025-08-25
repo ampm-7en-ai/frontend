@@ -8,11 +8,11 @@ const modernAlertVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-background text-foreground border-border",
-        success: "bg-success/10 text-success-foreground border-success/20",
-        warning: "bg-warning/10 text-warning-foreground border-warning/20", 
-        destructive: "bg-destructive/10 text-destructive-foreground border-destructive/20",
-        info: "bg-info/10 text-info-foreground border-info/20"
+        default: "bg-background text-gray-500 dark:text-gray-200 border-border",
+        success: "bg-success/10 text-gray-500 dark:text-gray-200 border-success/20",
+        warning: "bg-warning/10 text-gray-500 dark:text-gray-200 border-warning/20", 
+        destructive: "bg-destructive/10 text-gray-500 dark:text-gray-200 border-destructive/20",
+        info: "bg-info/10 text-gray-500 dark:text-gray-200 border-info/20"
       },
     },
     defaultVariants: {
@@ -28,7 +28,7 @@ const ModernAlert = React.forwardRef<
   <div
     ref={ref}
     role="alert"
-    className={cn(modernAlertVariants({ variant }), className)}
+    className={"flex items-center gap-2 "+cn(modernAlertVariants({ variant }), className)}
     {...props}
   />
 ))
