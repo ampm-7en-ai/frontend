@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronUp, ChevronDown, Terminal, Copy, Check, LoaderCircle, Wifi, WifiOff, Activity, Clock, FileText, Zap, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ChevronUp, ChevronDown, Terminal, Copy, Check, LoaderCircle, Wifi, WifiOff, Activity, Clock, FileText, Zap, CheckCircle2, AlertCircle, Globe, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,13 +17,22 @@ interface ConsolePanelProps {
   refetchAgentData?: () => Promise<void>;
 }
 
+interface ProcessedSource {
+  id: number;
+  title: string;
+  type: string;
+  source: string;
+  status: 'pending' | 'active' | 'completed';
+  animationDelay?: number;
+}
+
 export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTraining = false, refetchAgentData }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [copiedTaskId, setCopiedTaskId] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'open' | 'closed'>('closed');
   const [eventLogs, setEventLogs] = useState<SSEEventLog[]>([]);
   
-  // Enhanced progress tracking based on actual SSE data structure
+  // Enhanced progress tracking
   const [progress, setProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState('Connecting to training stream...');
   const [currentPhase, setCurrentPhase] = useState<'connecting' | 'extracting' | 'embedding' | 'completed' | 'failed'>('connecting');
@@ -32,6 +41,8 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const [processedCount, setProcessedCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [chunkInfo, setChunkInfo] = useState<string>('');
+  const [allSources, setAllSources] = useState<ProcessedSource[]>([]);
+  const [embeddingProgress, setEmbeddingProgress] = useState({ current: 0, total: 0 });
   const lastEventRef = useRef<string | null>(null);
   
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -59,14 +70,14 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     };
   }, []);
 
-  // Enhanced event processing based on actual SSE data structure
+  // Enhanced event processing
   useEffect(() => {
     const updateEventLogs = () => {
       if (agentId) {
         const logs = trainingSSEService.getRecentEventLogs(agentId, 10);
         setEventLogs(logs);
         
-        // Process the latest event with actual data structure
+        // Process the latest event
         const latestEvent = logs[0];
         if (latestEvent) {
           const eventData = latestEvent.event.data;
@@ -86,7 +97,8 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             setProcessedCount(0);
             setTotalCount(0);
             setChunkInfo('');
-          } else if (eventType === 'training_progress' && eventData.train_data) {
+            setAllSources([]);
+          } else if (eventType === 'training_training' && eventData.train_data) {
             const trainData = eventData.train_data;
             const { phase, message, processed_count = 0, total_count = 0, current_source } = trainData;
             
@@ -97,6 +109,37 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
             if (phase === 'extracting') {
               setCurrentPhase('extracting');
+              
+              // Build sources list for juggling effect
+              if (current_source && !allSources.find(s => s.id === current_source.id)) {
+                setAllSources(prev => {
+                  const newSources = [...prev];
+                  const existingIndex = newSources.findIndex(s => s.id === current_source.id);
+                  
+                  if (existingIndex === -1) {
+                    newSources.push({
+                      id: current_source.id,
+                      title: current_source.title,
+                      type: current_source.type,
+                      source: current_source.source,
+                      status: 'active',
+                      animationDelay: newSources.length * 150
+                    });
+                  } else {
+                    newSources[existingIndex].status = 'active';
+                  }
+                  
+                  // Mark previous sources as completed
+                  newSources.forEach((source, index) => {
+                    if (source.id !== current_source.id && source.status === 'active') {
+                      source.status = 'completed';
+                    }
+                  });
+                  
+                  return newSources;
+                });
+              }
+
               // Progress from 10% to 50% during extraction
               if (total_count > 0) {
                 const extractionProgress = processed_count / total_count;
@@ -105,6 +148,10 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
               } else {
                 setProgress(25); // Default progress when no count available
               }
+            } else if (phase === 'extraction_completed') {
+              // Mark all sources as completed
+              setAllSources(prev => prev.map(source => ({ ...source, status: 'completed' })));
+              setProgress(50);
             } else if (phase === 'embedding_start') {
               setCurrentPhase('embedding');
               setProgress(55); // Start embedding at 55%
@@ -112,7 +159,9 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
               // Extract chunk information from message
               const chunkMatch = message?.match(/(\d+)\s+chunks/);
               if (chunkMatch) {
-                setChunkInfo(`Processing ${chunkMatch[1]} text chunks`);
+                const totalChunks = parseInt(chunkMatch[1]);
+                setChunkInfo(`Processing ${totalChunks} text chunks with AI embeddings`);
+                setEmbeddingProgress({ current: 0, total: totalChunks });
               }
             }
           } else if (eventType === 'training_completed' && eventData.train_data) {
@@ -122,6 +171,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
               setStatusMessage('Training completed successfully');
               setCurrentPhase('completed');
               setIsCompleted(true);
+              setEmbeddingProgress(prev => ({ ...prev, current: prev.total }));
             }
           } else if (eventType === 'training_failed') {
             setCurrentPhase('failed');
@@ -134,11 +184,11 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     // Update immediately
     updateEventLogs();
     
-    // Update every 1 second to catch new events
-    const interval = setInterval(updateEventLogs, 1000);
+    // Update every 500ms for smoother animations
+    const interval = setInterval(updateEventLogs, 500);
     
     return () => clearInterval(interval);
-  }, [agentId]);
+  }, [agentId, allSources]);
 
   // Auto-scroll to bottom when new events arrive
   useEffect(() => {
@@ -177,6 +227,28 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
       default:
         return <WifiOff className="h-3 w-3 text-gray-400" />;
     }
+  };
+
+  const getSourceIcon = (type: string) => {
+    switch (type) {
+      case 'website':
+        return <Globe className="h-4 w-4" />;
+      case 'docs':
+        return <FileText className="h-4 w-4" />;
+      default:
+        return <Upload className="h-4 w-4" />;
+    }
+  };
+
+  const getSourceDisplayName = (source: ProcessedSource) => {
+    if (source.type === 'website') {
+      try {
+        return new URL(source.source).hostname;
+      } catch {
+        return source.title || source.source;
+      }
+    }
+    return source.title || source.source.split('/').pop() || 'Unknown Source';
   };
 
   // Get phase-specific display info
@@ -294,39 +366,120 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
               <p className="text-xs text-gray-600 dark:text-gray-400">{statusMessage}</p>
             </div>
 
-            {/* Current Source Display */}
-            {currentSource && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
-                <div className="flex items-center gap-2 mb-2">
-                  <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            {/* Source Juggling Display */}
+            {currentPhase === 'extracting' && allSources.length > 0 && (
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-2 mb-3">
+                  <Activity className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                    Processing Source
+                    Extracting Knowledge Sources
                   </span>
+                  <Badge variant="outline" className="text-xs">
+                    {processedCount}/{totalCount}
+                  </Badge>
                 </div>
-                <div className="space-y-1">
-                  <div className="text-sm text-blue-800 dark:text-blue-200 font-medium">
-                    {currentSource.title || 'Untitled Source'}
-                  </div>
-                  <div className="text-xs text-blue-600 dark:text-blue-300">
-                    Type: {currentSource.type} • ID: {currentSource.id}
-                  </div>
-                  {currentSource.source && (
-                    <div className="text-xs text-blue-500 dark:text-blue-400 font-mono truncate">
-                      {currentSource.source}
+                
+                {/* Juggling Sources */}
+                <div className="space-y-2 max-h-32 overflow-hidden">
+                  {allSources.map((source, index) => (
+                    <div 
+                      key={source.id}
+                      className={`
+                        flex items-center gap-3 p-2 rounded-md transition-all duration-500 transform
+                        ${source.status === 'active' 
+                          ? 'bg-blue-100 dark:bg-blue-900/40 scale-105 opacity-100 border-l-4 border-blue-500' 
+                          : source.status === 'completed'
+                          ? 'bg-green-50 dark:bg-green-900/20 scale-95 opacity-75 border-l-4 border-green-500'
+                          : 'bg-gray-50 dark:bg-gray-800/50 scale-95 opacity-50'
+                        }
+                      `}
+                      style={{
+                        animationDelay: `${source.animationDelay || 0}ms`,
+                        animation: source.status === 'active' ? 'pulse 2s infinite' : 'none'
+                      }}
+                    >
+                      <div className={`
+                        flex items-center justify-center w-8 h-8 rounded-full
+                        ${source.status === 'active' 
+                          ? 'bg-blue-500 text-white' 
+                          : source.status === 'completed'
+                          ? 'bg-green-500 text-white'
+                          : 'bg-gray-300 text-gray-600'
+                        }
+                      `}>
+                        {source.status === 'completed' ? (
+                          <CheckCircle2 className="h-4 w-4" />
+                        ) : (
+                          getSourceIcon(source.type)
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {getSourceDisplayName(source)}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {source.type} • {source.source}
+                        </div>
+                      </div>
+                      {source.status === 'active' && (
+                        <LoaderCircle className="h-4 w-4 text-blue-600 animate-spin" />
+                      )}
                     </div>
-                  )}
+                  ))}
                 </div>
-                {totalCount > 0 && (
-                  <div className="mt-2 text-xs text-blue-600 dark:text-blue-300">
-                    Progress: {processedCount} / {totalCount} sources
-                  </div>
-                )}
               </div>
             )}
 
-            {/* Step-wise Progress - Windows Installation Style */}
+            {/* Embedding Phase */}
+            {currentPhase === 'embedding' && chunkInfo && (
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                <div className="flex items-center gap-2 mb-3">
+                  <Zap className="h-4 w-4 text-purple-600 dark:text-purple-400 animate-pulse" />
+                  <span className="text-sm font-medium text-purple-900 dark:text-purple-100">
+                    AI Embedding Generation
+                  </span>
+                  <Badge variant="outline" className="text-xs bg-purple-100 dark:bg-purple-900/40">
+                    AI Processing
+                  </Badge>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="text-sm text-purple-800 dark:text-purple-200">
+                    {chunkInfo}
+                  </div>
+                  
+                  {/* Animated embedding progress */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-purple-200 dark:bg-purple-800/50 rounded-full h-2 overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-1000"
+                        style={{ width: `${phaseInfo.embeddingProgress}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-purple-600 dark:text-purple-400 font-mono">
+                      {Math.round(phaseInfo.embeddingProgress)}%
+                    </span>
+                  </div>
+                  
+                  {/* Floating AI particles animation */}
+                  <div className="flex justify-center">
+                    <div className="flex space-x-1">
+                      {[...Array(3)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                          style={{ animationDelay: `${i * 200}ms` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step-wise Progress */}
             <div className="space-y-3">
-              {/* Extracting Characters Step */}
+              {/* Extracting Step */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   {phaseInfo.extractingActive ? (
@@ -337,23 +490,18 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
                     <div className="h-4 w-4 rounded-full border-2 border-gray-300 dark:border-gray-600" />
                   )}
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    Extracting Text Content
+                    Extract Text Content
                   </span>
-                  {phaseInfo.extractingActive && currentSource && (
+                  {phaseInfo.extractingActive && (
                     <Badge variant="outline" className="text-xs">
-                      {processedCount}/{totalCount}
+                      {allSources.filter(s => s.status === 'completed').length}/{allSources.length}
                     </Badge>
                   )}
                 </div>
                 <Progress value={phaseInfo.extractingProgress} className="h-2" />
-                {phaseInfo.extractingActive && currentSource && (
-                  <div className="text-xs text-gray-500 ml-6">
-                    Processing: {currentSource.title || 'Source'}
-                  </div>
-                )}
               </div>
 
-              {/* Embedding Characters Step */}
+              {/* Embedding Step */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   {phaseInfo.embeddingActive ? (
@@ -364,20 +512,15 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
                     <div className="h-4 w-4 rounded-full border-2 border-gray-300 dark:border-gray-600" />
                   )}
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    Generating AI Embeddings
+                    Generate AI Embeddings
                   </span>
-                  {phaseInfo.embeddingActive && chunkInfo && (
-                    <Badge variant="outline" className="text-xs">
+                  {phaseInfo.embeddingActive && (
+                    <Badge variant="outline" className="text-xs bg-purple-100 dark:bg-purple-900/40">
                       AI Processing
                     </Badge>
                   )}
                 </div>
                 <Progress value={phaseInfo.embeddingProgress} className="h-2" />
-                {phaseInfo.embeddingActive && chunkInfo && (
-                  <div className="text-xs text-gray-500 ml-6">
-                    {chunkInfo}
-                  </div>
-                )}
               </div>
             </div>
 
@@ -397,7 +540,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
                       Successfully processed {totalCount} knowledge source{totalCount !== 1 ? 's' : ''}
                     </div>
                     <div className="text-xs text-green-600 dark:text-green-400">
-                      Your agent is now ready to use with the updated knowledge base
+                      Your agent is now ready with the updated knowledge base
                     </div>
                   </div>
                 </div>
