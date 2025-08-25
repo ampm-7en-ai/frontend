@@ -98,7 +98,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             setTotalCount(0);
             setChunkInfo('');
             setAllSources([]);
-          } else if (eventType === 'training_training' && eventData.train_data) {
+          } else if (eventType === 'training_progress' && eventData.train_data) {
             const trainData = eventData.train_data;
             const { phase, message, processed_count = 0, total_count = 0, current_source } = trainData;
             
