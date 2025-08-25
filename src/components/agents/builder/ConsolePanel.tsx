@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronUp, ChevronDown, Terminal, Minimize2, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,7 @@ interface TerminalLine {
 interface EmbeddingProgress {
   startTime: number;
   totalChunks: number;
-  chunkProcessingTimeMs: number; // ~228ms per chunk (50 seconds / 219 chunks)
+  chunkProcessingTimeMs: number; // ~251ms per chunk (55 seconds / 219 chunks)
   processedChunks: number;
 }
 
@@ -35,6 +36,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const [terminalLines, setTerminalLines] = useState<TerminalLine[]>([]);
   const [currentPhase, setCurrentPhase] = useState<string>('');
   const [isCompleted, setIsCompleted] = useState(false);
+  const [showConsole, setShowConsole] = useState(true);
   const [sourceTracker, setSourceTracker] = useState<SourceTracker | null>(null);
   const [embeddingProgress, setEmbeddingProgress] = useState<EmbeddingProgress | null>(null);
   
@@ -42,13 +44,30 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const processedEventsRef = useRef<Set<string>>(new Set());
   const lastProcessedTimestampRef = useRef<number>(0);
   const embeddingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const { state } = useBuilder();
   const agentId = state.agentData.id?.toString();
   const currentTask = agentId ? AgentTrainingService.getTrainingTask(agentId) : null;
 
-  // Only show console panel if CURRENT agent is training
-  const shouldShowConsole = state.agentData.status === 'Training' || currentTask?.status === 'training' || isTraining;
+  // Only show console panel if CURRENT agent is training AND showConsole is true
+  const shouldShowConsole = showConsole && (state.agentData.status === 'Training' || currentTask?.status === 'training' || isTraining);
+
+  // Clear terminal contents when component is mounted/re-mounted
+  useEffect(() => {
+    setTerminalLines([]);
+    processedEventsRef.current.clear();
+    lastProcessedTimestampRef.current = 0;
+    setCurrentPhase('');
+    setIsCompleted(false);
+    setShowConsole(true);
+    
+    // Clear any existing timeouts
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+  }, [agentId]); // Reset when agentId changes (re-mount)
 
   // Initialize source tracker when knowledge sources are available
   useEffect(() => {
@@ -59,11 +78,14 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     }
   }, [state.agentData.knowledgeSources]);
 
-  // Cleanup embedding interval on unmount
+  // Cleanup intervals and timeouts on unmount
   useEffect(() => {
     return () => {
       if (embeddingIntervalRef.current) {
         clearInterval(embeddingIntervalRef.current);
+      }
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
       }
     };
   }, []);
@@ -292,7 +314,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             addTerminalLine('Collecting ai-embeddings-engine', 'output');
             addTerminalLine('  Using cached ai_embeddings_engine-3.0.0.tgz', 'output');
             addTerminalLine(`Generating embeddings for ${totalChunks} text chunks`, 'info', '[EMB]');
-            addTerminalLine(`This process may take upto ${Math.round((totalChunks*0.25)/60)} minutes...`, 'info', '[EMB]');
+            addTerminalLine(`This process may take upto ${Math.round((totalChunks*0.251)/60)} minutes...`, 'info', '[EMB]');
             addTerminalLine('', 'output');
             
             // Start the embedding progress simulation
@@ -318,6 +340,11 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             
             setCurrentPhase('completed');
             setIsCompleted(true);
+            
+            // Hide console after 2 seconds
+            hideTimeoutRef.current = setTimeout(() => {
+              setShowConsole(false);
+            }, 2000);
             
             // Refetch agent data and clear floating loader
             if (refetchAgentData) {
