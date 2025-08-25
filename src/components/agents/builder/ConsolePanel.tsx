@@ -124,8 +124,6 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
   // Start embedding progress simulation based on actual chunk processing rate
   const startEmbeddingProgress = (totalChunks: number) => {
-    // Based on actual performance: 219 chunks = 50-60 seconds
-    // Average: 55 seconds / 219 chunks = ~251ms per chunk
     const chunkProcessingTimeMs = 251; 
     const startTime = Date.now();
     
@@ -249,7 +247,11 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
         console.log('🎯 Processing new SSE event:', eventType, eventData);
 
-        if (eventType === 'training_connected') {
+        if (eventType === 'training_active') {
+          // Hide console panel immediately when training_active is received
+          console.log('🔥 Training active event received - hiding console panel');
+          setShowConsole(false);
+        } else if (eventType === 'training_connected') {
           // Clear terminal and reset source tracker
           setTerminalLines([]);
           sourceTracker.reset();
@@ -377,7 +379,6 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             }
           }
         } else if (eventType === 'training_failed') {
-          // Stop embedding progress on failure
           stopEmbeddingProgress();
           
           addTerminalLine('', 'output');
@@ -409,7 +410,6 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     return () => clearInterval(interval);
   }, [agentId, refetchAgentData, sourceTracker]);
 
-  // Auto-scroll to bottom when new lines are added
   useEffect(() => {
     if (scrollAreaRef.current) {
       const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
