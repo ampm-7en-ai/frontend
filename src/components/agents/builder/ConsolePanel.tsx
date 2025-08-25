@@ -205,7 +205,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           processedChunks: actualProcessedChunks
         };
       });
-    }, 3000); // Update every 3 seconds for smoother updates
+    }, 3000); // Update progress every 3 seconds for smoother updates
   };
 
   // Stop embedding progress
@@ -247,7 +247,8 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
         console.log('🎯 Processing new SSE event:', eventType, eventData);
 
-        if (eventType === 'training_active') {
+        // Handle training_active event by checking the event name as string
+        if (event.event === 'training_active') {
           // Hide console panel immediately when training_active is received
           console.log('🔥 Training active event received - hiding console panel');
           setShowConsole(false);
