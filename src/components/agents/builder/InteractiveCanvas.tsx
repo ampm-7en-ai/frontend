@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useBuilder } from './BuilderContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,10 +11,14 @@ interface InteractiveCanvasProps {
   onAgentDataRefresh?: () => Promise<void>;
 }
 
-export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ 
+export interface InteractiveCanvasRef {
+  handleTrainingStarted: () => void;
+}
+
+export const InteractiveCanvas = forwardRef<InteractiveCanvasRef, InteractiveCanvasProps>(({ 
   isTraining = false,
   onAgentDataRefresh 
-}) => {
+}, ref) => {
   const { state } = useBuilder();
   const { canvasMode } = state;
   const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
@@ -26,15 +29,17 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
   const agentId = state.agentData.id?.toString();
   const currentTask = agentId ? AgentTrainingService.getTrainingTask(agentId) : null;
 
+  // Expose methods to parent component via ref
+  useImperativeHandle(ref, () => ({
+    handleTrainingStarted: () => {
+      console.log('🚀 Training started signal received - showing console');
+      setShowConsole(true);
+      setTrainingStarted(true);
+    }
+  }));
+
   // Show console when training starts or there's an active training task
   const shouldShowConsole = showConsole || trainingStarted || (state.agentData.status === 'Training') || (currentTask?.status === 'training') || isTraining;
-
-  // Handle training started signal from toolbar
-  const handleTrainingStarted = () => {
-    console.log('🚀 Training started signal received - showing console');
-    setShowConsole(true);
-    setTrainingStarted(true);
-  };
 
   // Check for active training tasks on mount
   useEffect(() => {
@@ -193,4 +198,6 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({
       )}
     </div>
   );
-};
+});
+
+InteractiveCanvas.displayName = 'InteractiveCanvas';
