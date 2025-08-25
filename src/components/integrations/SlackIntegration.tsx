@@ -1,20 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { Slack, AlertCircle, Settings } from 'lucide-react';
+import { Slack, AlertCircle, Settings, CheckCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ModernCard, ModernCardContent, ModernCardDescription, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
 import { ModernAlert, ModernAlertDescription } from '@/components/ui/modern-alert';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 import { ModernInput } from '@/components/ui/modern-input';
-import { checkSlackStatus, disconnectSlackChannel } from '@/utils/slackSDK';
+import { disconnectSlackChannel } from '@/utils/slackSDK';
 import { getApiUrl, getAccessToken } from '@/utils/api-config';
-
-interface SlackChannel {
-  id: string;
-  name: string;
-}
 
 interface SlackOAuthResponse {
   message: string;
@@ -186,6 +181,16 @@ const SlackIntegration: React.FC = () => {
   };
 
   const handleConnect = async () => {
+    // Check if configurations are saved first
+    if (!isConfigured) {
+      toast({
+        title: "Configuration Required",
+        description: "Please save your Slack app configuration first before connecting.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsConnecting(true);
     setError(null);
     
@@ -269,212 +274,205 @@ const SlackIntegration: React.FC = () => {
         </ModernAlert>
       )}
 
-      {isConnected ? (
-        <>
-          <ModernAlert variant="success">
-            <ModernAlertDescription>
-              Connected to your Slack workspace: {workspaceInfo.name}. Your bot is now active and ready to respond.
-            </ModernAlertDescription>
-          </ModernAlert>
+      {/* Configuration Section */}
+      <ModernCard variant="glass">
+        <ModernCardHeader>
+          <ModernCardTitle className="flex items-center gap-3">
+            <Settings className="h-6 w-6 text-primary" />
+            Slack App Configuration
+          </ModernCardTitle>
+          <ModernCardDescription>
+            Configure your Slack app credentials to enable the integration.
+          </ModernCardDescription>
+        </ModernCardHeader>
+        
+        <ModernCardContent className="space-y-6">
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Client ID *
+              </label>
+              <ModernInput
+                type="text"
+                placeholder="Enter your Slack app Client ID"
+                value={config.client_id}
+                onChange={(e) => setConfig(prev => ({ ...prev, client_id: e.target.value }))}
+                disabled={isConfigured}
+              />
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Client Secret *
+              </label>
+              <ModernInput
+                type="password"
+                placeholder="Enter your Slack app Client Secret"
+                value={config.client_secret}
+                onChange={(e) => setConfig(prev => ({ ...prev, client_secret: e.target.value }))}
+                disabled={isConfigured}
+              />
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Signing Secret *
+              </label>
+              <ModernInput
+                type="password"
+                placeholder="Enter your Slack app Signing Secret"
+                value={config.signing_secret}
+                onChange={(e) => setConfig(prev => ({ ...prev, signing_secret: e.target.value }))}
+                disabled={isConfigured}
+              />
+            </div>
+          </div>
           
-          <ModernCard variant="glass">
-            <ModernCardHeader>
-              <ModernCardTitle className="text-lg">Connection Details</ModernCardTitle>
-            </ModernCardHeader>
-            <ModernCardContent className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-muted-foreground">Workspace:</span>
-                <span className="text-sm font-medium text-foreground">{workspaceInfo.name}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-muted-foreground">Workspace ID:</span>
-                <span className="text-sm font-medium text-foreground">{workspaceInfo.id}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-muted-foreground">Connected:</span>
-                <span className="text-sm font-medium text-foreground">{new Date().toLocaleDateString()}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-muted-foreground">Status:</span>
-                <ModernStatusBadge status="connected" className="text-xs">
-                  Active
-                </ModernStatusBadge>
-              </div>
+          <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center gap-2">
+              <ModernStatusBadge 
+                status={isConfigured ? "connected" : "disconnected"}
+                className="text-xs"
+              >
+                {isConfigured ? "Configured" : "Not Configured"}
+              </ModernStatusBadge>
+            </div>
+            
+            {!isConfigured && (
+              <ModernButton 
+                onClick={handleSaveConfig}
+                disabled={isSavingConfig}
+                variant="gradient"
+                className="w-auto"
+              >
+                {isSavingConfig ? (
+                  <>
+                    <LoadingSpinner size="sm" className="!mb-0" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Configuration'
+                )}
+              </ModernButton>
+            )}
+          </div>
+        </ModernCardContent>
+      </ModernCard>
+
+      {/* Workspace Connection Section */}
+      <ModernCard variant="glass">
+        <ModernCardHeader>
+          <ModernCardTitle className="flex items-center gap-3">
+            <Slack className="h-6 w-6 text-primary" />
+            Workspace Connection
+          </ModernCardTitle>
+          <ModernCardDescription>
+            Connect your Slack workspace to enable automated responses and team notifications.
+          </ModernCardDescription>
+        </ModernCardHeader>
+        
+        <ModernCardContent className="space-y-6">
+          {isConnected ? (
+            <>
+              <ModernAlert variant="success">
+                <CheckCircle className="h-4 w-4" />
+                <ModernAlertDescription>
+                  Connected to your Slack workspace: {workspaceInfo.name}. Your bot is now active and ready to respond.
+                </ModernAlertDescription>
+              </ModernAlert>
               
-              <div className="pt-4 border-t border-border/50">
-                <ModernButton 
-                  variant="outline" 
-                  onClick={handleDisconnect}
-                  disabled={isConnecting}
-                  className="border-destructive/20 text-destructive hover:bg-destructive/10"
-                >
-                  {isConnecting ? (
-                    <>
-                      <LoadingSpinner size="sm" className="!mb-0" />
-                      Disconnecting...
-                    </>
-                  ) : (
-                    'Disconnect Workspace'
-                  )}
-                </ModernButton>
-              </div>
-            </ModernCardContent>
-          </ModernCard>
-        </>
-      ) : (
-        <>
-          {!isConfigured ? (
-            <ModernCard variant="glass">
-              <ModernCardHeader>
-                <ModernCardTitle className="flex items-center gap-3">
-                  <Settings className="h-6 w-6 text-primary" />
-                  Slack App Configuration
-                </ModernCardTitle>
-                <ModernCardDescription>
-                  Configure your Slack app credentials to enable the integration.
-                </ModernCardDescription>
-              </ModernCardHeader>
-              
-              <ModernCardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">
-                      Client ID *
-                    </label>
-                    <ModernInput
-                      type="text"
-                      placeholder="Enter your Slack app Client ID"
-                      value={config.client_id}
-                      onChange={(e) => setConfig(prev => ({ ...prev, client_id: e.target.value }))}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">
-                      Client Secret *
-                    </label>
-                    <ModernInput
-                      type="password"
-                      placeholder="Enter your Slack app Client Secret"
-                      value={config.client_secret}
-                      onChange={(e) => setConfig(prev => ({ ...prev, client_secret: e.target.value }))}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">
-                      Signing Secret *
-                    </label>
-                    <ModernInput
-                      type="password"
-                      placeholder="Enter your Slack app Signing Secret"
-                      value={config.signing_secret}
-                      onChange={(e) => setConfig(prev => ({ ...prev, signing_secret: e.target.value }))}
-                    />
-                  </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-muted-foreground">Workspace:</span>
+                  <span className="text-sm font-medium text-foreground">{workspaceInfo.name}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-muted-foreground">Workspace ID:</span>
+                  <span className="text-sm font-medium text-foreground">{workspaceInfo.id}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-muted-foreground">Status:</span>
+                  <ModernStatusBadge status="connected" className="text-xs">
+                    Active
+                  </ModernStatusBadge>
                 </div>
                 
-                <div className="pt-2">
+                <div className="pt-4 border-t border-border/50">
                   <ModernButton 
-                    onClick={handleSaveConfig}
-                    disabled={isSavingConfig}
-                    variant="gradient"
-                    className="w-full sm:w-auto"
-                  >
-                    {isSavingConfig ? (
-                      <>
-                        <LoadingSpinner size="sm" className="!mb-0" />
-                        Saving Configuration...
-                      </>
-                    ) : (
-                      'Save Configuration'
-                    )}
-                  </ModernButton>
-                </div>
-              </ModernCardContent>
-            </ModernCard>
-          ) : (
-            <ModernCard variant="glass">
-              <ModernCardHeader>
-                <ModernCardTitle className="flex items-center gap-3">
-                  <Slack className="h-6 w-6 text-primary" />
-                  Connect Slack Workspace
-                </ModernCardTitle>
-                <ModernCardDescription>
-                  Integrate with Slack to enable automated responses and team notifications.
-                </ModernCardDescription>
-              </ModernCardHeader>
-              
-              <ModernCardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium text-foreground mb-3">Configuration Details</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Client ID:</span>
-                        <span className="text-foreground font-mono">{config.client_id}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Client Secret:</span>
-                        <ModernStatusBadge status="connected" className="text-xs">
-                          Configured
-                        </ModernStatusBadge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Signing Secret:</span>
-                        <ModernStatusBadge status="connected" className="text-xs">
-                          Configured
-                        </ModernStatusBadge>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-medium text-foreground mb-3">Integration Benefits</h4>
-                    <ul className="space-y-2 text-sm text-muted-foreground">
-                      <li className="flex gap-2 items-center">
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                        <span>Get customer queries directly in your Slack channels</span>
-                      </li>
-                      <li className="flex gap-2 items-center">
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                        <span>Reply to messages without leaving Slack</span>
-                      </li>
-                      <li className="flex gap-2 items-center">
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                        <span>Receive notifications for important events</span>
-                      </li>
-                      <li className="flex gap-2 items-center">
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
-                        <span>Team collaboration on customer issues</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                
-                <div className="pt-2">
-                  <ModernButton 
-                    onClick={handleConnect}
+                    variant="outline" 
+                    onClick={handleDisconnect}
                     disabled={isConnecting}
-                    variant="gradient"
-                    className="w-full sm:w-auto"
-                    icon={isConnecting ? undefined : Slack}
+                    className="border-destructive/20 text-destructive hover:bg-destructive/10"
                   >
                     {isConnecting ? (
                       <>
                         <LoadingSpinner size="sm" className="!mb-0" />
-                        Connecting...
+                        Disconnecting...
                       </>
                     ) : (
-                      'Connect to Slack'
+                      'Disconnect Workspace'
                     )}
                   </ModernButton>
                 </div>
-              </ModernCardContent>
-            </ModernCard>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-foreground mb-3">Integration Benefits</h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex gap-2 items-center">
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                      <span>Get customer queries directly in your Slack channels</span>
+                    </li>
+                    <li className="flex gap-2 items-center">
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                      <span>Reply to messages without leaving Slack</span>
+                    </li>
+                    <li className="flex gap-2 items-center">
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                      <span>Receive notifications for important events</span>
+                    </li>
+                    <li className="flex gap-2 items-center">
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                      <span>Team collaboration on customer issues</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center gap-2">
+                  <ModernStatusBadge 
+                    status="disconnected"
+                    className="text-xs"
+                  >
+                    Not Connected
+                  </ModernStatusBadge>
+                </div>
+                
+                <ModernButton 
+                  onClick={handleConnect}
+                  disabled={isConnecting || !isConfigured}
+                  variant={isConfigured ? "gradient" : "outline"}
+                  className="w-auto"
+                  icon={isConnecting ? undefined : Slack}
+                >
+                  {isConnecting ? (
+                    <>
+                      <LoadingSpinner size="sm" className="!mb-0" />
+                      Connecting...
+                    </>
+                  ) : (
+                    'Connect to Slack'
+                  )}
+                </ModernButton>
+              </div>
+            </>
           )}
-        </>
-      )}
+        </ModernCardContent>
+      </ModernCard>
     </div>
   );
 };
