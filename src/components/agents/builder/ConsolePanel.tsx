@@ -44,6 +44,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const lastProcessedTimestampRef = useRef<number>(0);
   const embeddingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const currentSessionIdRef = useRef<string | null>(null);
   
   const { state } = useBuilder();
   const agentId = state.agentData.id?.toString();
@@ -52,40 +53,37 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   // Only show console panel if CURRENT agent is training AND showConsole is true
   const shouldShowConsole = showConsole && (state.agentData.status === 'Training' || currentTask?.status === 'training' || isTraining);
 
-  // Show console and reset everything when training starts (isTraining becomes true)
-  useEffect(() => {
-    if (isTraining) {
-      console.log('🚀 Training started - showing console and resetting state');
-      setShowConsole(true);
-      setTerminalLines([]);
-      processedEventsRef.current.clear();
-      lastProcessedTimestampRef.current = 0;
-      setCurrentPhase('');
-      setIsCompleted(false);
-      stopEmbeddingProgress(); // Stop any existing embedding progress
-      
-      // Clear any existing hide timeout
-      if (hideTimeoutRef.current) {
-        clearTimeout(hideTimeoutRef.current);
-        hideTimeoutRef.current = null;
-      }
-    }
-  }, [isTraining]); // Reset when training starts
-
-  // Clear terminal contents when component is mounted/re-mounted
-  useEffect(() => {
+  // Reset console state completely
+  const resetConsoleState = () => {
+    console.log('🔄 Resetting console state for new training session');
     setTerminalLines([]);
     processedEventsRef.current.clear();
     lastProcessedTimestampRef.current = 0;
     setCurrentPhase('');
     setIsCompleted(false);
-    setShowConsole(true);
+    stopEmbeddingProgress();
+    currentSessionIdRef.current = null;
     
-    // Clear any existing timeouts
+    // Clear any existing hide timeout
     if (hideTimeoutRef.current) {
       clearTimeout(hideTimeoutRef.current);
       hideTimeoutRef.current = null;
     }
+  };
+
+  // Show console and reset everything when training starts (isTraining becomes true)
+  useEffect(() => {
+    if (isTraining) {
+      console.log('🚀 Training started - showing console and resetting state');
+      setShowConsole(true);
+      resetConsoleState();
+    }
+  }, [isTraining]); // Reset when training starts
+
+  // Clear terminal contents when component is mounted/re-mounted
+  useEffect(() => {
+    resetConsoleState();
+    setShowConsole(true);
   }, [agentId]); // Reset when agentId changes (re-mount)
 
   // Initialize source tracker when knowledge sources are available
@@ -217,7 +215,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     setEmbeddingProgress(null);
   };
 
-  // Enhanced event processing with better duplicate detection
+  // Enhanced event processing with better duplicate detection and session management
   useEffect(() => {
     if (!agentId || !sourceTracker) return;
 
@@ -247,56 +245,23 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
         console.log('🎯 Processing new SSE event:', eventType, eventData);
 
-        // Handle training completion - hide console panel when training is completed
-        if (eventType === 'training_completed') {
-          // Handle different phases of completion
-          const trainData = eventData.train_data;
-          if (trainData && trainData.phase === 'embedding_completed') {
-            // Stop embedding progress and show completion
-            stopEmbeddingProgress();
-            
-            addTerminalLine('', 'output');
-            addTerminalLine('[████████████████████] 100% complete', 'success', '[EMB]');
-            addTerminalLine('✓ AI embedding generation completed', 'success');
-            addTerminalLine('✓ Knowledge base updated successfully', 'success');
-            addTerminalLine('✓ Agent training pipeline finished', 'success');
-            addTerminalLine('', 'output');
-            addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
-            addTerminalLine('║                     🎉 TRAINING COMPLETED 🎉                         ║', 'success');
-            addTerminalLine('╚═══════════════════════════════════════════════════════════════════════╝', 'system');
-            addTerminalLine('', 'output');
-            addTerminalLine('Agent is ready for deployment. Exiting...', 'success');
-            
-            setCurrentPhase('completed');
-            setIsCompleted(true);
-            
-            // Hide console after 2 seconds
-            hideTimeoutRef.current = setTimeout(() => {
-              setShowConsole(false);
-            }, 2000);
-            
-            // Refetch agent data and clear floating loader
-            if (refetchAgentData) {
-              setTimeout(() => {
-                refetchAgentData().then(() => {
-                  // The refetch should update the agent status, which will hide the console
-                }).catch(error => {
-                  console.error('Error refetching agent data:', error);
-                });
-              }, 1000);
-            }
-          } else {
-            // Hide console panel immediately when training_completed is received
-            console.log('🔥 Training completed event received - hiding console panel');
-            setShowConsole(false);
+        if (eventType === 'training_connected') {
+          // Create a new session identifier for this training session
+          const newSessionId = `${agentId}-${Date.now()}`;
+          
+          // Check if this is a new session (different from current)
+          if (currentSessionIdRef.current && currentSessionIdRef.current !== newSessionId) {
+            console.log('🔄 New training session detected while previous was active - resetting console');
           }
-        } else if (eventType === 'training_connected') {
-          // Clear terminal and reset source tracker
-          setTerminalLines([]);
+          
+          // Always reset for training_connected event
+          resetConsoleState();
+          currentSessionIdRef.current = newSessionId;
+          
+          // Reset source tracker
           sourceTracker.reset();
           processedEventsRef.current.clear();
           processedEventsRef.current.add(eventKey);
-          stopEmbeddingProgress(); // Clear any existing embedding progress
           
           addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
           addTerminalLine('║                     7EN AI Training Terminal v2.1                    ║', 'system');
@@ -379,6 +344,48 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             
             // Start the embedding progress simulation
             startEmbeddingProgress(totalChunks);
+          }
+        } else if (eventType === 'training_completed') {
+          // Handle different phases of completion
+          const trainData = eventData.train_data;
+          if (trainData && trainData.phase === 'embedding_completed') {
+            // Stop embedding progress and show completion
+            stopEmbeddingProgress();
+            
+            addTerminalLine('', 'output');
+            addTerminalLine('[████████████████████] 100% complete', 'success', '[EMB]');
+            addTerminalLine('✓ AI embedding generation completed', 'success');
+            addTerminalLine('✓ Knowledge base updated successfully', 'success');
+            addTerminalLine('✓ Agent training pipeline finished', 'success');
+            addTerminalLine('', 'output');
+            addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
+            addTerminalLine('║                     🎉 TRAINING COMPLETED 🎉                         ║', 'success');
+            addTerminalLine('╚═══════════════════════════════════════════════════════════════════════╝', 'system');
+            addTerminalLine('', 'output');
+            addTerminalLine('Agent is ready for deployment. Exiting...', 'success');
+            
+            setCurrentPhase('completed');
+            setIsCompleted(true);
+            
+            // Hide console after 2 seconds
+            hideTimeoutRef.current = setTimeout(() => {
+              setShowConsole(false);
+            }, 2000);
+            
+            // Refetch agent data and clear floating loader
+            if (refetchAgentData) {
+              setTimeout(() => {
+                refetchAgentData().then(() => {
+                  // The refetch should update the agent status, which will hide the console
+                }).catch(error => {
+                  console.error('Error refetching agent data:', error);
+                });
+              }, 1000);
+            }
+          } else {
+            // Hide console panel immediately when training_completed is received
+            console.log('🔥 Training completed event received - hiding console panel');
+            setShowConsole(false);
           }
         } else if (eventType === 'training_failed') {
           stopEmbeddingProgress();
