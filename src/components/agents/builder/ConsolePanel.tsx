@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronUp, ChevronDown, Terminal, Copy, Check, LoaderCircle, Wifi, WifiOff, Activity, Clock } from 'lucide-react';
+import { ChevronUp, ChevronDown, Terminal, Copy, Check, LoaderCircle, Wifi, WifiOff, Activity, Clock, FileText, Zap, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,13 +22,16 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const [copiedTaskId, setCopiedTaskId] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'open' | 'closed'>('closed');
   const [eventLogs, setEventLogs] = useState<SSEEventLog[]>([]);
-  const [currentTaskStatus, setCurrentTaskStatus] = useState<string>('');
   
-  // Updated progress tracking based on your example
+  // Enhanced progress tracking based on actual SSE data structure
   const [progress, setProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState('Connecting to training stream...');
   const [currentPhase, setCurrentPhase] = useState<'connecting' | 'extracting' | 'embedding' | 'completed' | 'failed'>('connecting');
   const [isCompleted, setIsCompleted] = useState(false);
+  const [currentSource, setCurrentSource] = useState<any>(null);
+  const [processedCount, setProcessedCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const [chunkInfo, setChunkInfo] = useState<string>('');
   const lastEventRef = useRef<string | null>(null);
   
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -56,64 +59,73 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     };
   }, []);
 
-  // Updated event processing based on your example logic
+  // Enhanced event processing based on actual SSE data structure
   useEffect(() => {
     const updateEventLogs = () => {
       if (agentId) {
         const logs = trainingSSEService.getRecentEventLogs(agentId, 10);
         setEventLogs(logs);
         
-        // Process the latest event with your logic
+        // Process the latest event with actual data structure
         const latestEvent = logs[0];
         if (latestEvent) {
           const eventData = latestEvent.event.data;
           const eventType = latestEvent.event.event;
 
-          // Filter duplicate events
-          const eventKey = `${eventType}-${JSON.stringify(eventData)}`;
+          // Filter duplicate events more precisely
+          const eventKey = `${eventType}-${eventData.status}-${JSON.stringify(eventData.train_data)}`;
           if (eventKey === lastEventRef.current) return;
           lastEventRef.current = eventKey;
 
           if (eventType === 'training_connected') {
-            setProgress(0);
+            setProgress(5);
             setStatusMessage('Connected to training stream');
             setCurrentPhase('connecting');
-            setCurrentTaskStatus('training');
             setIsCompleted(false);
-          } else if (eventType === 'training_progress') {
-            // Handle training_training event (renamed to training_progress in our system)
-            const message = eventData.message || 'Processing...';
-            const progressValue = eventData.progress || 0;
+            setCurrentSource(null);
+            setProcessedCount(0);
+            setTotalCount(0);
+            setChunkInfo('');
+          } else if (eventType === 'training_training' && eventData.train_data) {
+            const trainData = eventData.train_data;
+            const { phase, message, processed_count = 0, total_count = 0, current_source } = trainData;
             
-            // Determine phase based on progress value or message content
-            if (message.toLowerCase().includes('extract') || progressValue <= 50) {
+            setProcessedCount(processed_count);
+            setTotalCount(total_count);
+            setCurrentSource(current_source);
+            setStatusMessage(message || 'Processing...');
+
+            if (phase === 'extracting') {
               setCurrentPhase('extracting');
               // Progress from 10% to 50% during extraction
-              const adjustedProgress = Math.max(10, Math.min(progressValue, 50));
-              setProgress(adjustedProgress);
-              setStatusMessage(message);
-            } else if (message.toLowerCase().includes('embed') || progressValue > 50) {
+              if (total_count > 0) {
+                const extractionProgress = processed_count / total_count;
+                const progressValue = 10 + extractionProgress * 40; // 10% to 50%
+                setProgress(Math.min(progressValue, 50));
+              } else {
+                setProgress(25); // Default progress when no count available
+              }
+            } else if (phase === 'embedding_start') {
               setCurrentPhase('embedding');
-              // Progress from 50% to 90% during embedding
-              const adjustedProgress = Math.max(50, Math.min(progressValue, 90));
-              setProgress(adjustedProgress);
-              setStatusMessage(message);
-            } else {
-              setProgress(progressValue);
-              setStatusMessage(message);
+              setProgress(55); // Start embedding at 55%
+              
+              // Extract chunk information from message
+              const chunkMatch = message?.match(/(\d+)\s+chunks/);
+              if (chunkMatch) {
+                setChunkInfo(`Processing ${chunkMatch[1]} text chunks`);
+              }
             }
-            
-            setCurrentTaskStatus('training');
-          } else if (eventType === 'training_completed') {
-            setProgress(100);
-            setStatusMessage('Training completed successfully');
-            setCurrentPhase('completed');
-            setCurrentTaskStatus('completed');
-            setIsCompleted(true);
+          } else if (eventType === 'training_active' && eventData.train_data) {
+            const trainData = eventData.train_data;
+            if (trainData.phase === 'embedding_completed') {
+              setProgress(100);
+              setStatusMessage('Training completed successfully');
+              setCurrentPhase('completed');
+              setIsCompleted(true);
+            }
           } else if (eventType === 'training_failed') {
             setCurrentPhase('failed');
             setStatusMessage(eventData.error || 'Training failed');
-            setCurrentTaskStatus('failed');
           }
         }
       }
@@ -133,7 +145,6 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     if (scrollAreaRef.current && eventLogs.length > 0) {
       const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollContainer) {
-        // Use setTimeout to ensure DOM is updated
         setTimeout(() => {
           scrollContainer.scrollTop = scrollContainer.scrollHeight;
         }, 100);
@@ -176,57 +187,59 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           extractingActive: false,
           embeddingActive: false,
           extractingProgress: 0,
-          embeddingProgress: 0
+          embeddingProgress: 0,
+          extractingCompleted: false,
+          embeddingCompleted: false
         };
       case 'extracting':
         return {
           extractingActive: true,
           embeddingActive: false,
-          extractingProgress: Math.min(progress * 2, 100), // Scale to 0-100% for extraction step
-          embeddingProgress: 0
+          extractingProgress: Math.min((progress - 10) * 2.5, 100), // Scale 10-50% to 0-100%
+          embeddingProgress: 0,
+          extractingCompleted: false,
+          embeddingCompleted: false
         };
       case 'embedding':
         return {
           extractingActive: false,
           embeddingActive: true,
           extractingProgress: 100,
-          embeddingProgress: Math.min((progress - 50) * 2, 100) // Scale remaining progress for embedding
+          embeddingProgress: Math.min((progress - 55) * 2.22, 100), // Scale 55-100% to 0-100%
+          extractingCompleted: true,
+          embeddingCompleted: false
         };
       case 'completed':
         return {
           extractingActive: false,
           embeddingActive: false,
           extractingProgress: 100,
-          embeddingProgress: 100
+          embeddingProgress: 100,
+          extractingCompleted: true,
+          embeddingCompleted: true
         };
       case 'failed':
         return {
           extractingActive: false,
           embeddingActive: false,
           extractingProgress: progress >= 25 ? 100 : 0,
-          embeddingProgress: progress >= 75 ? 100 : 0
+          embeddingProgress: progress >= 75 ? 100 : 0,
+          extractingCompleted: false,
+          embeddingCompleted: false
         };
       default:
         return {
           extractingActive: false,
           embeddingActive: false,
           extractingProgress: 0,
-          embeddingProgress: 0
+          embeddingProgress: 0,
+          extractingCompleted: false,
+          embeddingCompleted: false
         };
     }
   };
 
   const phaseInfo = getPhaseDisplayInfo();
-
-  // Mock data for character counts (since backend doesn't provide this yet)
-  const mockCharacterCounts = {
-    total: 134666,
-    sources: [
-      { name: 'Source 1', count: 134666 },
-      { name: 'Source 2', count: 134666 },
-      { name: 'Source 3', count: 134666 }
-    ]
-  };
 
   if (!shouldShowConsole) {
     return null;
@@ -264,7 +277,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
       </div>
       
       {isExpanded && (
-        <div className="flex flex-col h-80">
+        <div className="flex flex-col h-96">
           {/* Task Information */}
           {currentTask && (
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
@@ -320,65 +333,111 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
               <p className="text-xs text-gray-600 dark:text-gray-400">{statusMessage}</p>
             </div>
 
-            {/* Step-wise Progress */}
+            {/* Current Source Display */}
+            {currentSource && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                    Processing Source
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm text-blue-800 dark:text-blue-200 font-medium">
+                    {currentSource.title || 'Untitled Source'}
+                  </div>
+                  <div className="text-xs text-blue-600 dark:text-blue-300">
+                    Type: {currentSource.type} • ID: {currentSource.id}
+                  </div>
+                  {currentSource.source && (
+                    <div className="text-xs text-blue-500 dark:text-blue-400 font-mono truncate">
+                      {currentSource.source}
+                    </div>
+                  )}
+                </div>
+                {totalCount > 0 && (
+                  <div className="mt-2 text-xs text-blue-600 dark:text-blue-300">
+                    Progress: {processedCount} / {totalCount} sources
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step-wise Progress - Windows Installation Style */}
             <div className="space-y-3">
               {/* Extracting Characters Step */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   {phaseInfo.extractingActive ? (
                     <LoaderCircle className="h-4 w-4 text-blue-600 animate-spin" />
-                  ) : phaseInfo.extractingProgress === 100 ? (
-                    <Check className="h-4 w-4 text-green-600" />
+                  ) : phaseInfo.extractingCompleted ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
                   ) : (
                     <div className="h-4 w-4 rounded-full border-2 border-gray-300 dark:border-gray-600" />
                   )}
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    Extracting Characters
+                    Extracting Text Content
                   </span>
+                  {phaseInfo.extractingActive && currentSource && (
+                    <Badge variant="outline" className="text-xs">
+                      {processedCount}/{totalCount}
+                    </Badge>
+                  )}
                 </div>
                 <Progress value={phaseInfo.extractingProgress} className="h-2" />
+                {phaseInfo.extractingActive && currentSource && (
+                  <div className="text-xs text-gray-500 ml-6">
+                    Processing: {currentSource.title || 'Source'}
+                  </div>
+                )}
               </div>
 
               {/* Embedding Characters Step */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   {phaseInfo.embeddingActive ? (
-                    <LoaderCircle className="h-4 w-4 text-blue-600 animate-spin" />
-                  ) : phaseInfo.embeddingProgress === 100 ? (
-                    <Check className="h-4 w-4 text-green-600" />
+                    <Zap className="h-4 w-4 text-purple-600 animate-pulse" />
+                  ) : phaseInfo.embeddingCompleted ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
                   ) : (
                     <div className="h-4 w-4 rounded-full border-2 border-gray-300 dark:border-gray-600" />
                   )}
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    Embedding Characters
+                    Generating AI Embeddings
                   </span>
+                  {phaseInfo.embeddingActive && chunkInfo && (
+                    <Badge variant="outline" className="text-xs">
+                      AI Processing
+                    </Badge>
+                  )}
                 </div>
                 <Progress value={phaseInfo.embeddingProgress} className="h-2" />
+                {phaseInfo.embeddingActive && chunkInfo && (
+                  <div className="text-xs text-gray-500 ml-6">
+                    {chunkInfo}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Done Section */}
+            {/* Completion Section */}
             {isCompleted && (
               <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-green-600" />
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
                   <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    Done
+                    Training Complete
                   </span>
                 </div>
                 
-                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                  <div className="font-medium">
-                    Total Characters: <span className="text-gray-900 dark:text-gray-100">{mockCharacterCounts.total.toLocaleString()}</span>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    {mockCharacterCounts.sources.map((source, index) => (
-                      <div key={index} className="flex justify-between">
-                        <span>{source.name}:</span>
-                        <span className="text-gray-900 dark:text-gray-100">{source.count.toLocaleString()}</span>
-                      </div>
-                    ))}
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-200 dark:border-green-800">
+                  <div className="space-y-2 text-sm text-green-800 dark:text-green-200">
+                    <div className="font-medium">
+                      Successfully processed {totalCount} knowledge source{totalCount !== 1 ? 's' : ''}
+                    </div>
+                    <div className="text-xs text-green-600 dark:text-green-400">
+                      Your agent is now ready to use with the updated knowledge base
+                    </div>
                   </div>
                 </div>
               </div>
@@ -391,7 +450,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
                   <div className="flex items-center gap-2">
                     <Activity className="h-3 w-3 text-gray-600 dark:text-gray-400" />
                     <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Events
+                      Live Events
                     </span>
                     <Badge variant="outline" className="text-xs h-4">
                       {eventLogs.length}
@@ -400,7 +459,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
                 </div>
                 
                 <div className="flex-1 min-h-0 border border-t-0 border-gray-200 dark:border-gray-700 rounded-b">
-                  <ScrollArea className="h-24" ref={scrollAreaRef}>
+                  <ScrollArea className="h-32" ref={scrollAreaRef}>
                     <div className="p-2 space-y-1">
                       {eventLogs.map((log) => (
                         <div key={log.id} className="flex items-start gap-2 p-1 bg-gray-50 dark:bg-gray-800 rounded text-xs">
@@ -408,14 +467,14 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
                             <span className="font-medium text-gray-900 dark:text-gray-100 text-[10px]">
                               {log.event.event.replace('training_', '')}
                             </span>
-                            {log.event.data.progress && (
+                            {log.event.data.train_data?.phase && (
                               <span className="text-blue-600 dark:text-blue-400 text-[10px]">
-                                {log.event.data.progress}%
+                                {log.event.data.train_data.phase}
                               </span>
                             )}
-                            {log.event.data.message && (
+                            {log.event.data.train_data?.message && (
                               <span className="text-gray-600 dark:text-gray-400 truncate text-[10px]">
-                                - {log.event.data.message}
+                                - {log.event.data.train_data.message}
                               </span>
                             )}
                           </div>
