@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronUp, ChevronDown, Terminal, Minimize2, Maximize2, X } from 'lucide-react';
+import { ChevronUp, ChevronDown, Terminal, Minimize2, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { trainingSSEService, SSEEventLog } from '@/services/TrainingSSEService';
 import { useBuilder } from '@/components/agents/builder/BuilderContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { SourceTracker, createSourceTracker, ProgressState } from './utils/sourceTrackingUtils';
+import { formatProgressDisplay, formatSourceName, getPhaseMessage } from './utils/progressDisplayUtils';
 
 interface ConsolePanelProps {
   className?: string;
@@ -21,24 +23,13 @@ interface TerminalLine {
   prefix?: string;
 }
 
-interface SourceProgress {
-  id: number;
-  title: string;
-  type: string;
-  status: 'pending' | 'active' | 'completed';
-  processed: boolean;
-}
-
 export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTraining = false, refetchAgentData }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isMinimized, setIsMinimized] = useState(false);
   const [terminalLines, setTerminalLines] = useState<TerminalLine[]>([]);
-  const [currentProgress, setCurrentProgress] = useState(0);
-  const [totalSources, setTotalSources] = useState(0);
   const [currentPhase, setCurrentPhase] = useState<string>('');
   const [isCompleted, setIsCompleted] = useState(false);
-  const [sources, setSources] = useState<SourceProgress[]>([]);
-  const [processedSources, setProcessedSources] = useState<Set<number>>(new Set());
+  const [sourceTracker, setSourceTracker] = useState<SourceTracker | null>(null);
   
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastEventRef = useRef<string | null>(null);
@@ -49,6 +40,15 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
   // Only show console panel if CURRENT agent is training
   const shouldShowConsole = state.agentData.status === 'Training' || currentTask?.status === 'training' || isTraining;
+
+  // Initialize source tracker when knowledge sources are available
+  useEffect(() => {
+    if (state.agentData.knowledgeSources.length > 0) {
+      const tracker = createSourceTracker(state.agentData.knowledgeSources);
+      setSourceTracker(tracker);
+      console.log('🎯 Initialized source tracker with sources:', tracker.getProgressState());
+    }
+  }, [state.agentData.knowledgeSources]);
 
   // Add a terminal line
   const addTerminalLine = (content: string, type: TerminalLine['type'], prefix?: string) => {
@@ -63,168 +63,160 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     setTerminalLines(prev => [...prev, newLine]);
   };
 
-  // Enhanced event processing
+  // Enhanced event processing with accurate progress tracking
   useEffect(() => {
     const updateEventLogs = () => {
-      if (agentId) {
-        const logs = trainingSSEService.getRecentEventLogs(agentId, 10);
+      if (!agentId || !sourceTracker) return;
+
+      const logs = trainingSSEService.getRecentEventLogs(agentId, 10);
+      
+      // Process the latest event
+      const latestEvent = logs[0];
+      if (!latestEvent) return;
+
+      const eventData = latestEvent.event.data;
+      const eventType = latestEvent.event.event;
+
+      // Create a more specific event key to avoid duplicates
+      const eventKey = `${eventType}-${eventData.status}-${eventData.train_data?.phase}-${eventData.train_data?.current_source?.id}-${Date.now()}`;
+      if (eventKey === lastEventRef.current) return;
+      lastEventRef.current = eventKey;
+
+      if (eventType === 'training_connected') {
+        // Clear terminal and reset source tracker
+        setTerminalLines([]);
+        sourceTracker.reset();
+        addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
+        addTerminalLine('║                     7EN AI Training Terminal v2.1                    ║', 'system');
+        addTerminalLine('╚═══════════════════════════════════════════════════════════════════════╝', 'system');
+        addTerminalLine('', 'output');
+        addTerminalLine('🚀 Initializing agent training environment...', 'info', '[INIT]');
+        addTerminalLine(`✓ Connected to agent-${agentId}`, 'success', '[CONN]');
+        addTerminalLine('', 'output');
+        setCurrentPhase('connecting');
+        setIsCompleted(false);
+      } else if (eventType === 'training_progress' && eventData.train_data) {
+        const trainData = eventData.train_data;
+        const { phase, message, current_source } = trainData;
         
-        // Process the latest event
-        const latestEvent = logs[0];
-        if (latestEvent) {
-          const eventData = latestEvent.event.data;
-          const eventType = latestEvent.event.event;
+        setCurrentPhase(phase);
 
-          // Create a more specific event key to avoid duplicates
-          const eventKey = `${eventType}-${eventData.status}-${eventData.train_data?.phase}-${eventData.train_data?.processed_count}-${eventData.train_data?.current_source?.id}`;
-          if (eventKey === lastEventRef.current) return;
-          lastEventRef.current = eventKey;
-
-          if (eventType === 'training_connected') {
-            // Clear terminal and start fresh
-            setTerminalLines([]);
-            setSources([]);
-            setProcessedSources(new Set());
-            addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
-            addTerminalLine('║                     7EN AI Training Terminal v2.1                    ║', 'system');
-            addTerminalLine('╚═══════════════════════════════════════════════════════════════════════╝', 'system');
+        if (phase === 'extracting') {
+          if (message?.includes('Starting text extraction')) {
+            const progressState = sourceTracker.getProgressState();
+            addTerminalLine('$ sudo apt-get update && apt-get install knowledge-extractor', 'command');
+            addTerminalLine('Reading package lists... Done', 'output');
+            addTerminalLine('Building dependency tree... Done', 'output');
+            addTerminalLine(`Found ${progressState.totalSources} knowledge source(s) to process`, 'info');
             addTerminalLine('', 'output');
-            addTerminalLine('🚀 Initializing agent training environment...', 'info', '[INIT]');
-            addTerminalLine(`✓ Connected to agent-${agentId}`, 'success', '[CONN]');
+            addTerminalLine('The following packages will be INSTALLED:', 'output');
+            addTerminalLine(`  knowledge-sources (${progressState.totalSources} sources)`, 'output');
             addTerminalLine('', 'output');
-            setCurrentProgress(0);
-            setTotalSources(0);
-            setCurrentPhase('connecting');
-            setIsCompleted(false);
-          } else if (eventType === 'training_progress' && eventData.train_data) {
-            const trainData = eventData.train_data;
-            const { phase, message, processed_count = 0, total_count = 0, current_source } = trainData;
+          } else if (current_source?.id) {
+            // Update source tracker with current source
+            const sourceFromTracker = sourceTracker.getSourceById(current_source.id);
             
-            setCurrentProgress(processed_count);
-            setTotalSources(total_count);
-            setCurrentPhase(phase);
-
-            if (phase === 'extracting') {
-              if (message?.includes('Starting text extraction')) {
-                addTerminalLine('$ sudo apt-get update && apt-get install knowledge-extractor', 'command');
-                addTerminalLine('Reading package lists... Done', 'output');
-                addTerminalLine('Building dependency tree... Done', 'output');
-                addTerminalLine(`Found ${total_count} knowledge source(s) to process`, 'info');
-                addTerminalLine('', 'output');
-                addTerminalLine('The following packages will be INSTALLED:', 'output');
-                addTerminalLine(`  knowledge-sources (${total_count} sources)`, 'output');
-                addTerminalLine('', 'output');
-              } else if (current_source && !processedSources.has(current_source.id)) {
-                const sourceType = current_source.type === 'website' ? '🌐' : '📄';
-                const sourceName = current_source.type === 'website' 
-                  ? new URL(current_source.source).hostname 
-                  : current_source.title;
-                
-                // Update sources state
-                setSources(prev => {
-                  const existing = prev.find(s => s.id === current_source.id);
-                  if (!existing) {
-                    return [...prev, {
-                      id: current_source.id,
-                      title: sourceName,
-                      type: sourceType,
-                      status: 'active',
-                      processed: false
-                    }];
-                  }
-                  return prev.map(s => 
-                    s.id === current_source.id 
-                      ? { ...s, status: 'active' as const }
-                      : { ...s, status: s.processed ? 'completed' as const : 'pending' as const }
-                  );
-                });
-
-                // Add extraction line with current progress (not processed_count)
-                const currentIndex = sources.filter(s => s.status === 'completed').length + 1;
-                addTerminalLine(`[${currentIndex}/${total_count}] Extracting ${sourceType} ${sourceName}...`, 'info');
-                
-                // Show progress bar
-                const progressPercentage = Math.round((currentIndex / total_count) * 100);
-                const filledBars = Math.floor(progressPercentage / 5);
-                const emptyBars = 20 - filledBars;
-                const progressBar = '█'.repeat(filledBars) + '░'.repeat(emptyBars);
-                addTerminalLine(`[${progressBar}] ${progressPercentage}% complete`, 'output');
-                
-                // Mark as processed
-                setProcessedSources(prev => new Set([...prev, current_source.id]));
-              }
-            } else if (phase === 'extraction_completed') {
-              // Mark current source as completed
-              setSources(prev => prev.map(s => ({ ...s, status: 'completed' as const, processed: true })));
+            if (sourceFromTracker) {
+              // Mark current source as active
+              sourceTracker.updateSourceStatus(current_source.id, 'active');
               
-              addTerminalLine('', 'output');
-              addTerminalLine('✓ Text extraction completed successfully', 'success');
-              addTerminalLine(`✓ Processed ${processed_count} knowledge sources`, 'success');
-              addTerminalLine('', 'output');
-            } else if (phase === 'embedding_start') {
-              const chunkMatch = message?.match(/(\d+)\s+chunks/);
-              const totalChunks = chunkMatch ? parseInt(chunkMatch[1]) : 0;
+              // Get accurate progress
+              const progress = sourceTracker.getCurrentProgress();
+              const sourceName = formatSourceName(sourceFromTracker);
               
-              addTerminalLine('$ npm install --upgrade ai-embeddings-engine', 'command');
-              addTerminalLine('Collecting ai-embeddings-engine', 'output');
-              addTerminalLine('  Using cached ai_embeddings_engine-3.0.0.tgz', 'output');
-              addTerminalLine(`Processing ${totalChunks} text chunks with AI embeddings`, 'info');
-              addTerminalLine('', 'output');
+              // Display progress with accurate position
+              const progressDisplay = formatProgressDisplay(
+                progress.current,
+                progress.total,
+                progress.percentage,
+                sourceName
+              );
               
-              // Show embedding progress
-              for (let i = 0; i < Math.min(totalChunks, 10); i++) {
-                setTimeout(() => {
-                  const chunkProgress = Math.round(((i + 1) / totalChunks) * 100);
-                  const dots = '.'.repeat((i % 3) + 1);
-                  addTerminalLine(`Generating embeddings${dots} [${i + 1}/${totalChunks}] ${chunkProgress}%`, 'info');
-                }, i * 200);
-              }
-            }
-          } else if (eventType === 'training_completed' && eventData.train_data) {
-            const trainData = eventData.train_data;
-            if (trainData.phase === 'embedding_completed') {
-              addTerminalLine('', 'output');
-              addTerminalLine('✓ AI embedding generation completed', 'success');
-              addTerminalLine('✓ Knowledge base updated successfully', 'success');
-              addTerminalLine('✓ Agent training pipeline finished', 'success');
-              addTerminalLine('', 'output');
-              addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
-              addTerminalLine('║                     🎉 TRAINING COMPLETED 🎉                         ║', 'success');
-              addTerminalLine('╚═══════════════════════════════════════════════════════════════════════╝', 'system');
-              addTerminalLine('', 'output');
-              addTerminalLine('Agent is ready for deployment. Exiting...', 'success');
+              addTerminalLine(progressDisplay.currentText, 'info');
+              addTerminalLine(progressDisplay.progressBar, 'output');
               
-              setCurrentPhase('completed');
-              setIsCompleted(true);
-              
-              // Refetch agent data and clear floating loader
-              if (refetchAgentData) {
-                setTimeout(() => {
-                  refetchAgentData().then(() => {
-                    // The refetch should update the agent status, which will hide the console
-                  }).catch(error => {
-                    console.error('Error refetching agent data:', error);
-                  });
-                }, 1000);
-              }
-            }
-          } else if (eventType === 'training_failed') {
-            addTerminalLine('', 'output');
-            addTerminalLine('✗ Training process failed', 'error');
-            addTerminalLine(eventData.error || 'Unknown error occurred', 'error');
-            addTerminalLine('', 'output');
-            addTerminalLine('Process exited with code 1', 'error');
-            setCurrentPhase('failed');
-            
-            // Clear floating loader on failure too
-            if (refetchAgentData) {
-              setTimeout(() => {
-                refetchAgentData().catch(error => {
-                  console.error('Error refetching agent data:', error);
-                });
-              }, 1000);
+              console.log('📊 Source progress update:', {
+                sourceId: current_source.id,
+                sourceName: sourceFromTracker.title,
+                position: sourceFromTracker.position,
+                progress: progress
+              });
             }
           }
+        } else if (phase === 'extraction_completed') {
+          // Mark current source as completed
+          const currentSource = sourceTracker.getCurrentSource();
+          if (currentSource) {
+            sourceTracker.updateSourceStatus(currentSource.id, 'completed');
+            const completionProgress = sourceTracker.getCompletionProgress();
+            
+            addTerminalLine('', 'output');
+            addTerminalLine('✓ Text extraction completed successfully', 'success');
+            addTerminalLine(`✓ Processed ${completionProgress.completed}/${completionProgress.total} knowledge sources`, 'success');
+            addTerminalLine('', 'output');
+          }
+        } else if (phase === 'embedding_start') {
+          const chunkMatch = message?.match(/(\d+)\s+chunks/);
+          const totalChunks = chunkMatch ? parseInt(chunkMatch[1]) : 0;
+          
+          addTerminalLine('$ npm install --upgrade ai-embeddings-engine', 'command');
+          addTerminalLine('Collecting ai-embeddings-engine', 'output');
+          addTerminalLine('  Using cached ai_embeddings_engine-3.0.0.tgz', 'output');
+          addTerminalLine(`Processing ${totalChunks} text chunks with AI embeddings`, 'info');
+          addTerminalLine('', 'output');
+          
+          // Show embedding progress
+          for (let i = 0; i < Math.min(totalChunks, 10); i++) {
+            setTimeout(() => {
+              const chunkProgress = Math.round(((i + 1) / totalChunks) * 100);
+              const dots = '.'.repeat((i % 3) + 1);
+              addTerminalLine(`Generating embeddings${dots} [${i + 1}/${totalChunks}] ${chunkProgress}%`, 'info');
+            }, i * 200);
+          }
+        }
+      } else if (eventType === 'training_completed' && eventData.train_data) {
+        const trainData = eventData.train_data;
+        if (trainData.phase === 'embedding_completed') {
+          addTerminalLine('', 'output');
+          addTerminalLine('✓ AI embedding generation completed', 'success');
+          addTerminalLine('✓ Knowledge base updated successfully', 'success');
+          addTerminalLine('✓ Agent training pipeline finished', 'success');
+          addTerminalLine('', 'output');
+          addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
+          addTerminalLine('║                     🎉 TRAINING COMPLETED 🎉                         ║', 'success');
+          addTerminalLine('╚═══════════════════════════════════════════════════════════════════════╝', 'system');
+          addTerminalLine('', 'output');
+          addTerminalLine('Agent is ready for deployment. Exiting...', 'success');
+          
+          setCurrentPhase('completed');
+          setIsCompleted(true);
+          
+          // Refetch agent data and clear floating loader
+          if (refetchAgentData) {
+            setTimeout(() => {
+              refetchAgentData().then(() => {
+                // The refetch should update the agent status, which will hide the console
+              }).catch(error => {
+                console.error('Error refetching agent data:', error);
+              });
+            }, 1000);
+          }
+        }
+      } else if (eventType === 'training_failed') {
+        addTerminalLine('', 'output');
+        addTerminalLine('✗ Training process failed', 'error');
+        addTerminalLine(eventData.error || 'Unknown error occurred', 'error');
+        addTerminalLine('', 'output');
+        addTerminalLine('Process exited with code 1', 'error');
+        setCurrentPhase('failed');
+        
+        // Clear floating loader on failure too
+        if (refetchAgentData) {
+          setTimeout(() => {
+            refetchAgentData().catch(error => {
+              console.error('Error refetching agent data:', error);
+            });
+          }, 1000);
         }
       }
     };
@@ -232,7 +224,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     updateEventLogs();
     const interval = setInterval(updateEventLogs, 500);
     return () => clearInterval(interval);
-  }, [agentId, refetchAgentData, sources]);
+  }, [agentId, refetchAgentData, sourceTracker]);
 
   // Auto-scroll to bottom when new lines are added
   useEffect(() => {
@@ -267,6 +259,24 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
 
   const formatTime = (date: Date) => {
     return date.toTimeString().split(' ')[0];
+  };
+
+  // Get current progress for minimized state
+  const getCurrentProgressText = () => {
+    if (!sourceTracker) return 'Training in progress...';
+    
+    const progress = sourceTracker.getCurrentProgress();
+    const completionProgress = sourceTracker.getCompletionProgress();
+
+    if (currentPhase === 'extracting') {
+      return `Extracting sources... [${completionProgress.completed}/${progress.total}]`;
+    } else if (currentPhase === 'embedding_start' || currentPhase === 'embedding') {
+      return 'Generating AI embeddings...';
+    } else if (currentPhase === 'completed') {
+      return 'Training completed ✓';
+    } else {
+      return 'Training in progress...';
+    }
   };
 
   if (!shouldShowConsole) {
@@ -362,13 +372,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           <div className="flex items-center gap-2 font-mono text-sm">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             <span className="text-green-400">
-              {currentPhase === 'extracting' 
-                ? `Extracting sources... [${currentProgress}/${totalSources}]`
-                : currentPhase === 'embedding' 
-                ? 'Generating AI embeddings...'
-                : currentPhase === 'completed'
-                ? 'Training completed ✓'
-                : 'Training in progress...'}
+              {getCurrentProgressText()}
             </span>
           </div>
         </div>
