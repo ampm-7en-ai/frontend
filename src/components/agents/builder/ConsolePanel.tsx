@@ -6,7 +6,7 @@ import { trainingSSEService, SSEEventLog } from '@/services/TrainingSSEService';
 import { useBuilder } from '@/components/agents/builder/BuilderContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SourceTracker, createSourceTracker, ProgressState } from './utils/sourceTrackingUtils';
-import { formatProgressDisplay, formatSourceName, getPhaseMessage } from './utils/progressDisplayUtils';
+import { formatProgressDisplay, formatSourceName, getPhaseMessage, createProgressBar } from './utils/progressDisplayUtils';
 
 interface ConsolePanelProps {
   className?: string;
@@ -22,6 +22,12 @@ interface TerminalLine {
   prefix?: string;
 }
 
+interface EmbeddingProgress {
+  startTime: number;
+  totalChunks: number;
+  targetDuration: number; // 15 minutes in milliseconds
+}
+
 export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTraining = false, refetchAgentData }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -29,10 +35,12 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
   const [currentPhase, setCurrentPhase] = useState<string>('');
   const [isCompleted, setIsCompleted] = useState(false);
   const [sourceTracker, setSourceTracker] = useState<SourceTracker | null>(null);
+  const [embeddingProgress, setEmbeddingProgress] = useState<EmbeddingProgress | null>(null);
   
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const processedEventsRef = useRef<Set<string>>(new Set());
   const lastProcessedTimestampRef = useRef<number>(0);
+  const embeddingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   const { state } = useBuilder();
   const agentId = state.agentData.id?.toString();
@@ -50,6 +58,15 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     }
   }, [state.agentData.knowledgeSources]);
 
+  // Cleanup embedding interval on unmount
+  useEffect(() => {
+    return () => {
+      if (embeddingIntervalRef.current) {
+        clearInterval(embeddingIntervalRef.current);
+      }
+    };
+  }, []);
+
   // Add a terminal line
   const addTerminalLine = (content: string, type: TerminalLine['type'], prefix?: string) => {
     const newLine: TerminalLine = {
@@ -61,6 +78,72 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     };
     
     setTerminalLines(prev => [...prev, newLine]);
+  };
+
+  // Start embedding progress simulation
+  const startEmbeddingProgress = (totalChunks: number) => {
+    const targetDuration = 15 * 60 * 1000; // 15 minutes
+    const startTime = Date.now();
+    
+    setEmbeddingProgress({
+      startTime,
+      totalChunks,
+      targetDuration
+    });
+
+    // Clear any existing interval
+    if (embeddingIntervalRef.current) {
+      clearInterval(embeddingIntervalRef.current);
+    }
+
+    // Update progress every 10 seconds
+    embeddingIntervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min((elapsed / targetDuration) * 100, 99); // Cap at 99% until completion
+      
+      if (progress < 99) {
+        const progressBar = createProgressBar(progress);
+        const estimatedRemaining = Math.max(0, targetDuration - elapsed);
+        const remainingMinutes = Math.ceil(estimatedRemaining / (60 * 1000));
+        
+        // Update the last embedding progress line
+        setTerminalLines(prev => {
+          const newLines = [...prev];
+          const lastProgressIndex = newLines.findLastIndex(line => 
+            line.content.includes('Generating embeddings') || line.content.includes('[█')
+          );
+          
+          if (lastProgressIndex !== -1 && newLines[lastProgressIndex].content.includes('[█')) {
+            // Update existing progress line
+            newLines[lastProgressIndex] = {
+              ...newLines[lastProgressIndex],
+              content: `[${progressBar}] ${Math.floor(progress)}% complete - ETA: ${remainingMinutes}min`,
+              timestamp: new Date()
+            };
+          } else {
+            // Add new progress line
+            newLines.push({
+              id: `${Date.now()}-progress`,
+              content: `[${progressBar}] ${Math.floor(progress)}% complete - ETA: ${remainingMinutes}min`,
+              type: 'info',
+              timestamp: new Date(),
+              prefix: '[EMB]'
+            });
+          }
+          
+          return newLines;
+        });
+      }
+    }, 10000); // Update every 10 seconds
+  };
+
+  // Stop embedding progress
+  const stopEmbeddingProgress = () => {
+    if (embeddingIntervalRef.current) {
+      clearInterval(embeddingIntervalRef.current);
+      embeddingIntervalRef.current = null;
+    }
+    setEmbeddingProgress(null);
   };
 
   // Enhanced event processing with better duplicate detection
@@ -99,6 +182,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
           sourceTracker.reset();
           processedEventsRef.current.clear();
           processedEventsRef.current.add(eventKey);
+          stopEmbeddingProgress(); // Clear any existing embedding progress
           
           addTerminalLine('╔═══════════════════════════════════════════════════════════════════════╗', 'system');
           addTerminalLine('║                     7EN AI Training Terminal v2.1                    ║', 'system');
@@ -171,18 +255,26 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             }
           } else if (phase === 'embedding_start') {
             const chunkMatch = message?.match(/(\d+)\s+chunks/);
-            const totalChunks = chunkMatch ? parseInt(chunkMatch[1]) : 0;
+            const totalChunks = chunkMatch ? parseInt(chunkMatch[1]) : 1000; // Default fallback
             
             addTerminalLine('$ npm install --upgrade ai-embeddings-engine', 'command');
             addTerminalLine('Collecting ai-embeddings-engine', 'output');
             addTerminalLine('  Using cached ai_embeddings_engine-3.0.0.tgz', 'output');
-            addTerminalLine(`Processing ${totalChunks} text chunks with AI embeddings`, 'info');
+            addTerminalLine(`Generating embeddings for ${totalChunks} text chunks`, 'info', '[EMB]');
+            addTerminalLine('This process may take 10-15 minutes...', 'info', '[EMB]');
             addTerminalLine('', 'output');
+            
+            // Start the embedding progress simulation
+            startEmbeddingProgress(totalChunks);
           }
         } else if (eventType === 'training_completed' && eventData.train_data) {
           const trainData = eventData.train_data;
           if (trainData.phase === 'embedding_completed') {
+            // Stop embedding progress and show completion
+            stopEmbeddingProgress();
+            
             addTerminalLine('', 'output');
+            addTerminalLine('[████████████████████] 100% complete', 'success', '[EMB]');
             addTerminalLine('✓ AI embedding generation completed', 'success');
             addTerminalLine('✓ Knowledge base updated successfully', 'success');
             addTerminalLine('✓ Agent training pipeline finished', 'success');
@@ -208,6 +300,9 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
             }
           }
         } else if (eventType === 'training_failed') {
+          // Stop embedding progress on failure
+          stopEmbeddingProgress();
+          
           addTerminalLine('', 'output');
           addTerminalLine('✗ Training process failed', 'error');
           addTerminalLine(eventData.error || 'Unknown error occurred', 'error');
@@ -233,7 +328,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     };
 
     updateEventLogs();
-    const interval = setInterval(updateEventLogs, 1000); // Reduced frequency
+    const interval = setInterval(updateEventLogs, 1000); // Check every second
     return () => clearInterval(interval);
   }, [agentId, refetchAgentData, sourceTracker]);
 
@@ -282,6 +377,11 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({ className = '', isTr
     if (currentPhase === 'extracting') {
       return `Extracting sources... [${completionProgress.completed}/${progress.total}]`;
     } else if (currentPhase === 'embedding_start' || currentPhase === 'embedding') {
+      if (embeddingProgress) {
+        const elapsed = Date.now() - embeddingProgress.startTime;
+        const progressPercentage = Math.min((elapsed / embeddingProgress.targetDuration) * 100, 99);
+        return `Generating embeddings... ${Math.floor(progressPercentage)}%`;
+      }
       return 'Generating AI embeddings...';
     } else if (currentPhase === 'completed') {
       return 'Training completed ✓';
