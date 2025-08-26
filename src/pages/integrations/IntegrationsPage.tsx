@@ -410,24 +410,24 @@ const IntegrationsPage = () => {
       );
     }
     
-    if (integrationId !== defaultProvider) {
-      return (
-        <Badge 
-          variant="outline" 
-          className={`text-gray-600 border-gray-200 bg-gray-50 dark:bg-gray-900/20 dark:border-gray-800 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900/30 ${
-            isSettingDefault === integrationId ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-          onClick={() => {
-            if (isSettingDefault !== integrationId) {
-              handleSetAsDefault(integrationId);
-            }
-          }}
-        >
-          <Star className="h-3 w-3 mr-1" />
-          {isSettingDefault === integrationId ? 'Setting...' : 'Set as Default'}
-        </Badge>
-      );
-    }
+    // if (integrationId !== defaultProvider) {
+    //   return (
+    //     <Badge 
+    //       variant="outline" 
+    //       className={`text-gray-600 border-gray-200 bg-gray-50 dark:bg-gray-900/20 dark:border-gray-800 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900/30 ${
+    //         isSettingDefault === integrationId ? 'opacity-50 cursor-not-allowed' : ''
+    //       }`}
+    //       onClick={() => {
+    //         if (isSettingDefault !== integrationId) {
+    //           handleSetAsDefault(integrationId);
+    //         }
+    //       }}
+    //     >
+    //       <Star className="h-3 w-3 mr-1" />
+    //       {isSettingDefault === integrationId ? 'Setting...' : 'Set as Default'}
+    //     </Badge>
+    //   );
+    // }
     
     return null;
   };
@@ -462,7 +462,7 @@ const IntegrationsPage = () => {
           >
             Configure Integration
           </ModernButton>
-          {defaultProvider !== integration.id && (
+          {/* {defaultProvider !== integration.id && (
             <ModernButton 
               variant="outline" 
               size="sm"
@@ -490,7 +490,7 @@ const IntegrationsPage = () => {
               <Star className="h-3 w-3 mr-1 fill-current" />
               Default
             </ModernButton>
-          )}
+          )} */}
         </div>
       );
     }

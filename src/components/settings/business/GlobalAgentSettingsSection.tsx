@@ -152,7 +152,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Maximum Context Length</FormLabel>
-                    <FormControl>
+                    {/* <FormControl>
                       <ModernDropdown
                         value={field.value?.toString() || ""}
                         onValueChange={(value) => field.onChange(Number(value))}
@@ -165,7 +165,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                         placeholder="Select context length"
                         className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
                       />
-                    </FormControl>
+                    </FormControl> */}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -211,10 +211,10 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                   {modelOptionsForDropdown.find(option => option.value === globalSettingsForm.getValues().defaultModel)?.label || globalSettingsForm.getValues().defaultModel}
                 </p>
               </div>
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+              {/* <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Maximum Context Length</h4>
                 <p className="text-slate-600 dark:text-slate-400">{globalSettingsForm.getValues().maxContextLength?.toLocaleString()} tokens</p>
-              </div>
+              </div> */}
               <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Temperature</h4>
                 <p className="text-slate-600 dark:text-slate-400">{globalSettingsForm.getValues().defaultTemperature}</p>

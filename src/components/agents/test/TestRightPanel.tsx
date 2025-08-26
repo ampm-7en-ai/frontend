@@ -205,7 +205,7 @@ export const TestRightPanel = ({
               </div>
 
               {/* Token Length Section */}
-              <div className="space-y-4">
+              {/* <div className="space-y-4">
                 <div className="flex items-center gap-3 pb-2">
                   <div className="p-2 bg-blue-500/10 rounded-lg">
                     <Hash className="h-4 w-4 text-blue-500" />
@@ -228,7 +228,7 @@ export const TestRightPanel = ({
                     className="w-full"
                   />
                 </div>
-              </div>
+              </div> */}
 
               {/* System Prompt Section */}
               <div className="space-y-4">

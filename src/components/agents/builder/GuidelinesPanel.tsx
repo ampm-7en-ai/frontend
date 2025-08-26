@@ -641,7 +641,7 @@ export const GuidelinesPanel = () => {
                     />
                   </div>
 
-                  <div>
+                  {/* <div>
                     <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Max Tokens</Label>
                     <div className="mt-1.5">
                       <ModernDropdown
@@ -651,7 +651,7 @@ export const GuidelinesPanel = () => {
                         placeholder="Select max tokens"
                       />
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </AccordionContent>
             </AccordionItem>

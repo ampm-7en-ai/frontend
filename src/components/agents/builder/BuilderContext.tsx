@@ -391,8 +391,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           // Updated model payload to match the new API structure
           model: {
             response_model: state.agentData.model,
-            temperature: state.agentData.temperature,
-            token_length: state.agentData.maxTokens
+            temperature: state.agentData.temperature
           },
           agentType: state.agentData.agentType,
           systemPrompt: state.agentData.systemPrompt,
