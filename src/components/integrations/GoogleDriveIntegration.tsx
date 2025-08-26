@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { CheckCircle, AlertCircle, HardDrive } from 'lucide-react';
@@ -6,14 +5,6 @@ import { useToast } from "@/hooks/use-toast";
 import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useIntegrations } from '@/hooks/useIntegrations';
-
-// Helper function to dispatch status change events
-const dispatchStatusChangeEvent = (integrationId: string, status: string) => {
-  const event = new CustomEvent('integrationStatusChanged', {
-    detail: { integrationId, status }
-  });
-  window.dispatchEvent(event);
-};
 
 const GoogleDriveIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -29,13 +20,10 @@ const GoogleDriveIntegration = () => {
     const checkStatus = async () => {
       try {
         const status = getIntegrationStatus('google_drive');
-        const connected = status === 'connected';
-        setIsConnected(connected);
-        dispatchStatusChangeEvent('google_drive', status);
+        setIsConnected(status === 'connected');
       } catch (error) {
         console.error('Error checking Google Drive status:', error);
         setIsConnected(false);
-        dispatchStatusChangeEvent('google_drive', 'not_connected');
       } finally {
         setIsCheckingStatus(false);
       }
@@ -103,7 +91,6 @@ const GoogleDriveIntegration = () => {
 
       setIsConnected(false);
       updateIntegrationStatus('google_drive', 'not_connected');
-      dispatchStatusChangeEvent('google_drive', 'not_connected');
 
       toast({
         title: "Success",

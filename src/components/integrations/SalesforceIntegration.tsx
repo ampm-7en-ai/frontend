@@ -14,14 +14,6 @@ interface SalesforceStatus {
   instance_url?: string;
 }
 
-// Helper function to dispatch status change events
-const dispatchStatusChangeEvent = (integrationId: string, status: string) => {
-  const event = new CustomEvent('integrationStatusChanged', {
-    detail: { integrationId, status }
-  });
-  window.dispatchEvent(event);
-};
-
 const SalesforceIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
@@ -46,12 +38,9 @@ const SalesforceIntegration = () => {
       const result = await response.json();
       if (result.status === 'success') {
         setSalesforceStatus(result.data);
-        const status = result.data.is_connected ? 'connected' : 'not_connected';
-        dispatchStatusChangeEvent('salesforce', status);
       }
     } catch (error) {
       console.error('Error checking Salesforce status:', error);
-      dispatchStatusChangeEvent('salesforce', 'not_connected');
     } finally {
       setIsCheckingStatus(false);
     }
@@ -111,7 +100,6 @@ const SalesforceIntegration = () => {
       console.log('Salesforce disconnect response:', result);
 
       setSalesforceStatus({ is_connected: false });
-      dispatchStatusChangeEvent('salesforce', 'not_connected');
       toast({
         title: "Successfully Disconnected",
         description: result.message || "Salesforce integration has been disconnected.",

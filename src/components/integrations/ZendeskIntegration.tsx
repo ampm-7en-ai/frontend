@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernInput } from '@/components/ui/modern-input';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
@@ -27,14 +28,6 @@ interface ZendeskStatus {
   integration?: ZendeskIntegration;
 }
 
-// Helper function to dispatch status change events
-const dispatchStatusChangeEvent = (integrationId: string, status: string) => {
-  const event = new CustomEvent('integrationStatusChanged', {
-    detail: { integrationId, status }
-  });
-  window.dispatchEvent(event);
-};
-
 const ZendeskIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
@@ -45,16 +38,12 @@ const ZendeskIntegration = () => {
   const [apiKey, setApiKey] = useState('');
   const { toast } = useToast();
   
-  // Use refs to prevent unnecessary re-renders and loops
-  const hasInitialized = useRef(false);
+  // Use the integration store to update global state
   const { updateIntegrationStatus, forceRefresh } = useIntegrations();
 
-  // Check Zendesk connection status on component mount - only once
+  // Check Zendesk connection status on component mount
   useEffect(() => {
-    if (!hasInitialized.current) {
-      hasInitialized.current = true;
-      checkZendeskStatus();
-    }
+    checkZendeskStatus();
   }, []);
 
   const checkZendeskStatus = async () => {
@@ -75,16 +64,13 @@ const ZendeskIntegration = () => {
           setEmail(result.data.integration.email || '');
         }
         // Update the integration store with the current status
-        const status = result.data.has_zendesk_integrated ? 'connected' : 'not_connected';
-        updateIntegrationStatus('zendesk', status);
-        dispatchStatusChangeEvent('zendesk', status);
+        updateIntegrationStatus('zendesk', result.data.has_zendesk_integrated ? 'connected' : 'not_connected');
       }
     } catch (error) {
       console.error('Error checking Zendesk status:', error);
       setZendeskStatus({ has_zendesk_integrated: false });
       // Update store to show disconnected state on error
       updateIntegrationStatus('zendesk', 'not_connected');
-      dispatchStatusChangeEvent('zendesk', 'not_connected');
     } finally {
       setIsCheckingStatus(false);
     }
@@ -121,7 +107,6 @@ const ZendeskIntegration = () => {
         setApiKey(''); // Clear sensitive data
         // Update the integration store immediately
         updateIntegrationStatus('zendesk', 'connected');
-        dispatchStatusChangeEvent('zendesk', 'connected');
         // Force refresh to get latest data
         forceRefresh();
         toast({
@@ -158,7 +143,6 @@ const ZendeskIntegration = () => {
         setApiKey('');
         // Update the integration store immediately
         updateIntegrationStatus('zendesk', 'not_connected');
-        dispatchStatusChangeEvent('zendesk', 'not_connected');
         // Force refresh to get latest data
         forceRefresh();
         toast({
