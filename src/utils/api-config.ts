@@ -328,6 +328,13 @@ export const integrationApi = {
     unlink: () => integrationApi.unlink('freshdesk')
   },
 
+  // Zapier specific
+  zapier: {
+    getStatus: () => integrationApi.getStatus('zapier'),
+    connect: (data: any) => integrationApi.connect('zapier', data),
+    unlink: () => integrationApi.unlink('zapier')
+  },
+
   // Google Drive specific
   googleDrive: {
     getFiles: async (token='') => {
