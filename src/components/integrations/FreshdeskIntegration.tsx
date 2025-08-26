@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernInput } from '@/components/ui/modern-input';
@@ -26,6 +25,14 @@ interface FreshdeskStatus {
   has_freshdesk_integrated?: boolean;
   integration?: FreshdeskIntegration;
 }
+
+// Helper function to dispatch status change events
+const dispatchStatusChangeEvent = (integrationId: string, status: string) => {
+  const event = new CustomEvent('integrationStatusChanged', {
+    detail: { integrationId, status }
+  });
+  window.dispatchEvent(event);
+};
 
 const FreshdeskIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -60,13 +67,16 @@ const FreshdeskIntegration = () => {
           });
           // Pre-populate fields with existing data
           setDomain(result.data.integration.domain || '');
+          dispatchStatusChangeEvent('freshdesk', 'connected');
         } else {
           setFreshdeskStatus({ has_freshdesk_integrated: false });
+          dispatchStatusChangeEvent('freshdesk', 'not_connected');
         }
       }
     } catch (error) {
       console.error('Error checking Freshdesk status:', error);
       setFreshdeskStatus({ has_freshdesk_integrated: false });
+      dispatchStatusChangeEvent('freshdesk', 'not_connected');
     } finally {
       setIsCheckingStatus(false);
     }
@@ -101,6 +111,7 @@ const FreshdeskIntegration = () => {
         });
         setDomain('');
         setApiKey('');
+        dispatchStatusChangeEvent('freshdesk', 'connected');
         toast({
           title: "Successfully Connected",
           description: "Freshdesk has been connected successfully.",
@@ -132,6 +143,7 @@ const FreshdeskIntegration = () => {
         setFreshdeskStatus({ has_freshdesk_integrated: false });
         setDomain('');
         setApiKey('');
+        dispatchStatusChangeEvent('freshdesk', 'not_connected');
         toast({
           title: "Successfully Unlinked",
           description: "Freshdesk integration has been disconnected.",

@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernInput } from '@/components/ui/modern-input';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
@@ -46,12 +45,16 @@ const ZendeskIntegration = () => {
   const [apiKey, setApiKey] = useState('');
   const { toast } = useToast();
   
-  // Use the integration store to update global state
+  // Use refs to prevent unnecessary re-renders and loops
+  const hasInitialized = useRef(false);
   const { updateIntegrationStatus, forceRefresh } = useIntegrations();
 
-  // Check Zendesk connection status on component mount
+  // Check Zendesk connection status on component mount - only once
   useEffect(() => {
-    checkZendeskStatus();
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      checkZendeskStatus();
+    }
   }, []);
 
   const checkZendeskStatus = async () => {

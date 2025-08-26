@@ -38,6 +38,14 @@ interface PipelineData {
   };
 }
 
+// Helper function to dispatch status change events
+const dispatchStatusChangeEvent = (integrationId: string, status: string) => {
+  const event = new CustomEvent('integrationStatusChanged', {
+    detail: { integrationId, status }
+  });
+  window.dispatchEvent(event);
+};
+
 const HubspotIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
@@ -89,12 +97,15 @@ const HubspotIntegration = () => {
       if (result.status === 'success') {
         setHubspotStatus(result.data);
         // Update the integration store with the current status
-        updateIntegrationStatus('hubspot', result.data.is_connected ? 'connected' : 'not_connected');
+        const status = result.data.is_connected ? 'connected' : 'not_connected';
+        updateIntegrationStatus('hubspot', status);
+        dispatchStatusChangeEvent('hubspot', status);
       }
     } catch (error) {
       console.error('Error checking HubSpot status:', error);
       // Update store to show disconnected state on error
       updateIntegrationStatus('hubspot', 'not_connected');
+      dispatchStatusChangeEvent('hubspot', 'not_connected');
     } finally {
       setIsCheckingStatus(false);
     }
@@ -219,6 +230,7 @@ const HubspotIntegration = () => {
         setHubspotStatus({ is_connected: false });
         // Update the integration store immediately
         updateIntegrationStatus('hubspot', 'not_connected');
+        dispatchStatusChangeEvent('hubspot', 'not_connected');
         // Force refresh to get latest data
         forceRefresh();
         toast({
