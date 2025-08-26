@@ -29,7 +29,7 @@ export const GuidelinesPanel = () => {
     //track accrodion id opened
   const [openedAccordions, setOpenedAccordions] = useState<Set<string>>(new Set(['basic']));
 
-  const { prompts, isLoading: promptsLoading } = useAgentPrompts(true, openedAccordions.has('guidelines'));
+  const { prompts, isLoading: promptsLoading } = useAgentPrompts(true, openedAccordions.has('basic'));
   const { modelOptionsForDropdown, isLoading: modelsLoading } = useAIModels(openedAccordions.has('model'));
   const { toast } = useToast();
   const [IsAdding,setIsAdding] = useState(false);
@@ -103,6 +103,8 @@ export const GuidelinesPanel = () => {
     // Restore user's previously written content for this agent type, or keep blank
     const previousUserContent = userPromptsByType[agentType] || '';
     updateAgentData({ systemPrompt: previousUserContent });
+
+    //set agent type
   };
 
   // Handle template usage - replace current prompt with template
@@ -586,6 +588,27 @@ export const GuidelinesPanel = () => {
                       className="mt-1.5 min-h-[80px] rounded-xl border-gray-200 dark:border-gray-700"
                     />
                   </div>
+                  {/* Agent Type Selection */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Agent Type</Label>
+                    { promptsLoading ? (
+                       <div className="flex items-center gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                        <LoadingSpinner size="sm" />
+                        <span className="text-sm text-gray-500">Loading models...</span>
+                      </div>
+                    ) : (
+                      <div className="mt-1.5">
+                        <ModernDropdown
+                          value={agentData.agentType || "general_assistant" }
+                          onValueChange={handleAgentTypeChange}
+                          options={agentTypeOptions}
+                          placeholder="Select agent type"
+                          disabled={promptsLoading}
+                        />
+                      </div>
+                    )}
+                    
+                  </div>
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -823,27 +846,6 @@ export const GuidelinesPanel = () => {
               </AccordionTrigger>
               <AccordionContent className="pb-4 px-1">
                 <div className="space-y-6">
-                  {/* Agent Type Selection */}
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Agent Type</Label>
-                    { promptsLoading ? (
-                       <div className="flex items-center gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-                        <LoadingSpinner size="sm" />
-                        <span className="text-sm text-gray-500">Loading models...</span>
-                      </div>
-                    ) : (
-                      <div className="mt-1.5">
-                        <ModernDropdown
-                          value={agentData.agentType || 'general-assistant'}
-                          onValueChange={handleAgentTypeChange}
-                          options={agentTypeOptions}
-                          placeholder="Select agent type"
-                          disabled={promptsLoading}
-                        />
-                      </div>
-                    )}
-                    
-                  </div>
 
                   {/* Simplified System Prompt */}
                   <div>
@@ -954,57 +956,61 @@ export const GuidelinesPanel = () => {
             </AccordionItem>
 
             {/* Behavior Settings */}
-            <AccordionItem value="behavior" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
-              <AccordionTrigger className="py-3 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
-                    <Settings className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="text-sm font-medium">Escalation</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pb-4 px-1">
-                <div className="space-y-4">
-                  
-                  
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
-                    <div className="space-y-1">
-                      <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        Ticket Creation
-                      </Label>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Allow the agent to create ticket for human support
-                      </p>
-                    </div>
-                    <Switch
-                      checked={agentData.behavior?.expertHandoff || false}
-                      onCheckedChange={(checked) => updateAgentData({ 
-                        behavior: { ...agentData.behavior, expertHandoff: checked }
-                      })}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
-                    <div className="space-y-1">
-                      <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        AI to AI Handoff
-                      </Label>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Allow the agent to escalate to other AI agents when needed
-                      </p>
-                    </div>
-                    <Switch
-                      checked={agentData.behavior?.aiToAiHandoff || false}
-                      onCheckedChange={(checked) => updateAgentData({ 
-                        behavior: { ...agentData.behavior, aiToAiHandoff: checked }
-                      })}
-                    />
-                  </div>
-                  
-                 
-                </div>
-              </AccordionContent>
-            </AccordionItem>
+            { 
+              agentData.agentType !== "General Assistant" && agentData.agentType !== "general_assistant" && (
+                <AccordionItem value="behavior" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+                    <AccordionTrigger className="py-3 hover:no-underline">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
+                          <Settings className="h-4 w-4 text-white" />
+                        </div>
+                        <span className="text-sm font-medium">Escalation</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4 px-1">
+                      <div className="space-y-4">
+                        
+                        
+                        <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
+                          <div className="space-y-1">
+                            <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              Ticket Creation
+                            </Label>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                              Allow the agent to create ticket for human support
+                            </p>
+                          </div>
+                          <Switch
+                            checked={agentData.behavior?.expertHandoff || false}
+                            onCheckedChange={(checked) => updateAgentData({ 
+                              behavior: { ...agentData.behavior, expertHandoff: checked }
+                            })}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
+                          <div className="space-y-1">
+                            <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              AI to AI Handoff
+                            </Label>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                              Allow the agent to escalate to other AI agents when needed
+                            </p>
+                          </div>
+                          <Switch
+                            checked={agentData.behavior?.aiToAiHandoff || false}
+                            onCheckedChange={(checked) => updateAgentData({ 
+                              behavior: { ...agentData.behavior, aiToAiHandoff: checked }
+                            })}
+                          />
+                        </div>
+                        
+                      
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+              )
+            }
 
             {/* Suggestions */}
             <AccordionItem value="suggestions" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
@@ -1050,47 +1056,51 @@ export const GuidelinesPanel = () => {
             </AccordionItem>
 
             {/* Integrations */}
-            <AccordionItem value="integrations" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
-              <AccordionTrigger className="py-3 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600">
-                    <Settings2 className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="text-sm font-medium">Integrations</span>
-                  {agentData.ticketing_providers && agentData.ticketing_providers.length > 0 && (
-                    <Badge variant="secondary" className="text-xs dark:bg-gray-500 dark:text-gray-200">
-                      {agentData.ticketing_providers.length}
-                    </Badge>
-                  )}
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pb-4 px-1">
-                <div className="space-y-3">
-                  {agentData.ticketing_providers && agentData.ticketing_providers.length > 0 ? (
-                    <>
-                      {(agentData.ticketing_providers as string[]).map((providerId: string) => (
-                        <IntegrationProviderCard
-                          key={providerId}
-                          providerId={providerId}
-                          isEnabled={true}
-                          onToggle={handleProviderToggle}
-                          isUpdating={IsAdding}
-                          defaultProvider={agentData.default_ticketing_provider}
-                        />
-                      ))}
-                    </>
-                  ) : (
-                    <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-                      <Settings2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm font-semibold">No any apps are being added.</p>
-                      <p className="text-xs mt-1">Go to <Link to="/integrations" className="underline text-primary dark:text-white">Integrations</Link> page to connect apps.</p>
+            {
+              agentData.agentType !== "General Assistant" && agentData.agentType !== "general_assistant" && (
+                <AccordionItem value="integrations" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+                  <AccordionTrigger className="py-3 hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600">
+                        <Settings2 className="h-4 w-4 text-white" />
+                      </div>
+                      <span className="text-sm font-medium">Ticket Providers</span>
+                      {agentData.ticketing_providers && agentData.ticketing_providers.length > 0 && (
+                        <Badge variant="secondary" className="text-xs dark:bg-gray-500 dark:text-gray-200">
+                          {agentData.ticketing_providers.length}
+                        </Badge>
+                      )}
                     </div>
-                  )}
-                  
-                  
-                </div>
-              </AccordionContent>
-            </AccordionItem>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-4 px-1">
+                    <div className="space-y-3">
+                      {agentData.ticketing_providers && agentData.ticketing_providers.length > 0 ? (
+                        <>
+                          {(agentData.ticketing_providers as string[]).map((providerId: string) => (
+                            <IntegrationProviderCard
+                              key={providerId}
+                              providerId={providerId}
+                              isEnabled={true}
+                              onToggle={handleProviderToggle}
+                              isUpdating={IsAdding}
+                              defaultProvider={agentData.default_ticketing_provider}
+                            />
+                          ))}
+                        </>
+                      ) : (
+                        <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                          <Settings2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm font-semibold">No any apps are being added.</p>
+                          <p className="text-xs mt-1">Go to <Link to="/integrations" className="underline text-primary dark:text-white">Integrations</Link> page to connect apps.</p>
+                        </div>
+                      )}
+                      
+                      
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              )
+            }
           </Accordion>
         </div>
       </ScrollArea>
