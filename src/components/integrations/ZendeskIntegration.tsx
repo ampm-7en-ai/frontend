@@ -28,6 +28,14 @@ interface ZendeskStatus {
   integration?: ZendeskIntegration;
 }
 
+// Helper function to dispatch status change events
+const dispatchStatusChangeEvent = (integrationId: string, status: string) => {
+  const event = new CustomEvent('integrationStatusChanged', {
+    detail: { integrationId, status }
+  });
+  window.dispatchEvent(event);
+};
+
 const ZendeskIntegration = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
@@ -64,13 +72,16 @@ const ZendeskIntegration = () => {
           setEmail(result.data.integration.email || '');
         }
         // Update the integration store with the current status
-        updateIntegrationStatus('zendesk', result.data.has_zendesk_integrated ? 'connected' : 'not_connected');
+        const status = result.data.has_zendesk_integrated ? 'connected' : 'not_connected';
+        updateIntegrationStatus('zendesk', status);
+        dispatchStatusChangeEvent('zendesk', status);
       }
     } catch (error) {
       console.error('Error checking Zendesk status:', error);
       setZendeskStatus({ has_zendesk_integrated: false });
       // Update store to show disconnected state on error
       updateIntegrationStatus('zendesk', 'not_connected');
+      dispatchStatusChangeEvent('zendesk', 'not_connected');
     } finally {
       setIsCheckingStatus(false);
     }
@@ -107,6 +118,7 @@ const ZendeskIntegration = () => {
         setApiKey(''); // Clear sensitive data
         // Update the integration store immediately
         updateIntegrationStatus('zendesk', 'connected');
+        dispatchStatusChangeEvent('zendesk', 'connected');
         // Force refresh to get latest data
         forceRefresh();
         toast({
@@ -143,6 +155,7 @@ const ZendeskIntegration = () => {
         setApiKey('');
         // Update the integration store immediately
         updateIntegrationStatus('zendesk', 'not_connected');
+        dispatchStatusChangeEvent('zendesk', 'not_connected');
         // Force refresh to get latest data
         forceRefresh();
         toast({

@@ -55,6 +55,25 @@ const IntegrationsPage = () => {
     forceRefresh
   } = useIntegrations();
 
+  // Add effect to handle integration component callbacks
+  useEffect(() => {
+    const handleIntegrationStatusChange = (event: CustomEvent) => {
+      const { integrationId, status } = event.detail;
+      console.log(`Integration status changed: ${integrationId} -> ${status}`);
+      updateIntegrationStatus(integrationId, status);
+      // Force refresh to ensure consistency
+      setTimeout(() => {
+        forceRefresh();
+      }, 500);
+    };
+
+    window.addEventListener('integrationStatusChanged', handleIntegrationStatusChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('integrationStatusChanged', handleIntegrationStatusChange as EventListener);
+    };
+  }, [updateIntegrationStatus, forceRefresh]);
+
   const handleIntegrationSelect = (integrationId: string) => {
     setSelectedIntegration(integrationId);
     // Update URL parameter to persist selection
@@ -74,6 +93,9 @@ const IntegrationsPage = () => {
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.delete('integration');
     setSearchParams(newSearchParams);
+    
+    // Force refresh when returning to main integrations view
+    forceRefresh();
   };
 
   useEffect(() => {
@@ -212,13 +234,18 @@ const IntegrationsPage = () => {
       const result = await response.json();
       console.log('Google Drive disconnect response:', result);
 
-      // Update the store
+      // Update the store immediately
       updateIntegrationStatus('google_drive', 'not_connected');
 
       toast({
         title: "Success",
         description: result.message || "Google Drive disconnected successfully.",
       });
+
+      // Force refresh after a short delay to ensure backend consistency
+      setTimeout(() => {
+        forceRefresh();
+      }, 1000);
     } catch (error) {
       console.error('Error disconnecting Google Drive:', error);
       toast({
@@ -410,25 +437,6 @@ const IntegrationsPage = () => {
       );
     }
     
-    // if (integrationId !== defaultProvider) {
-    //   return (
-    //     <Badge 
-    //       variant="outline" 
-    //       className={`text-gray-600 border-gray-200 bg-gray-50 dark:bg-gray-900/20 dark:border-gray-800 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900/30 ${
-    //         isSettingDefault === integrationId ? 'opacity-50 cursor-not-allowed' : ''
-    //       }`}
-    //       onClick={() => {
-    //         if (isSettingDefault !== integrationId) {
-    //           handleSetAsDefault(integrationId);
-    //         }
-    //       }}
-    //     >
-    //       <Star className="h-3 w-3 mr-1" />
-    //       {isSettingDefault === integrationId ? 'Setting...' : 'Set as Default'}
-    //     </Badge>
-    //   );
-    // }
-    
     return null;
   };
 
@@ -579,7 +587,6 @@ const IntegrationsPage = () => {
                         <div className="flex flex-col gap-2">
                           {integration && getStatusBadge(integration.status)}
                           {integration && integration.type === 'ticketing' && integration.status === 'connected' && getDefaultBadge(integration.id)}
-                          {/* {isSlackConnected !== "" && getStatusBadge(isSlackConnected)} */}
                         </div>
                       </>
                     );
