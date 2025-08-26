@@ -13,7 +13,7 @@ import {
 } from '@/utils/facebookSDK';
 import { clearCacheEntry } from '@/utils/cacheUtils';
 
-const WhatsAppIntegration = ({ shouldCheckStatus = true }) => {
+const WhatsAppIntegration = ({ shouldCheckStatus = true,setAppConnection }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isFacebookLoading, setIsFacebookLoading] = useState(true);

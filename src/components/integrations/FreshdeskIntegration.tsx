@@ -27,7 +27,7 @@ interface FreshdeskStatus {
   integration?: FreshdeskIntegration;
 }
 
-const FreshdeskIntegration = () => {
+const FreshdeskIntegration = ({setAppConnection}) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [isUnlinking, setIsUnlinking] = useState(false);
@@ -60,6 +60,7 @@ const FreshdeskIntegration = () => {
           });
           // Pre-populate fields with existing data
           setDomain(result.data.integration.domain || '');
+          setAppConnection({ freshdesk: "connected" });
         } else {
           setFreshdeskStatus({ has_freshdesk_integrated: false });
         }

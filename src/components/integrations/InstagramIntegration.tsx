@@ -8,7 +8,7 @@ import { ModernCard, ModernCardContent, ModernCardDescription, ModernCardHeader,
 import { ModernAlert, ModernAlertDescription } from '@/components/ui/modern-alert';
 import { ModernStatusBadge } from '@/components/ui/modern-status-badge';
 
-const InstagramIntegration = () => {
+const InstagramIntegration = ({setAppConnection}) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const { toast } = useToast();

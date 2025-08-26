@@ -38,7 +38,7 @@ interface PipelineData {
   };
 }
 
-const HubspotIntegration = () => {
+const HubspotIntegration = ({setAppConnection}) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [isUnlinking, setIsUnlinking] = useState(false);
@@ -90,6 +90,7 @@ const HubspotIntegration = () => {
         setHubspotStatus(result.data);
         // Update the integration store with the current status
         updateIntegrationStatus('hubspot', result.data.is_connected ? 'connected' : 'not_connected');
+        setAppConnection({ hubspot: result.data.is_connected ? 'connected' : 'not_connected' });
       }
     } catch (error) {
       console.error('Error checking HubSpot status:', error);

@@ -6,7 +6,7 @@ import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useIntegrations } from '@/hooks/useIntegrations';
 
-const GoogleDriveIntegration = () => {
+const GoogleDriveIntegration = ({setAppConnection}) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);

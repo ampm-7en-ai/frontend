@@ -8,7 +8,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ModernInput } from '@/components/ui/modern-input';
 import { Label } from '@/components/ui/label';
 
-const ZapierIntegration = () => {
+const ZapierIntegration = ({setAppConnection}) => {
   const [webhookUrl, setWebhookUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();

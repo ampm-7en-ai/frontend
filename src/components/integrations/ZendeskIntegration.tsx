@@ -28,7 +28,7 @@ interface ZendeskStatus {
   integration?: ZendeskIntegration;
 }
 
-const ZendeskIntegration = () => {
+const ZendeskIntegration = ({setAppConnection}) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [isUnlinking, setIsUnlinking] = useState(false);
@@ -65,12 +65,14 @@ const ZendeskIntegration = () => {
         }
         // Update the integration store with the current status
         updateIntegrationStatus('zendesk', result.data.has_zendesk_integrated ? 'connected' : 'not_connected');
+        setAppConnection({ zendesk: result.data.has_zendesk_integrated ? 'connected' : 'not_connected'});
       }
     } catch (error) {
       console.error('Error checking Zendesk status:', error);
       setZendeskStatus({ has_zendesk_integrated: false });
       // Update store to show disconnected state on error
       updateIntegrationStatus('zendesk', 'not_connected');
+      setAppConnection({ zendesk: "not_connected"});
     } finally {
       setIsCheckingStatus(false);
     }
@@ -104,11 +106,12 @@ const ZendeskIntegration = () => {
           has_zendesk_integrated: true, 
           integration: result.data 
         });
+        setAppConnection({ zendesk: "connected"});
         setApiKey(''); // Clear sensitive data
         // Update the integration store immediately
         updateIntegrationStatus('zendesk', 'connected');
         // Force refresh to get latest data
-        forceRefresh();
+       // forceRefresh();
         toast({
           title: "Successfully Connected",
           description: "Zendesk has been connected successfully.",
@@ -136,15 +139,16 @@ const ZendeskIntegration = () => {
       }
 
       const result = await response.json();
-      if (result.status === 'success') {
+      if (result.status === 'success') { 
         setZendeskStatus({ has_zendesk_integrated: false });
+        setAppConnection({ zendesk: "not_connected" });
         setDomain('');
         setEmail('');
         setApiKey('');
         // Update the integration store immediately
         updateIntegrationStatus('zendesk', 'not_connected');
         // Force refresh to get latest data
-        forceRefresh();
+        //forceRefresh();
         toast({
           title: "Successfully Unlinked",
           description: "Zendesk integration has been disconnected.",

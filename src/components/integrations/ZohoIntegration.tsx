@@ -46,7 +46,7 @@ interface ErrorState {
   isAuthError: boolean;
 }
 
-const ZohoIntegration = () => {
+const ZohoIntegration = ({setAppConnection}) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [isUnlinking, setIsUnlinking] = useState(false);
@@ -122,6 +122,7 @@ const ZohoIntegration = () => {
         setZohoStatus(result.data);
         // If connected, fetch organizations for potential reconfiguration
         if (result.data.is_connected) {
+          setAppConnection({zoho: "connected"});
           fetchOrganizations();
         }
       }
@@ -370,6 +371,7 @@ const ZohoIntegration = () => {
       const result = await response.json();
       if (result.status === 'success') {
         setZohoStatus({ is_connected: false });
+        setAppConnection({ zoho: "not_connected" });
         toast({
           title: "Successfully Unlinked",
           description: "Zoho Desk integration has been disconnected.",

@@ -43,6 +43,8 @@ const IntegrationsPage = () => {
   const [isSlackConnected, setSlackConnected] = useState("");
   const { toast } = useToast();
 
+  
+
   // Use the centralized integration store
   const {
     integrations,
@@ -54,6 +56,21 @@ const IntegrationsPage = () => {
     defaultProvider,
     forceRefresh
   } = useIntegrations();
+
+  //all app connection
+  const [getAppConnection,setAppConnection] = useState({
+    zendesk: getIntegrationStatus('zendesk'),
+    freshdesk: getIntegrationStatus('freshdesk'),
+    hubspot: getIntegrationStatus('hubspot'),
+    zapier: getIntegrationStatus('zapier'),
+    zoho: getIntegrationStatus('zoho'),
+    salesforce: getIntegrationStatus('salesforce'),
+    instagram: getIntegrationStatus('instagram'),
+    slack: getIntegrationStatus('slack'),
+    whatsapp: getIntegrationStatus('whatsapp'),
+    messenger: getIntegrationStatus('messenger'),
+    google_drive: getIntegrationStatus('google_drive')
+  });
 
   const handleIntegrationSelect = (integrationId: string) => {
     setSelectedIntegration(integrationId);
@@ -355,33 +372,34 @@ const IntegrationsPage = () => {
   const renderIntegrationComponent = (integrationId: string) => {
     switch (integrationId) {
       case 'whatsapp':
-        return <WhatsAppIntegration shouldCheckStatus={initialLoadComplete} />;
+        return <WhatsAppIntegration setAppConnection={setAppConnection} shouldCheckStatus={initialLoadComplete} />;
       case 'slack':
-        return <SlackIntegration setSlackConnected={setSlackConnected} />;
+        return <SlackIntegration setAppConnection={setAppConnection} />;
       case 'instagram':
-        return <InstagramIntegration />;
+        return <InstagramIntegration setAppConnection={setAppConnection}/>;
       case 'messenger':
-        return <MessengerIntegration />;
+        return <MessengerIntegration setAppConnection={setAppConnection}/>;
       case 'zapier':
-        return <ZapierIntegration />;
+        return <ZapierIntegration setAppConnection={setAppConnection}/>;
       case 'zendesk':
-        return <ZendeskIntegration />;
+        return <ZendeskIntegration setAppConnection={setAppConnection}/>;
       case 'freshdesk':
-        return <FreshdeskIntegration />;
+        return <FreshdeskIntegration setAppConnection={setAppConnection}/>;
       case 'zoho':
-        return <ZohoIntegration />;
+        return <ZohoIntegration setAppConnection={setAppConnection}/>;
       case 'salesforce':
-        return <SalesforceIntegration />;
+        return <SalesforceIntegration setAppConnection={setAppConnection}/>;
       case 'hubspot':
-        return <HubspotIntegration />;
+        return <HubspotIntegration setAppConnection={setAppConnection}/>;
       case 'google_drive':
-        return <GoogleDriveIntegration />;
+        return <GoogleDriveIntegration setAppConnection={setAppConnection}/>;
       default:
         return null;
     }
   };
 
   const getStatusBadge = (status: string) => {
+    console.log("pujan",status);
     if (status === 'connected') {
       return (
         <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400">
@@ -577,9 +595,10 @@ const IntegrationsPage = () => {
                           </p>
                         </div>
                         <div className="flex flex-col gap-2">
-                          {integration && getStatusBadge(integration.status)}
-                          {integration && integration.type === 'ticketing' && integration.status === 'connected' && getDefaultBadge(integration.id)}
+                          {/* {integration && getStatusBadge(integration.status)}
+                          {integration && integration.type === 'ticketing' && integration.status === 'connected' && getDefaultBadge(integration.id)} */}
                           {/* {isSlackConnected !== "" && getStatusBadge(isSlackConnected)} */}
+                          {getStatusBadge(getAppConnection[integration.id])}
                         </div>
                       </>
                     );

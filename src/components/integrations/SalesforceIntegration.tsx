@@ -14,7 +14,7 @@ interface SalesforceStatus {
   instance_url?: string;
 }
 
-const SalesforceIntegration = () => {
+const SalesforceIntegration = ({setAppConnection}) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
@@ -38,6 +38,7 @@ const SalesforceIntegration = () => {
       const result = await response.json();
       if (result.status === 'success') {
         setSalesforceStatus(result.data);
+        setAppConnection({ salesforce: result.data.is_connected ? "connected" : "not_connected" });
       }
     } catch (error) {
       console.error('Error checking Salesforce status:', error);
@@ -100,6 +101,7 @@ const SalesforceIntegration = () => {
       console.log('Salesforce disconnect response:', result);
 
       setSalesforceStatus({ is_connected: false });
+      setAppConnection({ salesforce: "not_connected" });
       toast({
         title: "Successfully Disconnected",
         description: result.message || "Salesforce integration has been disconnected.",
