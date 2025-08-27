@@ -35,6 +35,12 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
   const [manualUrls, setManualUrls] = useState(['']);
   const [addUrlsManually, setAddUrlsManually] = useState(false);
 
+  // Map WizardSourceType to SourceTypeSelector's expected type
+  const getSourceTypeSelectorType = (wizardType: WizardSourceType): 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty' => {
+    if (wizardType === 'website') return 'url';
+    return wizardType as 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
+  };
+
   const canProceed = () => {
     if (!sourceName.trim()) return false;
     
@@ -144,92 +150,100 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
     // Mock implementation
   };
 
+  const handleSetImportAllPages = (value: boolean) => {
+    setImportAllPages(value);
+  };
+
+  const handleSourceTypeChange = (type: 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty') => {
+    // Map back to WizardSourceType
+    const wizardType: WizardSourceType = type === 'url' ? 'website' : type;
+    setSelectedType(wizardType);
+  };
+
   return (
-    <div className="space-y-8">
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-semibold text-foreground mb-2">
-            Add Knowledge Source
-          </h2>
-          <p className="text-muted-foreground">
-            Give your agent some initial knowledge to work with
-          </p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold text-foreground mb-2">
+          Add Knowledge Source
+        </h2>
+        <p className="text-muted-foreground">
+          Give your agent some initial knowledge to work with
+        </p>
+      </div>
 
-        {/* Source Name */}
-        <div className="space-y-3">
-          <Label htmlFor="source-name" className="text-sm font-medium text-foreground">
-            Source Name
-          </Label>
-          <Input
-            id="source-name"
-            placeholder="Enter a descriptive name for this knowledge source"
-            value={sourceName}
-            onChange={(e) => setSourceName(e.target.value)}
-            className="bg-background border-border"
-          />
-        </div>
+      {/* Source Name */}
+      <div className="space-y-3">
+        <Label htmlFor="source-name" className="text-sm font-medium text-foreground">
+          Source Name
+        </Label>
+        <Input
+          id="source-name"
+          placeholder="Enter a descriptive name for this knowledge source"
+          value={sourceName}
+          onChange={(e) => setSourceName(e.target.value)}
+          className="bg-background border-border"
+        />
+      </div>
 
-        {/* Source Type Selector */}
-        <div className="space-y-4">
-          <Label className="text-sm font-medium text-foreground">
-            Choose Knowledge Type
-          </Label>
-          <SourceTypeSelector
-            sourceType={selectedType}
-            setSourceType={setSelectedType}
-            url={url}
-            setUrl={setUrl}
-            files={files}
-            setFiles={setFiles}
-            plainText={plainText}
-            setPlainText={setPlainText}
-            importAllPages={importAllPages}
-            setImportAllPages={setImportAllPages}
-            selectedProvider={selectedProvider}
-            setSelectedProvider={setSelectedProvider}
-            selectedFiles={selectedFiles}
-            setSelectedFiles={setSelectedFiles}
-            validationErrors={validationErrors}
-            setValidationErrors={setValidationErrors}
-            isDragOver={isDragOver}
-            setIsDragOver={setIsDragOver}
-            isConnecting={isConnecting}
-            isLoadingGoogleDriveFiles={isLoadingGoogleDriveFiles}
-            googleDriveFiles={googleDriveFiles}
-            availableThirdPartyProviders={[]}
-            thirdPartyProviders={{
-              googleDrive: { icon: null, name: 'Google Drive', description: '', color: '', id: 'google_drive' },
-              slack: { icon: null, name: 'Slack', description: '', color: '', id: 'slack' },
-              notion: { icon: null, name: 'Notion', description: '', color: '', id: 'notion' },
-              dropbox: { icon: null, name: 'Dropbox', description: '', color: '', id: 'dropbox' },
-              github: { icon: null, name: 'GitHub', description: '', color: '', id: 'github' }
-            }}
-            handleFileChange={handleFileChange}
-            removeFile={removeFile}
-            handleQuickConnect={handleQuickConnect}
-            handleRemoveSelectedFile={handleRemoveSelectedFile}
-            handleFileUploadClick={handleFileUploadClick}
-            handleDragOver={handleDragOver}
-            handleDragLeave={handleDragLeave}
-            handleDrop={handleDrop}
-            getFileIcon={getFileIcon}
-            toggleFileSelection={toggleFileSelection}
-            isScrapingUrls={isScrapingUrls}
-            scrapedUrls={scrapedUrls}
-            toggleUrlSelection={toggleUrlSelection}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            sortOrder={sortOrder}
-            handleSortToggle={handleSortToggle}
-            handleRefreshFiles={handleRefreshFiles}
-            pageData={{nextToken: '', prevToken: ''}}
-            manualUrls={manualUrls}
-            setManualUrls={setManualUrls}
-            addUrlsManually={addUrlsManually}
-            setAddUrlsManually={setAddUrlsManually}
-          />
-        </div>
+      {/* Source Type Selector */}
+      <div className="space-y-4">
+        <Label className="text-sm font-medium text-foreground">
+          Choose Knowledge Type
+        </Label>
+        <SourceTypeSelector
+          sourceType={getSourceTypeSelectorType(selectedType)}
+          setSourceType={handleSourceTypeChange}
+          url={url}
+          setUrl={setUrl}
+          files={files}
+          setFiles={setFiles}
+          plainText={plainText}
+          setPlainText={setPlainText}
+          importAllPages={importAllPages}
+          setImportAllPages={handleSetImportAllPages}
+          selectedProvider={selectedProvider}
+          setSelectedProvider={setSelectedProvider}
+          selectedFiles={selectedFiles}
+          setSelectedFiles={setSelectedFiles}
+          validationErrors={validationErrors}
+          setValidationErrors={setValidationErrors}
+          isDragOver={isDragOver}
+          setIsDragOver={setIsDragOver}
+          isConnecting={isConnecting}
+          isLoadingGoogleDriveFiles={isLoadingGoogleDriveFiles}
+          googleDriveFiles={googleDriveFiles}
+          availableThirdPartyProviders={[]}
+          thirdPartyProviders={{
+            googleDrive: { icon: null, name: 'Google Drive', description: '', color: '', id: 'google_drive' },
+            slack: { icon: null, name: 'Slack', description: '', color: '', id: 'slack' },
+            notion: { icon: null, name: 'Notion', description: '', color: '', id: 'notion' },
+            dropbox: { icon: null, name: 'Dropbox', description: '', color: '', id: 'dropbox' },
+            github: { icon: null, name: 'GitHub', description: '', color: '', id: 'github' }
+          }}
+          handleFileChange={handleFileChange}
+          removeFile={removeFile}
+          handleQuickConnect={handleQuickConnect}
+          handleRemoveSelectedFile={handleRemoveSelectedFile}
+          handleFileUploadClick={handleFileUploadClick}
+          handleDragOver={handleDragOver}
+          handleDragLeave={handleDragLeave}
+          handleDrop={handleDrop}
+          getFileIcon={getFileIcon}
+          toggleFileSelection={toggleFileSelection}
+          isScrapingUrls={isScrapingUrls}
+          scrapedUrls={scrapedUrls}
+          toggleUrlSelection={toggleUrlSelection}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          sortOrder={sortOrder}
+          handleSortToggle={handleSortToggle}
+          handleRefreshFiles={handleRefreshFiles}
+          pageData={{nextToken: '', prevToken: ''}}
+          manualUrls={manualUrls}
+          setManualUrls={setManualUrls}
+          addUrlsManually={addUrlsManually}
+          setAddUrlsManually={setAddUrlsManually}
+        />
       </div>
 
       {/* Actions */}
