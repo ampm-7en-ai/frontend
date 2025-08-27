@@ -93,6 +93,7 @@ interface SourceTypeSelectorProps {
   setManualUrls?: React.Dispatch<React.SetStateAction<string[]>>;
   addUrlsManually?: boolean;
   setAddUrlsManually?: (checked: boolean) => void;
+  onKnowledgeSourceCreated?: () => void;
 }
 
 interface SourceConfig {
@@ -150,7 +151,8 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
   manualUrls,
   setManualUrls,
   addUrlsManually,
-  setAddUrlsManually
+  setAddUrlsManually,
+  onKnowledgeSourceCreated
 }) => {
   const navigate = useNavigate();
   const [urlSearchQuery, setUrlSearchQuery] = useState('');
