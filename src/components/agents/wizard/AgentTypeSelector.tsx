@@ -32,7 +32,7 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
       description: 'Quick responses and customer support',
       icon: MessageSquare,
       features: [
-        'Automatice ticket creation',
+        'Automatic ticket creation',
         'Seamless AI to AI agent handoff',
         'Supports third-party ticket providers',
         'Customer support focused'
@@ -57,26 +57,36 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
           <Card
             key={type.id}
             className={cn(
-              'cursor-pointer transition-all duration-200 relative shadow-none',
+              'cursor-pointer transition-all duration-200 relative shadow-none border-2',
               selectedType === type.id
-                ? 'border-primary bg-accent/20'
-                : 'hover:shadow-xl'
+                ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                : 'border-border hover:border-primary/30 hover:shadow-lg'
             )}
             onClick={() => onTypeSelect(type.id)}
           >
             <CardContent className="p-6">
               <div className="flex items-start gap-4 mb-6">
-                <div className="p-3 rounded-2xl bg-muted">
-                  <type.icon className="h-6 w-6 text-foreground" />
+                <div className={cn(
+                  "p-3 rounded-2xl transition-colors",
+                  selectedType === type.id 
+                    ? "bg-primary/10" 
+                    : "bg-muted"
+                )}>
+                  <type.icon className={cn(
+                    "h-6 w-6 transition-colors",
+                    selectedType === type.id 
+                      ? "text-primary" 
+                      : "text-foreground"
+                  )} />
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-0 mb-0">
-                    <h4 className="text-lg font-semibold text-foreground mb-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="text-lg font-semibold text-foreground">
                       {type.title}
                     </h4>
                     {selectedType === type.id && (
-                      <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+                      <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0" />
                     )}
                   </div>
                   <p className="text-muted-foreground text-sm">
@@ -93,7 +103,10 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
                   <ul className="space-y-2">
                     {type.features.map((feature, index) => (
                       <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                        <div className={cn(
+                          "w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors",
+                          selectedType === type.id ? "bg-primary" : "bg-muted-foreground/40"
+                        )} />
                         {feature}
                       </li>
                     ))}

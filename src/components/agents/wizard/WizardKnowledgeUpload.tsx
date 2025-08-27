@@ -1,23 +1,24 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import SourceTypeSelector from '@/components/agents/knowledge/SourceTypeSelector';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { SourceType } from '@/components/agents/knowledge/types';
 
 export type WizardSourceType = 'document' | 'website' | 'plainText' | 'url' | 'csv' | 'thirdParty';
 
 interface WizardKnowledgeUploadProps {
+  agentId: string | null;
   onKnowledgeAdd: (data: { type: WizardSourceType; content: any; name: string }) => void;
   onSkip: () => void;
 }
 
-const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUploadProps) => {
-  const [selectedType, setSelectedType] = useState<WizardSourceType>('url');
+const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip }: WizardKnowledgeUploadProps) => {
   const [sourceName, setSourceName] = useState('');
   
-  // All required state for SourceTypeSelector
+  // SourceTypeSelector state - matching AddSourcesModal pattern
+  const [sourceType, setSourceType] = useState<SourceType>('url');
   const [url, setUrl] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [plainText, setPlainText] = useState('');
@@ -36,22 +37,21 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
   const [manualUrls, setManualUrls] = useState(['']);
   const [addUrlsManually, setAddUrlsManually] = useState(false);
 
-  // Map WizardSourceType to SourceTypeSelector's expected type
-  const getSourceTypeSelectorType = (wizardType: WizardSourceType): 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty' => {
-    if (wizardType === 'website') return 'url';
-    return wizardType as 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
+  // Map SourceType to WizardSourceType
+  const mapToWizardSourceType = (type: SourceType): WizardSourceType => {
+    if (type === 'url') return 'website';
+    return type as WizardSourceType;
   };
 
   const canProceed = () => {
     if (!sourceName.trim()) return false;
     
-    switch (selectedType) {
+    switch (sourceType) {
       case 'document':
       case 'csv':
         return files.length > 0;
-      case 'website':
       case 'url':
-        return url.trim() !== '';
+        return url.trim() !== '' || (addUrlsManually && manualUrls.some(u => u.trim()));
       case 'plainText':
         return plainText.trim() !== '';
       case 'thirdParty':
@@ -65,14 +65,17 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
     if (!canProceed()) return;
 
     let content;
-    switch (selectedType) {
+    switch (sourceType) {
       case 'document':
       case 'csv':
         content = files;
         break;
-      case 'website':
       case 'url':
-        content = url;
+        if (addUrlsManually) {
+          content = manualUrls.filter(u => u.trim()).join('\n');
+        } else {
+          content = url;
+        }
         break;
       case 'plainText':
         content = plainText;
@@ -83,13 +86,13 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
     }
 
     onKnowledgeAdd({
-      type: selectedType,
+      type: mapToWizardSourceType(sourceType),
       content,
       name: sourceName
     });
   };
 
-  // Mock handlers for SourceTypeSelector
+  // Mock handlers for SourceTypeSelector - matching AddSourcesModal pattern
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setFiles(Array.from(e.target.files));
@@ -102,6 +105,16 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
 
   const handleQuickConnect = (provider: any) => {
     setSelectedProvider(provider);
+    setIsConnecting(true);
+    // Mock connection logic
+    setTimeout(() => {
+      setIsConnecting(false);
+      setGoogleDriveFiles([
+        { id: '1', name: 'Document 1.pdf', type: 'pdf' },
+        { id: '2', name: 'Document 2.docx', type: 'docx' }
+      ]);
+      setIsLoadingGoogleDriveFiles(false);
+    }, 1000);
   };
 
   const handleRemoveSelectedFile = (index: number) => {
@@ -109,7 +122,7 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
   };
 
   const handleFileUploadClick = () => {
-    document.getElementById('file-input')?.click();
+    document.getElementById('wizard-file-input')?.click();
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -131,6 +144,7 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
   };
 
   const getFileIcon = () => <div>📄</div>;
+  
   const toggleFileSelection = (fileName: string) => {
     setSelectedFiles(prev => 
       prev.includes(fileName) 
@@ -140,7 +154,7 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
   };
 
   const toggleUrlSelection = (url: string) => {
-    // Mock implementation
+    // Implementation for URL selection
   };
 
   const handleSortToggle = () => {
@@ -148,17 +162,60 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
   };
 
   const handleRefreshFiles = () => {
-    // Mock implementation
+    // Mock refresh
   };
 
   const handleSetImportAllPages = (value: boolean) => {
     setImportAllPages(value);
   };
 
-  const handleSourceTypeChange = (type: 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty') => {
-    // Map back to WizardSourceType
-    const wizardType: WizardSourceType = type === 'url' ? 'website' : type;
-    setSelectedType(wizardType);
+  // Available third-party providers
+  const availableThirdPartyProviders = [
+    {
+      id: 'google_drive',
+      name: 'Google Drive',
+      description: 'Import documents from Google Drive',
+      icon: null,
+      color: '#4285f4'
+    }
+  ];
+
+  const thirdPartyProviders = {
+    googleDrive: { 
+      icon: null, 
+      name: 'Google Drive', 
+      description: 'Import from Google Drive', 
+      color: '#4285f4', 
+      id: 'google_drive' 
+    },
+    slack: { 
+      icon: null, 
+      name: 'Slack', 
+      description: 'Import from Slack', 
+      color: '#4a154b', 
+      id: 'slack' 
+    },
+    notion: { 
+      icon: null, 
+      name: 'Notion', 
+      description: 'Import from Notion', 
+      color: '#000000', 
+      id: 'notion' 
+    },
+    dropbox: { 
+      icon: null, 
+      name: 'Dropbox', 
+      description: 'Import from Dropbox', 
+      color: '#0061ff', 
+      id: 'dropbox' 
+    },
+    github: { 
+      icon: null, 
+      name: 'GitHub', 
+      description: 'Import from GitHub', 
+      color: '#24292e', 
+      id: 'github' 
+    }
   };
 
   return (
@@ -192,8 +249,8 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
           Choose Knowledge Type
         </Label>
         <SourceTypeSelector
-          sourceType={getSourceTypeSelectorType(selectedType)}
-          setSourceType={handleSourceTypeChange}
+          sourceType={sourceType}
+          setSourceType={setSourceType}
           url={url}
           setUrl={setUrl}
           files={files}
@@ -213,14 +270,8 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
           isConnecting={isConnecting}
           isLoadingGoogleDriveFiles={isLoadingGoogleDriveFiles}
           googleDriveFiles={googleDriveFiles}
-          availableThirdPartyProviders={[]}
-          thirdPartyProviders={{
-            googleDrive: { icon: null, name: 'Google Drive', description: '', color: '', id: 'google_drive' },
-            slack: { icon: null, name: 'Slack', description: '', color: '', id: 'slack' },
-            notion: { icon: null, name: 'Notion', description: '', color: '', id: 'notion' },
-            dropbox: { icon: null, name: 'Dropbox', description: '', color: '', id: 'dropbox' },
-            github: { icon: null, name: 'GitHub', description: '', color: '', id: 'github' }
-          }}
+          availableThirdPartyProviders={availableThirdPartyProviders}
+          thirdPartyProviders={thirdPartyProviders}
           handleFileChange={handleFileChange}
           removeFile={removeFile}
           handleQuickConnect={handleQuickConnect}
@@ -244,6 +295,16 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
           setManualUrls={setManualUrls}
           addUrlsManually={addUrlsManually}
           setAddUrlsManually={setAddUrlsManually}
+        />
+
+        {/* Hidden file input for manual file selection */}
+        <input
+          id="wizard-file-input"
+          type="file"
+          multiple
+          accept=".pdf,.doc,.docx,.txt,.csv"
+          onChange={handleFileChange}
+          className="hidden"
         />
       </div>
 

@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, ArrowRight, Loader2, Sparkles, Circle } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Loader2, Sparkles, Circle, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AgentTypeSelector, { AgentType } from './AgentTypeSelector';
 import WizardKnowledgeUpload, { WizardSourceType } from './WizardKnowledgeUpload';
@@ -14,6 +15,7 @@ import { transformAgentCreationResponse } from '@/utils/agentTransformUtils';
 import { updateCachesAfterAgentCreation } from '@/utils/agentCacheUtils';
 import { knowledgeApi } from '@/utils/api-config';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { AgentTrainingService } from '@/services/AgentTrainingService';
 
 interface AgentCreationWizardProps {
   open: boolean;
@@ -119,16 +121,20 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
     }
   };
 
-  const handleTypeSelect = async (type: AgentType) => {
+  const handleTypeSelect = (type: AgentType) => {
     setSelectedType(type);
+  };
+
+  const handleCreateAgent = async () => {
+    if (!selectedType) return;
     
     try {
-      const agentId = await createAgent(type);
+      const agentId = await createAgent(selectedType);
       setCreatedAgentId(agentId);
       
       toast({
         title: "Agent Created",
-        description: `Your ${type} has been created successfully.`,
+        description: `Your ${selectedType} has been created successfully.`,
         variant: "default"
       });
 
@@ -173,18 +179,32 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
   };
 
   const handleTrainNow = async () => {
-    if (!createdAgentId) return;
+    if (!createdAgentId || !knowledgeData) return;
 
     setIsTraining(true);
     try {
-      onOpenChange(false);
-      navigate(`/agents/builder/${createdAgentId}`);
-      
-      toast({
-        title: "Training Started",
-        description: "Your agent is being trained with the uploaded knowledge.",
-        variant: "default"
-      });
+      // Use the same training mechanism as in builder
+      const success = await AgentTrainingService.trainAgent(
+        createdAgentId,
+        [], // knowledge sources will be fetched by the service
+        `Agent ${createdAgentId}`,
+        [], // selected URLs if any
+        async () => {
+          // Refetch function
+          queryClient.invalidateQueries({ queryKey: ['agents'] });
+        }
+      );
+
+      if (success) {
+        toast({
+          title: "Training Started",
+          description: "Your agent is being trained with the uploaded knowledge.",
+          variant: "default"
+        });
+        
+        onOpenChange(false);
+        navigate(`/agents/builder/${createdAgentId}`);
+      }
     } catch (error) {
       console.error('Error starting training:', error);
       toast({
@@ -256,6 +276,23 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
             </div>
           ))}
         </div>
+
+        {/* Warning for AI Assistant */}
+        {selectedType === 'assistant' && currentStep === 'type' && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mt-6">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                  Ticket Management Limitation
+                </h4>
+                <p className="text-xs text-amber-700 dark:text-amber-300">
+                  AI Assistants are not capable of managing support tickets. Consider selecting Chatbot for customer support scenarios.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -300,15 +337,43 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
     switch (currentStep) {
       case 'type':
         return (
-          <AgentTypeSelector
-            selectedType={selectedType}
-            onTypeSelect={handleTypeSelect}
-          />
+          <div className="flex flex-col h-full">
+            <div className="flex-1">
+              <AgentTypeSelector
+                selectedType={selectedType}
+                onTypeSelect={handleTypeSelect}
+              />
+            </div>
+            
+            {/* Create Agent Button */}
+            {selectedType && (
+              <div className="flex justify-end pt-6 border-t border-border mt-6">
+                <ModernButton 
+                  onClick={handleCreateAgent}
+                  disabled={!selectedType || isCreatingAgent}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  {isCreatingAgent ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRight className="w-4 h-4 mr-2" />
+                      Create Agent
+                    </>
+                  )}
+                </ModernButton>
+              </div>
+            )}
+          </div>
         );
       
       case 'knowledge':
         return (
           <WizardKnowledgeUpload
+            agentId={createdAgentId}
             onKnowledgeAdd={handleKnowledgeAdd}
             onSkip={handleKnowledgeSkip}
           />
