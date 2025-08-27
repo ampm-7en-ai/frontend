@@ -65,7 +65,7 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
         body: JSON.stringify({
           name: `New ${agentType === 'assistant' ? 'Assistant' : 'Chatbot'} ${Date.now()}`,
           description: `A new AI ${agentType} ready to be configured.`,
-          agent_type: agentType
+          agent_category: agentType
         })
       });
 
