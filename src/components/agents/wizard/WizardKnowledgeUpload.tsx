@@ -4,17 +4,31 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import SourceTypeSelector from '@/components/agents/knowledge/SourceTypeSelector';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { SourceType } from '@/components/agents/knowledge/types';
+import { AgentTrainingService } from '@/services/AgentTrainingService';
 
+// Define the source types locally since they're not exported from the types file
+export type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 export type WizardSourceType = 'document' | 'website' | 'plainText' | 'url' | 'csv' | 'thirdParty';
+
+// Define the third party provider types to match what SourceTypeSelector expects
+type ThirdPartyProvider = 'googleDrive' | 'slack' | 'notion' | 'dropbox' | 'github';
+
+interface ThirdPartyConfig {
+  icon: React.ReactNode;
+  name: string;
+  description: string;
+  color: string;
+  id: string;
+}
 
 interface WizardKnowledgeUploadProps {
   agentId: string | null;
   onKnowledgeAdd: (data: { type: WizardSourceType; content: any; name: string }) => void;
   onSkip: () => void;
+  onTrainAgent: () => void;
 }
 
-const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip }: WizardKnowledgeUploadProps) => {
+const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }: WizardKnowledgeUploadProps) => {
   const [sourceName, setSourceName] = useState('');
   
   // SourceTypeSelector state - matching AddSourcesModal pattern
@@ -23,7 +37,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip }: WizardKnowle
   const [files, setFiles] = useState<File[]>([]);
   const [plainText, setPlainText] = useState('');
   const [importAllPages, setImportAllPages] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState(null);
+  const [selectedProvider, setSelectedProvider] = useState<ThirdPartyProvider | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [validationErrors, setValidationErrors] = useState({});
   const [isDragOver, setIsDragOver] = useState(false);
@@ -36,6 +50,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip }: WizardKnowle
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [manualUrls, setManualUrls] = useState(['']);
   const [addUrlsManually, setAddUrlsManually] = useState(false);
+  const [isTraining, setIsTraining] = useState(false);
 
   // Map SourceType to WizardSourceType
   const mapToWizardSourceType = (type: SourceType): WizardSourceType => {
@@ -92,6 +107,20 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip }: WizardKnowle
     });
   };
 
+  const handleTrainAgent = async () => {
+    if (!agentId) return;
+    
+    setIsTraining(true);
+    try {
+      await AgentTrainingService.trainAgent(parseInt(agentId));
+      onTrainAgent();
+    } catch (error) {
+      console.error('Training failed:', error);
+    } finally {
+      setIsTraining(false);
+    }
+  };
+
   // Mock handlers for SourceTypeSelector - matching AddSourcesModal pattern
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -103,7 +132,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip }: WizardKnowle
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleQuickConnect = (provider: any) => {
+  const handleQuickConnect = (provider: ThirdPartyProvider) => {
     setSelectedProvider(provider);
     setIsConnecting(true);
     // Mock connection logic
@@ -169,18 +198,12 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip }: WizardKnowle
     setImportAllPages(value);
   };
 
-  // Available third-party providers
-  const availableThirdPartyProviders = [
-    {
-      id: 'google_drive',
-      name: 'Google Drive',
-      description: 'Import documents from Google Drive',
-      icon: null,
-      color: '#4285f4'
-    }
-  ];
+  const fetchGoogleDriveData = async (token?: string) => {
+    // Mock implementation
+  };
 
-  const thirdPartyProviders = {
+  // Available third-party providers - matching the structure expected by SourceTypeSelector
+  const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
     googleDrive: { 
       icon: null, 
       name: 'Google Drive', 
@@ -217,6 +240,15 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip }: WizardKnowle
       id: 'github' 
     }
   };
+
+  // Convert to the format expected by SourceTypeSelector
+  const availableThirdPartyProviders = Object.entries(thirdPartyProviders).map(([key, config]) => ({
+    id: config.id,
+    name: config.name,
+    description: config.description,
+    icon: config.icon,
+    color: config.color
+  }));
 
   return (
     <div className="space-y-6">
@@ -295,6 +327,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip }: WizardKnowle
           setManualUrls={setManualUrls}
           addUrlsManually={addUrlsManually}
           setAddUrlsManually={setAddUrlsManually}
+          fetchGoogleDriveData={fetchGoogleDriveData}
         />
 
         {/* Hidden file input for manual file selection */}
@@ -318,13 +351,23 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip }: WizardKnowle
           Skip for Now
         </ModernButton>
         
-        <ModernButton 
-          onClick={handleAddKnowledge}
-          disabled={!canProceed()}
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
-        >
-          Add Knowledge
-        </ModernButton>
+        <div className="flex gap-3">
+          <ModernButton 
+            onClick={handleAddKnowledge}
+            disabled={!canProceed()}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            Add Knowledge
+          </ModernButton>
+          
+          <ModernButton 
+            onClick={handleTrainAgent}
+            disabled={isTraining || !agentId}
+            className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
+          >
+            {isTraining ? 'Training...' : 'Train Agent'}
+          </ModernButton>
+        </div>
       </div>
     </div>
   );
