@@ -58,9 +58,9 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
   const { showToast } = useFloatingToast();
   const [sourceName, setSourceName] = useState('');
   const [addedSources, setAddedSources] = useState<KnowledgeSource[]>([]);
+  const [knowledgeSourceIds, setKnowledgeSourceIds] = useState<number[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   
-  // SourceTypeSelector state - matching AddSourcesModal pattern
   const [sourceType, setSourceType] = useState<SourceType>('url');
   const [url, setUrl] = useState('');
   const [files, setFiles] = useState<File[]>([]);
@@ -82,15 +82,12 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
   const [isTraining, setIsTraining] = useState(false);
   const [pageData, setPageData] = useState({nextToken: '', prevToken: ''});
 
-  // Use centralized integration management
   const { getIntegrationsByType } = useIntegrations();
 
-  // Get connected storage integrations
   const connectedStorageIntegrations = getIntegrationsByType('storage').filter(
     integration => integration.status === 'connected'
   );
 
-  // Third party providers configuration
   const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
     googleDrive: {
       icon: <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg" alt="Google Drive" className="h-4 w-4" />,
@@ -129,12 +126,10 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     }
   };
 
-  // Filter to show only connected third party providers
   const availableThirdPartyProviders = Object.entries(thirdPartyProviders).filter(([id, provider]) =>
     connectedStorageIntegrations.some(integration => integration.id === provider.id)
   ) as [string, ThirdPartyConfig][];
 
-  // Google Drive files fetching - implemented properly
   const fetchGoogleDriveData = async (token?: string) => {
     if (!user?.accessToken) return;
     
@@ -185,7 +180,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     }
   };
 
-  // URL scraping functionality - taken from AddSourcesModal
   const scrapeUrls = async (baseUrl: string) => {
     if (!user?.accessToken) return;
     
@@ -209,11 +203,10 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
       const data = await response.json();
       const urls = data.data?.urls || data.urls || [];
       
-      // Transform the URLs to the expected format
       const transformedUrls: ScrapedUrl[] = urls.map((urlItem: any) => ({
         url: urlItem.url || urlItem,
         title: urlItem.title || urlItem.url || urlItem,
-        selected: true // Default to selected
+        selected: true
       }));
 
       setScrapedUrls(transformedUrls);
@@ -250,12 +243,10 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     const validManualUrls = manualUrls.filter(url => url.trim() !== '');
     const scrapedUrlsList = scrapedUrls.filter(u => u.selected).map(u => u.url);
     
-    // Merge and remove duplicates
     const allUrls = [...new Set([...validManualUrls, ...scrapedUrlsList])];
     return allUrls;
   };
 
-  // Map SourceType to WizardSourceType
   const mapToWizardSourceType = (type: SourceType): WizardSourceType => {
     if (type === 'url') return 'website';
     return type as WizardSourceType;
@@ -328,7 +319,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           } else if (sourceType === 'plainText') {
             payload.plain_text = plainText;
           } else if (sourceType === 'thirdParty') {
-            // Handle third party integrations
             payload.selected_files = selectedFiles;
           }
 
@@ -387,11 +377,12 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         metadata: apiResponse.data.metadata
       };
 
-      console.log('✅ New source created:', newSource);
+      console.log('✅ New source created with ID:', newSource.id);
 
+      // Store knowledge source ID for training
+      setKnowledgeSourceIds(prev => [...prev, newSource.id]);
       setAddedSources(prev => [...prev, newSource]);
 
-      // Reset form
       setSourceName('');
       setUrl('');
       setFiles([]);
@@ -408,7 +399,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         variant: "success"
       });
 
-      // Also call the original callback for compatibility
       const content = sourceType === 'url' ? (getAllUrls().length > 0 ? getAllUrls() : url) :
                      sourceType === 'plainText' ? plainText :
                      sourceType === 'document' || sourceType === 'csv' ? files :
@@ -427,8 +417,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     
     setIsTraining(true);
     try {
-      // Prepare training payload with source IDs and URLs
-      const knowledgeSourceIds = addedSources.map(source => source.id);
       const allUrls = addedSources.reduce((urls: string[], source) => {
         if (source.urls && source.urls.length > 0) {
           return [...urls, ...source.urls];
@@ -444,11 +432,10 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
 
       const success = await AgentTrainingService.trainAgent(
         agentId,
-        knowledgeSourceIds, // Send the actual knowledge source IDs
+        knowledgeSourceIds,
         `Agent ${agentId}`,
-        allUrls, // Send all URLs from added sources
+        allUrls,
         async () => {
-          // Refetch function - can be empty for wizard
         }
       );
       
@@ -491,7 +478,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     setSelectedProvider(provider);
     setIsConnecting(true);
     
-    // Auto-fetch files for Google Drive
     if (provider === 'googleDrive') {
       fetchGoogleDriveData();
     }
@@ -570,7 +556,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         </p>
       </div>
 
-      {/* Added Knowledge Sources List */}
       {addedSources.length > 0 && (
         <div className="space-y-3">
           <Label className="text-sm font-medium text-foreground">
@@ -583,7 +568,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{source.title}</p>
                   <p className="text-xs text-muted-foreground">
-                    {source.type === 'docs' && source.metadata?.format ? `${source.metadata.format.toUpperCase()} file` : 
+                    ID: {source.id} • {source.type === 'docs' && source.metadata?.format ? `${source.metadata.format.toUpperCase()} file` : 
                      source.type === 'url' && source.urls.length > 0 ? `${source.urls.length} URL(s)` :
                      source.type}
                   </p>
@@ -595,7 +580,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         </div>
       )}
 
-      {/* Source Name */}
       <div className="space-y-3">
         <Label htmlFor="source-name" className="text-sm font-medium text-foreground">
           Source Name
@@ -609,7 +593,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         />
       </div>
 
-      {/* Source Type Selector */}
       <div className="space-y-4">
         <Label className="text-sm font-medium text-foreground">
           Choose Knowledge Type
@@ -664,7 +647,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           fetchGoogleDriveData={fetchGoogleDriveData}
         />
 
-        {/* Hidden file input for manual file selection */}
         <input
           id="wizard-file-input"
           type="file"
@@ -675,7 +657,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         />
       </div>
 
-      {/* Actions */}
       <div className="flex justify-between pt-6 border-t border-border">
         <div className="flex gap-3">
           <ModernButton 
