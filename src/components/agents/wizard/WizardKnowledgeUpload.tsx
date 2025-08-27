@@ -9,6 +9,7 @@ import { useIntegrations } from '@/hooks/useIntegrations';
 import { useAuth } from '@/context/AuthContext';
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import { BASE_URL } from '@/utils/api-config';
+import { GoogleDriveFile } from '@/types/googleDrive';
 
 // Define the source types locally since they're not exported from the types file
 export type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
@@ -55,7 +56,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
   const [isDragOver, setIsDragOver] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
-  const [googleDriveFiles, setGoogleDriveFiles] = useState([]);
+  const [googleDriveFiles, setGoogleDriveFiles] = useState<GoogleDriveFile[]>([]);
   const [isScrapingUrls, setIsScrapingUrls] = useState(false);
   const [scrapedUrls, setScrapedUrls] = useState<ScrapedUrl[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -112,19 +113,72 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     }
   };
 
-  // Filter third party providers to show only connected ones
+  // Filter to show only connected third party providers
   const availableThirdPartyProviders = Object.entries(thirdPartyProviders).filter(([id, provider]) =>
     connectedStorageIntegrations.some(integration => integration.id === provider.id)
-  );
+  ) as [string, ThirdPartyConfig][];
+
+  // Google Drive files fetching - implemented properly
+  const fetchGoogleDriveData = async (token?: string) => {
+    if (!user?.accessToken) return;
+    
+    setIsLoadingGoogleDriveFiles(true);
+    try {
+      let url = `${BASE_URL}drive/files/`;
+      if (token && token !== '') {
+        url += `?pageToken=${token}`;
+      }
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${user.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch Google Drive files: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Google Drive API response:', data);
+      
+      if (data.files) {
+        setGoogleDriveFiles(data.files);
+        setPageData({
+          nextToken: data.nextPageToken || '',
+          prevToken: data.prevPageToken || ''
+        });
+        
+        showToast({
+          title: "Success",
+          description: `Loaded ${data.files.length} files from Google Drive`,
+          variant: "success"
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching Google Drive files:', error);
+      showToast({
+        title: "Error",
+        description: "Failed to fetch Google Drive files. Please try again.",
+        variant: "error"
+      });
+    } finally {
+      setIsLoadingGoogleDriveFiles(false);
+    }
+  };
 
   // URL scraping functionality - taken from AddSourcesModal
   const scrapeUrls = async (baseUrl: string) => {
+    if (!user?.accessToken) return;
+    
     setIsScrapingUrls(true);
     try {
       const response = await fetch(`${BASE_URL}knowledge/scrape-urls/`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${user?.accessToken}`,
+          'Authorization': `Bearer ${user.accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -270,15 +324,13 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
   const handleQuickConnect = (provider: ThirdPartyProvider) => {
     setSelectedProvider(provider);
     setIsConnecting(true);
-    // Mock connection logic
-    setTimeout(() => {
-      setIsConnecting(false);
-      setGoogleDriveFiles([
-        { id: '1', name: 'Document 1.pdf', type: 'pdf' },
-        { id: '2', name: 'Document 2.docx', type: 'docx' }
-      ]);
-      setIsLoadingGoogleDriveFiles(false);
-    }, 1000);
+    
+    // Auto-fetch files for Google Drive
+    if (provider === 'googleDrive') {
+      fetchGoogleDriveData();
+    }
+    
+    setIsConnecting(false);
   };
 
   const handleRemoveSelectedFile = (index: number) => {
@@ -332,15 +384,13 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
   };
 
   const handleRefreshFiles = () => {
-    // Mock refresh
+    if (selectedProvider === 'googleDrive') {
+      fetchGoogleDriveData();
+    }
   };
 
   const handleSetImportAllPages = (value: boolean) => {
     handleImportAllPagesChange(value);
-  };
-
-  const fetchGoogleDriveData = async (token?: string) => {
-    // Mock implementation
   };
 
   return (
