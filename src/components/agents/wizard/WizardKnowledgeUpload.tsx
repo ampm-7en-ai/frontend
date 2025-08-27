@@ -1,11 +1,12 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { FileText, Globe, AlignLeft, Upload, X } from 'lucide-react';
+import { FileText, Upload, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import SourceTypeSelector from '@/components/agents/knowledge/SourceTypeSelector';
 
 export type WizardSourceType = 'document' | 'website' | 'plainText';
 
@@ -21,27 +22,6 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
   const [plainText, setPlainText] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
-
-  const sourceTypes = [
-    {
-      id: 'document' as WizardSourceType,
-      title: 'Upload Document',
-      description: 'PDF, DOCX, or TXT files',
-      icon: FileText
-    },
-    {
-      id: 'website' as WizardSourceType,
-      title: 'Website URL',
-      description: 'Crawl content from a webpage',
-      icon: Globe
-    },
-    {
-      id: 'plainText' as WizardSourceType,
-      title: 'Plain Text',
-      description: 'Enter text content directly',
-      icon: AlignLeft
-    }
-  ];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -114,9 +94,13 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
     });
   };
 
+  const handleSourceTypeSelect = (type: string) => {
+    setSelectedType(type as WizardSourceType);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="text-center">
+    <div className="space-y-8 max-w-2xl">
+      <div>
         <h3 className="text-xl font-semibold text-foreground mb-2">
           Add Knowledge Source
         </h3>
@@ -126,63 +110,39 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
       </div>
 
       {/* Source Type Selection */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {sourceTypes.map((type) => (
-          <Card
-            key={type.id}
-            className={cn(
-              'cursor-pointer transition-colors duration-200 border-2',
-              selectedType === type.id
-                ? 'border-primary bg-accent/50'
-                : 'border-border hover:border-muted-foreground/20'
-            )}
-            onClick={() => setSelectedType(type.id)}
-          >
-            <CardContent className="p-4 text-center">
-              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-muted flex items-center justify-center">
-                <type.icon className="h-5 w-5 text-foreground" />
-              </div>
-              <h4 className="font-medium text-sm text-foreground mb-1">
-                {type.title}
-              </h4>
-              <p className="text-xs text-muted-foreground">
-                {type.description}
-              </p>
-              
-              {selectedType === type.id && (
-                <div className="absolute top-2 right-2">
-                  <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 bg-primary-foreground rounded-full"></div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+      <div>
+        <Label className="text-sm font-medium text-foreground mb-3 block">
+          Choose Knowledge Type
+        </Label>
+        <SourceTypeSelector
+          selectedType={selectedType || ''}
+          onTypeSelect={handleSourceTypeSelect}
+        />
       </div>
 
       {selectedType && (
-        <div className="bg-muted/50 rounded-lg p-6 space-y-4 border">
+        <div className="space-y-6 p-6 border border-border rounded-lg bg-muted/20">
           {/* Source Name */}
           <div className="space-y-2">
             <Label htmlFor="source-name" className="text-sm font-medium text-foreground">
-              Source Name
+              Source Name *
             </Label>
             <Input
               id="source-name"
               placeholder="Enter a descriptive name for this knowledge source"
               value={sourceName}
               onChange={(e) => setSourceName(e.target.value)}
+              className="bg-background"
             />
           </div>
 
           {/* Content Input based on selected type */}
           {selectedType === 'document' && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-foreground">Upload Files</Label>
+              <Label className="text-sm font-medium text-foreground">Upload Files *</Label>
               <div
                 className={cn(
-                  'border-2 border-dashed rounded-lg p-6 transition-colors duration-200',
+                  'border-2 border-dashed rounded-lg p-8 transition-colors duration-200 bg-background',
                   isDragOver
                     ? 'border-primary bg-accent/50'
                     : 'border-border hover:border-muted-foreground/20'
@@ -192,8 +152,8 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
                 onDrop={handleDrop}
               >
                 <div className="text-center">
-                  <div className="w-10 h-10 mx-auto mb-3 bg-muted rounded-lg flex items-center justify-center">
-                    <Upload className="h-5 w-5 text-muted-foreground" />
+                  <div className="w-12 h-12 mx-auto mb-4 bg-muted rounded-lg flex items-center justify-center">
+                    <Upload className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <p className="text-sm text-foreground mb-1">
                     Drop files here or{' '}
@@ -246,7 +206,7 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
           {selectedType === 'website' && (
             <div className="space-y-2">
               <Label htmlFor="url-input" className="text-sm font-medium text-foreground">
-                Website URL
+                Website URL *
               </Label>
               <Input
                 id="url-input"
@@ -254,6 +214,7 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
                 placeholder="https://example.com"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
+                className="bg-background"
               />
             </div>
           )}
@@ -261,12 +222,12 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
           {selectedType === 'plainText' && (
             <div className="space-y-2">
               <Label htmlFor="text-input" className="text-sm font-medium text-foreground">
-                Text Content
+                Text Content *
               </Label>
               <Textarea
                 id="text-input"
                 placeholder="Enter your text content here..."
-                className="min-h-[100px]"
+                className="min-h-[120px] bg-background"
                 value={plainText}
                 onChange={(e) => setPlainText(e.target.value)}
               />
@@ -276,7 +237,7 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
       )}
 
       {/* Actions */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-between pt-4">
+      <div className="flex flex-col sm:flex-row gap-3 justify-between pt-6">
         <Button 
           variant="outline" 
           onClick={onSkip}

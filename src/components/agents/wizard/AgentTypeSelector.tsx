@@ -42,8 +42,8 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
+    <div className="space-y-8 max-w-4xl">
+      <div>
         <h3 className="text-xl font-semibold text-foreground mb-2">
           Choose Your Agent Type
         </h3>
@@ -52,27 +52,27 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-3xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {agentTypes.map((type) => (
           <Card
             key={type.id}
             className={cn(
-              'cursor-pointer transition-colors duration-200 border-2 relative',
+              'cursor-pointer transition-all duration-200 border-2 relative',
               selectedType === type.id
-                ? 'border-primary bg-accent/50'
-                : 'border-border hover:border-muted-foreground/20'
+                ? 'border-primary bg-accent/20'
+                : 'border-border hover:border-muted-foreground/30'
             )}
             onClick={() => onTypeSelect(type.id)}
           >
             <CardContent className="p-6">
-              <div className="flex items-start gap-4 mb-4">
+              <div className="flex items-start gap-4 mb-6">
                 <div className="p-3 rounded-lg bg-muted">
                   <type.icon className="h-6 w-6 text-foreground" />
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="text-lg font-medium text-foreground">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="text-lg font-semibold text-foreground">
                       {type.title}
                     </h4>
                     {selectedType === type.id && (
@@ -87,25 +87,25 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
 
               <div className="space-y-4">
                 <div>
-                  <h5 className="text-sm font-medium text-foreground mb-2">
+                  <h5 className="text-sm font-medium text-foreground mb-3">
                     Key Features
                   </h5>
-                  <ul className="space-y-1">
+                  <ul className="space-y-2">
                     {type.features.map((feature, index) => (
                       <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <div className="w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
                         {feature}
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="pt-3 border-t border-border">
+                <div className="pt-4 border-t border-border">
                   <div>
                     <span className="text-xs font-medium text-foreground">
                       Best for:
                     </span>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {type.bestFor}
                     </p>
                   </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Loader2, Sparkles, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AgentTypeSelector, { AgentType } from './AgentTypeSelector';
 import WizardKnowledgeUpload, { WizardSourceType } from './WizardKnowledgeUpload';
@@ -211,14 +211,19 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
     onOpenChange(false);
   };
 
-  const renderStepIndicator = () => (
-    <div className="flex items-center justify-center mb-8">
-      <div className="flex items-center space-x-8">
-        {steps.map((step, index) => (
-          <div key={step.id} className="flex items-center space-x-8">
-            <div className="flex flex-col items-center">
+  const renderStepsSidebar = () => (
+    <div className="w-80 bg-background/50 dark:bg-background/20 backdrop-blur-md border-r border-border/40 p-6">
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground mb-2">Create Agent</h2>
+          <p className="text-sm text-muted-foreground">Follow these steps to set up your AI agent</p>
+        </div>
+        
+        <div className="space-y-4">
+          {steps.map((step, index) => (
+            <div key={step.id} className="flex items-start space-x-3">
               <div className={cn(
-                'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border-2',
+                'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border-2 flex-shrink-0',
                 index < currentStepIndex
                   ? 'bg-primary text-primary-foreground border-primary'
                   : index === currentStepIndex
@@ -227,36 +232,70 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
               )}>
                 {index < currentStepIndex ? (
                   <CheckCircle2 className="h-4 w-4" />
-                ) : (
+                ) : index === currentStepIndex ? (
                   step.number
+                ) : (
+                  <Circle className="h-4 w-4" />
                 )}
               </div>
-              <div className="text-center mt-2">
+              
+              <div className="flex-1 min-w-0">
                 <div className={cn(
-                  "text-sm font-medium",
+                  "text-sm font-medium mb-1",
                   index <= currentStepIndex 
                     ? "text-foreground" 
                     : "text-muted-foreground"
                 )}>
                   {step.title}
                 </div>
+                <div className="text-xs text-muted-foreground">
+                  {step.description}
+                </div>
               </div>
             </div>
-            {index < steps.length - 1 && (
-              <div className={cn(
-                'w-16 h-px',
-                index < currentStepIndex
-                  ? 'bg-primary'
-                  : 'bg-border'
-              )} />
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
 
   const renderCurrentStep = () => {
+    if (isCreatingAgent) {
+      return (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center space-y-4">
+            <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary" />
+            <div>
+              <h3 className="text-lg font-medium text-foreground mb-1">
+                Creating your agent...
+              </h3>
+              <p className="text-muted-foreground">
+                This will only take a moment
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    if (isAddingKnowledge) {
+      return (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center space-y-4">
+            <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary" />
+            <div>
+              <h3 className="text-lg font-medium text-foreground mb-1">
+                Adding knowledge source...
+              </h3>
+              <p className="text-muted-foreground">
+                Processing your knowledge for the agent
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     switch (currentStep) {
       case 'type':
         return (
@@ -335,48 +374,14 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
     <ModernModal
       open={open}
       onOpenChange={handleClose}
-      title="Create New Agent"
-      description="Set up your AI agent in just a few steps"
-      size="3xl"
-      className="max-w-4xl"
+      size="6xl"
+      className="p-0 overflow-hidden"
     >
-      <div className="space-y-6">
-        {renderStepIndicator()}
+      <div className="flex min-h-[600px]">
+        {renderStepsSidebar()}
         
-        <div className="min-h-[400px]">
-          {isCreatingAgent && (
-            <div className="flex items-center justify-center py-20">
-              <div className="text-center space-y-4">
-                <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary" />
-                <div>
-                  <h3 className="text-lg font-medium text-foreground mb-1">
-                    Creating your agent...
-                  </h3>
-                  <p className="text-muted-foreground">
-                    This will only take a moment
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {isAddingKnowledge && (
-            <div className="flex items-center justify-center py-20">
-              <div className="text-center space-y-4">
-                <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary" />
-                <div>
-                  <h3 className="text-lg font-medium text-foreground mb-1">
-                    Adding knowledge source...
-                  </h3>
-                  <p className="text-muted-foreground">
-                    Processing your knowledge for the agent
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {!isCreatingAgent && !isAddingKnowledge && renderCurrentStep()}
+        <div className="flex-1 p-8">
+          {renderCurrentStep()}
         </div>
       </div>
     </ModernModal>
