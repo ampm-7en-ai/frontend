@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +8,6 @@ import SourceTypeSelector from '@/components/agents/knowledge/SourceTypeSelector
 import { Upload, FileText, Globe, Plus, X, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { AgentTrainingService } from '@/services/AgentTrainingService';
 
 // Define local SourceType for wizard usage
 export type WizardSourceType = 'plainText' | 'document' | 'website' | string;
@@ -27,24 +27,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip }: WizardKnowle
   const [manualUrls, setManualUrls] = useState<string[]>(['']);
   const [addUrlsManually, setAddUrlsManually] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-
-  // Third-party providers configuration (matching AddSourcesModal)
-  const thirdPartyProviders = {
-    google_drive: {
-      id: 'google_drive',
-      name: 'Google Drive',
-      description: 'Import documents from Google Drive',
-      icon: <Globe className="w-5 h-5" />,
-      color: 'blue'
-    },
-    notion: {
-      id: 'notion',
-      name: 'Notion',
-      description: 'Import pages from Notion',
-      icon: <FileText className="w-5 h-5" />,
-      color: 'gray'
-    }
-  };
 
   const handleSourceTypeChange = (sourceType: string) => {
     setSelectedSourceType(sourceType as WizardSourceType);
@@ -147,10 +129,9 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip }: WizardKnowle
           break;
 
         default:
-          // Handle third-party providers
           toast({
             title: "Integration Coming Soon",
-            description: `${thirdPartyProviders[selectedSourceType]?.name || 'This integration'} will be available soon.`,
+            description: "This integration will be available soon.",
             variant: "default"
           });
           return;
@@ -283,15 +264,12 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip }: WizardKnowle
         return (
           <div className="text-center py-8">
             <p className="text-muted-foreground">
-              {thirdPartyProviders[selectedSourceType]?.name || 'This integration'} coming soon!
+              This integration coming soon!
             </p>
           </div>
         );
     }
   };
-
-  // Convert to array format that SourceTypeSelector expects
-  const availableThirdPartyProviders: [string, any][] = Object.entries(thirdPartyProviders);
 
   return (
     <div className="space-y-6">
@@ -303,14 +281,49 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip }: WizardKnowle
       </div>
 
       <div className="space-y-6">
-        {/* Source Type Selection */}
+        {/* Simple Source Type Selection */}
         <div>
           <Label className="text-base font-medium mb-4 block">Choose Source Type</Label>
-          <SourceTypeSelector
-            selectedType={selectedSourceType}
-            onTypeSelect={handleSourceTypeChange}
-            availableThirdPartyProviders={availableThirdPartyProviders}
-          />
+          <div className="grid grid-cols-3 gap-3">
+            <button
+              type="button"
+              onClick={() => handleSourceTypeChange('plainText')}
+              className={`p-4 border rounded-xl text-center transition-colors ${
+                selectedSourceType === 'plainText'
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <FileText className="w-6 h-6 mx-auto mb-2" />
+              <p className="text-sm font-medium">Plain Text</p>
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => handleSourceTypeChange('website')}
+              className={`p-4 border rounded-xl text-center transition-colors ${
+                selectedSourceType === 'website'
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <Globe className="w-6 h-6 mx-auto mb-2" />
+              <p className="text-sm font-medium">Website</p>
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => handleSourceTypeChange('document')}
+              className={`p-4 border rounded-xl text-center transition-colors ${
+                selectedSourceType === 'document'
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <Upload className="w-6 h-6 mx-auto mb-2" />
+              <p className="text-sm font-medium">Documents</p>
+            </button>
+          </div>
         </div>
 
         {/* Title Input */}
