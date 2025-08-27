@@ -1,18 +1,16 @@
-
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { SourceTypeSelector } from '@/components/agents/knowledge/SourceTypeSelector';
-import { SourceType } from '@/components/agents/knowledge/types';
+import SourceTypeSelector from '@/components/agents/knowledge/SourceTypeSelector';
 import { Upload, FileText, Globe, Plus, X, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 
 // Define local SourceType for wizard usage
-type WizardSourceType = 'plainText' | 'document' | 'website' | string;
+export type WizardSourceType = 'plainText' | 'document' | 'website' | string;
 
 export interface WizardKnowledgeUploadProps {
   agentId: string | null;
@@ -293,7 +291,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip }: WizardKnowle
   };
 
   // Convert to array format that SourceTypeSelector expects
-  const availableThirdPartyProviders = Object.entries(thirdPartyProviders);
+  const availableThirdPartyProviders: [string, any][] = Object.entries(thirdPartyProviders);
 
   return (
     <div className="space-y-6">
