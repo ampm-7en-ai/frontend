@@ -110,49 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   };
 
   // CACHE-FIRST: Handle agent plus action - create agent and redirect to builder
-  const handleAgentPlus = async () => {
-    if (isCreatingAgent) return;
-    
-    setIsCreatingAgent(true);
-    // console.log("CACHE-FIRST: Creating agent directly from sidebar...");
-    
-    // try {
-    //   // API call - this should be the ONLY network request
-    //   const data = await createAgent('Untitled Agent', 'AI Agent created from builder');
-      
-    //   console.log("Agent creation successful:", data);
-      
-    //   // CACHE-FIRST: Update cache immediately, no additional API calls
-    //   if (data.data) {
-    //     console.log('🔄 Sidebar: Updating caches (CACHE-FIRST)');
-    //     updateCachesAfterAgentCreation(queryClient, data);
-    //   }
-      
-    //   // Show success toast
-    //   toast({
-    //     title: "Agent Created",
-    //     description: "New agent created successfully. Redirecting to builder...",
-    //     variant: "default"
-    //   });
-      
-    //   // Add delay to ensure cache updates complete before navigation
-    //   setTimeout(() => {
-    //     if (data.data?.id) {
-    //       navigate(`/agents/builder/${data.data.id}`);
-    //     } else {
-    //       navigate('/agents/builder');
-    //     }
-    //   }, 150);
-    // } catch (error) {
-    //   console.error('Error creating agent:', error);
-    //   toast({
-    //     title: "Creation Failed",
-    //     description: error instanceof Error ? error.message : "An unexpected error occurred while creating the agent.",
-    //     variant: "destructive"
-    //   });
-    // } finally {
-    //   setIsCreatingAgent(false);
-    // }
+  const handleAgentPlus = async () => {    
     setWizardOpen(true);
   };
 
@@ -511,7 +469,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
           )}
         </div>
       </div>
-      
+
       <AgentCreationWizard
       open={isWizardOpen}
       onOpenChange={setWizardOpen}

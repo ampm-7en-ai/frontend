@@ -16,7 +16,7 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
     {
       id: 'assistant' as AgentType,
       title: 'AI Assistant',
-      description: 'Advanced reasoning and multi-step workflows',
+      description: 'Advanced guidance and help assistant',
       icon: Brain,
       features: [
         'Complex reasoning & analysis',
@@ -24,17 +24,17 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
         'API & tool integrations',
         'Advanced conversation handling'
       ],
-      bestFor: 'Research, analysis, complex workflows'
+      bestFor: 'Research, analysis, help center, web search'
     },
     {
       id: 'chatbot' as AgentType,
-      title: 'Chatbot',
+      title: 'AI Chatbot',
       description: 'Quick responses and customer support',
       icon: MessageSquare,
       features: [
-        'Quick response times',
-        'FAQ & knowledge queries',
-        'Simple conversation flows',
+        'Automatice ticket creation',
+        'Seamless AI to AI agent handoff',
+        'Supports third-party ticket providers',
         'Customer support focused'
       ],
       bestFor: 'Support, information retrieval, FAQs'
@@ -57,22 +57,22 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
           <Card
             key={type.id}
             className={cn(
-              'cursor-pointer transition-all duration-200 border-2 relative',
+              'cursor-pointer transition-all duration-200 relative shadow-none',
               selectedType === type.id
                 ? 'border-primary bg-accent/20'
-                : 'border-border hover:border-muted-foreground/30'
+                : 'hover:shadow-xl'
             )}
             onClick={() => onTypeSelect(type.id)}
           >
             <CardContent className="p-6">
               <div className="flex items-start gap-4 mb-6">
-                <div className="p-3 rounded-lg bg-muted">
+                <div className="p-3 rounded-2xl bg-muted">
                   <type.icon className="h-6 w-6 text-foreground" />
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h4 className="text-lg font-semibold text-foreground">
+                  <div className="flex items-center gap-0 mb-0">
+                    <h4 className="text-lg font-semibold text-foreground mb-0">
                       {type.title}
                     </h4>
                     {selectedType === type.id && (

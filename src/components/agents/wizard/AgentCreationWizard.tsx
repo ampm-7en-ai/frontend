@@ -13,6 +13,7 @@ import { getApiUrl, API_ENDPOINTS, getAuthHeaders } from '@/utils/api-config';
 import { transformAgentCreationResponse } from '@/utils/agentTransformUtils';
 import { updateCachesAfterAgentCreation } from '@/utils/agentCacheUtils';
 import { knowledgeApi } from '@/utils/api-config';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface AgentCreationWizardProps {
   open: boolean;
@@ -223,7 +224,7 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
           {steps.map((step, index) => (
             <div key={step.id} className="flex items-start space-x-3">
               <div className={cn(
-                'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border-2 flex-shrink-0',
+                'w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium border-2 flex-shrink-0',
                 index < currentStepIndex
                   ? 'bg-primary text-primary-foreground border-primary'
                   : index === currentStepIndex
@@ -264,7 +265,7 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
       return (
         <div className="flex items-center justify-center py-20">
           <div className="text-center space-y-4">
-            <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary" />
+            <Loader2 className="w-10 h-10 mx-auto animate-spin text-primary" />
             <div>
               <h3 className="text-lg font-medium text-foreground mb-1">
                 Creating your agent...
@@ -334,7 +335,7 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
               {knowledgeData && (
-                <Button
+                <ModernButton
                   onClick={handleTrainNow}
                   disabled={isTraining}
                   size="lg"
@@ -350,17 +351,17 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
                       Train Now
                     </>
                   )}
-                </Button>
+                </ModernButton>
               )}
               
-              <Button
+              <ModernButton
                 onClick={handleGoToBuilder}
-                variant={knowledgeData ? "outline" : "default"}
+                variant={knowledgeData ? "outline" : "secondary"}
                 size="lg"
               >
                 <ArrowRight className="w-4 h-4 mr-2" />
                 Go to Builder
-              </Button>
+              </ModernButton>
             </div>
           </div>
         );

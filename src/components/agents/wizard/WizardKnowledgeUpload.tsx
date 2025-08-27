@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import SourceTypeSelector from '@/components/agents/knowledge/SourceTypeSelector';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 export type WizardSourceType = 'document' | 'website' | 'plainText' | 'url' | 'csv' | 'thirdParty';
 
@@ -248,21 +249,21 @@ const WizardKnowledgeUpload = ({ onKnowledgeAdd, onSkip }: WizardKnowledgeUpload
 
       {/* Actions */}
       <div className="flex justify-between pt-6 border-t border-border">
-        <Button 
+        <ModernButton 
           variant="outline" 
           onClick={onSkip}
           className="bg-background text-foreground border-border hover:bg-muted"
         >
           Skip for Now
-        </Button>
+        </ModernButton>
         
-        <Button 
+        <ModernButton 
           onClick={handleAddKnowledge}
           disabled={!canProceed()}
           className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
           Add Knowledge
-        </Button>
+        </ModernButton>
       </div>
     </div>
   );
