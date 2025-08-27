@@ -528,7 +528,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           addUrlsManually={addUrlsManually}
           setAddUrlsManually={setAddUrlsManually}
           fetchGoogleDriveData={fetchGoogleDriveData}
-          sourceName={sourceName}
           onKnowledgeSourceCreated={handleKnowledgeSourceCreated}
           onUploadStart={() => setIsUploading(true)}
           onUploadEnd={() => setIsUploading(false)}
