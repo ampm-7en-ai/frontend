@@ -10,7 +10,7 @@ import { useFloatingToast } from '@/context/FloatingToastContext';
 import { BASE_URL } from '@/utils/api-config';
 import { GoogleDriveFile } from '@/types/googleDrive';
 import { FileText, Globe, Table, AlignLeft, ExternalLink, CheckCircle } from 'lucide-react';
-import { ScrollArea } from '@radix-ui/react-scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Define the source types locally since they're not exported from the types file
 export type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
@@ -565,71 +565,73 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           className="bg-background border-border"
         />
       </div>
-      <ScrollArea className=" overflow-hidden h-[500px]">
-      <div className="space-y-4">
-        <Label className="text-sm font-medium text-foreground">
-          Choose Knowledge Type
-        </Label>
-        <SourceTypeSelector
-          sourceType={sourceType}
-          setSourceType={setSourceType}
-          url={url}
-          setUrl={setUrl}
-          files={files}
-          setFiles={setFiles}
-          plainText={plainText}
-          setPlainText={setPlainText}
-          importAllPages={importAllPages}
-          setImportAllPages={handleSetImportAllPages}
-          selectedProvider={selectedProvider}
-          setSelectedProvider={setSelectedProvider}
-          selectedFiles={selectedFiles}
-          setSelectedFiles={setSelectedFiles}
-          validationErrors={validationErrors}
-          setValidationErrors={setValidationErrors}
-          isDragOver={isDragOver}
-          setIsDragOver={setIsDragOver}
-          isConnecting={isConnecting}
-          isLoadingGoogleDriveFiles={isLoadingGoogleDriveFiles}
-          googleDriveFiles={googleDriveFiles}
-          availableThirdPartyProviders={availableThirdPartyProviders}
-          thirdPartyProviders={thirdPartyProviders}
-          handleFileChange={handleFileChange}
-          removeFile={removeFile}
-          handleQuickConnect={handleQuickConnect}
-          handleRemoveSelectedFile={handleRemoveSelectedFile}
-          handleFileUploadClick={handleFileUploadClick}
-          handleDragOver={handleDragOver}
-          handleDragLeave={handleDragLeave}
-          handleDrop={handleDrop}
-          getFileIcon={getFileIcon}
-          toggleFileSelection={toggleFileSelection}
-          isScrapingUrls={isScrapingUrls}
-          scrapedUrls={scrapedUrls}
-          toggleUrlSelection={toggleUrlSelection}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          sortOrder={sortOrder}
-          handleSortToggle={handleSortToggle}
-          handleRefreshFiles={handleRefreshFiles}
-          pageData={pageData}
-          manualUrls={manualUrls}
-          setManualUrls={setManualUrls}
-          addUrlsManually={addUrlsManually}
-          setAddUrlsManually={setAddUrlsManually}
-          fetchGoogleDriveData={fetchGoogleDriveData}
-        />
-        
-        <input
-          id="wizard-file-input"
-          type="file"
-          multiple
-          accept=".pdf,.doc,.docx,.txt,.csv"
-          onChange={handleFileChange}
-          className="hidden"
-        />
-      </div>
+      
+      <ScrollArea className="h-[500px] w-full">
+        <div className="space-y-4 pr-4">
+          <Label className="text-sm font-medium text-foreground">
+            Choose Knowledge Type
+          </Label>
+          <SourceTypeSelector
+            sourceType={sourceType}
+            setSourceType={setSourceType}
+            url={url}
+            setUrl={setUrl}
+            files={files}
+            setFiles={setFiles}
+            plainText={plainText}
+            setPlainText={setPlainText}
+            importAllPages={importAllPages}
+            setImportAllPages={handleSetImportAllPages}
+            selectedProvider={selectedProvider}
+            setSelectedProvider={setSelectedProvider}
+            selectedFiles={selectedFiles}
+            setSelectedFiles={setSelectedFiles}
+            validationErrors={validationErrors}
+            setValidationErrors={setValidationErrors}
+            isDragOver={isDragOver}
+            setIsDragOver={setIsDragOver}
+            isConnecting={isConnecting}
+            isLoadingGoogleDriveFiles={isLoadingGoogleDriveFiles}
+            googleDriveFiles={googleDriveFiles}
+            availableThirdPartyProviders={availableThirdPartyProviders}
+            thirdPartyProviders={thirdPartyProviders}
+            handleFileChange={handleFileChange}
+            removeFile={removeFile}
+            handleQuickConnect={handleQuickConnect}
+            handleRemoveSelectedFile={handleRemoveSelectedFile}
+            handleFileUploadClick={handleFileUploadClick}
+            handleDragOver={handleDragOver}
+            handleDragLeave={handleDragLeave}
+            handleDrop={handleDrop}
+            getFileIcon={getFileIcon}
+            toggleFileSelection={toggleFileSelection}
+            isScrapingUrls={isScrapingUrls}
+            scrapedUrls={scrapedUrls}
+            toggleUrlSelection={toggleUrlSelection}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            sortOrder={sortOrder}
+            handleSortToggle={handleSortToggle}
+            handleRefreshFiles={handleRefreshFiles}
+            pageData={pageData}
+            manualUrls={manualUrls}
+            setManualUrls={setManualUrls}
+            addUrlsManually={addUrlsManually}
+            setAddUrlsManually={setAddUrlsManually}
+            fetchGoogleDriveData={fetchGoogleDriveData}
+          />
+          
+          <input
+            id="wizard-file-input"
+            type="file"
+            multiple
+            accept=".pdf,.doc,.docx,.txt,.csv"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </div>
       </ScrollArea>
+
       {/* Display added knowledge sources before action buttons */}
       {addedSources.length > 0 && (
         <div className="space-y-3 pt-4 border-t border-border">
