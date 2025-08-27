@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
@@ -62,7 +63,7 @@ const Sidebar = () => {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
 
   const filteredNavigation = navigationItems.filter(item => {
-    if (item.requiresAdmin && user?.role !== 'super_admin') {
+    if (item.requiresAdmin && user?.role !== 'SUPERADMIN') {
       return false;
     }
     return true;
@@ -109,7 +110,7 @@ const Sidebar = () => {
     return (
       <div key={item.path} className="mt-2 space-y-1 pl-2">
         {item.children.map(child => {
-          if (child.requiresAdmin && user?.role !== 'super_admin') {
+          if (child.requiresAdmin && user?.role !== 'SUPERADMIN') {
             return null;
           }
           const isActive = location.pathname === child.path;
@@ -168,7 +169,7 @@ const Sidebar = () => {
               path: '/agents', 
               icon: Bot, 
               label: 'Agents',
-              badge: user?.role === 'super_admin' ? undefined : undefined
+              badge: user?.role === 'SUPERADMIN' ? undefined : undefined
             },
             <Button
               size="sm"
