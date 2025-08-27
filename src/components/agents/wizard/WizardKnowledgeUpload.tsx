@@ -1,9 +1,14 @@
+
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import SourceTypeSelector from '@/components/agents/knowledge/SourceTypeSelector';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
+import { useIntegrations } from '@/hooks/useIntegrations';
+import { useAuth } from '@/context/AuthContext';
+import { useFloatingToast } from '@/context/FloatingToastContext';
+import { BASE_URL } from '@/utils/api-config';
 
 // Define the source types locally since they're not exported from the types file
 export type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
@@ -20,6 +25,12 @@ interface ThirdPartyConfig {
   id: string;
 }
 
+interface ScrapedUrl {
+  url: string;
+  title: string;
+  selected: boolean;
+}
+
 interface WizardKnowledgeUploadProps {
   agentId: string | null;
   onKnowledgeAdd: (data: { type: WizardSourceType; content: any; name: string }) => void;
@@ -28,6 +39,8 @@ interface WizardKnowledgeUploadProps {
 }
 
 const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }: WizardKnowledgeUploadProps) => {
+  const { user } = useAuth();
+  const { showToast } = useFloatingToast();
   const [sourceName, setSourceName] = useState('');
   
   // SourceTypeSelector state - matching AddSourcesModal pattern
@@ -44,12 +57,124 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
   const [googleDriveFiles, setGoogleDriveFiles] = useState([]);
   const [isScrapingUrls, setIsScrapingUrls] = useState(false);
-  const [scrapedUrls, setScrapedUrls] = useState([]);
+  const [scrapedUrls, setScrapedUrls] = useState<ScrapedUrl[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [manualUrls, setManualUrls] = useState(['']);
   const [addUrlsManually, setAddUrlsManually] = useState(false);
   const [isTraining, setIsTraining] = useState(false);
+  const [pageData, setPageData] = useState({nextToken: '', prevToken: ''});
+
+  // Use centralized integration management
+  const { getIntegrationsByType } = useIntegrations();
+
+  // Get connected storage integrations
+  const connectedStorageIntegrations = getIntegrationsByType('storage').filter(
+    integration => integration.status === 'connected'
+  );
+
+  // Third party providers configuration
+  const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
+    googleDrive: {
+      icon: <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg" alt="Google Drive" className="h-4 w-4" />,
+      name: "Google Drive",
+      description: "Import documents from your Google Drive",
+      color: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
+      id: "google_drive"
+    },
+    slack: {
+      icon: <img src="https://img.logo.dev/slack.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="Slack" className="h-4 w-4" />,
+      name: "Slack",
+      description: "Import conversations and files from Slack",
+      color: "bg-pink-50 text-pink-600 border-pink-200 dark:bg-pink-950/50 dark:text-pink-400 dark:border-pink-800",
+      id: "slack"
+    },
+    notion: {
+      icon: <img src="https://img.logo.dev/notion.so?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="Notion" className="h-4 w-4" />,
+      name: "Notion",
+      description: "Import pages and databases from Notion",
+      color: "bg-gray-50 text-gray-800 border-gray-200 dark:bg-gray-900/50 dark:text-gray-300 dark:border-gray-700",
+      id: "notion"
+    },
+    dropbox: {
+      icon: <img src="https://img.logo.dev/dropbox.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="Dropbox" className="h-4 w-4" />,
+      name: "Dropbox",
+      description: "Import files from your Dropbox",
+      color: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
+      id: "dropbox"
+    },
+    github: {
+      icon: <img src="https://img.logo.dev/github.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="GitHub" className="h-4 w-4" />,
+      name: "GitHub",
+      description: "Import repositories and documentation from GitHub",
+      color: "bg-gray-50 text-gray-800 border-gray-200 dark:bg-gray-900/50 dark:text-gray-300 dark:border-gray-700",
+      id: "github"
+    }
+  };
+
+  // Filter third party providers to show only connected ones
+  const availableThirdPartyProviders = Object.entries(thirdPartyProviders).filter(([id, provider]) =>
+    connectedStorageIntegrations.some(integration => integration.id === provider.id)
+  );
+
+  // URL scraping functionality - taken from AddSourcesModal
+  const scrapeUrls = async (baseUrl: string) => {
+    setIsScrapingUrls(true);
+    try {
+      const response = await fetch(`${BASE_URL}knowledge/scrape-urls/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${user?.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          base_url: baseUrl
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to scrape URLs');
+      }
+
+      const data = await response.json();
+      const urls = data.data?.urls || data.urls || [];
+      
+      // Transform the URLs to the expected format
+      const transformedUrls: ScrapedUrl[] = urls.map((urlItem: any) => ({
+        url: urlItem.url || urlItem,
+        title: urlItem.title || urlItem.url || urlItem,
+        selected: true // Default to selected
+      }));
+
+      setScrapedUrls(transformedUrls);
+      
+      showToast({
+        title: "URLs Scraped",
+        description: `Found ${transformedUrls.length} URLs from the website`,
+        variant: "success"
+      });
+    } catch (error) {
+      console.error('Error scraping URLs:', error);
+      showToast({
+        title: "Error",
+        description: "Failed to scrape URLs. Please try again.",
+        variant: "error"
+      });
+      setImportAllPages(false);
+    } finally {
+      setIsScrapingUrls(false);
+    }
+  };
+
+  const handleImportAllPagesChange = (checked: boolean) => {
+    setImportAllPages(checked);
+    
+    if (checked && url) {
+      scrapeUrls(url);
+    } else if (!checked) {
+      setScrapedUrls([]);
+    }
+  };
 
   // Map SourceType to WizardSourceType
   const mapToWizardSourceType = (type: SourceType): WizardSourceType => {
@@ -193,7 +318,13 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
   };
 
   const toggleUrlSelection = (url: string) => {
-    // Implementation for URL selection
+    setScrapedUrls(prev => 
+      prev.map(urlData => 
+        urlData.url === url 
+          ? { ...urlData, selected: !urlData.selected }
+          : urlData
+      )
+    );
   };
 
   const handleSortToggle = () => {
@@ -205,54 +336,12 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
   };
 
   const handleSetImportAllPages = (value: boolean) => {
-    setImportAllPages(value);
+    handleImportAllPagesChange(value);
   };
 
   const fetchGoogleDriveData = async (token?: string) => {
     // Mock implementation
   };
-
-  // Available third-party providers - matching the structure expected by SourceTypeSelector
-  const thirdPartyProviders: Record<ThirdPartyProvider, ThirdPartyConfig> = {
-    googleDrive: { 
-      icon: null, 
-      name: 'Google Drive', 
-      description: 'Import from Google Drive', 
-      color: '#4285f4', 
-      id: 'google_drive' 
-    },
-    slack: { 
-      icon: null, 
-      name: 'Slack', 
-      description: 'Import from Slack', 
-      color: '#4a154b', 
-      id: 'slack' 
-    },
-    notion: { 
-      icon: null, 
-      name: 'Notion', 
-      description: 'Import from Notion', 
-      color: '#000000', 
-      id: 'notion' 
-    },
-    dropbox: { 
-      icon: null, 
-      name: 'Dropbox', 
-      description: 'Import from Dropbox', 
-      color: '#0061ff', 
-      id: 'dropbox' 
-    },
-    github: { 
-      icon: null, 
-      name: 'GitHub', 
-      description: 'Import from GitHub', 
-      color: '#24292e', 
-      id: 'github' 
-    }
-  };
-
-  // Convert to array format that SourceTypeSelector expects
-  const availableThirdPartyProviders = Object.entries(thirdPartyProviders);
 
   return (
     <div className="space-y-6">
@@ -326,7 +415,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           sortOrder={sortOrder}
           handleSortToggle={handleSortToggle}
           handleRefreshFiles={handleRefreshFiles}
-          pageData={{nextToken: '', prevToken: ''}}
+          pageData={pageData}
           manualUrls={manualUrls}
           setManualUrls={setManualUrls}
           addUrlsManually={addUrlsManually}
@@ -355,23 +444,13 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           Skip for Now
         </ModernButton>
         
-        <div className="flex gap-3">
-          <ModernButton 
-            onClick={handleAddKnowledge}
-            disabled={!canProceed()}
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            Add Knowledge
-          </ModernButton>
-          
-          <ModernButton 
-            onClick={handleTrainAgent}
-            disabled={isTraining || !agentId}
-            className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
-          >
-            {isTraining ? 'Training...' : 'Train Agent'}
-          </ModernButton>
-        </div>
+        <ModernButton 
+          onClick={handleAddKnowledge}
+          disabled={!canProceed()}
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
+        >
+          Add Knowledge
+        </ModernButton>
       </div>
     </div>
   );
