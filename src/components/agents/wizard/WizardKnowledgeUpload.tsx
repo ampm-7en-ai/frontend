@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import { GoogleDriveFile } from '@/types/googleDrive';
 import { FileText, Globe, Table, AlignLeft, CheckCircle } from 'lucide-react';
+import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
 
 // Define the source types locally since they're not exported from the types file
 export type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
@@ -134,7 +135,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     
     setIsLoadingGoogleDriveFiles(true);
     try {
-      let url = `${BASE_URL}drive/files/`;
+      let url = `${getApiUrl('drive/files/')}`;
       if (token && token !== '') {
         url += `?pageToken=${token}`;
       }
@@ -184,7 +185,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     
     setIsScrapingUrls(true);
     try {
-      const response = await fetch(`${BASE_URL}knowledge/scrape-urls/`, {
+      const response = await fetch(`${getApiUrl('knowledge/scrape-urls/')}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${user.accessToken}`,
@@ -325,7 +326,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     console.log('📤 Creating knowledge source via SourceTypeSelector');
     setIsUploading(true);
     
-    // We'll let SourceTypeSelector handle the upload, and we'll get the response via handleKnowledgeSourceCreated
+    // Let SourceTypeSelector handle the upload
   };
 
   const handleTrainAgent = async () => {
@@ -333,25 +334,15 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     
     setIsTraining(true);
     try {
-      const allUrls = addedSources.reduce((urls: string[], source) => {
-        if (source.urls && source.urls.length > 0) {
-          return [...urls, ...source.urls];
-        }
-        return urls;
-      }, []);
-
-      console.log('🚀 Starting training with payload:', {
-        agentId,
-        knowledgeSourceIds,
-        allUrls
-      });
+      console.log('🚀 Starting training with knowledge source IDs:', knowledgeSourceIds);
 
       const success = await AgentTrainingService.trainAgent(
         agentId,
         knowledgeSourceIds,
         `Agent ${agentId}`,
-        allUrls,
+        [],
         async () => {
+          // Refetch function if needed
         }
       );
       
@@ -537,7 +528,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           addUrlsManually={addUrlsManually}
           setAddUrlsManually={setAddUrlsManually}
           fetchGoogleDriveData={fetchGoogleDriveData}
-          agentId={agentId}
           sourceName={sourceName}
           onKnowledgeSourceCreated={handleKnowledgeSourceCreated}
           onUploadStart={() => setIsUploading(true)}
