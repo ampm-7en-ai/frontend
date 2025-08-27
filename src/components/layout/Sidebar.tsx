@@ -1,220 +1,514 @@
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  Home, 
-  Bot, 
-  MessageSquare, 
-  BookOpen, 
-  Settings, 
-  BarChart3, 
-  Users,
-  Plus,
-  Building2,
-  Zap,
+import React, { useEffect, useState } from 'react';
+import {
+  Home,
+  LayoutDashboard,
+  Settings,
+  Building,
+  MessageSquare,
+  Bot,
+  Book,
   HelpCircle,
+  ChevronRight,
+  ChevronDown,
+  BarChart2,
+  Users,
+  Upload,
+  ExternalLink,
+  Palette,
+  Plus,
+  ChevronLeft,
+  Loader2,
+  AlertCircle,
+  Link,
   Search,
-  Shield,
-  Mail
+  ArrowRightFromLine,
+  ArrowLeftFromLine,
+  LogOut,
+  CreditCard,
+  User,
+  Moon,
+  Sun
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { NavLink, Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import AgentCreationWizard from '@/components/agents/wizard/AgentCreationWizard';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { useToast } from "@/hooks/use-toast";
+import { API_ENDPOINTS, BASE_URL, getAccessToken } from '@/utils/api-config';
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { createAgent } from '@/utils/api-config';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import ModernButton from '../dashboard/ModernButton';
+import { useQueryClient } from '@tanstack/react-query';
+import { updateCachesAfterAgentCreation } from '@/utils/agentCacheUtils';
 
-interface NavItem {
-  path: string;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  label: string;
-  badge?: string;
-  children?: NavItem[];
-  requiresAdmin?: boolean;
+interface SidebarProps {
+  isCollapsed: boolean;
+  toggleSidebar: () => void;
 }
 
-const navigationItems: NavItem[] = [
-  { path: '/', icon: Home, label: 'Dashboard' },
-  { path: '/agents', icon: Bot, label: 'Agents' },
-  { path: '/knowledge', icon: BookOpen, label: 'Knowledge Base' },
-  { path: '/billing', icon: BarChart3, label: 'Billing' },
-  { path: '/settings', icon: Settings, label: 'Settings' },
-  { path: '/integrations', icon: Zap, label: 'Integrations' },
-  { path: '/support', icon: HelpCircle, label: 'Support' },
-  { path: '/search', icon: Search, label: 'Search' },
-  { path: '/security', icon: Shield, label: 'Security' },
-  { path: '/contact', icon: Mail, label: 'Contact' },
-  {
-    path: '/admin',
-    icon: Users,
-    label: 'Admin',
-    requiresAdmin: true,
-    children: [
-      { path: '/admin/users', icon: Users, label: 'Users', requiresAdmin: true },
-      { path: '/admin/organizations', icon: Building2, label: 'Organizations', requiresAdmin: true },
-    ],
-  },
-];
+const UserPermissions = {
+  conversation: 'conversation',
+  knowledgebase: 'knowledgebase',
+  agents: 'agents',
+  settings: 'settings',
+  dashboard: 'dashboard',
+  superadmin: 'superadmin',
+  integrations: 'integrations'
+} as const;
 
-const Sidebar = () => {
-  const { user } = useAuth();
-  const location = useLocation();
+interface SidebarItem {
+  id: string;
+  label: string;
+  href: string;
+  icon: React.ElementType;
+  children?: { label: string; href: string, permission?: keyof typeof UserPermissions }[];
+  action?: React.ReactNode;
+  permission?: keyof typeof UserPermissions;
+  highlight?: boolean;
+  showPlusOnHover?: boolean;
+  plusAction?: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
+  const { user, logout } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const location = useLocation();
+  const { theme, toggleTheme } = useAppTheme();
+  const queryClient = useQueryClient();
+  const userRole = user?.role;
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+  
+  // Check if we're on knowledge pages
+  const isKnowledgePage = location.pathname.startsWith('/knowledge');
+  
+  console.log('Sidebar - isKnowledgePage:', isKnowledgePage, 'theme:', theme);
 
-  const filteredNavigation = navigationItems.filter(item => {
-    if (item.requiresAdmin && user?.role !== 'super_admin') {
-      return false;
+  // Toggle expand function
+  const toggleExpand = (itemId: string) => {
+    if (expandedItems.includes(itemId)) {
+      setExpandedItems(expandedItems.filter(id => id !== itemId));
+    } else {
+      setExpandedItems([...expandedItems, itemId]);
     }
-    return true;
-  });
-
-  const renderNavItem = (
-    item: NavItem,
-    actionButton?: React.ReactNode
-  ) => {
-    const isActive = location.pathname === item.path;
-    return (
-      <div key={item.path} className="relative">
-        <Link
-          to={item.path}
-          className={cn(
-            'flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50',
-            isActive
-              ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-50'
-              : 'text-slate-500 dark:text-slate-400'
-          )}
-        >
-          <item.icon className="h-4 w-4" />
-          <span>{item.label}</span>
-          {item.badge && (
-            <Badge variant="secondary" className="ml-auto">
-              {item.badge}
-            </Badge>
-          )}
-        </Link>
-        {actionButton && (
-          <div className="absolute top-0 right-0 h-full flex items-center pr-2">
-            {actionButton}
-          </div>
-        )}
-      </div>
-    );
   };
 
-  const renderSubNav = (item: NavItem) => {
-    if (!item.children || item.children.length === 0) {
-      return null;
+  // Handle knowledge plus action
+  const handleKnowledgePlus = () => {
+    navigate('/knowledge/upload');
+  };
+
+  // CACHE-FIRST: Handle agent plus action - create agent and redirect to builder
+  const handleAgentPlus = async () => {
+    if (isCreatingAgent) return;
+    
+    setIsCreatingAgent(true);
+    console.log("CACHE-FIRST: Creating agent directly from sidebar...");
+    
+    try {
+      // API call - this should be the ONLY network request
+      const data = await createAgent('Untitled Agent', 'AI Agent created from builder');
+      
+      console.log("Agent creation successful:", data);
+      
+      // CACHE-FIRST: Update cache immediately, no additional API calls
+      if (data.data) {
+        console.log('🔄 Sidebar: Updating caches (CACHE-FIRST)');
+        updateCachesAfterAgentCreation(queryClient, data);
+      }
+      
+      // Show success toast
+      toast({
+        title: "Agent Created",
+        description: "New agent created successfully. Redirecting to builder...",
+        variant: "default"
+      });
+      
+      // Add delay to ensure cache updates complete before navigation
+      setTimeout(() => {
+        if (data.data?.id) {
+          navigate(`/agents/builder/${data.data.id}`);
+        } else {
+          navigate('/agents/builder');
+        }
+      }, 150);
+    } catch (error) {
+      console.error('Error creating agent:', error);
+      toast({
+        title: "Creation Failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred while creating the agent.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreatingAgent(false);
     }
-
-    return (
-      <div key={item.path} className="mt-2 space-y-1 pl-2">
-        {item.children.map(child => {
-          if (child.requiresAdmin && user?.role !== 'super_admin') {
-            return null;
-          }
-          const isActive = location.pathname === child.path;
-          return (
-            <Link
-              key={child.path}
-              to={child.path}
-              className={cn(
-                'flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50',
-                isActive
-                  ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-50'
-                  : 'text-slate-500 dark:text-slate-400'
-              )}
-            >
-              <child.icon className="h-4 w-4" />
-              <span>{child.label}</span>
-            </Link>
-          );
-        })}
-      </div>
-    );
   };
 
-  const handleAgentPlus = () => {
-    setIsWizardOpen(true);
-  };
+  const commonItems: SidebarItem[] = [
+    { id: 'dashboard', label: 'Dashboard', href: '/', icon: Home, permission: 'dashboard' },
+  ];
+
+  const adminItems: SidebarItem[] = [
+    { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare, permission: 'conversation' },
+    { 
+      id: 'agents', 
+      label: 'AI Agents', 
+      href: '/agents', 
+      icon: Bot, 
+      permission: 'agents',
+      showPlusOnHover: true,
+      plusAction: handleAgentPlus
+    },
+    { 
+      id: 'knowledge', 
+      label: 'Knowledge', 
+      href: '/knowledge', 
+      icon: Book, 
+      permission: 'knowledgebase',
+      showPlusOnHover: true,
+      plusAction: handleKnowledgePlus
+    },
+    { 
+      id: 'integrations', 
+      label: 'Integrations', 
+      href: '/integrations', 
+      icon: Link, 
+      permission: 'settings',
+      highlight: true 
+    },
+    { id: 'settings', label: 'Settings', href: '/settings', icon: Settings, permission: 'settings' },
+    { id: 'help', label: 'Help & Support', href: '#', icon: HelpCircle },
+  ];
+
+  const superAdminItems: SidebarItem[] = [
+    { 
+      id: 'business-management',
+      label: 'Businesses', 
+      href: '/businesses', 
+      icon: Building,
+      permission: 'dashboard'
+    },
+    { 
+      id: 'platform',
+      label: 'Platform Settings', 
+      href: '/settings', 
+      icon: LayoutDashboard,
+      permission: 'dashboard', 
+      children: [
+        { label: 'General', href: '/settings/platform/general',permission: 'dashboard' },
+        { label: 'Security', href: '/settings/platform/security',permission: 'dashboard' },
+        { label: 'LLM Providers', href: '/settings/platform/llm-providers',permission: 'dashboard' },
+        // { label: 'Compliance', href: '/settings/platform/compliance',permission: 'dashboard' },
+        { label: 'Billing & Subscriptions', href: '/settings/platform/billing',permission: 'dashboard' },
+        { label: 'Customization', href: '/settings/platform/customization',permission: 'dashboard' },
+      ]
+    },
+  ];
+
+  const roleBasedItems = userRole === "SUPERADMIN" 
+    ? [...superAdminItems] 
+    : adminItems;
+
+  const userPermissions = JSON.parse(localStorage.getItem('user'))?.permission || {};
+
+  const filteredRoleBasedItems = roleBasedItems.filter(item => !item.permission || userPermissions[item.permission]).map(item => ({
+    ...item,
+    children: item.children?.filter(child => !child.permission || userPermissions[child.permission]) 
+  }));
+
+  // Filter items based on search query
+  const filteredItems = [...commonItems, ...filteredRoleBasedItems].filter(item => 
+    searchQuery === '' || 
+    item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.children && item.children.some(child => 
+      child.label.toLowerCase().includes(searchQuery.toLowerCase())
+    ))
+  );
+
+  const handlehelp = (href) => {
+    window.open(href,'_blank');
+  }
 
   return (
-    <>
-      <div className="w-64 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-colors duration-200">
-        {/* Header */}
-        <div className="flex items-center justify-center h-16 border-b border-slate-200 dark:border-slate-800 shrink-0">
-          <Link to="/" className="font-bold text-lg text-slate-900 dark:text-slate-50">
-            AI Platform
-          </Link>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-          {filteredNavigation.map(item => {
-            if (item.children) {
-              return (
-                <React.Fragment key={item.path}>
-                  {renderNavItem(item)}
-                  {renderSubNav(item)}
-                </React.Fragment>
-              );
-            } else {
-              return renderNavItem(item);
-            }
-          })}
-
-          {/* Agents Section with Plus */}
-          {renderNavItem(
-            { 
-              path: '/agents', 
-              icon: Bot, 
-              label: 'Agents',
-              badge: user?.role === 'super_admin' ? undefined : undefined
-            },
-            <Button
-              size="sm"
-              variant="ghost"
-              className="w-6 h-6 p-0 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
-              onClick={handleAgentPlus}
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
+    <div className="relative flex">
+      <div className={`flex flex-col h-full ${isCollapsed ? 'w-16' : 'w-64'} bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out border-r border-gray-100 dark:border-gray-800 overflow-hidden`}>
+        {/* Header with Logo */}
+        <div className="flex items-center justify-between h-14 px-4">
+          {!isCollapsed ? 
+            theme === 'light' ? (<img src='/logo.svg' className="h-8" alt="Logo" />) : (<img src='/logo-white-onblack.png' className="h-8" alt="Logo" />)
+           : (
+            <img src='/logo-icon.svg' className="h-8 w-8" alt="Logo" />
           )}
-
-          {/* Separator */}
-          <Separator className="my-4 dark:bg-slate-800" />
-
-          {/* Documentation Link */}
-          <a
-            href="https://docs.example.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50"
-          >
-            <BookOpen className="h-4 w-4" />
-            <span>Documentation</span>
-          </a>
+        </div>
+        
+        {/* Search Bar */}
+        {!isCollapsed && (<></>
+          // <div className="p-4">
+          //   <div className="relative">
+          //     {/* <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+          //     <Input
+          //       placeholder="Search Ctrl+K"
+          //       value={searchQuery}
+          //       onChange={(e) => setSearchQuery(e.target.value)}
+          //       className="pl-10 h-9 bg-gray-50 dark:bg-gray-800 border-0 focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-gray-200 dark:focus:ring-gray-600 text-sm dark:text-gray-200 dark:placeholder-gray-400"
+          //     /> */}
+          //     <ModernButton
+          //     variant="secondary"
+          //     className="w-full"
+          //     icon={Plus}>Create Agent</ModernButton>
+          //   </div>
+          // </div>
+        )}
+        
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto overflow-x-hidden">
+          {filteredItems.map((item) => (
+            <div key={item.id}>
+              {item.children ? (
+                <>
+                  <button
+                    className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors
+                    ${expandedItems.includes(item.id) ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'}`}
+                    onClick={() => !isCollapsed && toggleExpand(item.id)}
+                  >
+                    <div className="flex items-center">
+                      <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
+                      {!isCollapsed && <span>{item.label}</span>}
+                    </div>
+                    {!isCollapsed && (
+                      expandedItems.includes(item.id) ? 
+                        <ChevronDown className="w-4 h-4" /> :
+                        <ChevronRight className="w-4 h-4" />
+                    )}
+                  </button>
+                  {!isCollapsed && expandedItems.includes(item.id) && item.children && (
+                    <div className="mt-1 space-y-1 pl-7">
+                      {item.children.map((child) => (
+                        <NavLink
+                          key={child.label}
+                          to={child.href}
+                          className="flex items-center px-3 py-2 text-sm rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
+                        >
+                          <span>{child.label}</span>
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="relative group">
+                  <NavLink
+                    to={item.href}
+                    onClick={item.id === "help" ? () => handlehelp("https://docs.7en.ai/") : null}
+                    className="flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
+                  >
+                    <div className="flex items-center">
+                      <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0 ${item.highlight ? 'text-green-600 dark:text-green-400' : ''}`} />
+                      {!isCollapsed && (
+                        <span className={`${item.highlight ? 'font-medium' : ''}`}>
+                          {item.label}
+                          {item.highlight && (
+                            <span className="ml-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs py-0.5 px-1.5 rounded-full">
+                              New
+                            </span>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Plus icon for specific items */}
+                    {!isCollapsed && item.showPlusOnHover && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 transition-opacity dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-300"
+                        disabled={isCreatingAgent && item.id === 'agents'}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (item.plusAction) item.plusAction();
+                        }}
+                      >
+                        {isCreatingAgent && item.id === 'agents' ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Plus className="h-3 w-3" />
+                        )}
+                      </Button>
+                    )}
+                  </NavLink>
+                </div>
+              )}
+            </div>
+          ))}
         </nav>
-
-        {/* Footer */}
-        <div className="px-4 py-3 border-t border-slate-200 dark:border-slate-800 shrink-0">
-          {user ? (
-            <div className="text-sm text-slate-500 dark:text-slate-400">
-              Logged in as {user.email}
+        
+        {/* User Profile Section */}
+        <div className="p-4">
+          {!isCollapsed ? (
+            <div className="flex items-center justify-between">
+              <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
+                <DropdownMenuTrigger asChild>
+                  <div className="flex items-center space-x-3 cursor-pointer rounded-lg p-2 transition-colors">
+                    <Avatar className="h-8 w-8 bg-slate-300 dark:bg-slate-600 p-[1px]">
+                      <AvatarFallback className="text-gray-500 text-sm font-medium bg-slate-100 dark:bg-slate-800">
+                        {user?.name?.charAt(0).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 z-50">
+                  <div className="flex-1 min-w-0 border-b border-gray-50 dark:border-gray-700 pb-4">
+                    <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
+                      {user?.name || 'User'}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {user?.email || 'user@example.com'}
+                    </p>
+                  </div>
+                  {
+                    userRole === 'USER' && (
+                      <>
+                        <DropdownMenuItem 
+                        className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
+                        onClick={() => navigate('/settings')}>
+                          <User className="h-4 w-4" />
+                          Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                        className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
+                        onClick={() => navigate('/settings/business/payment-history')}>
+                          <CreditCard className="h-4 w-4" />
+                          Billing
+                        </DropdownMenuItem>
+                      </>
+                    )
+                  }
+                  
+                  <DropdownMenuSeparator className="dark:bg-gray-700" />
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log('Theme toggle clicked, current theme:', theme);
+                      toggleTheme();
+                    }}
+                  >
+                    {theme === 'light' ? (
+                      <>
+                        <Moon className="h-4 w-4" />
+                        Switch to Dark
+                      </>
+                    ) : (
+                      <>
+                        <Sun className="h-4 w-4" />
+                        Switch to Light
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="dark:bg-gray-700" />
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-gray-700"
+                    onClick={logout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <ArrowLeftFromLine className="h-4 w-4" />
+              </Button>
             </div>
           ) : (
-            <Button variant="secondary" size="sm" onClick={() => navigate('/login')}>
-              Login
-            </Button>
+            <div className="flex flex-col items-center space-y-2">
+              <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <div className="flex items-center space-x-3 cursor-pointer rounded-lg p-2 transition-colors">
+                      <Avatar className="h-8 w-8 bg-slate-300 dark:bg-slate-600 p-[1px]">
+                        <AvatarFallback className="text-gray-500 text-sm font-medium bg-slate-100 dark:bg-slate-800">
+                          {user?.name?.charAt(0).toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 z-50">
+                  <div className="flex-1 min-w-0 border-b border-gray-50 dark:border-gray-700 pb-4">
+                    <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
+                      {user?.name || 'User'}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {user?.email || 'user@example.com'}
+                    </p>
+                  </div>
+                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700">
+                    <User className="h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700">
+                    <CreditCard className="h-4 w-4" />
+                    Billing
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="dark:bg-gray-700" />
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log('Theme toggle clicked, current theme:', theme);
+                      toggleTheme();
+                    }}
+                  >
+                    {theme === 'light' ? (
+                      <>
+                        <Moon className="h-4 w-4" />
+                        Switch to Dark
+                      </>
+                    ) : (
+                      <>
+                        <Sun className="h-4 w-4" />
+                        Switch to Light
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="dark:bg-gray-700" />
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-gray-700"
+                    onClick={logout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <ArrowRightFromLine className="h-4 w-4" />
+              </Button>
+            </div>
           )}
         </div>
       </div>
-
-      {/* Agent Creation Wizard */}
-      <AgentCreationWizard 
-        open={isWizardOpen}
-        onOpenChange={setIsWizardOpen}
-      />
-    </>
+    </div>
   );
 };
 
