@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, ArrowRight, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Loader2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AgentTypeSelector, { AgentType } from './AgentTypeSelector';
 import WizardKnowledgeUpload, { WizardSourceType } from './WizardKnowledgeUpload';
@@ -212,53 +212,47 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
   };
 
   const renderStepIndicator = () => (
-    <div className="flex items-center justify-center mb-12">
-      {steps.map((step, index) => (
-        <div key={step.id} className="flex items-center">
-          <div className="flex flex-col items-center">
-            <div className={cn(
-              'w-12 h-12 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 shadow-sm',
-              index < currentStepIndex
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-emerald-200'
-                : index === currentStepIndex
-                ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-blue-200'
-                : 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
-            )}>
-              {index < currentStepIndex ? (
-                <CheckCircle2 className="h-5 w-5" />
-              ) : (
-                step.number
-              )}
-            </div>
-            <div className="text-center mt-3 max-w-[100px]">
+    <div className="flex items-center justify-center mb-8">
+      <div className="flex items-center space-x-8">
+        {steps.map((step, index) => (
+          <div key={step.id} className="flex items-center space-x-8">
+            <div className="flex flex-col items-center">
               <div className={cn(
-                "text-sm font-medium transition-colors duration-200",
-                index <= currentStepIndex 
-                  ? "text-slate-900 dark:text-slate-100" 
-                  : "text-slate-400 dark:text-slate-500"
+                'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border-2',
+                index < currentStepIndex
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : index === currentStepIndex
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background text-muted-foreground border-border'
               )}>
-                {step.title}
+                {index < currentStepIndex ? (
+                  <CheckCircle2 className="h-4 w-4" />
+                ) : (
+                  step.number
+                )}
               </div>
-              <div className={cn(
-                "text-xs mt-0.5 transition-colors duration-200",
-                index <= currentStepIndex 
-                  ? "text-slate-500 dark:text-slate-400" 
-                  : "text-slate-400 dark:text-slate-500"
-              )}>
-                {step.description}
+              <div className="text-center mt-2">
+                <div className={cn(
+                  "text-sm font-medium",
+                  index <= currentStepIndex 
+                    ? "text-foreground" 
+                    : "text-muted-foreground"
+                )}>
+                  {step.title}
+                </div>
               </div>
             </div>
+            {index < steps.length - 1 && (
+              <div className={cn(
+                'w-16 h-px',
+                index < currentStepIndex
+                  ? 'bg-primary'
+                  : 'bg-border'
+              )} />
+            )}
           </div>
-          {index < steps.length - 1 && (
-            <div className={cn(
-              'w-24 h-0.5 mx-6 mb-8 transition-colors duration-300',
-              index < currentStepIndex
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-600'
-                : 'bg-slate-200 dark:bg-slate-700'
-            )} />
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 
@@ -282,19 +276,16 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
       
       case 'complete':
         return (
-          <div className="text-center space-y-8 py-8">
-            <div className="relative">
-              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/50">
-                <Sparkles className="h-10 w-10 text-white" />
-              </div>
-              <div className="absolute -inset-2 bg-gradient-to-br from-emerald-400/20 to-cyan-600/20 rounded-3xl blur-xl"></div>
+          <div className="text-center space-y-6 py-8">
+            <div className="w-16 h-16 mx-auto bg-primary rounded-full flex items-center justify-center">
+              <CheckCircle2 className="h-8 w-8 text-primary-foreground" />
             </div>
             
-            <div className="space-y-3">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
+            <div className="space-y-2">
+              <h3 className="text-2xl font-semibold text-foreground">
                 Your Agent is Ready!
               </h3>
-              <p className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed max-w-md mx-auto">
+              <p className="text-muted-foreground max-w-md mx-auto">
                 {knowledgeData
                   ? `Your ${selectedType} has been created with initial knowledge. You can now train it or continue building.`
                   : `Your ${selectedType} has been created successfully. Let's configure it further.`
@@ -302,22 +293,21 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
               {knowledgeData && (
                 <Button
                   onClick={handleTrainNow}
                   disabled={isTraining}
                   size="lg"
-                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-200/30 dark:shadow-emerald-900/30 border-0"
                 >
                   {isTraining ? (
                     <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Starting Training...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-5 h-5 mr-2" />
+                      <Sparkles className="w-4 h-4 mr-2" />
                       Train Now
                     </>
                   )}
@@ -328,12 +318,8 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
                 onClick={handleGoToBuilder}
                 variant={knowledgeData ? "outline" : "default"}
                 size="lg"
-                className={cn(
-                  "shadow-md",
-                  !knowledgeData && "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white border-0"
-                )}
               >
-                <ArrowRight className="w-5 h-5 mr-2" />
+                <ArrowRight className="w-4 h-4 mr-2" />
                 Go to Builder
               </Button>
             </div>
@@ -352,26 +338,21 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
       title="Create New Agent"
       description="Set up your AI agent in just a few steps"
       size="3xl"
-      className="max-w-5xl"
+      className="max-w-4xl"
     >
-      <div className="space-y-8 px-2">
+      <div className="space-y-6">
         {renderStepIndicator()}
         
-        <div className="min-h-[500px]">
+        <div className="min-h-[400px]">
           {isCreatingAgent && (
-            <div className="flex items-center justify-center py-24">
-              <div className="text-center space-y-6">
-                <div className="relative">
-                  <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center animate-pulse">
-                    <Loader2 className="w-8 h-8 text-white animate-spin" />
-                  </div>
-                  <div className="absolute -inset-2 bg-gradient-to-br from-blue-500/20 to-indigo-600/20 rounded-3xl blur-xl animate-pulse"></div>
-                </div>
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center space-y-4">
+                <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary" />
                 <div>
-                  <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                  <h3 className="text-lg font-medium text-foreground mb-1">
                     Creating your agent...
                   </h3>
-                  <p className="text-slate-600 dark:text-slate-400">
+                  <p className="text-muted-foreground">
                     This will only take a moment
                   </p>
                 </div>
@@ -380,19 +361,14 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
           )}
           
           {isAddingKnowledge && (
-            <div className="flex items-center justify-center py-24">
-              <div className="text-center space-y-6">
-                <div className="relative">
-                  <div className="w-16 h-16 mx-auto bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center animate-pulse">
-                    <Loader2 className="w-8 h-8 text-white animate-spin" />
-                  </div>
-                  <div className="absolute -inset-2 bg-gradient-to-br from-emerald-500/20 to-teal-600/20 rounded-3xl blur-xl animate-pulse"></div>
-                </div>
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center space-y-4">
+                <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary" />
                 <div>
-                  <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                  <h3 className="text-lg font-medium text-foreground mb-1">
                     Adding knowledge source...
                   </h3>
-                  <p className="text-slate-600 dark:text-slate-400">
+                  <p className="text-muted-foreground">
                     Processing your knowledge for the agent
                   </p>
                 </div>
