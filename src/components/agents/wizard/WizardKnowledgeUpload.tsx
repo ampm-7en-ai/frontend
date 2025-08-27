@@ -556,30 +556,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         </p>
       </div>
 
-      {addedSources.length > 0 && (
-        <div className="space-y-3">
-          <Label className="text-sm font-medium text-foreground">
-            Added Knowledge Sources ({addedSources.length})
-          </Label>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {addedSources.map((source, index) => (
-              <div key={source.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border border-border">
-                {getSourceIcon(source.type)}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{source.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    ID: {source.id} • {source.type === 'docs' && source.metadata?.format ? `${source.metadata.format.toUpperCase()} file` : 
-                     source.type === 'url' && source.urls.length > 0 ? `${source.urls.length} URL(s)` :
-                     source.type}
-                  </p>
-                </div>
-                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div className="space-y-3">
         <Label htmlFor="source-name" className="text-sm font-medium text-foreground">
           Source Name
@@ -656,6 +632,31 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           className="hidden"
         />
       </div>
+
+      {/* Display added knowledge sources before action buttons */}
+      {addedSources.length > 0 && (
+        <div className="space-y-3 pt-4 border-t border-border">
+          <Label className="text-sm font-medium text-foreground">
+            Added Knowledge Sources ({addedSources.length})
+          </Label>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {addedSources.map((source, index) => (
+              <div key={source.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border border-border">
+                {getSourceIcon(source.type)}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{source.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    ID: {source.id} • {source.type === 'docs' && source.metadata?.format ? `${source.metadata.format.toUpperCase()} file` : 
+                     source.type === 'url' && source.urls.length > 0 ? `${source.urls.length} URL(s)` :
+                     source.type}
+                  </p>
+                </div>
+                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-between pt-6 border-t border-border">
         <div className="flex gap-3">
