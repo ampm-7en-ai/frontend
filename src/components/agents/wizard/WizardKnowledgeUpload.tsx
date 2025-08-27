@@ -566,7 +566,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         />
       </div>
       
-      <ScrollArea className="h-[500px] w-full">
+      <ScrollArea className="h-[400px] w-full">
         <div className="space-y-4 pr-4">
           <Label className="text-sm font-medium text-foreground">
             Choose Knowledge Type
