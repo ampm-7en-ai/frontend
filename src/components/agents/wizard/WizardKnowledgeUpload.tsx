@@ -284,22 +284,9 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
 
     setIsUploading(true);
     try {
-      const payload: any = {
-        agent_id: parseInt(agentId),
-        title: sourceName
-      };
-
+      let response;
+      
       switch (sourceType) {
-        case 'url':
-          if ((importAllPages && scrapedUrls.length > 0) || (addUrlsManually && manualUrls.length > 0)) {
-            payload.urls = getAllUrls();
-          } else {
-            payload.urls = [url];
-          }
-          break;
-        case 'plainText':
-          payload.plain_text = plainText;
-          break;
         case 'document':
         case 'csv':
           if (files.length > 0) {
@@ -308,7 +295,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
             formData.append('title', sourceName);
             formData.append('file', files[0]);
 
-            const response = await fetch(`${BASE_URL}knowledgesource/`, {
+            response = await fetch(`${BASE_URL}knowledgesource/`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${user.accessToken}`,
@@ -323,26 +310,42 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
             return await response.json();
           }
           break;
+          
+        case 'url':
+        case 'plainText':
         case 'thirdParty':
-          // Handle third party integrations
-          break;
-      }
+          const payload: any = {
+            agent_id: parseInt(agentId),
+            title: sourceName
+          };
 
-      if (sourceType !== 'document' && sourceType !== 'csv') {
-        const response = await fetch(`${BASE_URL}knowledgesource/`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${user.accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload)
-        });
+          if (sourceType === 'url') {
+            if ((importAllPages && scrapedUrls.length > 0) || (addUrlsManually && manualUrls.length > 0)) {
+              payload.urls = getAllUrls();
+            } else {
+              payload.urls = [url];
+            }
+          } else if (sourceType === 'plainText') {
+            payload.plain_text = plainText;
+          } else if (sourceType === 'thirdParty') {
+            // Handle third party integrations
+            payload.selected_files = selectedFiles;
+          }
 
-        if (!response.ok) {
-          throw new Error('Failed to create knowledge source');
-        }
+          response = await fetch(`${BASE_URL}knowledgesource/`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${user.accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+          });
 
-        return await response.json();
+          if (!response.ok) {
+            throw new Error('Failed to create knowledge source');
+          }
+
+          return await response.json();
       }
     } catch (error) {
       console.error('Error creating knowledge source:', error);
@@ -361,7 +364,17 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
   const handleAddKnowledge = async () => {
     if (!canProceed()) return;
 
+    console.log('📤 Creating knowledge source with data:', {
+      sourceType,
+      sourceName,
+      agentId,
+      filesCount: files.length,
+      urlsCount: getAllUrls().length
+    });
+
     const apiResponse = await createKnowledgeSource();
+    
+    console.log('📥 API Response received:', apiResponse);
     
     if (apiResponse && apiResponse.data) {
       const newSource: KnowledgeSource = {
@@ -373,6 +386,8 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         file: apiResponse.data.file,
         metadata: apiResponse.data.metadata
       };
+
+      console.log('✅ New source created:', newSource);
 
       setAddedSources(prev => [...prev, newSource]);
 
@@ -420,6 +435,12 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         }
         return urls;
       }, []);
+
+      console.log('🚀 Starting training with payload:', {
+        agentId,
+        knowledgeSourceIds,
+        allUrls
+      });
 
       const success = await AgentTrainingService.trainAgent(
         agentId,
