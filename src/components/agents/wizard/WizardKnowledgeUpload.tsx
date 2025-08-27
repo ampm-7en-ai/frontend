@@ -270,119 +270,28 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     }
   };
 
-  const createKnowledgeSource = async () => {
-    if (!agentId || !user?.accessToken) return null;
-
-    setIsUploading(true);
-    try {
-      let response;
-      
-      switch (sourceType) {
-        case 'document':
-        case 'csv':
-          if (files.length > 0) {
-            const formData = new FormData();
-            formData.append('agent_id', agentId);
-            formData.append('title', sourceName);
-            formData.append('file', files[0]);
-
-            response = await fetch(`${BASE_URL}knowledgesource/`, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${user.accessToken}`,
-              },
-              body: formData
-            });
-
-            if (!response.ok) {
-              throw new Error('Failed to upload file');
-            }
-
-            return await response.json();
-          }
-          break;
-          
-        case 'url':
-        case 'plainText':
-        case 'thirdParty':
-          const payload: any = {
-            agent_id: parseInt(agentId),
-            title: sourceName
-          };
-
-          if (sourceType === 'url') {
-            if ((importAllPages && scrapedUrls.length > 0) || (addUrlsManually && manualUrls.length > 0)) {
-              payload.urls = getAllUrls();
-            } else {
-              payload.urls = [url];
-            }
-          } else if (sourceType === 'plainText') {
-            payload.plain_text = plainText;
-          } else if (sourceType === 'thirdParty') {
-            payload.selected_files = selectedFiles;
-          }
-
-          response = await fetch(`${BASE_URL}knowledgesource/`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${user.accessToken}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload)
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to create knowledge source');
-          }
-
-          return await response.json();
-      }
-    } catch (error) {
-      console.error('Error creating knowledge source:', error);
-      showToast({
-        title: "Error",
-        description: "Failed to create knowledge source. Please try again.",
-        variant: "error"
-      });
-      return null;
-    } finally {
-      setIsUploading(false);
-    }
-    return null;
-  };
-
-  const handleAddKnowledge = async () => {
-    if (!canProceed()) return;
-
-    console.log('📤 Creating knowledge source with data:', {
-      sourceType,
-      sourceName,
-      agentId,
-      filesCount: files.length,
-      urlsCount: getAllUrls().length
-    });
-
-    const apiResponse = await createKnowledgeSource();
+  // Handle knowledge source upload success callback from SourceTypeSelector
+  const handleKnowledgeSourceUploaded = (responseData: any) => {
+    console.log('📥 Knowledge source uploaded successfully:', responseData);
     
-    console.log('📥 API Response received:', apiResponse);
-    
-    if (apiResponse && apiResponse.data) {
+    if (responseData && responseData.data) {
       const newSource: KnowledgeSource = {
-        id: apiResponse.data.id,
-        title: apiResponse.data.title,
-        type: apiResponse.data.type,
-        status: apiResponse.data.status,
-        urls: apiResponse.data.urls || [],
-        file: apiResponse.data.file,
-        metadata: apiResponse.data.metadata
+        id: responseData.data.id,
+        title: responseData.data.title,
+        type: responseData.data.type,
+        status: responseData.data.status,
+        urls: responseData.data.urls || [],
+        file: responseData.data.file,
+        metadata: responseData.data.metadata
       };
 
-      console.log('✅ New source created with ID:', newSource.id);
+      console.log('✅ Adding new source to list with ID:', newSource.id);
 
-      // Store knowledge source ID for training
+      // Add to knowledge source IDs for training
       setKnowledgeSourceIds(prev => [...prev, newSource.id]);
       setAddedSources(prev => [...prev, newSource]);
 
+      // Reset form
       setSourceName('');
       setUrl('');
       setFiles([]);
@@ -410,6 +319,15 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         name: sourceName
       });
     }
+  };
+
+  const handleAddKnowledge = () => {
+    if (!canProceed()) return;
+    
+    console.log('📤 Triggering knowledge source upload via SourceTypeSelector');
+    
+    // The actual upload will be handled by SourceTypeSelector through the onUploadSuccess callback
+    // This button just triggers the upload process
   };
 
   const handleTrainAgent = async () => {
@@ -556,30 +474,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         </p>
       </div>
 
-      {addedSources.length > 0 && (
-        <div className="space-y-3">
-          <Label className="text-sm font-medium text-foreground">
-            Added Knowledge Sources ({addedSources.length})
-          </Label>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {addedSources.map((source, index) => (
-              <div key={source.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border border-border">
-                {getSourceIcon(source.type)}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{source.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    ID: {source.id} • {source.type === 'docs' && source.metadata?.format ? `${source.metadata.format.toUpperCase()} file` : 
-                     source.type === 'url' && source.urls.length > 0 ? `${source.urls.length} URL(s)` :
-                     source.type}
-                  </p>
-                </div>
-                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div className="space-y-3">
         <Label htmlFor="source-name" className="text-sm font-medium text-foreground">
           Source Name
@@ -645,6 +539,11 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           addUrlsManually={addUrlsManually}
           setAddUrlsManually={setAddUrlsManually}
           fetchGoogleDriveData={fetchGoogleDriveData}
+          agentId={agentId}
+          sourceName={sourceName}
+          onUploadSuccess={handleKnowledgeSourceUploaded}
+          onUploadStart={() => setIsUploading(true)}
+          onUploadEnd={() => setIsUploading(false)}
         />
 
         <input
@@ -656,6 +555,31 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           className="hidden"
         />
       </div>
+
+      {/* Display Added Knowledge Sources */}
+      {addedSources.length > 0 && (
+        <div className="space-y-3">
+          <Label className="text-sm font-medium text-foreground">
+            Added Knowledge Sources ({addedSources.length})
+          </Label>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {addedSources.map((source, index) => (
+              <div key={source.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border border-border">
+                {getSourceIcon(source.type)}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{source.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    ID: {source.id} • {source.type === 'docs' && source.metadata?.format ? `${source.metadata.format.toUpperCase()} file` : 
+                     source.type === 'url' && source.urls.length > 0 ? `${source.urls.length} URL(s)` :
+                     source.type}
+                  </p>
+                </div>
+                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-between pt-6 border-t border-border">
         <div className="flex gap-3">
