@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import { BASE_URL } from '@/utils/api-config';
 import { GoogleDriveFile } from '@/types/googleDrive';
+import { FileText, Globe, Table, AlignLeft, ExternalLink, CheckCircle } from 'lucide-react';
 
 // Define the source types locally since they're not exported from the types file
 export type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
@@ -32,6 +32,20 @@ interface ScrapedUrl {
   selected: boolean;
 }
 
+interface KnowledgeSource {
+  id: number;
+  title: string;
+  type: string;
+  status: string;
+  urls: string[];
+  file?: string;
+  metadata?: {
+    format?: string;
+    file_size?: string;
+    upload_date?: string;
+  };
+}
+
 interface WizardKnowledgeUploadProps {
   agentId: string | null;
   onKnowledgeAdd: (data: { type: WizardSourceType; content: any; name: string }) => void;
@@ -43,6 +57,8 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
   const { user } = useAuth();
   const { showToast } = useFloatingToast();
   const [sourceName, setSourceName] = useState('');
+  const [addedSources, setAddedSources] = useState<KnowledgeSource[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   
   // SourceTypeSelector state - matching AddSourcesModal pattern
   const [sourceType, setSourceType] = useState<SourceType>('url');
@@ -230,6 +246,15 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     }
   };
 
+  const getAllUrls = () => {
+    const validManualUrls = manualUrls.filter(url => url.trim() !== '');
+    const scrapedUrlsList = scrapedUrls.filter(u => u.selected).map(u => u.url);
+    
+    // Merge and remove duplicates
+    const allUrls = [...new Set([...validManualUrls, ...scrapedUrlsList])];
+    return allUrls;
+  };
+
   // Map SourceType to WizardSourceType
   const mapToWizardSourceType = (type: SourceType): WizardSourceType => {
     if (type === 'url') return 'website';
@@ -254,35 +279,132 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     }
   };
 
-  const handleAddKnowledge = () => {
+  const createKnowledgeSource = async () => {
+    if (!agentId || !user?.accessToken) return null;
+
+    setIsUploading(true);
+    try {
+      const payload: any = {
+        agent_id: parseInt(agentId),
+        title: sourceName
+      };
+
+      switch (sourceType) {
+        case 'url':
+          if ((importAllPages && scrapedUrls.length > 0) || (addUrlsManually && manualUrls.length > 0)) {
+            payload.urls = getAllUrls();
+          } else {
+            payload.urls = [url];
+          }
+          break;
+        case 'plainText':
+          payload.plain_text = plainText;
+          break;
+        case 'document':
+        case 'csv':
+          if (files.length > 0) {
+            const formData = new FormData();
+            formData.append('agent_id', agentId);
+            formData.append('title', sourceName);
+            formData.append('file', files[0]);
+
+            const response = await fetch(`${BASE_URL}knowledgesource/`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${user.accessToken}`,
+              },
+              body: formData
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to upload file');
+            }
+
+            return await response.json();
+          }
+          break;
+        case 'thirdParty':
+          // Handle third party integrations
+          break;
+      }
+
+      if (sourceType !== 'document' && sourceType !== 'csv') {
+        const response = await fetch(`${BASE_URL}knowledgesource/`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${user.accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create knowledge source');
+        }
+
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Error creating knowledge source:', error);
+      showToast({
+        title: "Error",
+        description: "Failed to create knowledge source. Please try again.",
+        variant: "error"
+      });
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+    return null;
+  };
+
+  const handleAddKnowledge = async () => {
     if (!canProceed()) return;
 
-    let content;
-    switch (sourceType) {
-      case 'document':
-      case 'csv':
-        content = files;
-        break;
-      case 'url':
-        if (addUrlsManually) {
-          content = manualUrls.filter(u => u.trim()).join('\n');
-        } else {
-          content = url;
-        }
-        break;
-      case 'plainText':
-        content = plainText;
-        break;
-      case 'thirdParty':
-        content = selectedFiles;
-        break;
-    }
+    const apiResponse = await createKnowledgeSource();
+    
+    if (apiResponse && apiResponse.data) {
+      const newSource: KnowledgeSource = {
+        id: apiResponse.data.id,
+        title: apiResponse.data.title,
+        type: apiResponse.data.type,
+        status: apiResponse.data.status,
+        urls: apiResponse.data.urls || [],
+        file: apiResponse.data.file,
+        metadata: apiResponse.data.metadata
+      };
 
-    onKnowledgeAdd({
-      type: mapToWizardSourceType(sourceType),
-      content,
-      name: sourceName
-    });
+      setAddedSources(prev => [...prev, newSource]);
+
+      // Reset form
+      setSourceName('');
+      setUrl('');
+      setFiles([]);
+      setPlainText('');
+      setSelectedFiles([]);
+      setScrapedUrls([]);
+      setImportAllPages(false);
+      setAddUrlsManually(false);
+      setManualUrls(['']);
+
+      showToast({
+        title: "Knowledge Added",
+        description: `${newSource.title} has been added successfully`,
+        variant: "success"
+      });
+
+      // Also call the original callback for compatibility
+      const content = sourceType === 'url' ? (getAllUrls().length > 0 ? getAllUrls() : url) :
+                     sourceType === 'plainText' ? plainText :
+                     sourceType === 'document' || sourceType === 'csv' ? files :
+                     selectedFiles;
+
+      onKnowledgeAdd({
+        type: mapToWizardSourceType(sourceType),
+        content,
+        name: sourceName
+      });
+    }
   };
 
   const handleTrainAgent = async () => {
@@ -290,11 +412,20 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     
     setIsTraining(true);
     try {
+      // Prepare training payload with source IDs and URLs
+      const knowledgeSourceIds = addedSources.map(source => source.id);
+      const allUrls = addedSources.reduce((urls: string[], source) => {
+        if (source.urls && source.urls.length > 0) {
+          return [...urls, ...source.urls];
+        }
+        return urls;
+      }, []);
+
       const success = await AgentTrainingService.trainAgent(
         agentId,
-        [], // knowledge sources will be fetched by the service
+        knowledgeSourceIds, // Send the actual knowledge source IDs
         `Agent ${agentId}`,
-        [], // selected URLs if any
+        allUrls, // Send all URLs from added sources
         async () => {
           // Refetch function - can be empty for wizard
         }
@@ -310,7 +441,21 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     }
   };
 
-  // Mock handlers for SourceTypeSelector - matching AddSourcesModal pattern
+  const getSourceIcon = (type: string) => {
+    switch (type) {
+      case 'docs':
+        return <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
+      case 'url':
+        return <Globe className="h-4 w-4 text-green-600 dark:text-green-400" />;
+      case 'csv':
+        return <Table className="h-4 w-4 text-orange-600 dark:text-orange-400" />;
+      case 'text':
+        return <AlignLeft className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+      default:
+        return <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />;
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setFiles(Array.from(e.target.files));
@@ -404,6 +549,31 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         </p>
       </div>
 
+      {/* Added Knowledge Sources List */}
+      {addedSources.length > 0 && (
+        <div className="space-y-3">
+          <Label className="text-sm font-medium text-foreground">
+            Added Knowledge Sources ({addedSources.length})
+          </Label>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {addedSources.map((source, index) => (
+              <div key={source.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border border-border">
+                {getSourceIcon(source.type)}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{source.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {source.type === 'docs' && source.metadata?.format ? `${source.metadata.format.toUpperCase()} file` : 
+                     source.type === 'url' && source.urls.length > 0 ? `${source.urls.length} URL(s)` :
+                     source.type}
+                  </p>
+                </div>
+                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Source Name */}
       <div className="space-y-3">
         <Label htmlFor="source-name" className="text-sm font-medium text-foreground">
@@ -486,20 +656,32 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
 
       {/* Actions */}
       <div className="flex justify-between pt-6 border-t border-border">
-        <ModernButton 
-          variant="outline" 
-          onClick={onSkip}
-          className="bg-background text-foreground border-border hover:bg-muted"
-        >
-          Skip for Now
-        </ModernButton>
+        <div className="flex gap-3">
+          <ModernButton 
+            variant="outline" 
+            onClick={onSkip}
+            className="bg-background text-foreground border-border hover:bg-muted"
+          >
+            Skip for Now
+          </ModernButton>
+          
+          {addedSources.length > 0 && (
+            <ModernButton 
+              onClick={handleTrainAgent}
+              disabled={isTraining}
+              className="bg-green-600 text-white hover:bg-green-700"
+            >
+              {isTraining ? 'Training...' : 'Train Agent'}
+            </ModernButton>
+          )}
+        </div>
         
         <ModernButton 
           onClick={handleAddKnowledge}
-          disabled={!canProceed()}
+          disabled={!canProceed() || isUploading}
           className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
-          Add Knowledge
+          {isUploading ? 'Adding...' : 'Add Knowledge'}
         </ModernButton>
       </div>
     </div>
