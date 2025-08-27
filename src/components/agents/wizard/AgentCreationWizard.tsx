@@ -177,10 +177,6 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
     setCurrentStep('complete');
   };
 
-  const handleTrainFromKnowledge = () => {
-    setCurrentStep('complete');
-  };
-
   const handleTrainNow = async () => {
     if (!createdAgentId || !knowledgeData) return;
 
@@ -379,7 +375,6 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
             agentId={createdAgentId}
             onKnowledgeAdd={handleKnowledgeAdd}
             onSkip={handleKnowledgeSkip}
-            onTrainAgent={handleTrainFromKnowledge}
           />
         );
       
