@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, ArrowRight, Loader2, Sparkles, Circle, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Loader2, Sparkles, Circle, AlertTriangle, FileText, Globe, Table, AlignLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AgentTypeSelector, { AgentType } from './AgentTypeSelector';
 import WizardKnowledgeUpload, { WizardSourceType } from './WizardKnowledgeUpload';
@@ -15,6 +15,7 @@ import { updateCachesAfterAgentCreation } from '@/utils/agentCacheUtils';
 import { knowledgeApi } from '@/utils/api-config';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AgentCreationWizardProps {
   open: boolean;
@@ -32,7 +33,7 @@ interface KnowledgeData {
 const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) => {
   const [currentStep, setCurrentStep] = useState<WizardStep>('type');
   const [selectedType, setSelectedType] = useState<AgentType | null>(null);
-  const [knowledgeData, setKnowledgeData] = useState<KnowledgeData | null>(null);
+  const [knowledgeData, setKnowledgeData] = useState(null);
   const [createdAgentId, setCreatedAgentId] = useState<string | null>(null);
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
   const [isAddingKnowledge, setIsAddingKnowledge] = useState(false);
@@ -85,40 +86,6 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
     }
   };
 
-  const addKnowledgeToAgent = async (agentId: string, knowledge: KnowledgeData) => {
-    setIsAddingKnowledge(true);
-    try {
-      const payload: any = {
-        agent_id: parseInt(agentId),
-        title: knowledge.name
-      };
-
-      switch (knowledge.type) {
-        case 'website':
-          payload.urls = [knowledge.content];
-          break;
-        case 'plainText':
-          payload.plain_text = knowledge.content;
-          break;
-        case 'document':
-          if (knowledge.content.length > 0) {
-            const file = knowledge.content[0];
-            payload.file = file;
-          }
-          break;
-      }
-
-      const response = await knowledgeApi.createSource(payload);
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || errorData.error || 'Failed to add knowledge');
-      }
-
-      return true;
-    } finally {
-      setIsAddingKnowledge(false);
-    }
-  };
 
   const handleTypeSelect = (type: AgentType) => {
     setSelectedType(type);
@@ -148,29 +115,13 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
     }
   };
 
-  const handleKnowledgeAdd = async (knowledge: KnowledgeData) => {
+  const handleKnowledgeAdd = (knowledge) => {
     if (!createdAgentId) return;
 
     setKnowledgeData(knowledge);
-    
-    try {
-      await addKnowledgeToAgent(createdAgentId, knowledge);
-      
-      toast({
-        title: "Knowledge Added",
-        description: "Your knowledge source has been added successfully.",
-        variant: "default"
-      });
 
-      setCurrentStep('complete');
-    } catch (error) {
-      console.error('Error adding knowledge:', error);
-      toast({
-        title: "Failed to Add Knowledge",
-        description: error instanceof Error ? error.message : "Failed to add knowledge",
-        variant: "destructive"
-      });
-    }
+    setCurrentStep('complete');
+   
   };
 
   const handleKnowledgeSkip = () => {
@@ -181,21 +132,26 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
     setCurrentStep('complete');
   };
 
+  const handleClose = () => {
+    setCurrentStep('type');
+    setSelectedType(null);
+    setKnowledgeData(null);
+    setCreatedAgentId(null);
+    onOpenChange(false);
+  };
+
   const handleTrainNow = async () => {
     if (!createdAgentId || !knowledgeData) return;
 
     setIsTraining(true);
     try {
-      // Use the same training mechanism as in builder
+
       const success = await AgentTrainingService.trainAgent(
-        createdAgentId,
-        [], // knowledge sources will be fetched by the service
-        `Agent ${createdAgentId}`,
-        [], // selected URLs if any
-        async () => {
-          // Refetch function
-          queryClient.invalidateQueries({ queryKey: ['agents'] });
-        }
+        createdAgentId.toString(), 
+        [knowledgeData.id], 
+        `Agent ${createdAgentId}`, 
+        knowledgeData.urls,
+        null // Pass the refetch callback here!
       );
 
       if (success) {
@@ -205,7 +161,7 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
           variant: "default"
         });
         
-        onOpenChange(false);
+        handleClose();
         navigate(`/agents/builder/${createdAgentId}`);
       }
     } catch (error) {
@@ -223,17 +179,11 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
   const handleGoToBuilder = () => {
     if (!createdAgentId) return;
     
-    onOpenChange(false);
+    handleClose();
     navigate(`/agents/builder/${createdAgentId}`);
   };
 
-  const handleClose = () => {
-    setCurrentStep('type');
-    setSelectedType(null);
-    setKnowledgeData(null);
-    setCreatedAgentId(null);
-    onOpenChange(false);
-  };
+
 
   const renderStepsSidebar = () => (
     <div className="w-80 bg-background/50 dark:bg-background/20 backdrop-blur-md border-r border-border/40 p-6">
@@ -299,6 +249,21 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
       </div>
     </div>
   );
+
+    const getSourceIcon = (type: string) => {
+    switch (type) {
+      case 'docs':
+        return <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
+      case 'url':
+        return <Globe className="h-4 w-4 text-green-600 dark:text-green-400" />;
+      case 'csv':
+        return <Table className="h-4 w-4 text-orange-600 dark:text-orange-400" />;
+      case 'text':
+        return <AlignLeft className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+      default:
+        return <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />;
+    }
+  };
 
   const renderCurrentStep = () => {
     if (isCreatingAgent) {
@@ -400,6 +365,22 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
                   : `Your ${selectedType} has been created successfully. Let's configure it further.`
                 }
               </p>
+              {
+                knowledgeData && (
+                  <div key={knowledgeData.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border border-border max-w-96 m-auto">
+                    {getSourceIcon(knowledgeData.type)}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{knowledgeData.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {knowledgeData.type === 'docs' && knowledgeData.metadata?.format ? `${knowledgeData.metadata.format.toUpperCase()} file` : 
+                        knowledgeData.type === 'url' && knowledgeData.urls.length > 0 ? `${knowledgeData.urls.length} URL(s)` :
+                        knowledgeData.type}
+                      </p>
+                    </div>
+                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  </div>
+                )
+              }
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">

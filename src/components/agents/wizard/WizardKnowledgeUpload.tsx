@@ -10,6 +10,7 @@ import { useFloatingToast } from '@/context/FloatingToastContext';
 import { BASE_URL } from '@/utils/api-config';
 import { GoogleDriveFile } from '@/types/googleDrive';
 import { FileText, Globe, Table, AlignLeft, ExternalLink, CheckCircle } from 'lucide-react';
+import { ScrollArea } from '@radix-ui/react-scroll-area';
 
 // Define the source types locally since they're not exported from the types file
 export type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
@@ -48,7 +49,7 @@ interface KnowledgeSource {
 
 interface WizardKnowledgeUploadProps {
   agentId: string | null;
-  onKnowledgeAdd: (data: { type: WizardSourceType; content: any; name: string }) => void;
+  onKnowledgeAdd: (data: any) => void;
   onSkip: () => void;
   onTrainAgent: () => void;
 }
@@ -404,11 +405,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
                      sourceType === 'document' || sourceType === 'csv' ? files :
                      selectedFiles;
 
-      onKnowledgeAdd({
-        type: mapToWizardSourceType(sourceType),
-        content,
-        name: sourceName
-      });
+      onKnowledgeAdd(newSource);
     }
   };
 
@@ -568,7 +565,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           className="bg-background border-border"
         />
       </div>
-
+      <ScrollArea className=" overflow-hidden h-[500px]">
       <div className="space-y-4">
         <Label className="text-sm font-medium text-foreground">
           Choose Knowledge Type
@@ -622,7 +619,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           setAddUrlsManually={setAddUrlsManually}
           fetchGoogleDriveData={fetchGoogleDriveData}
         />
-
+        
         <input
           id="wizard-file-input"
           type="file"
@@ -632,7 +629,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           className="hidden"
         />
       </div>
-
+      </ScrollArea>
       {/* Display added knowledge sources before action buttons */}
       {addedSources.length > 0 && (
         <div className="space-y-3 pt-4 border-t border-border">
