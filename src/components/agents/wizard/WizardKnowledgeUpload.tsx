@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -112,8 +111,19 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     
     setIsTraining(true);
     try {
-      await AgentTrainingService.trainAgent(parseInt(agentId));
-      onTrainAgent();
+      const success = await AgentTrainingService.trainAgent(
+        agentId,
+        [], // knowledge sources will be fetched by the service
+        `Agent ${agentId}`,
+        [], // selected URLs if any
+        async () => {
+          // Refetch function - can be empty for wizard
+        }
+      );
+      
+      if (success) {
+        onTrainAgent();
+      }
     } catch (error) {
       console.error('Training failed:', error);
     } finally {
@@ -241,14 +251,8 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     }
   };
 
-  // Convert to the format expected by SourceTypeSelector
-  const availableThirdPartyProviders = Object.entries(thirdPartyProviders).map(([key, config]) => ({
-    id: config.id,
-    name: config.name,
-    description: config.description,
-    icon: config.icon,
-    color: config.color
-  }));
+  // Convert to array format that SourceTypeSelector expects
+  const availableThirdPartyProviders = Object.entries(thirdPartyProviders);
 
   return (
     <div className="space-y-6">

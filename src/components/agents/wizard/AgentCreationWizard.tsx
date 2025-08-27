@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { Button } from '@/components/ui/button';
@@ -175,6 +174,10 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
   };
 
   const handleKnowledgeSkip = () => {
+    setCurrentStep('complete');
+  };
+
+  const handleTrainFromKnowledge = () => {
     setCurrentStep('complete');
   };
 
@@ -376,6 +379,7 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
             agentId={createdAgentId}
             onKnowledgeAdd={handleKnowledgeAdd}
             onSkip={handleKnowledgeSkip}
+            onTrainAgent={handleTrainFromKnowledge}
           />
         );
       
