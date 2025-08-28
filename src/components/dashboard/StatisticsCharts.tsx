@@ -25,7 +25,7 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
   ];
 
   return (
-    <Card className="bg-white dark:bg-gray-800/50 border-0 rounded-3xl overflow-hidden h-full">
+    <Card className="bg-white dark:bg-neutral-800/50 border-0 rounded-3xl overflow-hidden h-full">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div>

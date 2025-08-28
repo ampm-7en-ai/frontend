@@ -14,6 +14,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
+import ModernButton from '../dashboard/ModernButton';
 
 interface SubscriptionPlan {
   id: number;
@@ -173,8 +174,8 @@ export const PricingModal = () => {
                   ))}
                 </div>
                 
-                <Button 
-                  variant={isCurrent ? "outline" : "default"} 
+                <ModernButton 
+                  variant={isCurrent ? "outline" : "gradient"} 
                   className="mt-6 w-full"
                   disabled={isCurrent || isLoadingCheckout}
                   onClick={() => handleUpgrade(plan.id)}
@@ -189,7 +190,7 @@ export const PricingModal = () => {
                   ) : (
                     'Upgrade'
                   )}
-                </Button>
+                </ModernButton>
               </div>
             );
           })}

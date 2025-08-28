@@ -17,7 +17,7 @@ export const ModernStatCard: React.FC<ModernStatCardProps> = ({
   gradient
 }) => {
   return (
-    <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
+    <Card className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-transparent rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
       <CardContent className="p-6 relative pb-2">
         {/* Icon positioned at top right */}
         <div className={`absolute top-4 right-4 p-2 rounded-xl ${gradient}`}>
