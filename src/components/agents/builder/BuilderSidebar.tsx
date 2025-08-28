@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useBuilder } from './BuilderContext';
-import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, X, ExternalLink, FileSpreadsheet, Layers } from 'lucide-react';
+import { Brain, Plus, FileText, Globe, Database, File, ChevronRight, ChevronDown, X, ExternalLink, FileSpreadsheet, Layers, BookOpen, Book } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useQueryClient } from '@tanstack/react-query';
 import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
@@ -68,7 +68,7 @@ const KnowledgeSourceCard = ({ source, onDelete }: {
   const IconComponent = getIconForType(source.type);
   
   return (
-    <div className="group border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200">
+    <div className="group border rounded-lg bg-white dark:bg-slate-800/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200">
       <div className="flex items-center gap-3 p-3">
         <div className={`flex items-center justify-center w-6 h-6 rounded-lg flex-shrink-0 ${getIconBackground(source.type)}`}>
           <IconComponent className="h-3 w-3 text-white" />
@@ -231,7 +231,7 @@ export const BuilderSidebar = () => {
 
   return (
     <>
-      <div className="w-full h-full bg-background flex flex-col">
+      <div className="w-full h-full bg-background dark:bg-slate-900/80 flex flex-col">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -241,13 +241,13 @@ export const BuilderSidebar = () => {
           </div>
         </div>
         
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden dark:bg-slate-900/80">
           <ScrollArea className="h-full">
             <div className="p-4 space-y-3">
               {displaySources.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Brain className="h-8 w-8 text-white" />
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Book className="h-8 w-8 text-gray-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No knowledge sources yet</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 max-w-sm mx-auto mb-4">

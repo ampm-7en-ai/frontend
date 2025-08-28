@@ -201,7 +201,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
 
   return (
     <div className="relative flex">
-      <div className={`flex flex-col h-full ${isCollapsed ? 'w-16' : 'w-64'} bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out border-r border-gray-100 dark:border-gray-800 overflow-hidden`}>
+      <div className={`flex flex-col h-full ${isCollapsed ? 'w-16' : 'w-64'} bg-white dark:bg-slate-900 transition-all duration-300 ease-in-out border-r border-gray-100 dark:border-gray-800 overflow-hidden`}>
         {/* Header with Logo */}
         <div className="flex items-center justify-between h-14 px-4">
           {!isCollapsed ? 

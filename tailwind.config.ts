@@ -106,8 +106,9 @@ export default {
 				bold: '700',
 			},
 			fontFamily: {
-				'inter': ['Inter', 'sans-serif'],
+				'inter': ['Mona Sans', 'sans-serif'],
 				'mono': ['IBM Plex Mono', 'monospace'],
+				'title': ['Inter','sans-serif']
 			},
 			spacing: {
 				'1': '4px',

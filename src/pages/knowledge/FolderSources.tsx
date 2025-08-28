@@ -373,7 +373,7 @@ const FolderSources = () => {
             filteredSources.map((source, index) => (
               <div 
                 key={source.id}
-                className="bg-white/50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50 cursor-pointer hover:bg-white dark:hover:bg-slate-700 transition-colors duration-200 animate-fade-in"
+                className="bg-white/50 dark:bg-gray-800/50 rounded-xl p-4 hover:bg-white transition-colors duration-200 animate-fade-in"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="flex items-center gap-4">

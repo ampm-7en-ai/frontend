@@ -152,10 +152,10 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
                 color: 'hsl(var(--foreground))'
               }}
             />
-            <Legend 
+            {/* <Legend 
               wrapperStyle={{ paddingTop: '20px', color: 'hsl(var(--foreground))' }}
               iconType="rect"
-            />
+            /> */}
             {/* Individual channel areas */}
             {availableChannels.map(channel => (
               <Area
@@ -211,10 +211,10 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
                 color: 'hsl(var(--foreground))'
               }}
             />
-            <Legend 
+            {/* <Legend 
               wrapperStyle={{ paddingTop: '20px', color: 'hsl(var(--foreground))' }}
               iconType="rect"
-            />
+            /> */}
             <Area 
               type="monotone" 
               dataKey={channelDataKey}

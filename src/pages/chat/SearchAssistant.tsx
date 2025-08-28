@@ -14,6 +14,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { BASE_URL } from '@/utils/api-config';
 import { StyledMarkdown } from '@/components/ui/styled-markdown';
 import { adjustColorForDarkTheme } from '@/utils/adjustColorForDarkTheme';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface ChatbotConfig {
   agentId: string;
@@ -691,7 +692,7 @@ const SearchAssistant = () => {
                             </Avatar>
 
                             <div className="flex-1 pl-[10px] pt-[5px]">
-                              <div className="flex flex-col gap-3 justify-center animate-fade-in rounded-2xl bg-gray-100/50 p-4">
+                              <div className="flex flex-col gap-3 justify-center animate-fade-in rounded-2xl bg-gray-100/50 dark:bg-gray-800/90 p-4">
                                 <form onSubmit={handleEmailSubmit} className="relative">
                                   <Input
                                     variant="modern"
@@ -706,9 +707,10 @@ const SearchAssistant = () => {
                                       color: textColor
                                     }}
                                   />
-                                  <Button
+                                  <ModernButton
                                     type="submit"
                                     size="sm"
+                                    variant="outline"
                                     disabled={!userEmail.trim() || isEmailSubmitting}
                                     className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full p-0"
                                     style={{
@@ -721,7 +723,7 @@ const SearchAssistant = () => {
                                     ) : (
                                       <ArrowUp className="h-4 w-4 text-white" />
                                     )}
-                                  </Button>
+                                  </ModernButton>
                                 </form>
                                 
                                 <Button
@@ -1105,7 +1107,7 @@ const SearchAssistant = () => {
                         </Avatar>
 
                         <div className="flex-1 pl-[10px] pt-[5px]">
-                          <div className="flex flex-col gap-3 justify-center animate-fade-in rounded-2xl bg-gray-100/50 p-4">
+                          <div className="flex flex-col gap-3 justify-center animate-fade-in rounded-2xl bg-gray-100/50 dark:bg-gray-800/90 p-4">
                             <form onSubmit={handleEmailSubmit} className="relative">
                               <Input
                                 variant="modern"

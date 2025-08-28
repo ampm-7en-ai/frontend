@@ -534,7 +534,7 @@ export const GuidelinesPanel = () => {
   }
 
   return (
-    <div className="w-full h-full bg-white dark:bg-gray-900">
+    <div className="w-full h-full bg-white dark:bg-slate-900/80">
       <div className="p-4 border-b border-gray-100 dark:border-gray-800">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
           Configuration & Guidelines
@@ -545,7 +545,7 @@ export const GuidelinesPanel = () => {
         <div className="p-4">
           <Accordion type="multiple" defaultValue={["basic"]} className="space-y-4" onValueChange={handleAccordionChange}>
             {/* Basic Settings */}
-            <AccordionItem value="basic" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+            <AccordionItem value="basic" className="border rounded-lg bg-white dark:bg-slate-800/50 backdrop-blur-sm px-4 shadow-none">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
@@ -614,7 +614,7 @@ export const GuidelinesPanel = () => {
             </AccordionItem>
 
             {/* Model Settings */}
-            <AccordionItem value="model" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+            <AccordionItem value="model" className="border rounded-lg bg-white dark:bg-slate-800/50 backdrop-blur-sm px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
@@ -680,7 +680,7 @@ export const GuidelinesPanel = () => {
             </AccordionItem>
 
             {/* Appearance */}
-            <AccordionItem value="appearance" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+            <AccordionItem value="appearance" className="border rounded-lg bg-white dark:bg-slate-800/50 backdrop-blur-sm px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
@@ -787,7 +787,7 @@ export const GuidelinesPanel = () => {
                            onChange={handleImageUpload}
                            className="hidden"
                          />
-                         <Button
+                         <ModernButton
                            type="button"
                            variant="outline"
                            onClick={() => fileInputRef.current?.click()}
@@ -800,21 +800,21 @@ export const GuidelinesPanel = () => {
                              <Upload className="h-4 w-4" />
                            )}
                            {isUploadingAvatar ? 'Uploading...' : 'Upload Image'}
-                         </Button>
+                         </ModernButton>
                          {(agentData.avatar || agentData.avatarUrl) && (
-                           <Button
+                           <ModernButton
                              type="button"
                              variant="outline"
                              onClick={handleRemoveAvatar}
                              disabled={isRemovingAvatar}
-                             className="h-10 rounded-xl border-gray-200 dark:border-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
+                             className="h-10 rounded-xl border-gray-200 dark:border-gray-700 hover:!bg-red-50 dark:hover:!bg-red-900/20 !text-red-600"
                            >
                              {isRemovingAvatar ? (
                                <LoadingSpinner size="sm" />
                              ) : (
                                'Remove'
                              )}
-                           </Button>
+                           </ModernButton>
                          )}
                        </div>
                      </div>
@@ -835,7 +835,7 @@ export const GuidelinesPanel = () => {
             </AccordionItem>
 
             {/* Simplified Behavior Guidelines */}
-            <AccordionItem value="guidelines" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+            <AccordionItem value="guidelines" className="border rounded-lg bg-white dark:bg-slate-800/50 backdrop-blur-sm px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600">
@@ -958,7 +958,7 @@ export const GuidelinesPanel = () => {
             {/* Behavior Settings */}
             { 
               agentData.agentType !== "General Assistant" && agentData.agentType !== "general_assistant" && (
-                <AccordionItem value="behavior" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+                <AccordionItem value="behavior" className="border rounded-lg bg-white dark:bg-slate-800/50 backdrop-blur-sm px-4">
                     <AccordionTrigger className="py-3 hover:no-underline">
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
@@ -971,7 +971,7 @@ export const GuidelinesPanel = () => {
                       <div className="space-y-4">
                         
                         
-                        <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
+                        <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
                           <div className="space-y-1">
                             <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
                               Ticket Creation
@@ -985,10 +985,11 @@ export const GuidelinesPanel = () => {
                             onCheckedChange={(checked) => updateAgentData({ 
                               behavior: { ...agentData.behavior, expertHandoff: checked }
                             })}
+                            className="scale-75"
                           />
                         </div>
                         
-                        <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
+                        <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
                           <div className="space-y-1">
                             <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
                               AI to AI Handoff
@@ -1002,6 +1003,7 @@ export const GuidelinesPanel = () => {
                             onCheckedChange={(checked) => updateAgentData({ 
                               behavior: { ...agentData.behavior, aiToAiHandoff: checked }
                             })}
+                            className="scale-75"
                           />
                         </div>
                         
@@ -1013,7 +1015,7 @@ export const GuidelinesPanel = () => {
             }
 
             {/* Suggestions */}
-            <AccordionItem value="suggestions" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+            <AccordionItem value="suggestions" className="border rounded-lg bg-white dark:bg-slate-800/50 backdrop-blur-sm  px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
@@ -1022,7 +1024,7 @@ export const GuidelinesPanel = () => {
                   <span className="text-sm font-medium">Quick Suggestions</span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="pb-4 px-1">
+              <AccordionContent className="pb-4 px-1 pt-1">
                 <div className="space-y-3">
                   {agentData.suggestions.map((suggestion, index) => (
                     <div key={index} className="flex gap-2">
@@ -1058,7 +1060,7 @@ export const GuidelinesPanel = () => {
             {/* Integrations */}
             {
               agentData.agentType !== "General Assistant" && agentData.agentType !== "general_assistant" && (
-                <AccordionItem value="integrations" className="border rounded-lg bg-white dark:bg-gray-800 px-4">
+                <AccordionItem value="integrations" className="border rounded-lg bg-white dark:bg-slate-800/50 backdrop-blur-sm  px-4">
                   <AccordionTrigger className="py-3 hover:no-underline">
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600">

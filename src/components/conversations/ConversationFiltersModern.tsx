@@ -83,13 +83,13 @@ const ConversationFiltersModern = ({
   };
 
   return (
-    <div className="p-4 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
+    <div className="p-4 bg-white dark:bg-slate-900 dark:border-slate-700 py-3">
       <div className="flex items-center justify-between gap-4">
         <ModernTabNavigation
           tabs={statusTabs}
           activeTab={filterResolved}
           onTabChange={onFilterResolvedChange}
-          className="text-xs"
+          className="text-xs rounded-xl"
         />
         
         <div className="flex items-center gap-2">

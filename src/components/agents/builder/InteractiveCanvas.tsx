@@ -200,7 +200,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
           <div className="absolute inset-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
             <div className="h-full w-full grid grid-cols-2 rounded-2xl overflow-hidden">
               {/* Left Column - Content Area */}
-              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg p-6 border-r border-gray-200/50 dark:border-gray-700/50">
+              <div className="bg-white/90 dark:bg-gray-800/50 backdrop-blur-lg p-6 border-r border-gray-200/50 dark:border-gray-700/50">
                 <div className="space-y-6 opacity-60">
                   <div className="space-y-3">
                     <div className="h-6 bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 dark:from-gray-600 dark:to-gray-500 rounded-lg w-3/4 animate-pulse"></div>

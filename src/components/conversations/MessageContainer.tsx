@@ -146,7 +146,7 @@ const MessageContainer = ({
         onConversationUpdate={onConversationUpdate}
       />
       
-      <div className="flex-1 overflow-hidden bg-gradient-to-br from-slate-50/80 to-slate-100/80 dark:from-slate-900/80 dark:to-slate-800/80"> 
+      <div className="flex-1 overflow-hidden bg-gradient-to-br from-gray-50/80 to-gray-100/80 dark:from-slate-900/80 dark:to-slate-900/80"> 
         <ScrollArea 
           className="h-full"
         >

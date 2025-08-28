@@ -342,7 +342,7 @@ const TeamManagementSection = () => {
       </div>
 
       {/* Inline Invite Form */}
-      <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 mb-6 backdrop-blur-sm">
+      <div className="bg-white/50 dark:bg-slate-800/50 rounded-2xl p-6 mb-6 backdrop-blur-sm">
         <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100 flex items-center gap-2">
           <Mail className="h-5 w-5" />
           Invite Team Member
@@ -434,96 +434,97 @@ const TeamManagementSection = () => {
       </div>
 
       {/* Current Owner - More Compact */}
-      <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 mb-6 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
+      <div className="bg-white/50 dark:bg-slate-800/50 rounded-2xl p-6 mb-6 backdrop-blur-sm">
+        <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
             <User className="h-5 w-5 text-white" />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-semibold text-slate-900 dark:text-slate-100">{user?.name || 'You'}</h3>
-              <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 text-xs">Owner</Badge>
+              <Badge className="text-white border-0 text-xs">Owner</Badge>
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400">{user?.email}</p>
           </div>
         </div>
+        {/* Team Members List - More Compact */}
+          {(teamMembers.length > 0 || loading) && (
+            <div className="bg-white/50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm overflow-hidden">
+              <div className="p-4 border-b border-slate-200/50 dark:border-slate-600/50">
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100">Team Members</h3>
+              </div>
+              
+              {loading ? (
+                <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+                  <div className="container mx-auto py-12 flex justify-center items-center h-64">
+                    <LoadingSpinner size="lg" text="Loading..." />
+                  </div>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-200/50 dark:divide-slate-600/50">
+                  {teamMembers.map((member) => (
+                    <div key={member.id} className="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-slate-200 dark:bg-slate-600 rounded-lg flex items-center justify-center">
+                          <User className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-medium text-slate-900 dark:text-slate-100 text-sm">
+                              {member.name || member.email}
+                            </h4>
+                            {member.status === 'pending' ? (
+                              <Badge variant="outline" className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800 text-xs">
+                                <Clock className="h-2.5 w-2.5" />
+                                Pending
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 text-xs">
+                                Active
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                            <span className="capitalize">{member.role}</span>
+                            <span>•</span>
+                            <span>
+                              {member.status === 'pending' 
+                                ? (member.expires_at ? calculateExpiryStatus(member.expires_at) : 'No expiry')
+                                : `Added ${formatDate(member.created_at || '')}`
+                              }
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <ModernButton
+                        variant="outline"
+                        size="sm"
+                        onClick={() => member.status === 'pending' ? cancelInvite(member.id) : removeActiveMember(member.id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 h-10 w-10 p-0"
+                      >
+                        <Trash className="h-5 w-5" />
+                      </ModernButton>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {!loading && teamMembers.length === 0 && (
+                <div className="p-6 text-center">
+                  <div className="w-12 h-12 bg-slate-100 dark:bg-slate-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <User className="h-6 w-6 text-slate-400" />
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-400 mb-1 text-sm">No team members yet</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-500">
+                    Invite your first team member to get started collaborating.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
       </div>
 
-      {/* Team Members List - More Compact */}
-      {(teamMembers.length > 0 || loading) && (
-        <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm overflow-hidden">
-          <div className="p-4 border-b border-slate-200/50 dark:border-slate-600/50">
-            <h3 className="font-semibold text-slate-900 dark:text-slate-100">Team Members</h3>
-          </div>
-          
-          {loading ? (
-            <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-              <div className="container mx-auto py-12 flex justify-center items-center h-64">
-                <LoadingSpinner size="lg" text="Loading..." />
-              </div>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-200/50 dark:divide-slate-600/50">
-              {teamMembers.map((member) => (
-                <div key={member.id} className="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-600/30 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-slate-200 dark:bg-slate-600 rounded-lg flex items-center justify-center">
-                      <User className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium text-slate-900 dark:text-slate-100 text-sm">
-                          {member.name || member.email}
-                        </h4>
-                        {member.status === 'pending' ? (
-                          <Badge variant="outline" className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800 text-xs">
-                            <Clock className="h-2.5 w-2.5" />
-                            Pending
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 text-xs">
-                            Active
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-                        <span className="capitalize">{member.role}</span>
-                        <span>•</span>
-                        <span>
-                          {member.status === 'pending' 
-                            ? (member.expires_at ? calculateExpiryStatus(member.expires_at) : 'No expiry')
-                            : `Added ${formatDate(member.created_at || '')}`
-                          }
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <ModernButton
-                    variant="outline"
-                    size="sm"
-                    onClick={() => member.status === 'pending' ? cancelInvite(member.id) : removeActiveMember(member.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 h-10 w-10 p-0"
-                  >
-                    <Trash className="h-5 w-5" />
-                  </ModernButton>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {!loading && teamMembers.length === 0 && (
-            <div className="p-6 text-center">
-              <div className="w-12 h-12 bg-slate-100 dark:bg-slate-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                <User className="h-6 w-6 text-slate-400" />
-              </div>
-              <p className="text-slate-600 dark:text-slate-400 mb-1 text-sm">No team members yet</p>
-              <p className="text-xs text-slate-500 dark:text-slate-500">
-                Invite your first team member to get started collaborating.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+      
     </section>
   );
 };

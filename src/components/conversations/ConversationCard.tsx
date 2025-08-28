@@ -175,10 +175,10 @@ const ConversationCard = ({
   return (
     <Card 
       className={cn(
-        "hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-all duration-200 cursor-pointer border-0 shadow-none rounded-xl bg-transparent",
+        "hover:!bg-gray-100/50 dark:hover:!bg-slate-700/50 transition-all duration-200 cursor-pointer shadow-none rounded-xl !bg-transparent",
         isSelected 
-          ? "bg-gray-50 dark:bg-slate-700/50 ring-1 ring-gray-200 dark:ring-gray-800 shadow-sm" 
-          : "hover:shadow-sm"
+          ? "!bg-gray-100/50 dark:!bg-slate-700/50" 
+          : ""
       )}
       onClick={onClick}
     >

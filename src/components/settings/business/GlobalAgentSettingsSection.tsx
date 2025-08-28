@@ -99,7 +99,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
         </p>
       </div>
       
-      <div className="bg-white/50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+      <div className="bg-white/50 dark:bg-slate-800/50 rounded-2xl p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">

@@ -129,7 +129,7 @@ const ConversationHeader = ({
 
   return (
     <>
-      <div className="flex items-center justify-between p-4 border-b border-gray-200/60 dark:border-slate-700/60 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200/60 dark:border-slate-700/60 bg-white/70 dark:bg-slate-900/80 backdrop-blur-sm py-2">
         <div className="flex items-center gap-3">
           <Avatar className="w-11 h-11 rounded-2xl">
             <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-300 font-medium rounded-lg">

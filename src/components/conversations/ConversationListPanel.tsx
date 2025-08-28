@@ -411,7 +411,7 @@ const ConversationListPanel = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900">
+    <div className="flex flex-col h-full bg-white dark:bg-slate-900/80">
       {/* Filters */}
       <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-700">
         <ConversationFiltersModern 

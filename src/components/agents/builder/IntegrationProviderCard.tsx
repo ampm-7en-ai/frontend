@@ -30,7 +30,7 @@ export const IntegrationProviderCard: React.FC<IntegrationProviderCardProps> = (
   };
 
   return (
-    <ModernCard className={`p-2 ${isUpdating && `opacity-50 cursor-none pointer-events-none`}`}>
+    <ModernCard className={`p-2 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm ${isUpdating && `opacity-50 cursor-none pointer-events-none `}`}>
       <ModernCardContent className="p-0">
         <div className="flex items-center gap-3 group">
           <div className="flex-shrink-0">
@@ -54,7 +54,7 @@ export const IntegrationProviderCard: React.FC<IntegrationProviderCardProps> = (
           
           <div className="flex-shrink-0">
            <ModernButton
-           variant="ghost"
+           variant="outline"
            size='sm'
            className={`text-xs hidden ${providerId === defaultProvider ? `!block` : `group-hover:block` }`}
            disabled={providerId === defaultProvider}
