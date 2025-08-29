@@ -33,11 +33,11 @@ export const TICKETING_PROVIDERS_LOGOS = {
       logo: 'https://img.logo.dev/zoho.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true'
     },
     "salesforce":{
-      name: 'Salesforce Service Cloud',
+      name: 'Salesforce',
       logo: 'https://img.logo.dev/salesforce.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true'
     },
     "hubspot":{
-      name: 'HubSpot Service Hub',
+      name: 'HubSpot',
       logo: 'https://img.logo.dev/hubspot.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true'
     },
     "google_drive": {

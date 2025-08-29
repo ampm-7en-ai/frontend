@@ -30,14 +30,14 @@ export const IntegrationProviderCard: React.FC<IntegrationProviderCardProps> = (
   };
 
   return (
-    <ModernCard className={`p-2 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm ${isUpdating && `opacity-50 cursor-none pointer-events-none `}`}>
+    <ModernCard className={`p-2 !bg-white dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm ${isUpdating && `opacity-50 cursor-none pointer-events-none `}`}>
       <ModernCardContent className="p-0">
         <div className="flex items-center gap-3 group">
           <div className="flex-shrink-0">
             <img 
               src={getProviderLogo(providerId)} 
               alt={`${providerInfo.name} logo`}
-              className="w-8 h-8 rounded-lg object-contain bg-white p-1"
+              className="w-6 h-6 rounded-lg object-contain bg-white p-1"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
               }}
@@ -46,7 +46,7 @@ export const IntegrationProviderCard: React.FC<IntegrationProviderCardProps> = (
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="font-medium text-xs text-gray-900 dark:text-gray-100">
+              <h3 className="font-medium text-[11px] text-gray-900 dark:text-gray-100">
                 {providerInfo.name}
               </h3>
             </div>
@@ -56,7 +56,7 @@ export const IntegrationProviderCard: React.FC<IntegrationProviderCardProps> = (
            <ModernButton
            variant="outline"
            size='sm'
-           className={`text-xs hidden ${providerId === defaultProvider ? `!block` : `group-hover:block` }`}
+           className={`text-xs scale-75 opacity-0 ${providerId === defaultProvider ? `!block` : `group-hover:block group-hover:opacity-100` }`}
            disabled={providerId === defaultProvider}
            onClick={()=> onToggle(providerId,isEnabled)}
            >

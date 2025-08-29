@@ -37,6 +37,7 @@ interface AgentFormData {
     expertHandoff?: boolean;
     aiToAiHandoff?: boolean;
     multilingualSupport?: boolean;
+    autoTicketReply?: boolean;
   };
   settings?: {
     temperature?: number;
@@ -206,7 +207,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           continuousLearning: agentData.behavior?.continuousLearning || false,
           expertHandoff: agentData.behavior?.expertHandoff || false,
           aiToAiHandoff: agentData.behavior?.aiToAiHandoff || false,
-          multilingualSupport: agentData.behavior?.multilingualSupport || false
+          multilingualSupport: agentData.behavior?.multilingualSupport || false,
+          autoTicketReply: agentData.behavior?.autoTicketReply || false
         },
         // Updated settings mapping to match the new API structure
         settings: {
@@ -386,7 +388,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
             continuousLearning: state.agentData.behavior?.continuousLearning,
             expertHandoff: state.agentData.behavior?.expertHandoff,
             aiToAiHandoff: state.agentData.behavior?.aiToAiHandoff,
-            multilingualSupport: state.agentData.behavior?.multilingualSupport
+            multilingualSupport: state.agentData.behavior?.multilingualSupport,
+            autoTicketReply: state.agentData.behavior?.autoTicketReply
           },
           // Updated model payload to match the new API structure
           model: {
