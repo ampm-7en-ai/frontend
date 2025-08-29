@@ -46,11 +46,9 @@ export const GuidelinesPanel = () => {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isRemovingAvatar, setIsRemovingAvatar] = useState(false);
   
-  //agent category
-  const [agentCategory,setAgentCategory] = useState("assistant");
 
   const handleCategory = (category: string) => {
-    setAgentCategory(category);
+    updateAgentData({ agent_category: category });
   }
 
   // Get global default model from agent data settings
@@ -555,11 +553,11 @@ export const GuidelinesPanel = () => {
               
                 <div className="mt-1.5">
                   <ModernDropdown
-                    value={agentCategory || "assistant" }
+                    value={agentData.agent_category || "Assistant" }
                     onValueChange={handleCategory}
                     options={[
-                      {label: "Assistant", value: "assistant"},
-                      {label: "Chatbot", value: "chatbot"}
+                      {label: "Assistant", value: "Assistant"},
+                      {label: "Chatbot", value: "Chatbot"}
                     ]}
                     placeholder="Select agent category"
                   />
@@ -982,7 +980,7 @@ export const GuidelinesPanel = () => {
 
             {/* Behavior Settings */}
             { 
-              agentCategory === "chatbot" && (
+              agentData.agent_category === "Chatbot" && (
                 <AccordionItem value="behavior" className="border rounded-lg bg-white dark:bg-slate-800/50 backdrop-blur-sm px-4">
                     <AccordionTrigger className="py-3 hover:no-underline">
                       <div className="flex items-center gap-3">
@@ -1000,7 +998,7 @@ export const GuidelinesPanel = () => {
                           <div className="flex items-center justify-between">
                             <div className="space-y-1">
                               <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                Ticket Creation
+                                Human Handoff
                               </Label>
                               <p className="text-xs text-gray-600 dark:text-gray-400">
                                 Allow the agent to create ticket for human support
@@ -1013,6 +1011,9 @@ export const GuidelinesPanel = () => {
                               })}
                               className="scale-75"
                             />
+                          </div>
+                          <div className="space-y-4">
+                            {/* add radio button here */}
                           </div>
                           {/*ticketing providers*/}
                           {

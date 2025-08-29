@@ -12,6 +12,7 @@ interface AgentFormData {
   name: string;
   description: string;
   agentType: string;
+  agent_category: string;
   model: string;
   temperature: number;
   maxTokens: number;
@@ -76,6 +77,7 @@ const defaultAgentData: AgentFormData = {
   name: 'Untitled Agent',
   description: 'A helpful AI assistant created with our builder.',
   agentType: 'Customer Support',
+  agent_category: 'assistant',
   model: 'gpt-3.5-turbo',
   temperature: 0.7,
   maxTokens: 1000,
@@ -182,6 +184,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         name: agentData.name || 'Untitled Agent',
         description: agentData.description || 'A helpful AI assistant created with our builder.',
         agentType: agentData.agentType || 'Customer Support',
+        agent_category: agentData.agent_category || 'assistant',
         // Updated model mapping to handle the new API structure
         model: agentData.model?.response_model || agentData.model?.selectedModel || agentData.model?.name || 'gpt-3.5-turbo',
         temperature: agentData.model?.temperature || 0.7,
@@ -397,6 +400,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
             temperature: state.agentData.temperature
           },
           agentType: state.agentData.agentType,
+          agent_category: state.agentData.agent_category,
           systemPrompt: state.agentData.systemPrompt,
           knowledgeSources: state.agentData.knowledgeSources.map(ks => ks.id),
           default_ticketing_provider: state.agentData.default_ticketing_provider
@@ -461,6 +465,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
             response_model: response.data.model?.response_model || state.agentData.model
           },
           agentType: response.data.agentType || state.agentData.agentType,
+          agent_category: response.data.agent_category || state.agentData.agent_category,
           systemPrompt: response.data.systemPrompt || state.agentData.systemPrompt,
           knowledgeSources: formatKnowledgeSources(response.data.knowledge_sources || []),
           ticketing_providers: response.data.ticketing_providers || state.agentData.ticketing_providers,
