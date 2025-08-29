@@ -134,7 +134,7 @@ const MessageContainer = ({
   }
 
   return (
-    <div className="flex flex-col h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
+    <div className="flex flex-col h-full bg-white/70 dark:bg-[hsla(0,0%,0%,0.95)] backdrop-blur-sm">
       <ConversationHeader 
         conversation={conversation}
         selectedAgent={selectedAgent}
@@ -146,7 +146,7 @@ const MessageContainer = ({
         onConversationUpdate={onConversationUpdate}
       />
       
-      <div className="flex-1 overflow-hidden bg-gradient-to-br from-gray-50/80 to-gray-100/80 dark:from-slate-900/80 dark:to-slate-900/80"> 
+      <div className="flex-1 overflow-hidden bg-gradient-to-br from-gray-50/80 to-gray-100/80 dark:from-neutral-900/80 dark:to-neutral-900/80"> 
         <ScrollArea 
           className="h-full"
         >

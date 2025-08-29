@@ -25,11 +25,11 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
   ];
 
   return (
-    <Card className="bg-white dark:bg-neutral-800/50 border-0 rounded-3xl overflow-hidden h-full">
+    <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-3xl overflow-hidden h-full">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
+            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center pl-0">
               Customer Satisfaction
             </CardTitle>
           </div>

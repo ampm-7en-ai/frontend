@@ -11,7 +11,7 @@ const ModernInput = React.forwardRef<HTMLInputElement, ModernInputProps>(
   ({ className, type, variant = 'modern', ...props }, ref) => {
     const variants = {
       default: "border-input bg-background",
-      modern: "bg-white/80 dark:!text-gray-200 dark:!bg-slate-800 dark:!border-gray-500/40 border-slate-200 rounded-xl focus-visible:ring-blue-500/50 dark:focus-visible:ring-blue-400/50 focus-visible:border-transparent hover:border-slate-300/80 dark:hover:border-slate-500/80",
+      modern: "bg-white/80 dark:!text-gray-200 dark:!bg-neutral-800 dark:!border-gray-500/40 border-slate-200 rounded-xl focus-visible:ring-blue-500/50 dark:focus-visible:ring-blue-400/50 focus-visible:border-transparent hover:border-slate-300/80 dark:hover:border-slate-500/80",
       glass: "border-border/30 bg-background/20 backdrop-blur-md focus:bg-background/40 focus:border-primary/60"
     }
 

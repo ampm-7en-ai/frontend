@@ -7,6 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';    
 import { Switch } from '@/components/ui/switch';
@@ -19,8 +20,10 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { agentApi, getAccessToken, getApiUrl } from '@/utils/api-config';
-import { IntegrationProviderCard } from './IntegrationProviderCard';
+//import { IntegrationProviderCard } from './IntegrationProviderCard';
 import { Link } from 'react-router-dom';
+import { TICKETING_PROVIDERS_LOGOS } from '@/utils/integrationUtils';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export const GuidelinesPanel = () => {
   const { state, updateAgentData, saveAgent } = useBuilder();
@@ -45,7 +48,8 @@ export const GuidelinesPanel = () => {
   // Avatar upload states
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isRemovingAvatar, setIsRemovingAvatar] = useState(false);
-  
+
+
 
   const handleCategory = (category: string) => {
     updateAgentData({ agent_category: category });
@@ -393,9 +397,10 @@ export const GuidelinesPanel = () => {
     updateAgentData({ suggestions: newSuggestions });
   };
 
+
   // Handle provider toggle
   const handleProviderToggle = async (providerId: string) => {
-    
+
     setIsAdding(true);
     
       try {
@@ -538,7 +543,7 @@ export const GuidelinesPanel = () => {
   }
 
   return (
-    <div className="w-full h-full bg-white dark:bg-slate-900/80">
+    <div className="w-full h-full bg-white dark:bg-[hsla(0,0%,0%,0.95)]">
       <div className="p-4 border-b border-gray-100 dark:border-gray-800">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
           Configuration & Guidelines
@@ -569,7 +574,7 @@ export const GuidelinesPanel = () => {
         <div className="p-4">
           <Accordion type="multiple" defaultValue={["basic"]} className="space-y-4" onValueChange={handleAccordionChange}>
             {/* Basic Settings */}
-            <AccordionItem value="basic" className="border rounded-lg bg-white dark:bg-slate-800/50 backdrop-blur-sm px-4 shadow-none">
+            <AccordionItem value="basic" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-neutral-700/50 backdrop-blur-sm px-4 shadow-none">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
@@ -617,7 +622,7 @@ export const GuidelinesPanel = () => {
             </AccordionItem>
 
             {/* Model Settings */}
-            <AccordionItem value="model" className="border rounded-lg bg-white dark:bg-slate-800/50 backdrop-blur-sm px-4">
+            <AccordionItem value="model" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-neutral-700/50 backdrop-blur-sm px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
@@ -683,7 +688,7 @@ export const GuidelinesPanel = () => {
             </AccordionItem>
 
             {/* Appearance */}
-            <AccordionItem value="appearance" className="border rounded-lg bg-white dark:bg-slate-800/50 backdrop-blur-sm px-4">
+            <AccordionItem value="appearance" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-neutral-700/50 backdrop-blur-sm px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
@@ -838,7 +843,7 @@ export const GuidelinesPanel = () => {
             </AccordionItem>
 
             {/* Simplified Behavior Guidelines */}
-            <AccordionItem value="guidelines" className="border rounded-lg bg-white dark:bg-slate-800/50 backdrop-blur-sm px-4">
+            <AccordionItem value="guidelines" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-neutral-700/50 backdrop-blur-sm px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600">
@@ -981,7 +986,7 @@ export const GuidelinesPanel = () => {
             {/* Behavior Settings */}
             { 
               agentData.agent_category === "Chatbot" && (
-                <AccordionItem value="behavior" className="border rounded-lg bg-white dark:bg-slate-800/50 backdrop-blur-sm px-4">
+                <AccordionItem value="behavior" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-neutral-700/50 backdrop-blur-sm px-4">
                     <AccordionTrigger className="py-3 hover:no-underline">
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
@@ -994,7 +999,7 @@ export const GuidelinesPanel = () => {
                       <div className="space-y-4">
                         
                         
-                        <div className="flex items-center flex-col p-4 rounded-lg bg-gray-50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+                        <div className="flex items-center flex-col p-4 rounded-lg bg-gray-50 dark:bg-neutral-800/70 dark:border-neutral-700/50 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
                           <div className="flex items-center justify-between">
                             <div className="space-y-1">
                               <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -1012,58 +1017,101 @@ export const GuidelinesPanel = () => {
                               className="scale-75"
                             />
                           </div>
-                          <div className="space-y-4">
-                            {/* add radio button here */}
-                          </div>
+                    
                           {/*ticketing providers*/}
                           {
                             agentData.behavior?.expertHandoff && (
-                              <div className="space-y-3">
-                                {agentData.ticketing_providers && agentData.ticketing_providers.length > 0 ? (
-                                  <>
-                                    <p className="font-semibold text-xs py-2 pt-4">Ticket Providers</p>
-                                    {(agentData.ticketing_providers as string[]).map((providerId: string) => (
-                                      <IntegrationProviderCard
-                                        key={providerId}
-                                        providerId={providerId}
-                                        isEnabled={true}
-                                        onToggle={handleProviderToggle}
-                                        isUpdating={IsAdding}
-                                        defaultProvider={agentData.default_ticketing_provider}
-                                      />
-                                    ))}
-                                    {/* auto ticket reply */}
-                                    <div className="flex items-center justify-between p-4 rounded-lg bg-white dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
-                                      <div className="space-y-1">
-                                        <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                          Auto Reply
-                                        </Label>
-                                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                                          Allow the agent to auto reply when ticket is created.
-                                        </p>
-                                      </div>
-                                      <Switch
-                                        checked={agentData.behavior?.autoTicketReply || false}
-                                        onCheckedChange={(checked) => updateAgentData({ 
-                                          behavior: { ...agentData.behavior, autoTicketReply: checked }
-                                        })}
-                                        className="scale-75"
-                                      />
+                              <div className="space-y-3 w-full">
+                                <div className="py-4 w-ful pb-0">
+                                  {/* add radio button here */}
+                                  <RadioGroup
+                                    value={agentData.behavior?.ticketType || 'email'}
+                                    onValueChange={(value: any) => updateAgentData({
+                                      behavior: { ...agentData.behavior, ticketType: value}
+                                    })}
+                                    className="flex items-center gap-4"
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="thirdparty" id="thirdparty" />
+                                      <Label className="text-[11px]" htmlFor="thirdparty">Create ticket</Label>
                                     </div>
-                                  </>
-                                ) : (
-                                  <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-                                    <Settings2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                    <p className="text-sm font-semibold">No any apps are being added.</p>
-                                    <p className="text-xs mt-1">Go to <Link to="/integrations" className="underline text-primary dark:text-white">Integrations</Link> page to connect apps.</p>
-                                  </div>
-                                )}
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="email" id="email" />
+                                      <Label className="text-[11px]" htmlFor="email">Send email</Label>
+                                    </div>
+                                  </RadioGroup>
+                                </div>
+                                {
+                                  agentData.behavior.ticketType === "thirdparty" ? (
+                                    <>
+                                    {/* all ticketing logics */}
+                                    {agentData.ticketing_providers && agentData.ticketing_providers.length > 0 ? (
+                                      <>
+                                      {
+                                        IsAdding ? (
+                                          <div className="flex items-center gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                                            <LoadingSpinner size="sm" />
+                                            <span className="text-sm text-gray-500">updating provider...</span>
+                                          </div>
+                                        ) : (
+                                          <ModernDropdown
+                                            value={agentData.default_ticketing_provider}
+                                            onValueChange={handleProviderToggle}
+                                            options={(agentData.ticketing_providers as string[]).map((providerId: string) => (
+                                              {
+                                                label: `${TICKETING_PROVIDERS_LOGOS[providerId]?.name}`,
+                                                value: providerId}
+                                            ))}
+                                            placeholder="Select agent type"
+                                          />
+                                        )
+                                      }
+                                        <div className="flex items-center space-x-2">
+                                          <Checkbox 
+                                            id={`auto-reply`}
+                                            checked={agentData.behavior?.autoTicketReply || false}
+                                            onCheckedChange={(checked: any) => updateAgentData({ 
+                                              behavior: { ...agentData.behavior, autoTicketReply: checked }
+                                            })}
+                                          />
+                                          <div>
+                                            <Label 
+                                              htmlFor={`auto-reply`}
+                                              className="text-xs"
+                                            >
+                                              Allow auto ticket reply.
+                                            </Label>
+                                          </div>
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <div className="text-left py-2 text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600/50 !pb-3 !pl-2 rounded-lg !mt-3">
+                                        <p className="text-sm font-semibold p-0 pl-0">No provider integrated.</p>
+                                        <p className="text-xs mt-1">Go to <Link to="/integrations" className="underline text-primary dark:text-white">Integrations</Link></p>
+                                      </div>
+                                    )}
+                                    </>
+                                  ) : (
+                                    <div className="">
+                                      <Input
+                                        value={agentData.behavior?.email || ""}
+                                        variant="modern"
+                                        size="sm"
+                                        onChange={(e) => updateAgentData({behavior: {...agentData.behavior, email: e.target.value}})}
+                                        placeholder="Enter email address"
+                                        className="rounded-xl border-gray-200 dark:border-gray-700"
+                                      />
+                                      <p className="text-[10px] leading-[10px] pt-2 text-gray-500 dark:text-gray-400">You will receive an email to this address if agent is unable to answer.</p>
+                                    </div>
+                                  )
+                                }
+                                
                               </div>
                             )
                           }
                         </div>
                         
-                        <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+                        <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-neutral-800/70 dark:border-neutral-700/50 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
                           <div className="space-y-1">
                             <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
                               AI to AI Handoff
@@ -1089,7 +1137,7 @@ export const GuidelinesPanel = () => {
             }
 
             {/* Suggestions */}
-            <AccordionItem value="suggestions" className="border rounded-lg bg-white dark:bg-slate-800/50 backdrop-blur-sm  px-4">
+            <AccordionItem value="suggestions" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-neutral-700/50 backdrop-blur-sm  px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
@@ -1134,7 +1182,7 @@ export const GuidelinesPanel = () => {
             {/* Integrations */}
             {/* {
               agentCategory === "chatbot" && (
-                <AccordionItem value="integrations" className="border rounded-lg bg-white dark:bg-slate-800/50 backdrop-blur-sm  px-4">
+                <AccordionItem value="integrations" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-neutral-700/50 backdrop-blur-sm  px-4">
                   <AccordionTrigger className="py-3 hover:no-underline">
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600">

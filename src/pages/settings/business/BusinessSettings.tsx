@@ -52,7 +52,7 @@ const BusinessSettings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
+    <div className="min-h-screen dark:bg-[hsla(0,0%,0%,0.95)]">
       <div className="container mx-auto py-8 px-4 max-w-5xl">
         
         {/* Payment Status Banner */}

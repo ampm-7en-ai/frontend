@@ -234,7 +234,7 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
     <Card className="bg-transparent dark:bg-neutral-800/50 border-0 0 rounded-3xl shadow-none overflow-hidden h-full pl-0">
       <CardHeader className="pb-4 pl-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 pl-5">
             Conversation Statistics
           </CardTitle>
           <div className="flex items-center gap-3">

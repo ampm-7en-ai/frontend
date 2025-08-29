@@ -32,7 +32,7 @@ const UsageSection = ({ usageMetrics }: UsageSectionProps) => {
         </p>
       </div>
       
-      <div className="bg-white/50 dark:bg-slate-800/50 rounded-2xl p-6 backdrop-blur-sm">
+      <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
@@ -46,7 +46,7 @@ const UsageSection = ({ usageMetrics }: UsageSectionProps) => {
         </div>
 
         <div className="space-y-4">
-          <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200/50 dark:border-slate-600/50">
+          <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-6 border border-slate-200/50 dark:border-neutral-600/50">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
@@ -78,7 +78,7 @@ const UsageSection = ({ usageMetrics }: UsageSectionProps) => {
             </div>
           </div>
 
-          <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200/50 dark:border-slate-600/50">
+          <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-6 border border-slate-200/50 dark:border-neutral-600/50">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">

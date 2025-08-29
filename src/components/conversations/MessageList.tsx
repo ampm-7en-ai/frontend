@@ -155,7 +155,7 @@ const MessageList = ({
         {message.sender === 'bot' && (
           <Avatar className={cn(
             "h-8 w-8 mr-3 mt-0.5 flex-shrink-0",
-            isHighlighted ? "bg-primary ring-2 ring-primary/30" : "bg-slate-700 dark:bg-slate-600"
+            isHighlighted ? "bg-primary ring-2 ring-primary/30" : "bg-neutral-700 dark:bg-neutral-600"
           )}>
             <AvatarFallback>
               <Bot className="h-4 w-4 text-white" />
@@ -211,7 +211,7 @@ const MessageList = ({
               <div 
                 className={cn(
                   "p-3 transition-all max-w-full",
-                  "rounded-2xl rounded-tl-sm bg-white dark:bg-slate-900/90 backdrop-blur-sm",
+                  "rounded-2xl rounded-tl-sm bg-white dark:bg-neutral-800/90 backdrop-blur-sm",
                   "border border-slate-200/60 dark:border-slate-700/60 shadow-none"
                 )}
               >

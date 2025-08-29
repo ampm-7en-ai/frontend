@@ -307,7 +307,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
   };
 
   return (
-    <Card className="bg-white dark:bg-neutral-800/50 border-0 rounded-3xl overflow-hidden">
+    <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-3xl overflow-hidden">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

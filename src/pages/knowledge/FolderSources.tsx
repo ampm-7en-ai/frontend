@@ -312,7 +312,7 @@ const FolderSources = () => {
               placeholder="Search sources..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl h-10 flex w-full px-4 py-3 text-sm transition-all duration-200 border ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-blue-400/50 focus-visible:border-transparent hover:border-slate-300/80 dark:hover:border-slate-500/80 pl-10"
+              className="bg-white/80 dark:bg-neutral-800/80 border-slate-200 dark:border-neutral-700 rounded-xl h-10 flex w-full px-4 py-3 text-sm transition-all duration-200 border ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-blue-400/50 focus-visible:border-transparent hover:border-slate-300/80 dark:hover:border-slate-500/80 pl-10"
             />
           </div>
           <div className="w-full sm:w-48">
@@ -373,7 +373,7 @@ const FolderSources = () => {
             filteredSources.map((source, index) => (
               <div 
                 key={source.id}
-                className="bg-white/50 dark:bg-gray-800/50 rounded-xl p-4 hover:bg-white transition-colors duration-200 animate-fade-in"
+                className="bg-white/50 dark:bg-neutral-800/70 rounded-xl p-4 hover:bg-white transition-colors duration-200 animate-fade-in"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="flex items-center gap-4">

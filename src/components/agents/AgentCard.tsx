@@ -96,7 +96,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
     <div className="w-full">
       {/* Main Agent Card */}
       <div className="bg-transparent rounded-3xl p-1 border-0 backdrop-blur-md shadow-none hover:shadow-xl transition-all duration-300">
-        <Card className="bg-white/60 dark:bg-slate-800/60 rounded-2xl border-0 shadow-none hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all duration-300 overflow-hidden backdrop-blur-sm cursor-pointer" onClick={()=>handleConfigure(agent.id)}>
+        <Card className="bg-white/60 dark:bg-neutral-800/70 rounded-2xl border-0 shadow-none hover:bg-white/80 dark:hover:bg-neutral-800/80 transition-all duration-300 overflow-hidden backdrop-blur-sm cursor-pointer" onClick={()=>handleConfigure(agent.id)}>
           <CardHeader className="p-6 pb-4">
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">

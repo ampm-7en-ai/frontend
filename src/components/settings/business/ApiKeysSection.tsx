@@ -125,7 +125,7 @@ const ApiKeysSection = () => {
         </p>
       </div>
 
-      <div className="bg-white/50 dark:bg-slate-800/50 rounded-2xl p-6 backdrop-blur-sm">
+      <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
@@ -156,10 +156,10 @@ const ApiKeysSection = () => {
           </div>
         ) : apiKeys.length > 0 ? (
           <div className="space-y-4">
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+            <div className="bg-white dark:bg-neutral-800 rounded-xl border border-slate-200 dark:border-neutral-700">
               <Table>
                 <TableHeader>
-                  <TableRow className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                  <TableRow className="hover:bg-slate-50/50 dark:hover:bg-neutral-800/70 transition-colors dark:border-neutral-600">
                     <TableHead>Name</TableHead>
                     <TableHead>Key</TableHead>
                     <TableHead>Created</TableHead>
@@ -168,7 +168,7 @@ const ApiKeysSection = () => {
                 </TableHeader>
                 <TableBody>
                   {apiKeys.map((apiKey) => (
-                    <TableRow key={apiKey.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                    <TableRow key={apiKey.id} className="hover:bg-slate-50/50 dark:hover:bg-neutral-800/80 transition-colors dark:border-neutral-600">
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <KeyRound className="h-4 w-4 text-blue-600 dark:text-blue-400" />

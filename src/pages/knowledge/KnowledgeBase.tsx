@@ -94,7 +94,7 @@ const KnowledgeBase = () => {
           // Modern Loading State
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-white/50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50 animate-pulse">
+              <div key={i} className="bg-white/50 dark:bg-neutral-700/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50 animate-pulse">
                 <div className="flex items-center gap-4">
                   <div className="w-8 h-8 bg-muted/50 rounded-lg"></div>
                   <div className="flex-1 min-w-0">
@@ -119,7 +119,7 @@ const KnowledgeBase = () => {
           filteredFolders.map((folder, index) => (
             <div
               key={folder.id}
-              className="bg-white/50 dark:bg-gray-800/50 rounded-xl p-4 dark:border-slate-600/50 cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-colors duration-200 animate-fade-in"
+              className="bg-white/50 dark:bg-neutral-800/70 rounded-xl p-4 dark:border-slate-600/50 cursor-pointer hover:bg-white dark:hover:bg-neutral-800 transition-colors duration-200 animate-fade-in"
               style={{ animationDelay: `${index * 50}ms` }}
               onClick={() => handleFolderClick(folder)}
             >

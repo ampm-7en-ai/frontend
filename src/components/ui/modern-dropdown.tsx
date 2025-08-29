@@ -88,7 +88,7 @@ export const ModernDropdown = ({
             variant="outline"
             disabled={disabled}
             className={cn(
-              "w-full justify-between rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 font-normal text-gray-900 hover:text-gray-950 dark:text-gray-100 px-3 py-2 h-10",
+              "w-full justify-between rounded-xl border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 font-normal text-gray-900 hover:text-gray-950 dark:text-gray-100 px-3 py-2 h-10",
               className
             )}
           >
@@ -111,7 +111,7 @@ export const ModernDropdown = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         className={cn(
-          "w-full min-w-[var(--radix-dropdown-menu-trigger-width)] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-[9999] pb-3",
+          "w-full min-w-[var(--radix-dropdown-menu-trigger-width)] bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 rounded-xl shadow-lg z-[9999] pb-3",
           (searchable && showSearch) && "p-0"
         )}
         sideOffset={4}
@@ -154,7 +154,7 @@ export const ModernDropdown = ({
                 <DropdownMenuItem
                   key={option.value}
                   onClick={() => handleSelect(option.value)}
-                  className="hover:bg-gray-100 dark:hover:bg-gray-700 font-normal text-gray-900 dark:text-gray-100 cursor-pointer px-3 py-2 rounded-lg mx-1 my-0.5 focus:bg-gray-100 dark:focus:bg-gray-700"
+                  className="hover:bg-gray-100 dark:hover:bg-neutral-700 font-normal text-gray-900 dark:text-gray-100 cursor-pointer px-3 py-2 rounded-lg mx-1 my-0.5 focus:bg-gray-100 dark:focus:bg-neutral-700"
                   asChild={!!renderOption}
                 >
                   {renderOption ? (

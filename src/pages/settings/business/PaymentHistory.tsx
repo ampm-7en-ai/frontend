@@ -65,7 +65,7 @@ const PaymentHistory = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="min-h-screen dark:bg-[hsla(0,0%,0%,0.95)]">
       <div className="container mx-auto p-6 max-w-6xl">
         <div className="mb-6">
           
@@ -83,8 +83,8 @@ const PaymentHistory = () => {
           <p className="text-slate-600 dark:text-slate-400 mt-2">View your subscription and payment details</p>
         </div>
 
-        <div className="bg-white/50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50">
+        <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl border border-slate-200/50 dark:border-neutral-700/50 backdrop-blur-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-200/50 dark:border-neutral-700/50">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
                 <DollarSign className="h-5 w-5 text-white" />
@@ -114,7 +114,7 @@ const PaymentHistory = () => {
                 <p className="text-sm">Your payment records will appear here once you subscribe to a plan.</p>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+              <div className="overflow-hidden rounded-xl border border-slate-200/50 dark:border-neutral-700/50">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-slate-50/50 dark:bg-slate-800/50 hover:bg-slate-50/70 dark:hover:bg-slate-800/70">

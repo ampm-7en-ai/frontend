@@ -111,7 +111,7 @@ const ConversationDetailsPanel = ({
 
   if (!conversation) {
     return (
-      <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm p-3 flex items-center justify-center">
+      <div className="h-full bg-white/80 dark:bg-[hsla(0,0%,0%,0.95)] backdrop-blur-sm p-3 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center">
             <MessageSquare className="h-4 w-4 text-gray-400 dark:text-slate-500" />
@@ -150,9 +150,9 @@ const ConversationDetailsPanel = ({
 
 
   return (
-    <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+    <div className="h-full bg-white/80 dark:bg-[hsla(0,0%,0%,0.95)] backdrop-blur-sm">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-transparent backdrop-blur-sm">
+      <div className="p-4 border-b border-gray-200/50 dark:border-neutral-700/50 bg-white/50 dark:bg-transparent backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Additional Information</h1>
@@ -165,7 +165,7 @@ const ConversationDetailsPanel = ({
           {/* Ticket Information Section - Show if ticket info exists */}
           {hasTicketInfo && (
             
-            <div className="border rounded-lg bg-white dark:bg-gray-800 px-4 py-4">
+            <div className="border rounded-lg bg-white dark:bg-neutral-800 dark:border-0 px-4 py-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className={`${logoUrl ? "p-0" : "p-2"} rounded-xl bg-gradient-to-br from-red-500 to-red-600`}>
                   {
@@ -213,7 +213,7 @@ const ConversationDetailsPanel = ({
           )}
 
           {/* Agent Information Section */}
-          <div className="border rounded-lg bg-white dark:bg-gray-800/50 px-4 py-4">
+          <div className="border rounded-lg bg-white dark:bg-neutral-800 dark:border-0 px-4 py-4">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
                 <User className="h-4 w-4 text-white" />
@@ -237,7 +237,7 @@ const ConversationDetailsPanel = ({
           </div>
 
           {/* Customer Information */}
-          <div className="border rounded-lg bg-white dark:bg-gray-800/50 px-4 py-4">
+          <div className="border rounded-lg bg-white dark:bg-neutral-800 dark:border-0 px-4 py-4">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
                 <User className="h-4 w-4 text-white" />
@@ -277,7 +277,7 @@ const ConversationDetailsPanel = ({
 
           {/* Customer Sentiment - Only show if satisfaction data exists */}
           {hasSatisfactionData && (
-            <div className="border rounded-lg bg-white dark:bg-gray-800/50 px-4 py-4">
+            <div className="border rounded-lg bg-white dark:bg-neutral-800 dark:border-0 px-4 py-4">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
                     <TrendingUp className="h-4 w-4 text-white" />
@@ -338,7 +338,7 @@ const ConversationDetailsPanel = ({
 
           {/* Handoff History - Only show if there are handoffs */}
           {handoffData.handoffs.length > 0 && (
-            <div className="border rounded-lg bg-white dark:bg-gray-800/50 px-4 py-4">
+            <div className="border rounded-lg bg-white dark:bg-neutral-800 dark:border-0 px-4 py-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600">
                   <MessageSquare className="h-4 w-4 text-white" />
@@ -357,7 +357,7 @@ const ConversationDetailsPanel = ({
 
           {/* All Agents Section */}
           {handoffData.allAgents.length > 1 && (
-            <div className="border rounded-lg bg-white dark:bg-gray-800/50 px-4 py-4">
+            <div className="border rounded-lg bg-white dark:bg-neutral-800 dark:border-0 px-4 py-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600">
                   <Tag className="h-4 w-4 text-white" />

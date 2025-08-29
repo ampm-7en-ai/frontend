@@ -846,7 +846,7 @@ const KnowledgeUpload = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-200 p-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-[hsla(0,0%,0%,0.95)] transition-colors duration-200 p-8">
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
@@ -858,7 +858,7 @@ const KnowledgeUpload = () => {
 
         {/* Main Content */}
         <div className="space-y-8">
-          <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-0 rounded-3xl shadow-xl shadow-slate-200/20 dark:shadow-slate-800/20 transition-colors duration-200">
+          <Card className="bg-white/80 dark:bg-neutral-800/70 backdrop-blur-sm border-0 rounded-3xl shadow-xl shadow-slate-200/20 dark:shadow-slate-800/20 transition-colors duration-200">
             <CardContent className="p-8">
               <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Agent Selection */}
@@ -877,7 +877,7 @@ const KnowledgeUpload = () => {
                       <Button
                         variant="outline"
                         disabled={isLoadingAgents}
-                        className="w-full justify-start h-auto p-3 bg-white/80 dark:bg-slate-800/80 border-slate-200/60 dark:border-slate-600/60 backdrop-blur-sm rounded-xl hover:border-slate-300/80 dark:hover:border-slate-500/80 transition-all duration-200"
+                        className="w-full justify-start h-auto p-3 bg-white/80 dark:bg-neutral-800/80 border-slate-200/60 dark:border-neutral-600/60 backdrop-blur-sm rounded-xl hover:border-slate-300/80 dark:hover:border-slate-500/80 transition-all duration-200"
                       >
                         {renderAgentTrigger()}
                       </Button>

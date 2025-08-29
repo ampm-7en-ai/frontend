@@ -342,7 +342,7 @@ const TeamManagementSection = () => {
       </div>
 
       {/* Inline Invite Form */}
-      <div className="bg-white/50 dark:bg-slate-800/50 rounded-2xl p-6 mb-6 backdrop-blur-sm">
+      <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl p-6 mb-6 backdrop-blur-sm">
         <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100 flex items-center gap-2">
           <Mail className="h-5 w-5" />
           Invite Team Member
@@ -367,6 +367,7 @@ const TeamManagementSection = () => {
                       placeholder="Add name or emails" 
                       {...field} 
                       type="email"
+                      variant='modern'
                       autoComplete="email"
                       className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl h-11"
                     />
@@ -391,7 +392,7 @@ const TeamManagementSection = () => {
                       })) : [{ value: "no-roles", label: "No roles available" }]}
                       placeholder="Select Role"
                       disabled={loadingRoles || availableRoles.length === 0}
-                      className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl h-11"
+                      className="bg-white/80 border-slate-200 rounded-xl h-11"
                     />
                   </FormControl>
                   <FormMessage />
@@ -412,7 +413,7 @@ const TeamManagementSection = () => {
         </Form>
 
         {inviteForm.watch("team_role_id") && (
-          <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50 mt-4">
+          <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50 mt-4">
             <h4 className="text-sm font-semibold mb-3 text-slate-900 dark:text-slate-100">Role Permissions</h4>
             <ScrollArea className="h-[200px]">
               <div className="space-y-2">
@@ -434,7 +435,7 @@ const TeamManagementSection = () => {
       </div>
 
       {/* Current Owner - More Compact */}
-      <div className="bg-white/50 dark:bg-slate-800/50 rounded-2xl p-6 mb-6 backdrop-blur-sm">
+      <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl p-6 mb-6 backdrop-blur-sm">
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
             <User className="h-5 w-5 text-white" />
@@ -449,8 +450,8 @@ const TeamManagementSection = () => {
         </div>
         {/* Team Members List - More Compact */}
           {(teamMembers.length > 0 || loading) && (
-            <div className="bg-white/50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm overflow-hidden">
-              <div className="p-4 border-b border-slate-200/50 dark:border-slate-600/50">
+            <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl border border-slate-200/50 dark:border-neutral-600/50 backdrop-blur-sm overflow-hidden">
+              <div className="p-4 border-b border-slate-200/50 dark:border-neutral-600/50">
                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">Team Members</h3>
               </div>
               
@@ -463,7 +464,7 @@ const TeamManagementSection = () => {
               ) : (
                 <div className="divide-y divide-slate-200/50 dark:divide-slate-600/50">
                   {teamMembers.map((member) => (
-                    <div key={member.id} className="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
+                    <div key={member.id} className="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-neutral-700/30 transition-colors">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-slate-200 dark:bg-slate-600 rounded-lg flex items-center justify-center">
                           <User className="h-4 w-4 text-slate-600 dark:text-slate-400" />

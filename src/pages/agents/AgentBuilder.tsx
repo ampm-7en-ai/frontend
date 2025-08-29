@@ -220,7 +220,7 @@ const AgentBuilderContent = () => {
   ).length;
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-[hsla(0,0%,0%,0.95)]">
       {/* Training Alert Badge */}
       {/* <TrainingAlertBadge 
         isVisible={isTraining}

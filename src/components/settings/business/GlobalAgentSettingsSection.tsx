@@ -99,7 +99,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
         </p>
       </div>
       
-      <div className="bg-white/50 dark:bg-slate-800/50 rounded-2xl p-6 backdrop-blur-sm">
+      <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
@@ -138,7 +138,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                           onValueChange={field.onChange}
                           options={modelOptionsForDropdown}
                           placeholder="Select model"
-                          className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
+                          className="bg-white/80 border-slate-200 rounded-xl"
                         />
                       )}
                     </FormControl>
@@ -184,6 +184,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                           max={1}
                           step={0.1}
                           {...field}
+                          variant='modern'
                           className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
                         />
                       </FormControl>
@@ -205,17 +206,17 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
         ) : (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+              <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-neutral-600/50">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Response Model</h4>
                 <p className="text-slate-600 dark:text-slate-400">
                   {modelOptionsForDropdown.find(option => option.value === globalSettingsForm.getValues().defaultModel)?.label || globalSettingsForm.getValues().defaultModel}
                 </p>
               </div>
-              {/* <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+              {/* <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Maximum Context Length</h4>
                 <p className="text-slate-600 dark:text-slate-400">{globalSettingsForm.getValues().maxContextLength?.toLocaleString()} tokens</p>
               </div> */}
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+              <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-neutral-600/50">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Temperature</h4>
                 <p className="text-slate-600 dark:text-slate-400">{globalSettingsForm.getValues().defaultTemperature}</p>
               </div>

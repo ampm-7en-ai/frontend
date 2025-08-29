@@ -257,7 +257,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                         <NavLink
                           key={child.label}
                           to={child.href}
-                          className="flex items-center px-3 py-2 text-sm rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
+                          className="flex items-center px-3 py-2 text-sm rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-gray-100"
                         >
                           <span>{child.label}</span>
                         </NavLink>
@@ -270,7 +270,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                   <NavLink
                     to={item.href}
                     onClick={item.id === "help" ? () => handlehelp("https://docs.7en.ai/") : null}
-                    className="flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
+                    className="flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-gray-100"
                   >
                     <div className="flex items-center">
                       <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0 ${item.highlight ? 'text-green-600 dark:text-green-400' : ''}`} />
@@ -328,7 +328,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 z-50">
+                <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 z-50">
                   <div className="flex-1 min-w-0 border-b border-gray-50 dark:border-gray-700 pb-4">
                     <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
                       {user?.name || 'User'}
@@ -341,13 +341,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     userRole === 'USER' && (
                       <>
                         <DropdownMenuItem 
-                        className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
+                        className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-neutral-700"
                         onClick={() => navigate('/settings')}>
                           <User className="h-4 w-4" />
                           Profile
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                        className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
+                        className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-neutral-700"
                         onClick={() => navigate('/settings/business/payment-history')}>
                           <CreditCard className="h-4 w-4" />
                           Billing
@@ -356,9 +356,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     )
                   }
                   
-                  <DropdownMenuSeparator className="dark:bg-gray-700" />
+                  <DropdownMenuSeparator className="dark:bg-neutral-700" />
                   <DropdownMenuItem 
-                    className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
+                    className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-neutral-700"
                     onClick={(e) => {
                       e.preventDefault();
                       console.log('Theme toggle clicked, current theme:', theme);
@@ -379,7 +379,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="dark:bg-gray-700" />
                   <DropdownMenuItem 
-                    className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-gray-700"
+                    className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-neutral-700"
                     onClick={logout}
                   >
                     <LogOut className="h-4 w-4" />
@@ -409,7 +409,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                       </Avatar>
                     </div>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 z-50">
+                  <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 z-50">
                   <div className="flex-1 min-w-0 border-b border-gray-50 dark:border-gray-700 pb-4">
                     <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
                       {user?.name || 'User'}
@@ -418,17 +418,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                       {user?.email || 'user@example.com'}
                     </p>
                   </div>
-                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700">
+                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-neutral-700">
                     <User className="h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700">
+                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-neutral-700">
                     <CreditCard className="h-4 w-4" />
                     Billing
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="dark:bg-gray-700" />
+                  <DropdownMenuSeparator className="dark:bg-neutral-700" />
                   <DropdownMenuItem 
-                    className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-gray-700"
+                    className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:bg-neutral-700"
                     onClick={(e) => {
                       e.preventDefault();
                       console.log('Theme toggle clicked, current theme:', theme);
@@ -449,7 +449,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="dark:bg-gray-700" />
                   <DropdownMenuItem 
-                    className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-gray-700"
+                    className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-neutral-700"
                     onClick={logout}
                   >
                     <LogOut className="h-4 w-4" />

@@ -538,7 +538,7 @@ const IntegrationsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
+    <div className="min-h-screen dark:bg-[hsla(0,0%,0%,0.95)]">
       {/* Integration Status Badge */}
       {statusBadgeInfo && (
         <IntegrationStatusBadge
@@ -563,7 +563,7 @@ const IntegrationsPage = () => {
               </ModernButton>
             </div>
             
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
               <div className="border-b border-slate-200 dark:border-slate-700 p-6">
                 <div className="flex items-center gap-4">
                   {(() => {
@@ -571,7 +571,7 @@ const IntegrationsPage = () => {
                     return (
                       <>
                         <div 
-                          className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center shadow-sm"
+                          className="bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 flex items-center justify-center shadow-sm"
                           style={{
                             padding: '0',
                             height: 'auto',
@@ -629,10 +629,10 @@ const IntegrationsPage = () => {
                     </p>
                   </div>
                   
-                  <div className="bg-white/50 dark:bg-slate-800/50 rounded-2xl p-6 backdrop-blur-sm">
+                  <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
                       {categoryIntegrations.map((integration) => (
-                        <Card key={integration.id} className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm shadow-none hover:shadow-sm transition-shadow">
+                        <Card key={integration.id} className="bg-slate-50/80 dark:bg-neutral-800/50 rounded-xl border border-slate-200/50 dark:border-neutral-600/50 backdrop-blur-sm shadow-none hover:shadow-sm transition-shadow">
                           <CardContent className="p-4">
                             <div className="flex items-center gap-4">
                               <div 

@@ -129,7 +129,7 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
         </p>
       </div>
       
-      <div className="bg-white/50 dark:bg-slate-800/50 rounded-2xl p-6 backdrop-blur-sm">
+      <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
@@ -224,8 +224,7 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
                           maxHeight="250px"
                           renderOption={(option) => (
                             <div className="flex items-center gap-3 w-full">
-                              <div 
-                                className="w-5 h-4 bg-center bg-cover rounded-sm flex-shrink-0" 
+                              <div className="w-5 h-4 bg-center bg-cover rounded-sm flex-shrink-0" 
                                 style={{ backgroundImage: `url(${option.logo})` }}
                               />
                               <div className="flex flex-col flex-1 min-w-0">
@@ -259,19 +258,19 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
         ) : (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+              <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-neutral-600/50">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Business Name</h4>
                 <p className="text-slate-600 dark:text-slate-400">{profileForm.getValues().businessName || 'Not specified'}</p>
               </div>
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+              <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-neutral-600/50">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Email</h4>
                 <p className="text-slate-600 dark:text-slate-400">{profileForm.getValues().adminEmail || 'Not specified'}</p>
               </div>
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+              <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-neutral-600/50">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Website</h4>
                 <p className="text-slate-600 dark:text-slate-400">{profileForm.getValues().adminWebsite || 'Not specified'}</p>
               </div>
-              <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
+              <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-neutral-600/50">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Phone</h4>
                 <p className="text-slate-600 dark:text-slate-400">{profileForm.getValues().adminPhone || 'Not specified'}</p>
               </div>

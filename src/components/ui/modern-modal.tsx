@@ -53,7 +53,7 @@ export const ModernModal = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          'bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 shadow-2xl rounded-2xl',
+          'bg-white/95 dark:bg-neutral-800/95 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 shadow-2xl rounded-2xl',
           sizeClasses[size],
           fixedFooter && 'flex flex-col max-h-[85vh]',
           className
@@ -61,7 +61,7 @@ export const ModernModal = ({
         fixedFooter={fixedFooter}
       >
         {/* Custom Close Button */}
-        <DialogClose className="absolute right-6 top-6 rounded-full p-2 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm opacity-70 ring-offset-background transition-all hover:opacity-100 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 z-50">
+        <DialogClose className="absolute right-6 top-6 rounded-full p-2 bg-slate-100/80 dark:bg-neutral-700/80 backdrop-blur-sm opacity-70 ring-offset-background transition-all hover:opacity-100 hover:bg-slate-200/80 dark:hover:bg-neutral-700/90 focus:outline-none focus:ring-2 focus:ring-0 focus:ring-offset-2 z-50">
           <X className="h-4 w-4 text-slate-600 dark:text-slate-400" />
           <span className="sr-only">Close</span>
         </DialogClose>

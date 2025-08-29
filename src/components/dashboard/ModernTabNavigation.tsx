@@ -22,7 +22,7 @@ const ModernTabNavigation: React.FC<ModernTabNavigationProps> = ({
   const isXtraSmall = className.includes('text-xs');
   
   return (
-    <div className={`inline-flex bg-slate-100 dark:bg-slate-800 rounded-2xl p-1 ${className}`}>
+    <div className={`inline-flex bg-slate-100 dark:bg-neutral-800 rounded-2xl p-1 ${className}`}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -30,7 +30,7 @@ const ModernTabNavigation: React.FC<ModernTabNavigationProps> = ({
           onClick={() => onTabChange(tab.id)}
           className={`${isXtraSmall ? 'px-3 py-1.5' : 'px-6 py-2'} rounded-xl ${isXtraSmall ? 'text-xs' : 'text-sm'} font-medium transition-all duration-200 capitalize ${
             activeTab === tab.id
-              ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+              ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >

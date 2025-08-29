@@ -50,7 +50,7 @@ const ConversationCard = ({
     
     if (logoUrl) {
       return (
-        <div className={cn(containerClass, "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700")}>
+        <div className={cn(containerClass, "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-slate-700")}>
           <img 
             src={logoUrl} 
             alt={conversation.channel}
@@ -175,9 +175,9 @@ const ConversationCard = ({
   return (
     <Card 
       className={cn(
-        "hover:!bg-gray-100/50 dark:hover:!bg-slate-700/50 transition-all duration-200 cursor-pointer shadow-none rounded-xl !bg-transparent",
+        "hover:!bg-gray-100/50 dark:hover:!bg-neutral-700/50 transition-all duration-200 cursor-pointer shadow-none rounded-xl !bg-transparent",
         isSelected 
-          ? "!bg-gray-100/50 dark:!bg-slate-700/50" 
+          ? "!bg-gray-100/50 dark:!bg-neutral-700/50" 
           : ""
       )}
       onClick={onClick}

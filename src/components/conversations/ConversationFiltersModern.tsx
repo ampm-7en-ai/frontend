@@ -83,7 +83,7 @@ const ConversationFiltersModern = ({
   };
 
   return (
-    <div className="p-4 bg-white dark:bg-slate-900 dark:border-slate-700 py-3">
+    <div className="p-4 bg-white dark:bg-[hsla(0,0%,0%,0.95)] dark:border-slate-700 py-3">
       <div className="flex items-center justify-between gap-4">
         <ModernTabNavigation
           tabs={statusTabs}

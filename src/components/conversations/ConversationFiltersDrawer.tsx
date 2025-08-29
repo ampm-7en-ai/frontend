@@ -118,7 +118,7 @@ const ConversationFiltersDrawer = ({
         {trigger}
       </PopoverTrigger>
       <PopoverContent 
-        className="w-80 p-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/30 dark:border-slate-700/30 shadow-2xl rounded-2xl"
+        className="w-80 p-0 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-white/30 dark:border-slate-700/30 shadow-2xl rounded-2xl"
         align="end"
         sideOffset={8}
       >
@@ -154,7 +154,7 @@ const ConversationFiltersDrawer = ({
                     ...agentOptions
                   ]}
                   placeholder="Select agent..."
-                  className="bg-white/60 dark:bg-slate-800/60 border-slate-200/60 dark:border-slate-700/60 backdrop-blur-sm h-8 text-xs"
+                  className="bg-white/60 dark:bg-neutral-800/60 border-slate-200/60 dark:border-slate-700/60 backdrop-blur-sm h-8 text-xs"
                 />
               </div>
 
@@ -167,7 +167,7 @@ const ConversationFiltersDrawer = ({
                 </Label>
                 <div className="space-y-2">
                   {channelOptions.map((channel) => (
-                    <div key={channel.value} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-600/30 backdrop-blur-sm transition-colors">
+                    <div key={channel.value} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-600/30 backdrop-blur-sm transition-colors">
                       <Checkbox
                         id={`channel-${channel.value}`}
                         checked={channelFilter.includes(channel.value)}
