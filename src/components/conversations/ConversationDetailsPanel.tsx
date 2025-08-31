@@ -116,8 +116,8 @@ const ConversationDetailsPanel = ({
           <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center">
             <MessageSquare className="h-4 w-4 text-gray-400 dark:text-slate-500" />
           </div>
-          <h3 className="text-xs font-medium text-gray-900 dark:text-slate-100 mb-1">No conversation selected</h3>
-          <p className="text-[10px] text-gray-500 dark:text-slate-400">Select a conversation to view details</p>
+          {/* <h3 className="text-xs font-medium text-gray-900 dark:text-slate-100 mb-1">No conversation selected</h3>
+          <p className="text-[10px] text-gray-500 dark:text-slate-400">Select a conversation to view details</p> */}
         </div>
       </div>
     );
@@ -192,7 +192,6 @@ const ConversationDetailsPanel = ({
               <div className="space-y-3">
                 <div>
                   <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2 text-sm">
-                    <ExternalLink className="h-3 w-3" />
                     Provider
                   </h4>
                   <p className="text-gray-600 dark:text-gray-400 text-sm capitalize">{conversation.ticket_by}</p>
@@ -203,10 +202,10 @@ const ConversationDetailsPanel = ({
                   <p className="text-gray-600 dark:text-gray-400 text-sm font-mono">{conversation.ticket_id}</p>
                 </div>
 
-                <div>
+                {/* <div>
                   <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 text-sm">Priority</h4>
                   <p className="text-gray-600 dark:text-gray-400 text-sm font-mono">{conversation.priority}</p>
-                </div>
+                </div> */}
               </div>
             </div>
 
@@ -219,7 +218,7 @@ const ConversationDetailsPanel = ({
                 <User className="h-4 w-4 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Current Agent Info</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Agent Info</h3>
               </div>
             </div>
 
@@ -231,7 +230,6 @@ const ConversationDetailsPanel = ({
               </Avatar>
               <div>
                 <p className="font-medium text-gray-900 dark:text-gray-100">{assignedAgent}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">AI Agent</p>
               </div>
             </div>
           </div>
@@ -243,7 +241,7 @@ const ConversationDetailsPanel = ({
                 <User className="h-4 w-4 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Customer Information</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Customer Info</h3>
               </div>
             </div>
 
@@ -256,7 +254,6 @@ const ConversationDetailsPanel = ({
               {conversation.email && (
                 <div>
                   <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2 text-sm">
-                    <Mail className="h-3 w-3" />
                     Email
                   </h4>
                   <p className="text-gray-600 dark:text-gray-400 text-sm">{conversation.email}</p>

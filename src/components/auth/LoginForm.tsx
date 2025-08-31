@@ -422,7 +422,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       
       <div className="relative">
         <Separator className="bg-gray-200" />
-        <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-sm text-gray-500">
+        <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#f8faff] px-3 text-sm text-gray-500">
           or continue with
         </span>
       </div>

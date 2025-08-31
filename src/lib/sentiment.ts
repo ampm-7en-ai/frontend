@@ -12,7 +12,7 @@ export function analyzeSentiment(scores) {
 
   // Primary Metric: Weighted Average (last message has 2x weight)
   const weights = new Array(scores.length).fill(1);
-  weights[scores.length - 1] = 3; // 3x weight for last message
+  weights[scores.length - 1] = 5; // 5x weight for last message
   const weightedSum = scores.reduce((sum, score, i) => sum + score * weights[i], 0);
   const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
   const weightedAverage = Math.round(weightedSum / totalWeight);
@@ -21,7 +21,7 @@ export function analyzeSentiment(scores) {
   let sentimentCategory;
   if (weightedAverage <= 2) {
     sentimentCategory = 'Frustrated';
-  } else if (weightedAverage <= 6) {
+  } else if (weightedAverage <= 5) {
     sentimentCategory = 'Neutral';
   } else {
     sentimentCategory = 'Satisfied';

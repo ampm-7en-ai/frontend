@@ -36,11 +36,8 @@ const Login = () => {
               {/* Logo */}
               <div className="mb-8">
                 <div className="w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                  <img src="/logo.svg" alt="7en.ai" className=""/>
+                  <img src="/logo-new.svg" alt="7en.ai" className=""/>
                 </div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                  Welcome to 7en.ai
-                </h1>
                 <p className="text-lg text-gray-600 leading-relaxed">
                   Advanced AI-powered chatbot platform designed to revolutionize your business communications.
                 </p>
