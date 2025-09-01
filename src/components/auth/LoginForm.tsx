@@ -29,6 +29,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const { login, setPendingVerificationEmail, setNeedsVerification } = useAuth();
   const navigate = useNavigate();
@@ -41,6 +42,81 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       password: '',
     }
   });
+
+  const handleSSOLogin = async (provider: 'google' | 'apple', token: string) => {
+    try {
+      const formData = new FormData();
+      formData.append('sso_token', token);
+      formData.append('provider', provider);
+      
+      console.log(`Sending ${provider.toUpperCase()} SSO request to endpoint:`, API_ENDPOINTS.SSO_LOGIN);
+      
+      const apiUrl = getApiUrl(API_ENDPOINTS.SSO_LOGIN);
+      console.log("Full API URL:", apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      console.log(`${provider.toUpperCase()} SSO login response status:`, response.status);
+      
+      const data = await response.json();
+      console.log(`${provider.toUpperCase()} SSO login response:`, data);
+      
+      if (response.ok && data.data.access) {
+        const userRole = data.data.userData.user_role === "admin" ? "admin" : data.data.userData.user_role;
+        
+        await login(data.data.userData.username || `${provider} User`, "", {
+          access: data.data.access,
+          refresh: data.refresh || null,
+          user_id: data.data.user_id,
+          userData: {
+            username: data.data.userData.username,
+            email: data.data.userData.email || `${provider}_user@example.com`,
+            avatar: data.data.userData.avatar,
+            team_role: data.data.userData.team_role || null,
+            user_role: userRole,
+            permissions: data.data.userData.permissions || {},
+            is_verified: true
+          }
+        });
+        
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+          variant: "default",
+        });
+        
+        if (userRole === 'superadmin') {
+          navigate('/dashboard/superadmin');
+        } else if (userRole === 'admin') {
+          navigate('/dashboard/admin');
+        } else {
+          navigate('/dashboard');
+        }
+      } else if (data.error) {
+        toast({
+          title: "Login Failed",
+          description: data.error,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Login Failed",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error(`${provider.toUpperCase()} SSO login error:`, error);
+      toast({
+        title: "Login Failed",
+        description: `Could not complete ${provider} sign-in. Please try again later.`,
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleGoogleLogin = async () => {
     try {
@@ -76,80 +152,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             return;
           }
           
-          try {
-            const formData = new FormData();
-            formData.append('sso_token', tokenResponse.access_token);
-            formData.append('provider', 'google');
-            
-            console.log("Sending SSO request to endpoint:", API_ENDPOINTS.SSO_LOGIN);
-            
-            const apiUrl = getApiUrl(API_ENDPOINTS.SSO_LOGIN);
-            console.log("Full API URL:", apiUrl);
-            
-            const response = await fetch(apiUrl, {
-              method: 'POST',
-              body: formData,
-            });
-            
-            console.log("SSO login response status:", response.status);
-            
-            const data = await response.json();
-            console.log("Google SSO login response:", data);
-            
-            if (response.ok && data.data.access) {
-              const userRole = data.data.userData.user_role === "admin" ? "admin" : data.data.userData.user_role;
-              
-              await login(data.data.userData.username || "Google User", "", {
-                access: data.data.access,
-                refresh: data.refresh || null,
-                user_id: data.data.user_id,
-                userData: {
-                  username: data.data.userData.username,
-                  email: data.data.userData.email || "google_user@example.com",
-                  avatar: data.data.userData.avatar,
-                  team_role: data.data.userData.team_role || null,
-                  user_role: userRole,
-                  permissions: data.data.userData.permissions || {},
-                  is_verified: true
-                }
-              });
-              
-              toast({
-                title: "Login Successful",
-                description: "Welcome back!",
-                variant: "default",
-              });
-              
-              if (userRole === 'superadmin') {
-                navigate('/dashboard/superadmin');
-              } else if (userRole === 'admin') {
-                navigate('/dashboard/admin');
-              } else {
-                navigate('/dashboard');
-              }
-            } else if (data.error) {
-              toast({
-                title: "Login Failed",
-                description: data.error,
-                variant: "destructive",
-              });
-            } else {
-              toast({
-                title: "Login Failed",
-                description: "An unexpected error occurred. Please try again.",
-                variant: "destructive",
-              });
-            }
-          } catch (error) {
-            console.error("Google SSO login error:", error);
-            toast({
-              title: "Login Failed",
-              description: "Could not complete Google sign-in. Please try again later.",
-              variant: "destructive",
-            });
-          } finally {
-            setIsGoogleLoading(false);
-          }
+          await handleSSOLogin('google', tokenResponse.access_token);
+          setIsGoogleLoading(false);
         }
       });
       
@@ -166,22 +170,90 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     }
   };
 
+  const handleAppleLogin = async () => {
+    try {
+      setIsAppleLoading(true);
+      
+      const AppleID = (window as any).AppleID;
+      
+      if (!AppleID) {
+        toast({
+          title: "Apple Sign-In Error",
+          description: "Apple authentication is not available. Please try again later.",
+          variant: "destructive",
+        });
+        setIsAppleLoading(false);
+        return;
+      }
+      
+      AppleID.auth.init({
+        clientId: 'com.7en.ai.web',
+        scope: 'name email',
+        redirectURI: window.location.origin,
+        usePopup: true
+      });
+      
+      const data = await AppleID.auth.signIn();
+      console.log("Apple OAuth response:", data);
+      
+      if (data.authorization && data.authorization.id_token) {
+        await handleSSOLogin('apple', data.authorization.id_token);
+      } else {
+        toast({
+          title: "Apple Sign-In Failed",
+          description: "Could not get authentication token from Apple.",
+          variant: "destructive",
+        });
+      }
+      
+      setIsAppleLoading(false);
+      
+    } catch (error: any) {
+      console.error("Apple Sign-In error:", error);
+      
+      // Don't show error for user cancellation
+      if (error.error !== 'popup_closed_by_user') {
+        toast({
+          title: "Apple Sign-In Error",
+          description: "Could not complete Apple sign-in. Please try again later.",
+          variant: "destructive",
+        });
+      }
+      
+      setIsAppleLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadGoogleScript = () => {
-      const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
+    const loadScripts = () => {
+      // Load Google Script
+      const googleScript = document.createElement('script');
+      googleScript.src = 'https://accounts.google.com/gsi/client';
+      googleScript.async = true;
+      googleScript.defer = true;
+      googleScript.onload = () => {
         console.log('Google Identity Services script loaded');
       };
-      script.onerror = () => {
+      googleScript.onerror = () => {
         console.error('Error loading Google Identity Services script');
       };
-      document.head.appendChild(script);
+      document.head.appendChild(googleScript);
+      
+      // Load Apple Script
+      const appleScript = document.createElement('script');
+      appleScript.src = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
+      appleScript.async = true;
+      appleScript.defer = true;
+      appleScript.onload = () => {
+        console.log('Apple ID Services script loaded');
+      };
+      appleScript.onerror = () => {
+        console.error('Error loading Apple ID Services script');
+      };
+      document.head.appendChild(appleScript);
     };
     
-    loadGoogleScript();
+    loadScripts();
     
     return () => {
       // Cleanup if needed
@@ -330,8 +402,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-        <p className="text-gray-600">Sign in to your account to continue</p>
+        <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
+        <p className="text-muted-foreground">Sign in to your account to continue</p>
       </div>
       
       <Form {...form}>
@@ -341,9 +413,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-gray-700 font-medium">Username</FormLabel>
+                <FormLabel className="text-foreground font-medium">Username</FormLabel>
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
+                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
                   <FormControl>
                     <Input 
                       placeholder="Enter your username" 
@@ -365,7 +437,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             render={({ field }) => (
               <FormItem>
                 <div className="flex justify-between items-center">
-                  <FormLabel className="text-gray-700 font-medium">Password</FormLabel>
+                  <FormLabel className="text-foreground font-medium">Password</FormLabel>
                   <button 
                     type="button" 
                     className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
@@ -378,7 +450,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                   </button>
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
                   <FormControl>
                     <Input 
                       type={showPassword ? "text" : "password"}
@@ -392,7 +464,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors z-10"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -421,8 +493,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       </Form>
       
       <div className="relative">
-        <Separator className="bg-gray-200" />
-        <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#f8faff] px-3 text-sm text-gray-500">
+        <Separator className="bg-border" />
+        <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-sm text-muted-foreground">
           or continue with
         </span>
       </div>
@@ -444,16 +516,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           {isGoogleLoading ? "Signing in..." : "Sign in with Google"}
         </ModernButton>
         
-        {/* <ModernButton 
+        <ModernButton 
           variant="outline" 
           size="lg"
           className="w-full h-11"
+          onClick={handleAppleLogin}
+          disabled={isAppleLoading}
         >
-          <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10 2L3 7v11h4v-6h6v6h4V7l-7-5z"/>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+            <path d="M13.604 7.379c-.028-2.721 2.227-4.027 2.327-4.088-1.267-1.853-3.24-2.108-3.943-2.137-1.678-.169-3.271 0.987-4.123 0.987-0.851 0-2.169-0.963-3.565-0.936-1.835 0.028-3.523 1.066-4.466 2.71-1.903 3.299-0.487 8.188 1.367 10.864 0.907 1.31 1.991 2.779 3.414 2.723 1.395-0.055 1.921-0.901 3.607-0.901 1.686 0 2.184 0.901 3.565 0.873 1.471-0.028 2.423-1.331 3.33-2.64 1.05-1.513 1.481-2.987 1.509-3.064-0.028-0.014-2.89-1.108-2.918-4.39z" fill="currentColor"/>
+            <path d="M11.652 3.123c0.752-0.914 1.267-2.178 1.128-3.44-1.094 0.042-2.422 0.732-3.205 1.647-0.702 0.817-1.323 2.122-1.156 3.358 1.225 0.098 2.478-0.619 3.232-1.564z" fill="currentColor"/>
           </svg>
-          Sign in with SSO
-        </ModernButton> */}
+          {isAppleLoading ? "Signing in..." : "Sign in with Apple"}
+        </ModernButton>
       </div>
 
       <ForgotPasswordDialog 
