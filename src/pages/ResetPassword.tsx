@@ -99,10 +99,10 @@ const ResetPassword = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
       <div className="w-full max-w-md">
-        <div className="p-8 bg-white rounded-3xl shadow-sm">
+        <div className="p-8 bg-white dark:bg-neutral-800/60 rounded-3xl shadow-sm">
           <div className="flex justify-center mb-6">
             <div className="text-primary">
-              <img src="/logo.svg" alt="7en.ai" style={{height:"45px"}}/>
+              <img src="/logo-new.svg" alt="7en.ai" style={{height:"45px"}}/>
             </div>
           </div>
           
@@ -194,28 +194,21 @@ const ResetPassword = () => {
             </>
           ) : (
             <div className="text-center space-y-4">
-              <div className="bg-green-50 p-4 rounded-md border border-green-200">
+              <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-md border border-green-200 dark:border-green-600/30 mb-6">
                 <h2 className="text-lg font-semibold text-green-800 mb-2">Password Reset Successful!</h2>
-                <p className="text-green-700">
+                <p className="dark:text-gray-200">
                   Your password has been reset successfully. You can now log in with your new password.
                 </p>
               </div>
               <Link to="/login">
-                <Button className="w-full">
+                <ModernButton variant='primary' className="w-full">
                   Go to Login
-                </Button>
+                </ModernButton>
               </Link>
             </div>
           )}
           
-          <div className="mt-6 text-center text-sm text-dark-gray">
-            <p>
-              Remember your password?{' '}
-              <Link to="/login" className="text-primary hover:underline">
-                Back to login
-              </Link>
-            </p>
-          </div>
+          
           
           <div className="mt-8 text-center text-xs text-gray-400">
             <p>© 2023 7en.ai. All rights reserved.</p>

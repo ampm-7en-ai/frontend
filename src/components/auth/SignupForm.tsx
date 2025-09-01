@@ -197,8 +197,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
-        <p className="text-gray-600">Join 7en.ai and start building intelligent chatbots</p>
+      
       </div>
       
       <Form {...form}>
@@ -377,7 +376,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             )}
           /> */}
           
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+          <div className="dark:bg-transparent dark:px-0 p-4 rounded-lg border dark:border-0">
             <p className="text-sm text-gray-600 leading-relaxed">
               By creating an account, you agree to our{" "}
               <a href="/terms" className="text-primary hover:text-primary/80 font-medium transition-colors">

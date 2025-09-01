@@ -282,7 +282,7 @@ const Verify = () => {
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center justify-center mb-6">
           <div className="text-primary font-bold text-3xl mb-1">
-            <img src='/logo.svg' alt="7en AI" style={{width: "100px"}}/>
+            <img src='/logo-new.svg' alt="7en AI" style={{width: "100px"}}/>
           </div>
           <p className="text-dark-gray text-sm">European-compliant multi-agent AI platform</p>
         </div>

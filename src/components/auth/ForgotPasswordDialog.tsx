@@ -143,8 +143,8 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({ isOpen, onC
           </Form>
         ) : (
           <div className="space-y-4">
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <p className="text-green-800">
+            <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg border border-green-200 dark:border-green-600/30">
+              <p className="dark:text-gray-200">
                 Password reset instructions have been sent to <span className="font-semibold">{email}</span>. 
                 Please check your email inbox and follow the instructions to reset your password.
               </p>

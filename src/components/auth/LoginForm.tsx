@@ -13,6 +13,7 @@ import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
 import { GOOGLE_AUTH_CONFIG, GOOGLE_OAUTH_SCOPES } from '@/utils/auth-config';
 import ForgotPasswordDialog from './ForgotPasswordDialog';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -34,6 +35,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
   const { login, setPendingVerificationEmail, setNeedsVerification } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme } = useAppTheme();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -187,7 +189,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       }
       
       AppleID.auth.init({
-        clientId: 'com.7en.ai.web',
+        clientId: 'com.ampmlabs.7enai',
         scope: 'name email',
         redirectURI: window.location.origin,
         usePopup: true
@@ -402,8 +404,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
-        <p className="text-muted-foreground">Sign in to your account to continue</p>
+        
       </div>
       
       <Form {...form}>
@@ -493,8 +494,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       </Form>
       
       <div className="relative">
-        <Separator className="bg-border" />
-        <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-sm text-muted-foreground">
+        <Separator className="bg-neutral-400/10" />
+        <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 dark:bg-neutral-900 px-3 text-sm text-muted-foreground">
           or continue with
         </span>
       </div>
@@ -523,9 +524,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           onClick={handleAppleLogin}
           disabled={isAppleLoading}
         >
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
-            <path d="M13.604 7.379c-.028-2.721 2.227-4.027 2.327-4.088-1.267-1.853-3.24-2.108-3.943-2.137-1.678-.169-3.271 0.987-4.123 0.987-0.851 0-2.169-0.963-3.565-0.936-1.835 0.028-3.523 1.066-4.466 2.71-1.903 3.299-0.487 8.188 1.367 10.864 0.907 1.31 1.991 2.779 3.414 2.723 1.395-0.055 1.921-0.901 3.607-0.901 1.686 0 2.184 0.901 3.565 0.873 1.471-0.028 2.423-1.331 3.33-2.64 1.05-1.513 1.481-2.987 1.509-3.064-0.028-0.014-2.89-1.108-2.918-4.39z" fill="currentColor"/>
-            <path d="M11.652 3.123c0.752-0.914 1.267-2.178 1.128-3.44-1.094 0.042-2.422 0.732-3.205 1.647-0.702 0.817-1.323 2.122-1.156 3.358 1.225 0.098 2.478-0.619 3.232-1.564z" fill="currentColor"/>
+          <svg fill={theme === "dark" ? "#ffffff" : "#000000"} width="24px" height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{marginRight:"4px"}}>
+          <path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.09997 22C7.78997 22.05 6.79997 20.68 5.95997 19.47C4.24997 17 2.93997 12.45 4.69997 9.39C5.56997 7.87 7.12997 6.91 8.81997 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.09 16.67C20.06 16.74 19.67 18.11 18.71 19.5ZM13 3.5C13.73 2.67 14.94 2.04 15.94 2C16.07 3.17 15.6 4.35 14.9 5.19C14.21 6.04 13.07 6.7 11.95 6.61C11.8 5.46 12.36 4.26 13 3.5Z"/>
           </svg>
           {isAppleLoading ? "Signing in..." : "Sign in with Apple"}
         </ModernButton>

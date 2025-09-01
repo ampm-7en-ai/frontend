@@ -24,14 +24,14 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background dark:from-gray-900 dark:via-gray-800/30 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background dark:from-neutral-900 dark:via-neutral-800/30 dark:to-neutral-900">
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(148_163_184_/_0.15)_1px,transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(100_116_139_/_0.3)_1px,transparent_0)] [background-size:20px_20px]"></div>
+      <div className="absolute inset-0 dark:bg-[hsla(0,0%,0%,0.95)] bg-gray-100"></div>
       
       <div className="relative min-h-screen flex">
         {/* Left Side - Branding */}
         <div className="hidden lg:flex lg:w-1/2 relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent dark:from-primary/20 dark:via-primary/10 dark:to-transparent"></div>
+          <div className="absolute inset-0 bg-white dark:bg-[hsla(0,0%,0%,0.95)] dark:[background-image:radial-gradient(at_center_bottom,hsla(18,72%,65%,0.35)_0px,transparent_55%),radial-gradient(at_top_right,hsla(45,80%,55%,0.25)_0px,transparent_60%),radial-gradient(at_80%_0%,hsla(0,0%,0%,0.9)_0px,transparent_50%),radial-gradient(at_87%_5%,hsla(0,0%,0%,0.9)_0px,transparent_50%),radial-gradient(at_0%_100%,hsla(0,0%,0%,0.9)_0px,transparent_50%),radial-gradient(at_80%_100%,hsla(0,0%,0%,0.9)_0px,transparent_50%),radial-gradient(at_0%_0%,hsla(0,0%,0%,0.9)_0px,transparent_50%)] text-white shadow-lg [background-image:none]"></div>
           
           <div className="relative z-10 flex flex-col justify-center items-center p-12 w-full">
             <div className="max-w-lg text-center space-y-8">
@@ -51,9 +51,9 @@ const Login = () => {
               
               {/* Features */}
               <div className="space-y-6">
-                <div className="flex items-center space-x-4 p-4 bg-card/60 backdrop-blur-sm rounded-xl border border-border/20 shadow-sm">
-                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center space-x-4 p-4 bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl border border-slate-200/50 dark:border-neutral-600/50 shadow-sm">
+                  <div className="w-12 h-12 bg-neutral-700/20 rounded-xl flex items-center justify-center">
+                    <svg className="w-6 h-6 text-black dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
@@ -63,9 +63,9 @@ const Login = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-4 p-4 bg-card/60 backdrop-blur-sm rounded-xl border border-border/20 shadow-sm">
-                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center space-x-4 p-4 bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl border border-slate-200/50 dark:border-neutral-600/50 shadow-sm">
+                  <div className="w-12 h-12 bg-neutral-700/20 rounded-xl flex items-center justify-center">
+                    <svg className="w-6 h-6 text-black dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     </svg>
                   </div>
@@ -75,9 +75,9 @@ const Login = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-4 p-4 bg-card/60 backdrop-blur-sm rounded-xl border border-border/20 shadow-sm">
-                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center space-x-4 bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-neutral-600/50 shadow-sm">
+                  <div className="w-12 h-12 bg-neutral-700/20 rounded-xl flex items-center justify-center">
+                    <svg className="w-6 h-6 text-black dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
@@ -107,13 +107,13 @@ const Login = () => {
             </div>
             
             {/* Form Card */}
-            <div className="bg-card/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-border/20 p-8 relative overflow-hidden">
+            <div className="dark:bg-neutral-800/60 backdrop-blur-xl rounded-3xl shadow-2xl border border-border/20 p-8 relative overflow-hidden">
               {/* Card Background Accent */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-3xl"></div>
               
               <div className="relative z-10">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid grid-cols-2 mb-8 p-1 bg-muted/80 rounded-2xl h-12">
+                  <TabsList className="grid grid-cols-2 mb-8 p-1 dark:bg-neutral-800 rounded-2xl h-12">
                     <TabsTrigger 
                       value="login" 
                       className="rounded-xl font-medium h-10 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
