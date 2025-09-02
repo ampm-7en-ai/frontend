@@ -318,7 +318,7 @@ export const TestPageToolbar = ({
 
   return (
     <>
-      <div className="h-14 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 shadow-sm">
+      <div className="h-14 bg-white dark:bg-[hsla(0,0%,0%,0.95)] border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 shadow-sm">
         {/* Left Section */}
         <div className="flex items-center gap-4">
           <ModernButton

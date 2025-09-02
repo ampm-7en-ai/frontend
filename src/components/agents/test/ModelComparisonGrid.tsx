@@ -89,10 +89,10 @@ export const ModelComparisonGrid = ({
       <Card 
         key={cell.id} 
         className={`
-          transition-all duration-200 cursor-pointer h-full rounded-none border-border dark:border-gray-700 flex flex-col
+          transition-all duration-200 cursor-pointer h-full rounded-none border-gray-600 dark:border-gray-700 flex flex-col
           ${isSelected 
-            ? 'bg-muted/50 dark:bg-slate-900/30' 
-            : 'bg-card dark:bg-muted/10 hover:bg-muted/30 dark:hover:bg-slate-900/30'
+            ? 'bg-muted/50 dark:bg-neutral-900/30' 
+            : 'bg-card dark:bg-neutral-950/50 hover:bg-muted/30 dark:hover:bg-neutral-900/30'
           }
           ${isExpanded ? 'col-span-full row-span-full' : ''}
           ${expandedCellId && expandedCellId !== cell.id ? 'hidden' : ''}
@@ -104,7 +104,7 @@ export const ModelComparisonGrid = ({
             <div className="flex-1 min-w-0">
               {isHistoryMode ? (
                 // Show model name as read-only in history mode
-                <div className="h-8 text-xs bg-muted/50 dark:bg-slate-500 border-0 flex-1 justify-start px-2 rounded flex items-center">
+                <div className="h-8 text-xs bg-neutral-300 dark:bg-neutral-500 border-0 flex-1 justify-start px-2 rounded flex items-center">
                   <div className="flex items-center gap-2 w-full">
                     <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
                     <span className="truncate">{getModelDisplay(cell.model)}</span>
@@ -121,7 +121,7 @@ export const ModelComparisonGrid = ({
                   trigger={
                     <ModernButton
                       variant="secondary"
-                      className="h-8 text-xs bg-muted/50 dark:bg-slate-500 border-0 flex-1 justify-start px-2"
+                      className="h-8 text-xs bg-muted/50 dark:bg-neutral-500/50 border-0 flex-1 justify-start px-2"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="flex items-center gap-2 w-full">
@@ -140,7 +140,7 @@ export const ModelComparisonGrid = ({
                   <ModernButton
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 dark:hover:bg-gray-500"
+                    className="h-8 w-8 dark:hover:bg-neutral-500"
                     iconOnly
                     onClick={(e) => {
                       e.stopPropagation();
@@ -160,7 +160,7 @@ export const ModelComparisonGrid = ({
                   <ModernButton
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 dark:hover:bg-gray-500"
+                    className="h-8 w-8 dark:hover:bg-neutral-500"
                     iconOnly
                     onClick={(e) => {
                       e.stopPropagation();
@@ -211,7 +211,7 @@ export const ModelComparisonGrid = ({
                   
                   return latestAiMessage ? (
                     <div className="space-y-2">
-                      <p className="text-sm dark:text-gray-500">AI Assistant</p>
+                      <p className="text-xs text-gray-400 uppercase dark:text-gray-500">AI Assistant</p>
                       <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
                         {typeof latestAiMessage.content === 'string' && (
                             <StyledMarkdown

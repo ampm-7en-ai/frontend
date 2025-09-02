@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -10,7 +10,7 @@ interface StyledMarkdownProps {
   className?: string;
 }
 
-export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
+export const StyledMarkdown: React.FC<StyledMarkdownProps> = memo(({
   content,
   primaryColor,
   isDarkTheme,
@@ -21,6 +21,20 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
   const inlineCodeBg = isDarkTheme ? '#3a3a3a' : '#f0f0f0';
   const linkColor = primaryColor;
   const strongTagColor = isDarkTheme ? '#D6BCFA' : primaryColor;
+
+  useEffect(()=>{
+    const theme = localStorage.getItem("app-theme");
+    const root = document.documentElement;
+    console.log("hey",theme);
+    if(theme === "light") {
+      isDarkTheme = false;
+      
+      root.classList.remove('dark');
+    } else {
+      isDarkTheme = true;
+      root.classList.add('dark');
+    }
+  },[isDarkTheme]);
 
   return (
     <>
@@ -296,4 +310,14 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
       }} />
     </>
   );
-};
+},
+  (prevProps, nextProps) => {
+    // Only re-render if props change
+    return (
+      prevProps.content === nextProps.content &&
+      prevProps.primaryColor === nextProps.primaryColor &&
+      prevProps.isDarkTheme === nextProps.isDarkTheme &&
+      prevProps.className === nextProps.className
+    );
+  }
+);
