@@ -22,7 +22,7 @@ export const LoadingSpinner = ({ size = "md", text, className = "" }: LoadingSpi
 
   return (
     <div className={`flex flex-col items-center justify-center ${className}`}>
-      <div className={`animate-spin rounded-full ${borderClasses[size]} border-blue-200 border-t-blue-600 ${sizeClasses[size]} mx-auto${text ? ' mb-4' : ''}`}></div>
+      <div className={`animate-spin rounded-full ${borderClasses[size]} border-neutral-200 border-t-neutral-600 ${sizeClasses[size]} mx-auto${text ? ' mb-4' : ''}`}></div>
       {text && <span className="text-slate-600 dark:text-slate-400 font-medium">{text}</span>}
     </div>
   );

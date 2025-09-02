@@ -156,7 +156,7 @@ const WhatsAppIntegration = ({ shouldCheckStatus = true,setAppConnection }) => {
 
       {/* Current Configuration Cards */}
       {isConnected && (
-        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+        <div className="bg-white dark:bg-neutral-800/70 rounded-lg border border-slate-200 dark:border-neutral-700 p-6">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6">Current Configuration</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -182,7 +182,7 @@ const WhatsAppIntegration = ({ shouldCheckStatus = true,setAppConnection }) => {
           </div>
 
           {qrCodeImageUrl && (
-            <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+            <div className="mt-6 pt-6 border-t border-slate-200 dark:border-neutral-700">
               <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-4">QR Code for Testing</h4>
               <div className="bg-white p-4 rounded-lg border border-slate-200 dark:border-slate-600 w-fit">
                 <img 
@@ -200,7 +200,7 @@ const WhatsAppIntegration = ({ shouldCheckStatus = true,setAppConnection }) => {
       )}
 
       {/* Connection Management */}
-      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+      <div className="bg-white dark:bg-neutral-800/70 rounded-lg border border-slate-200 dark:border-neutral-700 p-6">
         <div className="flex items-center gap-3 mb-4">
           <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Connection Management</h3>
@@ -264,7 +264,7 @@ const WhatsAppIntegration = ({ shouldCheckStatus = true,setAppConnection }) => {
       </div>
 
       {/* Features Overview */}
-      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+      <div className="bg-white dark:bg-neutral-800/70 rounded-lg border border-slate-200 dark:border-neutral-700 p-6">
         <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">WhatsApp Business Capabilities</h3>
         <p className="text-slate-600 dark:text-slate-400 mb-6">
           Powerful messaging features to enhance customer engagement
@@ -278,7 +278,7 @@ const WhatsAppIntegration = ({ shouldCheckStatus = true,setAppConnection }) => {
             "Message templates and quick replies",
             "Customer engagement tracking"
           ].map((feature, index) => (
-            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-neutral-700/50 border border-slate-200 dark:border-neutral-600">
               <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
               <span className="text-sm text-slate-700 dark:text-slate-300">{feature}</span>
             </div>

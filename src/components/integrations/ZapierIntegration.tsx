@@ -62,7 +62,7 @@ const ZapierIntegration = ({setAppConnection}) => {
       
 
       {/* Configuration Section */}
-      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+      <div className="bg-white dark:bg-neutral-800/70 rounded-lg border border-slate-200 dark:border-neutral-700 p-6">
         <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Webhook Configuration</h3>
         
         <form onSubmit={handleTrigger} className="space-y-4">
@@ -102,7 +102,7 @@ const ZapierIntegration = ({setAppConnection}) => {
       </div>
 
       {/* Setup Instructions */}
-      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+      <div className="bg-white dark:bg-neutral-800/70 rounded-lg border border-slate-200 dark:border-neutral-700 p-6">
         <div className="flex items-center gap-3 mb-4">
           <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Setup Instructions</h3>
@@ -134,7 +134,7 @@ const ZapierIntegration = ({setAppConnection}) => {
       </div>
 
       {/* Features Overview */}
-      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+      <div className="bg-white dark:bg-neutral-800/70 rounded-lg border border-slate-200 dark:border-neutral-700 p-6">
         <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Zapier Capabilities</h3>
         <p className="text-slate-600 dark:text-slate-400 mb-6">
           Powerful automation features to connect your AI agent with thousands of apps
@@ -148,7 +148,7 @@ const ZapierIntegration = ({setAppConnection}) => {
             "Real-time event processing",
             "Advanced filtering and logic"
           ].map((feature, index) => (
-            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-neutral-700/50 border border-slate-200 dark:border-neutral-600">
               <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
               <span className="text-sm text-slate-700 dark:text-slate-300">{feature}</span>
             </div>

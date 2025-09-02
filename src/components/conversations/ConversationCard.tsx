@@ -172,6 +172,13 @@ const ConversationCard = ({
     return result.trim() + ' ago';
   }
 
+  const escapeHTML = (str) => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(str, 'text/html');
+  const safeText = doc.body.textContent; // Extracts "Hello" as plain text
+  return safeText;
+};
+
   return (
     <Card 
       className={cn(
@@ -213,7 +220,7 @@ const ConversationCard = ({
               "text-xs truncate leading-relaxed",
               conversation.isUnread ? "font-medium text-gray-700 dark:text-slate-300" : "text-gray-500 dark:text-slate-400"
             )}>
-              {conversation.lastMessage}
+              {escapeHTML(conversation.lastMessage)}
             </p>
             
             <div className="mt-3 flex justify-between items-center">

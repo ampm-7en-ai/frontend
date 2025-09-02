@@ -563,8 +563,8 @@ const IntegrationsPage = () => {
               </ModernButton>
             </div>
             
-            <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-              <div className="border-b border-slate-200 dark:border-slate-700 p-6">
+            <div className="bg-white dark:bg-neutral-800/70 rounded-2xl border-0 border-slate-200 dark:border-slate-700 shadow-sm">
+              <div className="border-b border-slate-200 dark:border-neutral-700 p-6">
                 <div className="flex items-center gap-4">
                   {(() => {
                     const integration = integrationsList.find(i => i.id === selectedIntegration);

@@ -61,7 +61,7 @@ interface SlackStatusResponse {
   permissions: string[];
 }
 
-const SlackIntegration = ({setSlackConnected}: any) => {
+const SlackIntegration = ({setAppConnection}: any) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState<boolean>(true);
@@ -101,7 +101,7 @@ const SlackIntegration = ({setSlackConnected}: any) => {
           
           setIsConnected(data.data.connected || false);
           setIsConfigured(data.data.configured || false);
-          setSlackConnected(data.data.connected ? "connected" : "not connected");
+          setAppConnection({slack: data.data.connected ? "connected" : "not connected"});
           
           if (data.data.workspace_name) {
             setConnectedChannelName(data.data.workspace_name);

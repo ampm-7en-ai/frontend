@@ -44,7 +44,7 @@ const Login = () => {
                     className="w-full h-full object-contain"
                   />
                 </div>
-                <p className="text-lg text-muted-foreground leading-relaxed">
+                <p className="text-[16px] text-muted-foreground leading-relaxed">
                   Advanced AI-powered chatbot platform designed to revolutionize your business communications.
                 </p>
               </div>
@@ -85,6 +85,22 @@ const Login = () => {
                     <h3 className="font-semibold text-foreground">Real-time Analytics</h3>
                     <p className="text-sm text-muted-foreground">Track performance insights</p>
                   </div>
+                </div>
+              </div>
+              {/* Footer */}
+              <div className="mt-8 text-center space-y-4">
+                
+                
+                <div className="text-xs text-muted-foreground space-x-4">
+                  <a href="/terms" className="hover:text-foreground transition-colors">
+                    Terms of Service
+                  </a>
+                  <span>•</span>
+                  <a href="/privacy" className="hover:text-foreground transition-colors">
+                    Privacy Policy
+                  </a>
+                  <span>•</span>
+                  <span>© 2023 7en.ai</span>
                 </div>
               </div>
             </div>
@@ -139,27 +155,7 @@ const Login = () => {
               </div>
             </div>
             
-            {/* Footer */}
-            <div className="mt-8 text-center space-y-4">
-              <div className="text-sm text-muted-foreground">
-                Need help?{' '}
-                <a href="/contact" className="text-primary hover:text-primary/80 font-medium transition-colors">
-                  Contact Support
-                </a>
-              </div>
-              
-              <div className="text-xs text-muted-foreground space-x-4">
-                <a href="/terms" className="hover:text-foreground transition-colors">
-                  Terms of Service
-                </a>
-                <span>•</span>
-                <a href="/privacy" className="hover:text-foreground transition-colors">
-                  Privacy Policy
-                </a>
-                <span>•</span>
-                <span>© 2023 7en.ai</span>
-              </div>
-            </div>
+            
           </div>
         </div>
       </div>

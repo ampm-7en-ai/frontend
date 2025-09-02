@@ -251,7 +251,7 @@ const ApiKeysSection = () => {
             View our API documentation to learn how to integrate 7en.ai with your applications.
           </p>
           <ModernButton variant="outline">
-            <a href='https://docs.7en.ai/api/' target='_blank' className='flex gap-2'>
+            <a href='https://docs.7en.ai/api/api-reference' target='_blank' className='flex gap-2'>
             View API Documentation
             <ExternalLink className='w-4 h-4'/>
             </a>

@@ -463,7 +463,7 @@ const ZohoIntegration = ({setAppConnection}) => {
     <div className="space-y-8">
       {/* Current Configuration Cards */}
       {isConnected && zohoStatus && (
-        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+        <div className="bg-white dark:bg-neutral-800 rounded-lg border border-slate-200 dark:border-neutral-700 p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Current Configuration</h3>
             <ModernButton
@@ -477,7 +477,7 @@ const ZohoIntegration = ({setAppConnection}) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+            <div className="bg-slate-50 dark:bg-neutral-700/50 rounded-lg p-4 border border-slate-200 dark:border-neutral-600">
               <div className="flex items-center gap-3 mb-2">
                 <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                 <h4 className="font-medium text-slate-900 dark:text-slate-100">Organization</h4>
@@ -487,7 +487,7 @@ const ZohoIntegration = ({setAppConnection}) => {
               </p>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+            <div className="bg-slate-50 dark:bg-neutral-700/50 rounded-lg p-4 border border-slate-200 dark:border-neutral-600">
               <div className="flex items-center gap-3 mb-2">
                 <Settings className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                 <h4 className="font-medium text-slate-900 dark:text-slate-100">Department</h4>
@@ -497,7 +497,7 @@ const ZohoIntegration = ({setAppConnection}) => {
               </p>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+            <div className="bg-slate-50 dark:bg-neutral-700/50 rounded-lg p-4 border border-slate-200 dark:border-neutral-600">
               <div className="flex items-center gap-3 mb-2">
                 <User className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                 <h4 className="font-medium text-slate-900 dark:text-slate-100">Primary Contact</h4>
@@ -515,7 +515,7 @@ const ZohoIntegration = ({setAppConnection}) => {
 
           {/* Edit Configuration Form */}
           {isEditingConfig && (
-            <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+            <div className="border-t border-slate-200 dark:border-neutral-700 pt-6">
               <div className="space-y-6">
                 {/* Authentication Error Alert */}
                 {errors.isAuthError && (
@@ -534,7 +534,7 @@ const ZohoIntegration = ({setAppConnection}) => {
                           size="sm"
                           onClick={handleConnect}
                           disabled={isConnecting}
-                          className="bg-white dark:bg-slate-800 border-red-300 dark:border-red-600 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30"
+                          className="bg-white dark:bg-neutral-800 border-red-300 dark:border-red-600 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30"
                         >
                           {isConnecting ? 'Reconnecting...' : 'Reconnect'}
                         </ModernButton>
@@ -546,7 +546,7 @@ const ZohoIntegration = ({setAppConnection}) => {
                 <div>
                   <Label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">Organization</Label>
                   {loadingStates.organizations ? (
-                    <div className="flex items-center gap-2 p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                    <div className="flex items-center gap-2 p-3 border border-slate-200 dark:border-neutral-700 rounded-xl bg-slate-50 dark:bg-neutral-800/50">
                       <LoadingSpinner size="sm" />
                       <span className="text-sm text-slate-600 dark:text-slate-400">Loading organizations...</span>
                     </div>
@@ -564,7 +564,7 @@ const ZohoIntegration = ({setAppConnection}) => {
                               size="sm"
                               onClick={() => handleRetryFetch('organizations')}
                               icon={RefreshCw}
-                              className="bg-white dark:bg-slate-800 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30"
+                              className="bg-white dark:bg-neutral-800 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30"
                             >
                               Retry
                             </ModernButton>
@@ -586,7 +586,7 @@ const ZohoIntegration = ({setAppConnection}) => {
                 <div>
                   <Label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">Department</Label>
                   {loadingStates.departments ? (
-                    <div className="flex items-center gap-2 p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                    <div className="flex items-center gap-2 p-3 border border-slate-200 dark:border-neutral-700 rounded-xl bg-slate-50 dark:bg-neutral-800/50">
                       <LoadingSpinner size="sm" />
                       <span className="text-sm text-slate-600 dark:text-slate-400">Loading departments...</span>
                     </div>
@@ -604,7 +604,7 @@ const ZohoIntegration = ({setAppConnection}) => {
                               size="sm"
                               onClick={() => handleRetryFetch('departments')}
                               icon={RefreshCw}
-                              className="bg-white dark:bg-slate-800 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30"
+                              className="bg-white dark:bg-neutral-800 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30"
                             >
                               Retry
                             </ModernButton>
@@ -621,7 +621,7 @@ const ZohoIntegration = ({setAppConnection}) => {
                       disabled={errors.isAuthError}
                     />
                   ) : (
-                    <div className="p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-sm text-slate-500 dark:text-slate-400">
+                    <div className="p-3 border border-slate-200 dark:border-neutral-700 rounded-xl bg-slate-50 dark:bg-neutral-800/50 text-sm text-slate-500 dark:text-slate-400">
                       Please select an organization first
                     </div>
                   )}
@@ -630,7 +630,7 @@ const ZohoIntegration = ({setAppConnection}) => {
                 <div>
                   <Label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">Primary Contact</Label>
                   {loadingStates.contacts ? (
-                    <div className="flex items-center gap-2 p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                    <div className="flex items-center gap-2 p-3 border border-slate-200 dark:border-neutral-700 rounded-xl bg-slate-50 dark:bg-neutral-800/50">
                       <LoadingSpinner size="sm" />
                       <span className="text-sm text-slate-600 dark:text-slate-400">Loading contacts...</span>
                     </div>
@@ -648,7 +648,7 @@ const ZohoIntegration = ({setAppConnection}) => {
                               size="sm"
                               onClick={() => handleRetryFetch('contacts')}
                               icon={RefreshCw}
-                              className="bg-white dark:bg-slate-800 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30"
+                              className="bg-white dark:bg-neutral-800 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/30"
                             >
                               Retry
                             </ModernButton>
@@ -665,7 +665,7 @@ const ZohoIntegration = ({setAppConnection}) => {
                       disabled={errors.isAuthError}
                     />
                   ) : (
-                    <div className="p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-sm text-slate-500 dark:text-slate-400">
+                    <div className="p-3 border border-slate-200 dark:border-neutral-700 rounded-xl bg-slate-50 dark:bg-neutral-800/50 text-sm text-slate-500 dark:text-slate-400">
                       Please select an organization first
                     </div>
                   )}
@@ -691,7 +691,7 @@ const ZohoIntegration = ({setAppConnection}) => {
       )}
 
       {/* Connection Management */}
-      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-lg border border-slate-200 dark:border-neutral-700 p-6">
         <div className="flex items-center gap-3 mb-4">
           <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Connection Management</h3>
@@ -734,7 +734,7 @@ const ZohoIntegration = ({setAppConnection}) => {
       </div>
 
       {/* Features Overview */}
-      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-lg border border-slate-200 dark:border-neutral-700 p-6">
         <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Zoho Desk Capabilities</h3>
         <p className="text-slate-600 dark:text-slate-400 mb-6">
           Powerful features to enhance your customer support operations
@@ -748,7 +748,7 @@ const ZohoIntegration = ({setAppConnection}) => {
             "Team collaboration and notes",
             "Advanced reporting and analytics"
           ].map((feature, index) => (
-            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-neutral-700/50 border border-slate-200 dark:border-neutral-600">
               <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
               <span className="text-sm text-slate-700 dark:text-slate-300">{feature}</span>
             </div>

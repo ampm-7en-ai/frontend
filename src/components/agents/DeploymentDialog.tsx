@@ -104,7 +104,7 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
               Share this link to give direct access to your chatbot:
             </p>
             
-            <Card className="relative mb-4 overflow-hidden bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+            <Card className="relative mb-4 overflow-hidden bg-neutral-200 shadow-none dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 rounded-xl">
               <div className="p-4 text-xs overflow-x-auto break-all font-mono text-slate-700 dark:text-slate-300">
                 {shareableLink}
               </div>
@@ -130,7 +130,7 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
               </div>
             </Card>
             
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
+            <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
               <h4 className="text-sm font-medium mb-2 text-blue-900 dark:text-blue-100">Instructions</h4>
               <ol className="text-sm space-y-2 text-blue-700 dark:text-blue-300 list-decimal pl-4">
                 <li>Copy the link above or click on the external link icon to open it directly.</li>
@@ -152,7 +152,7 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
               Add this script to your website to show a chat bubble widget:
             </p>
             
-            <Card className="relative mb-4 overflow-hidden bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+            <Card className="relative mb-4 overflow-hidden bg-neutral-200 shadow-none dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 rounded-xl">
               <pre className="p-4 text-xs overflow-x-auto font-mono text-slate-700 dark:text-slate-300">
                 {embedScript}
               </pre>
@@ -189,7 +189,7 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
               Embed the chatbot as a popup modal on your website:
             </p>
             
-            <Card className="relative mb-4 overflow-hidden bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+            <Card className="relative mb-4 overflow-hidden bg-neutral-200 shadow-none dark:bg-neutral-900 rounded-xl border-neutral-200 dark:border-neutral-700">
               <pre className="p-4 text-xs overflow-x-auto font-mono text-slate-700 dark:text-slate-300">
                 {iframePopup}
               </pre>
@@ -271,7 +271,7 @@ const DeploymentDialog = ({ open, onOpenChange, agent }: DeploymentDialogProps) 
               </button>
             </div>
             
-            <Card className="relative mb-4 overflow-hidden bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+            <Card className="relative mb-4 overflow-hidden bg-neutral-200 shadow-none dark:bg-neutral-900 rounded-xl border-neutral-200 dark:border-neutral-700">
               <pre className="p-4 text-xs overflow-x-auto font-mono text-slate-700 dark:text-slate-300">
                 {currentInlineCode}
               </pre>
