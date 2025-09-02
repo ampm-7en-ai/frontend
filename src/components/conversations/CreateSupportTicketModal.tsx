@@ -300,7 +300,7 @@ const CreateSupportTicketModal = ({
             />
           </div> */}
           
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="content">Content *</Label>
             <Textarea
               id="content"
@@ -310,7 +310,7 @@ const CreateSupportTicketModal = ({
               className="min-h-[120px] resize-none rounded-xl"
               disabled={isCreating}
             />
-          </div>
+          </div> */}
         </div>
       </div>
     </ModernModal>

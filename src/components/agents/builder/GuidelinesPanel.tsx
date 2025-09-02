@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useBuilder } from './BuilderContext';
-import { Settings, Bot, Palette, Plus, X, Target, Zap, Expand, Upload, Settings2 } from 'lucide-react';
+import { Settings, Bot, Palette, Plus, X, Target, Zap, Expand, Upload, Settings2, FileTextIcon } from 'lucide-react';
 import { useAgentPrompts } from '@/hooks/useAgentPrompts';
 import { useAIModels } from '@/hooks/useAIModels';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -878,16 +878,17 @@ export const GuidelinesPanel = () => {
                   {/* Simplified System Prompt */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">System Prompt</Label>
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Prompt</Label>
                       <div className="flex items-center gap-2">
                         <ModernButton
                           variant="ghost"
                           size="sm"
                           onClick={() => setShowTemplateModal(true)}
                           disabled={promptsLoading || !getCurrentTemplate()}
-                          className="h-8 px-3 rounded-lg text-xs text-slate-600 hover:text-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          className="h-8 w-8 p-0 rounded-lg text-xs text-slate-600 hover:text-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          iconOnly
+                          icon={FileTextIcon}
                         >
-                          Templates
                         </ModernButton>
                         <SystemPromptModal
                           value={agentData.systemPrompt || ''}

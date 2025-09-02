@@ -45,11 +45,18 @@ export const CurrentPlanCard = () => {
             <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{planName}</h3>
             <div className="flex items-center gap-3 mt-1">
               <span className="text-slate-600 dark:text-slate-400">${planPrice}/month</span>
-              {remainingDays !== null && (
+              {(remainingDays !== null &&  remainingDays >= 0) ? (
                 <div className="flex items-center text-sm gap-1 text-amber-600 dark:text-amber-400">
                   <Calendar className="h-3 w-3" />
                   <span>
                     {remainingDays} {remainingDays === 1 ? 'day' : 'days'} until renewal
+                  </span>
+                </div>
+              ): (
+                <div className="flex items-center text-sm gap-1 text-red-600 dark:text-red-400">
+                  <Calendar className="h-3 w-3" />
+                  <span>
+                    Expired
                   </span>
                 </div>
               )}

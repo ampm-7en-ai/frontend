@@ -2,6 +2,7 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import rehypeRaw from 'rehype-raw';
 interface StyledMarkdownProps {
   content: string;
   primaryColor: string;
@@ -27,22 +28,61 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
         color: isDarkTheme ? '#bdbdbd' : '#333333',
       }}>
         <ReactMarkdown
+          rehypePlugins={[rehypeRaw]}
           components={{
+            // code({ node, className, children, ...props }) {
+            //   const match = /language-(\w+)/.exec(className || '');
+            //   const language = match ? match[1] : '';
+              
+            //   // Check if inline code
+            //   const isInline = !match && children.toString().split('\n').length === 1;
+              
+            //   if (isInline) {
+            //     return (
+            //       <code
+            //         className="px-1.5 py-0.5 rounded-md !font-mono !text-xs font-medium"
+            //         style={{ 
+            //           backgroundColor: `${isDarkTheme ? inlineCodeBg : inlineCodeBg}`+`${isDarkTheme ? "40" : "80"}`,
+            //           color: primaryColor,
+            //           fontSize: '0.875rem'
+            //         }}
+            //         {...props}
+            //       >
+            //         {children}
+            //       </code>
+            //     );
+            //   }
+              // Custom renderer for <pre> blocks
+            pre({ children }) {
+              // Extract the content of the <pre> block
+              const content = children[0]?.props?.children || '';
+              console.log("pijan",content);
+              // Check if the content is a string and contains HTML-like tags
+              if (typeof content === 'string' && /<[a-z][\s\S]*>/i.test(content)) {
+                // Sanitize and parse HTML content
+                //const parsedContent = HTMLReactParser(DOMPurify.sanitize(content));
+                return <pre>{content}</pre>;
+              }
+              // Fallback to default rendering for non-HTML content
+              return <pre>{children}</pre>;
+            },
+            // Modified code renderer
             code({ node, className, children, ...props }) {
               const match = /language-(\w+)/.exec(className || '');
               const language = match ? match[1] : '';
-              
+              const content = String(children).replace(/\n$/, '');
+
               // Check if inline code
-              const isInline = !match && children.toString().split('\n').length === 1;
-              
+              const isInline = !match && content.split('\n').length === 1;
+
               if (isInline) {
                 return (
                   <code
                     className="px-1.5 py-0.5 rounded-md !font-mono !text-xs font-medium"
-                    style={{ 
-                      backgroundColor: `${isDarkTheme ? inlineCodeBg : inlineCodeBg}`+`${isDarkTheme ? "40" : "80"}`,
+                    style={{
+                      backgroundColor: `${isDarkTheme ? inlineCodeBg : inlineCodeBg}${isDarkTheme ? '40' : '80'}`,
                       color: primaryColor,
-                      fontSize: '0.875rem'
+                      fontSize: '0.875rem',
                     }}
                     {...props}
                   >
@@ -50,7 +90,6 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
                   </code>
                 );
               }
-              
               return (
                 <div className="my-4 w-full p-0">
                   <SyntaxHighlighter

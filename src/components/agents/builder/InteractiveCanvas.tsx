@@ -73,7 +73,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
       const primaryColorRgbaLight = hexToRgba(agentData.primaryColor, 0.15);
 
       return (
-        <div className="h-full w-full relative [background-image:none] dark:bg-[hsla(0,0%,0%,0.95)] text-white shadow-lg p-6 overflow-hidden">
+        <div className="h-full w-full relative bg-neutral-100 [background-image:none] dark:bg-[hsla(0,0%,0%,0.95)] text-white shadow-lg p-6 overflow-hidden">
           {/* Chat button - positioned within canvas */}
           <div className={`absolute bottom-6 ${isLeftPosition ? 'left-6' : 'right-6'} z-50`}>
             <ModernButton
