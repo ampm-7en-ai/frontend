@@ -25,7 +25,7 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = memo(({
 
   return (
     <>
-      <div className={`prose prose-sm max-w-none break-words assistant-content pr-4 ${className}`} style={{ 
+      <div className={`prose prose-sm max-w-none break-words assistant-content pr-4 !text-gray-800 dark:!text-gray-200 ${className}`} style={{ 
         color: isDarkTheme ? '#bdbdbd' : '#333333',
       }}>
         <ReactMarkdown
