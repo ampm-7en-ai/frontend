@@ -214,6 +214,9 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
             line-height: 1.75;
             padding-left: 1.6rem;
           }
+          .playground .assistant-ol > .assistant-li {
+            margin-bottom: 0px;
+          }
 
           .assistant-content .assistant-ol > .assistant-li::before {
             content: counter(list-counter);
@@ -249,6 +252,10 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = ({
             position: relative;
             margin-bottom: 12px;
             line-height: 1.75;
+          }
+
+          .playground .assistant-ul > .assistant-li {
+            margin-bottom: 0px;
           }
 
           .assistant-content .assistant-ul > .assistant-li::before {

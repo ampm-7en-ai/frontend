@@ -237,7 +237,7 @@ export const TestRightPanel = ({
                     <FileText className="h-4 w-4 text-green-500" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-sm font-semibold text-foreground">System Prompt</h3>
+                    <h3 className="text-sm font-semibold text-foreground">Prompt</h3>
                     <p className="text-xs text-muted-foreground">Define agent behavior</p>
                   </div>
                 </div>

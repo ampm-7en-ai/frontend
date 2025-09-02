@@ -89,7 +89,7 @@ export const SystemPromptSection = ({
     <div className="space-y-4">
       {/* Agent Type Selection */}
       <div>
-        <Label className="text-sm font-medium text-foreground">Agent Type</Label>
+        <Label className="text-sm font-medium text-foreground">Agent Persona Type</Label>
         <div className="mt-1.5">
           <ModernDropdown
             value={agentType || 'general-assistant'}
@@ -104,7 +104,7 @@ export const SystemPromptSection = ({
       {/* System Prompt */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <Label className="text-sm font-medium text-foreground">System Prompt</Label>
+          <Label className="text-sm font-medium text-foreground">Prompt</Label>
           <div className="flex items-center gap-2">
             <ModernButton
               variant="ghost"

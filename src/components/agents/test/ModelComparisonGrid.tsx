@@ -14,6 +14,8 @@ import {
   Loader2
 } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { StyledMarkdown } from '@/components/ui/styled-markdown';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface ModelCell {
   id: string;
@@ -49,6 +51,7 @@ export const ModelComparisonGrid = ({
   isHistoryMode = false
 }: ModelComparisonGridProps) => {
   const { modelOptionsForDropdown } = useAIModels();
+  const {theme} = useAppTheme();
 
   const getGridClass = () => {
     const numCells = cells.length;
@@ -210,7 +213,15 @@ export const ModelComparisonGrid = ({
                     <div className="space-y-2">
                       <p className="text-sm dark:text-gray-500">AI Assistant</p>
                       <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
-                        {latestAiMessage.content} 
+                        {typeof latestAiMessage.content === 'string' && (
+                            <StyledMarkdown
+                              content={latestAiMessage.content}
+                              primaryColor={theme === 'dark' ? '#60a5fa' : '#2563eb'}
+                              isDarkTheme={theme === 'dark'}
+                              className="playground"
+                              />
+                         )} 
+                        
                         {
                           latestAiMessage.type === "ui" && ("Enter a valid email and send")
                         }
