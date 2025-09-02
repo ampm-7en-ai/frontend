@@ -1,8 +1,9 @@
-import React, { memo, useEffect } from 'react';
+import React, { memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import rehypeRaw from 'rehype-raw';
+
 interface StyledMarkdownProps {
   content: string;
   primaryColor: string;
@@ -22,20 +23,6 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = memo(({
   const linkColor = primaryColor;
   const strongTagColor = isDarkTheme ? '#D6BCFA' : primaryColor;
 
-  useEffect(()=>{
-    const theme = localStorage.getItem("app-theme");
-    const root = document.documentElement;
-    console.log("hey",theme);
-    if(theme === "light") {
-      isDarkTheme = false;
-      
-      root.classList.remove('dark');
-    } else {
-      isDarkTheme = true;
-      root.classList.add('dark');
-    }
-  },[isDarkTheme]);
-
   return (
     <>
       <div className={`prose prose-sm max-w-none break-words assistant-content pr-4 ${className}`} style={{ 
@@ -44,29 +31,6 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = memo(({
         <ReactMarkdown
           rehypePlugins={[rehypeRaw]}
           components={{
-            // code({ node, className, children, ...props }) {
-            //   const match = /language-(\w+)/.exec(className || '');
-            //   const language = match ? match[1] : '';
-              
-            //   // Check if inline code
-            //   const isInline = !match && children.toString().split('\n').length === 1;
-              
-            //   if (isInline) {
-            //     return (
-            //       <code
-            //         className="px-1.5 py-0.5 rounded-md !font-mono !text-xs font-medium"
-            //         style={{ 
-            //           backgroundColor: `${isDarkTheme ? inlineCodeBg : inlineCodeBg}`+`${isDarkTheme ? "40" : "80"}`,
-            //           color: primaryColor,
-            //           fontSize: '0.875rem'
-            //         }}
-            //         {...props}
-            //       >
-            //         {children}
-            //       </code>
-            //     );
-            //   }
-              // Custom renderer for <pre> blocks
             pre({ children }) {
               // Extract the content of the <pre> block
               const content = children[0]?.props?.children || '';
