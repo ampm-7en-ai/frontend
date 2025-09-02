@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ChatInput } from '@/components/agents/modelComparison/ChatInput';
 import { ModelComparisonGrid } from './ModelComparisonGrid';
@@ -15,6 +14,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { HistoryItem } from '@/types/history';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 // Dotted background pattern for the model comparison area
 const dottedBackgroundStyle = `
@@ -98,6 +98,7 @@ export const TestCanvas = ({
 }: TestCanvasProps) => {
   const [expandedCellId, setExpandedCellId] = useState<string | null>(null);
   const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
+  const { theme } = useAppTheme();
 
   const modelCells: ModelCell[] = Array(numModels).fill(null).map((_, index) => ({
     id: `cell-${index}`,
@@ -273,6 +274,7 @@ export const TestCanvas = ({
             {/* Model Comparison Grid */}
             <div className="flex-1 min-h-0">
               <ModelComparisonGrid
+                key={`model-grid-${theme}`}
                 cells={modelCells}
                 onCellClick={handleCellClick}
                 onModelChange={handleModelChange}

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
@@ -51,7 +50,7 @@ export const ModelComparisonGrid = ({
   isHistoryMode = false
 }: ModelComparisonGridProps) => {
   const { modelOptionsForDropdown } = useAIModels();
-  const {theme} = useAppTheme();
+  const { theme } = useAppTheme();
 
   const getGridClass = () => {
     const numCells = cells.length;
@@ -215,6 +214,7 @@ export const ModelComparisonGrid = ({
                       <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
                         {typeof latestAiMessage.content === 'string' && (
                             <StyledMarkdown
+                              key={`markdown-${cell.id}-${theme}`}
                               content={latestAiMessage.content}
                               primaryColor={theme === 'dark' ? '#60a5fa' : '#2563eb'}
                               isDarkTheme={theme === 'dark'}
