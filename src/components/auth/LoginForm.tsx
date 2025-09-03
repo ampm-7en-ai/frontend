@@ -191,7 +191,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       AppleID.auth.init({
         clientId: 'com.ampmlabs.7enai.signin',
         scope: 'name email',
-        redirectURI: window.location.origin,
+        redirectURI: window.location.origin+"/dashboard",
         usePopup: true
       });
       
