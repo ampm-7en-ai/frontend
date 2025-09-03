@@ -13,6 +13,7 @@ import { z } from 'zod';
 import { CheckCircle2, User, Lock, Mail, AlertCircle, Shield, Eye, EyeOff } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const inviteRegistrationSchema = z.object({
   username: z.string().min(2, { message: "Username must be at least 2 characters" }),
@@ -178,14 +179,16 @@ const InviteRegistration = () => {
 
   if (isLoading && tokenValid === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10 dark:bg-[hsla(0,0%,0%,0.95)]">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CardTitle>Validating Invitation</CardTitle>
             <CardDescription>Please wait while we validate your invitation...</CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center py-6">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <div className="container mx-auto py-12 flex justify-center items-center">
+              <LoadingSpinner size="lg" text="Validating..." />
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -194,17 +197,17 @@ const InviteRegistration = () => {
 
   if (tokenValid === false) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10 dark:bg-[hsla(0,0%,0%,0.95)]">
+        <Card className="w-full max-w-md shadow-none">
           <CardHeader className="text-center">
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-            <CardTitle>Invalid Invitation</CardTitle>
+            <CardTitle className='pl-0'>Invalid Invitation</CardTitle>
             <CardDescription>This invitation link is invalid or has expired.</CardDescription>
           </CardHeader>
           <CardFooter className="flex justify-center">
-            <Button onClick={() => navigate('/login')}>
+            <ModernButton onClick={() => navigate('/login')}>
               Go to Login
-            </Button>
+            </ModernButton>
           </CardFooter>
         </Card>
       </div>
@@ -212,18 +215,17 @@ const InviteRegistration = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10 dark:bg-[hsla(0,0%,0%,0.95)]">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center justify-center mb-6">
           <div className="text-primary font-bold text-3xl mb-1">
-           <img src='/logo-new.svg' alt="7en AI" style={{width:'200px',marginBottom:'12px'}}/>
+           <img src='/logo-new.svg' alt="7en AI" style={{width:'100px',marginBottom:'12px'}}/>
           </div>
-          <p className="text-dark-gray text-sm">European-compliant multi-agent AI platform</p>
         </div>
         
         <Card className="rounded-3xl p-5">
           <CardHeader>
-            <CardTitle className="text-center text-2xl">Complete Your Registration</CardTitle>
+            <CardTitle className="text-center text-2xl pl-0">Complete Your Registration</CardTitle>
             {businessName && (
               <CardDescription className="text-center">
                 You've been invited to join <span className="font-medium">{businessName}</span>

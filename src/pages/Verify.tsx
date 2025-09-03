@@ -12,6 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Mail, CheckCircle2, Clock } from 'lucide-react';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 const otpSchema = z.object({
   otp: z.string().length(6, "OTP must be exactly 6 digits")
@@ -43,6 +44,8 @@ const Verify = () => {
       otp: ""
     }
   });
+
+  const {theme} = useAppTheme();
 
   useEffect(() => {
     // If user is authenticated and doesn't need verification, redirect to dashboard
@@ -262,8 +265,8 @@ const Verify = () => {
 
   if (verificationSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
-        <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-sm text-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10 dark:bg-[hsla(0,0%,0%,0.95)]">
+        <div className="w-full max-w-md p-8 bg-white dark:bg-neutral-800/70 rounded-lg shadow-sm text-center">
           <div className="mb-6 flex flex-col items-center">
             <CheckCircle2 className="h-16 w-16 text-green-500 mb-4" />
             <h2 className="text-2xl font-semibold">Verification Successful</h2>
@@ -278,16 +281,15 @@ const Verify = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
+    <div className="min-h-screen flex items-center justify-center dark:bg-[hsla(0,0%,0%,0.95)]">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center justify-center mb-6">
           <div className="text-primary font-bold text-3xl mb-1">
-            <img src='/logo-new.svg' alt="7en AI" style={{width: "100px"}}/>
+            <img src={theme === 'dark' ? "/logo-white-new.svg":"/logo-new.svg"} alt="7en AI" style={{width: "100px", marginBottom: "20px"}}/>
           </div>
-          <p className="text-dark-gray text-sm">European-compliant multi-agent AI platform</p>
         </div>
         
-        <div className="p-8 bg-white rounded-3xl shadow-sm">
+        <div className="p-8 bg-white dark:bg-neutral-800/70 rounded-3xl shadow-sm">
           <div className="mb-6 text-center">
             <h2 className="text-2xl font-semibold">Verify Your Account</h2>
             <p className="text-muted-foreground mt-2">

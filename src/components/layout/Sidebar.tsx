@@ -47,6 +47,7 @@ import ModernButton from '../dashboard/ModernButton';
 import { useQueryClient } from '@tanstack/react-query';
 import { updateCachesAfterAgentCreation } from '@/utils/agentCacheUtils';
 import AgentCreationWizard from '../agents/wizard/AgentCreationWizard';
+import { Icon } from '../icons';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -67,7 +68,7 @@ interface SidebarItem {
   id: string;
   label: string;
   href: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }> | React.ReactNode;
   children?: { label: string; href: string, permission?: keyof typeof UserPermissions }[];
   action?: React.ReactNode;
   permission?: keyof typeof UserPermissions;
@@ -115,16 +116,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   };
 
   const commonItems: SidebarItem[] = [
-    { id: 'dashboard', label: 'Dashboard', href: '/', icon: Home, permission: 'dashboard' },
+    { id: 'dashboard', label: 'Dashboard', href: '/', icon: "Home", permission: 'dashboard' },
   ];
 
   const adminItems: SidebarItem[] = [
-    { id: 'conversations', label: 'Conversations', href: '/conversations', icon: MessageSquare, permission: 'conversation' },
+    { id: 'conversations', label: 'Conversations', href: '/conversations', icon: "Chat", permission: 'conversation' },
     { 
       id: 'agents', 
       label: 'AI Agents', 
       href: '/agents', 
-      icon: Bot, 
+      icon: "Person", 
       permission: 'agents',
       showPlusOnHover: true,
       plusAction: handleAgentPlus
@@ -133,7 +134,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       id: 'knowledge', 
       label: 'Knowledge', 
       href: '/knowledge', 
-      icon: Book, 
+      icon: "Book", 
       permission: 'knowledgebase',
       showPlusOnHover: true,
       plusAction: handleKnowledgePlus
@@ -142,12 +143,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       id: 'integrations', 
       label: 'Integrations', 
       href: '/integrations', 
-      icon: Link, 
+      icon: "Earth", 
       permission: 'settings',
       highlight: true 
     },
-    { id: 'settings', label: 'Settings', href: '/settings', icon: Settings, permission: 'settings' },
-    { id: 'help', label: 'Help & Support', href: '#', icon: HelpCircle },
+    { id: 'settings', label: 'Settings', href: '/settings', icon: "Discover", permission: 'settings' },
+    { id: 'help', label: 'Help & Support', href: '#', icon: "Help" },
   ];
 
   const superAdminItems: SidebarItem[] = [
@@ -155,14 +156,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       id: 'business-management',
       label: 'Businesses', 
       href: '/businesses', 
-      icon: Building,
+      icon: "Book",
       permission: 'dashboard'
     },
     { 
       id: 'platform',
       label: 'Platform Settings', 
       href: '/settings', 
-      icon: LayoutDashboard,
+      icon: "Discover",
       permission: 'dashboard', 
       children: [
         { label: 'General', href: '/settings/platform/general',permission: 'dashboard' },
@@ -242,8 +243,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     onClick={() => !isCollapsed && toggleExpand(item.id)}
                   >
                     <div className="flex items-center">
-                      <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
-                      {!isCollapsed && <span>{item.label}</span>}
+                     {/* {typeof item.icon === 'function' ? (
+                          <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
+                        ) : (
+                          item.icon
+                        )}
+                      {!isCollapsed && <span>{item.label}</span>} */}
+                      <Icon name={item.icon} type='gradient' className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} ${theme === 'dark' ? 'dark' : ''}`} />
                     </div>
                     {!isCollapsed && (
                       expandedItems.includes(item.id) ? 
@@ -273,12 +279,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     className="flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-gray-100"
                   >
                     <div className="flex items-center">
-                      <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0 ${item.highlight ? 'text-green-600 dark:text-green-400' : ''}`} />
+                      <Icon name={item.icon} type='gradient' className={`w-5 h-5 ${theme === 'dark' ? 'dark' : ''} ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0 ${item.highlight ? 'text-white dark:text-white' : ''}`} />
                       {!isCollapsed && (
                         <span className={`${item.highlight ? 'font-medium' : ''}`}>
                           {item.label}
                           {item.highlight && (
-                            <span className="ml-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs py-0.5 px-1.5 rounded-full">
+                            <span className="ml-2 bg-[#e67904] dark:bg-[#e67904] text-white text-xs py-0.5 px-1.5 rounded-sm">
                               New
                             </span>
                           )}

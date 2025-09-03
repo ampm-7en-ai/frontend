@@ -85,10 +85,10 @@ export const ModernDropdown = ({
       <DropdownMenuTrigger asChild>
         {trigger || (
           <Button
-            variant="outline"
+            variant="default"
             disabled={disabled}
             className={cn(
-              "w-full justify-between rounded-xl border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 font-normal text-gray-900 hover:text-gray-950 dark:text-gray-100 px-3 py-2 h-10",
+              "w-full justify-between rounded-xl bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 font-normal text-gray-900 hover:text-gray-950 dark:text-gray-100 px-3 py-2 h-10",
               className
             )}
           >

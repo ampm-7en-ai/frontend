@@ -418,8 +418,8 @@ const TeamManagementSection = () => {
             <ScrollArea className="h-[200px]">
               <div className="space-y-2">
                 {availableRoles.find(r => r.id === inviteForm.watch("team_role_id"))?.permissions.map(permission => (
-                  <div key={permission.id} className="flex items-center justify-between py-1.5 px-3 bg-white/60 dark:bg-slate-700/60 rounded-lg">
-                    <span className="font-medium text-sm text-slate-900 dark:text-slate-100">{permission.name.replace(/_/g, ' ')}</span>
+                  <div key={permission.id} className="flex items-center justify-between py-1.5 px-3 bg-white/60 dark:bg-neutral-700/60 rounded-lg">
+                    <span className="font-medium text-sm text-slate-900 dark:text-neutral-100">{permission.name.replace(/_/g, ' ')}</span>
                     <span className="text-xs text-slate-600 dark:text-slate-400">{permission.description}</span>
                   </div>
                 ))}
@@ -456,7 +456,7 @@ const TeamManagementSection = () => {
               </div>
               
               {loading ? (
-                <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+                <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">
                   <div className="container mx-auto py-12 flex justify-center items-center h-64">
                     <LoadingSpinner size="lg" text="Loading..." />
                   </div>
