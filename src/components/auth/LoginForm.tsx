@@ -53,7 +53,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       
       console.log(`Sending ${provider.toUpperCase()} SSO request to endpoint:`, API_ENDPOINTS.SSO_LOGIN);
       
-      const apiUrl = getApiUrl(API_ENDPOINTS.SSO_LOGIN);
+      const apiUrl = getApiUrl(API_ENDPOINTS.SSO_LOGIN+"?provider="+provider);
       console.log("Full API URL:", apiUrl);
       
       const response = await fetch(apiUrl, {
@@ -189,7 +189,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       }
       
       AppleID.auth.init({
-        clientId: 'com.ampmlabs.7enai',
+        clientId: 'com.ampmlabs.7enai.signin',
         scope: 'name email',
         redirectURI: window.location.origin,
         usePopup: true
