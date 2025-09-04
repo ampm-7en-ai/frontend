@@ -10,6 +10,7 @@ import { Search, Bot, MessageCircleReplyIcon, MessageCircle, MessageSquare } fro
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface InteractiveCanvasProps {
   isTraining?: boolean;
@@ -44,8 +45,8 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
     if (!isPreviewActive) {
       return (
         <div className="flex items-center justify-center h-full">
-          <div className="text-center p-8 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 shadow-xl">
-            <div className="text-6xl mb-4 animate-pulse">🤖</div>
+          <div className="text-center p-8 rounded-2xl bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm border border-white/30 dark:border-neutral-700/30 shadow-xl">
+            
             <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Preview is disabled</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">Enable preview to see your agent in action</p>
           </div>
@@ -56,8 +57,8 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
     if (!currentAgentId) {
       return (
         <div className="flex items-center justify-center h-full">
-          <div className="text-center p-8 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 shadow-xl">
-            <div className="text-6xl mb-4 animate-pulse">⏳</div>
+          <div className="text-center p-8 rounded-2xl bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm border border-white/30 dark:border-neutral-700/30 shadow-xl">
+            <LoadingSpinner className='h-12'/>
             <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Loading agent...</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">Please wait while we load your agent configuration</p>
           </div>
@@ -287,7 +288,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
   return (
     <>
       {/* Canvas container - proper positioning context */}
-      <div className="relative w-full h-full bg-white dark:bg-gray-900 flex flex-col">
+      <div className="relative w-full h-full bg-white dark:bg-neutral-900 flex flex-col">
         {/* Canvas content area */}
         <div className="flex-1">
           {getCanvasContent()}
