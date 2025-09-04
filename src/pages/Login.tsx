@@ -112,14 +112,13 @@ const Login = () => {
           <div className="w-full max-w-md">
             {/* Mobile Logo */}
             <div className="lg:hidden text-center mb-8">
-              <div className="w-12 h-12 mx-auto mb-4 bg-primary rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 mx-auto mb-4 flex items-center justify-center">
                 <img 
-                  src={theme === 'dark' ? "/logo-white-icon-new.svg" : "/logo-icon-new.svg"} 
+                  src={theme === 'dark' ? "/logo-white-new.svg" : "/logo-new.svg"} 
                   alt="7en.ai" 
-                  className="h-6 w-6"
+                  className="h-16 w-16"
                 />
               </div>
-              <h2 className="text-2xl font-bold text-foreground">7en.ai</h2>
             </div>
             
             {/* Form Card */}

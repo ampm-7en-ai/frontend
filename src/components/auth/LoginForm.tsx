@@ -441,7 +441,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                   <FormLabel className="text-foreground font-medium">Password</FormLabel>
                   <button 
                     type="button" 
-                    className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+                    className="text-sm text-muted-foreground hover:text-foreground font-normal transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
                       setIsForgotPasswordOpen(true);

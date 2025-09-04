@@ -379,11 +379,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
           <div className="dark:bg-transparent dark:px-0 p-4 rounded-lg border dark:border-0">
             <p className="text-sm text-gray-600 dark:text-neutral-400 leading-relaxed">
               By creating an account, you agree to our{" "}
-              <a href="/terms" className="text-primary hover:text-primary/80 font-medium transition-colors">
+              <a href="/terms" className="text-muted-foreground hover:text-foreground font-bold transition-colors">
                 Terms of Service
               </a>{" "}
               and{" "}
-              <a href="/privacy" className="text-primary hover:text-primary/80 font-medium transition-colors">
+              <a href="/privacy" className="text-muted-foreground hover:text-foreground font-bold transition-colors">
                 Privacy Policy
               </a>
               .
