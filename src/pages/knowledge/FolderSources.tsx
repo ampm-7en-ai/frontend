@@ -333,14 +333,14 @@ const FolderSources = () => {
           {isLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="bg-white/50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50 animate-pulse">
+                <div key={i} className="bg-white/50 dark:bg-neutral-700/50 rounded-xl p-4 border border-neutral-200/50 dark:border-0 animate-pulse">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-muted/50 rounded-xl"></div>
+                    <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-700 rounded-xl"></div>
                     <div className="flex-1 min-w-0">
-                      <div className="h-4 bg-muted/50 rounded w-1/3 mb-1"></div>
-                      <div className="h-3 bg-muted/30 rounded w-1/2"></div>
+                      <div className="h-4 bg-neutral-100 dark:bg-neutral-700 rounded w-1/3 mb-1"></div>
+                      <div className="h-3 bg-neutral-100 dark:bg-neutral-700 rounded w-1/2"></div>
                     </div>
-                    <div className="w-5 h-5 bg-muted/30 rounded"></div>
+                    <div className="w-5 h-5 bg-neutral-100 dark:bg-neutral-700 rounded"></div>
                   </div>
                 </div>
               ))}
@@ -423,7 +423,7 @@ const FolderSources = () => {
                         size="sm"
                         icon={Download}
                         iconOnly={true}
-                        className="h-10 w-10 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg"
+                        className="h-10 w-10 hover:bg-slate-100 dark:hover:bg-neutral-600 rounded-lg"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDownload(source);
@@ -435,7 +435,7 @@ const FolderSources = () => {
                       size="sm"
                       icon={Trash2}
                       iconOnly={true}
-                      className="h-10 w-10 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg hover:text-red-600"
+                      className="h-10 w-10 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg hover:!text-red-600"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteClick(source);

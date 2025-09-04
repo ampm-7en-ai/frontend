@@ -68,7 +68,7 @@ const KnowledgeSourceCard = ({ source, onDelete }: {
   const IconComponent = getIconForType(source.type);
   
   return (
-    <div className="group border dark:border-neutral-700/50 rounded-lg bg-white dark:bg-neutral-800/70 hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition-all duration-200">
+    <div className="group border dark:border-0 rounded-lg bg-white dark:bg-neutral-800/70 hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition-all duration-200">
       <div className="flex items-center gap-3 p-3">
         <div className={`flex items-center justify-center w-6 h-6 rounded-lg flex-shrink-0 ${getIconBackground(source.type)}`}>
           <IconComponent className="h-3 w-3 text-white" />
@@ -171,7 +171,7 @@ export const BuilderSidebar = () => {
   // Show error state if not in agent context
   if (!agentData.id) {
     return (
-      <div className="w-full h-full bg-white dark:bg-gray-900 flex items-center justify-center">
+      <div className="w-full h-full bg-white dark:bg-neutral-900 flex items-center justify-center">
         <div className="text-center py-12">
           <Brain className="h-12 w-12 text-gray-500 dark:text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">

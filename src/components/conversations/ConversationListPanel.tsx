@@ -343,14 +343,14 @@ const ConversationListPanel = ({
       return Array(5).fill(0).map((_, index) => (
         <div key={`skeleton-${index}`} className="p-3">
           <div className="flex items-start gap-3">
-            <Skeleton className="h-9 w-9 rounded-none bg-gray-200 dark:bg-slate-700" />
+            <Skeleton className="h-9 w-9 rounded-none bg-neutral-100 dark:bg-neutral-700" />
             <div className="flex-1">
-              <Skeleton className="h-4 w-24 mb-2 bg-gray-200 dark:bg-slate-700" />
-              <Skeleton className="h-3 w-32 mb-3 bg-gray-200 dark:bg-slate-700" />
-              <Skeleton className="h-3 w-40 bg-gray-200 dark:bg-slate-700" />
+              <Skeleton className="h-4 w-24 mb-2 bg-neutral-100 dark:bg-neutral-700" />
+              <Skeleton className="h-3 w-32 mb-3 bg-neutral-100 dark:bg-neutral-700" />
+              <Skeleton className="h-3 w-40 bg-neutral-100 dark:bg-neutral-700" />
               <div className="flex gap-2 mt-2">
-                <Skeleton className="h-4 w-12 bg-gray-200 dark:bg-slate-700" />
-                <Skeleton className="h-4 w-12 bg-gray-200 dark:bg-slate-700" />
+                <Skeleton className="h-4 w-12 bg-neutral-100 dark:bg-neutral-700" />
+                <Skeleton className="h-4 w-12 bg-neutral-100 dark:bg-neutral-700" />
               </div>
             </div>
           </div>

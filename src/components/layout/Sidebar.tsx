@@ -284,7 +284,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                         <span className={`${item.highlight ? 'font-medium' : ''}`}>
                           {item.label}
                           {item.highlight && (
-                            <span className="ml-2 bg-[#e67904] dark:bg-[#e67904] text-white text-xs py-0.5 px-1.5 rounded-sm">
+                            <span className="ml-2 bg-[#e67904] dark:bg-[#ff8400] text-white text-xs py-0.5 px-1.5 rounded-sm font-normal scale-75 inline-block">
                               New
                             </span>
                           )}

@@ -94,12 +94,12 @@ const KnowledgeBase = () => {
           // Modern Loading State
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-white/50 dark:bg-neutral-700/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50 animate-pulse">
+              <div key={i} className="bg-white/50 dark:bg-neutral-700/50 rounded-xl p-4 border border-slate-200/50 dark:border-0 animate-pulse">
                 <div className="flex items-center gap-4">
-                  <div className="w-8 h-8 bg-muted/50 rounded-lg"></div>
+                  <div className="w-8 h-8 bg-neutral-100 dark:bg-neutral-700 rounded-lg"></div>
                   <div className="flex-1 min-w-0">
-                    <div className="h-4 bg-muted/50 rounded w-1/3 mb-1"></div>
-                    <div className="h-3 bg-muted/30 rounded w-1/2"></div>
+                    <div className="h-4 bg-neutral-100 dark:bg-neutral-700 rounded w-1/3 mb-1"></div>
+                    <div className="h-3 bg-neutral-100 dark:bg-neutral-700 rounded w-1/2"></div>
                   </div>
                 </div>
               </div>
@@ -107,7 +107,7 @@ const KnowledgeBase = () => {
           </div>
         ) : filteredFolders.length === 0 ? (
           <div className="text-center py-16">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/30 flex items-center justify-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-neutral-100 dark:bg-neutral-700 flex items-center justify-center">
               <FolderOpen className="h-8 w-8 text-muted-foreground" />
             </div>
             <h3 className="text-lg font-medium text-foreground mb-2">No knowledge folders found</h3>

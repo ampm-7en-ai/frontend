@@ -157,17 +157,17 @@ const MessageContainer = ({
                   {[1, 2, 3, 4].map((i) => (
                     i % 2 == 0 ? (
                       <div key={i} className="flex items-start gap-3">
-                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200/60 dark:bg-slate-700/60" />
+                        <Skeleton className="h-8 w-8 rounded-full bg-neutral-100 dark:bg-neutral-700" />
                         <div className="space-y-2 w-2/3">
-                          <Skeleton className="h-16 w-full rounded-2xl bg-gray-200/60 dark:bg-slate-700/60" />
+                          <Skeleton className="h-16 w-full rounded-2xl bg-neutral-100 dark:bg-neutral-700" />
                         </div>
                       </div>
                     ) : (
                       <div key={i} className="flex items-start gap-3 justify-end">
                         <div className="space-y-2 w-2/3">
-                          <Skeleton className="h-16 w-full rounded-2xl bg-gray-200/60 dark:bg-slate-700/60" />
+                          <Skeleton className="h-16 w-full rounded-2xl bg-neutral-100 dark:bg-neutral-700" />
                         </div>
-                        <Skeleton className="h-8 w-8 rounded-full bg-gray-200/60 dark:bg-slate-700/60" />
+                        <Skeleton className="h-8 w-8 rounded-full bg-neutral-100 dark:bg-neutral-700" />
                       </div>
                     )
                   ))}
