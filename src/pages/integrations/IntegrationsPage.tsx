@@ -407,11 +407,7 @@ const IntegrationsPage = () => {
         </Badge>
       );
     }
-    return (
-      <Badge variant="outline" className="text-slate-500 border-slate-200 bg-slate-50 dark:bg-slate-700/50 dark:border-slate-600 dark:text-slate-400">
-        Not connected
-      </Badge>
-    );
+    return null;
   };
 
   const getDefaultBadge = (integrationId: string) => {
@@ -634,7 +630,7 @@ const IntegrationsPage = () => {
                       {categoryIntegrations.map((integration) => (
                         <Card key={integration.id} className="bg-slate-50/80 dark:bg-neutral-800/50 rounded-xl border border-slate-200/50 dark:border-neutral-600/50 backdrop-blur-sm shadow-none hover:shadow-sm transition-shadow">
                           <CardContent className="p-4">
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-start gap-4">
                               <div 
                                 className="bg-slate-50 dark:bg-slate-700 flex items-center justify-center shadow-sm flex-shrink-0"
                                 style={{
@@ -653,7 +649,7 @@ const IntegrationsPage = () => {
                               </div>
                               
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-start justify-between mb-0.5">
                                   <h3 className="font-semibold text-base text-slate-900 dark:text-slate-100 truncate">
                                     {integration.name}
                                   </h3>

@@ -17,7 +17,7 @@ export const useAppTheme = () => {
     
     const saved = localStorage.getItem('app-theme') as AppTheme;
     console.log('Initial theme from localStorage:', saved);
-    return saved || 'light';
+    return saved || 'dark';
   });
 
   useEffect(() => {
