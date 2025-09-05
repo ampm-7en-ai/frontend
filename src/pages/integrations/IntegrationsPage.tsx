@@ -628,7 +628,7 @@ const IntegrationsPage = () => {
                   <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
                       {categoryIntegrations.map((integration) => (
-                        <Card key={integration.id} className="bg-slate-50/80 dark:bg-neutral-800/50 rounded-xl border border-slate-200/50 dark:border-neutral-600/50 backdrop-blur-sm shadow-none hover:shadow-sm transition-shadow">
+                        <Card key={integration.id} className=" dark:bg-neutral-800/50 rounded-xl border border-slate-200/50 dark:border-neutral-600/0 backdrop-blur-sm shadow-none hover:shadow-sm transition-shadow">
                           <CardContent className="p-4">
                             <div className="flex items-start gap-4">
                               <div 
@@ -658,7 +658,7 @@ const IntegrationsPage = () => {
                                   </div>
                                 </div>
                                 
-                                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-3 line-clamp-2">
+                                <p className="text-sm text-muted-foreground dark:text-muted-foreground leading-relaxed mb-3 line-clamp-2">
                                   {integration.description}
                                 </p>
                                 
