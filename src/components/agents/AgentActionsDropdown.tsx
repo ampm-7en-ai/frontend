@@ -236,9 +236,9 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, agent }: AgentActi
               Are you sure you want to delete "{agentName}"? This action cannot be undone and will permanently remove:
               <br />
               <br />
-              • The agent and all its conversations
+              - The agent and all its conversations
               <br />
-              • The associated knowledge folder and all its sources
+              - The associated knowledge folder and all its sources
               <br />
               <br />
               All data will be permanently lost.
@@ -246,7 +246,7 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, agent }: AgentActi
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            <ModernButton
               onClick={(e) => {
                 e.stopPropagation();
                 handleDelete();
@@ -255,7 +255,7 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, agent }: AgentActi
               className="bg-red-600 hover:bg-red-700 focus:ring-red-500"
             >
               {deleting ? 'Deleting...' : 'Delete Agent'}
-            </AlertDialogAction>
+            </ModernButton>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

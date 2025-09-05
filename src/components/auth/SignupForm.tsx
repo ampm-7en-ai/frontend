@@ -201,7 +201,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
       </div>
       
       <Form {...form}>
-        <form className="space-y-4" onSubmit={form.handleSubmit(handleSignup)}>
+        <form className="space-y-2" onSubmit={form.handleSubmit(handleSignup)}>
           <FormField
             control={form.control}
             name="business_name"
@@ -212,10 +212,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                   <Building className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                   <FormControl>
                     <Input 
-                      placeholder="Your Business Name" 
+                      placeholder="Enter business name" 
                       variant="modern"
                       size="lg"
-                      className="pl-12 pr-4"
+                      className="pl-10 pr-4"
                       {...field} 
                     />
                   </FormControl>
@@ -225,7 +225,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             )}
           />
           
-          <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="username"
@@ -236,10 +235,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                     <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                     <FormControl>
                       <Input 
-                        placeholder="username" 
+                        placeholder="Enter username" 
                         variant="modern"
                         size="lg"
-                        className="pl-12 pr-4"
+                        className="pl-10 pr-4"
                         {...field} 
                       />
                     </FormControl>
@@ -263,7 +262,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                         placeholder="email@example.com" 
                         variant="modern"
                         size="lg"
-                        className="pl-12 pr-4"
+                        className="pl-10 pr-4"
                         {...field} 
                       />
                     </FormControl>
@@ -272,9 +271,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                 </FormItem>
               )}
             />
-          </div>
           
-          <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="password"
@@ -289,7 +286,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                         placeholder="••••••••" 
                         variant="modern"
                         size="lg"
-                        className="pl-12 pr-12"
+                        className="pl-10 pr-10"
                         {...field} 
                       />
                     </FormControl>
@@ -306,7 +303,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
               )}
             />
             
-            <FormField
+            {/* <FormField
               control={form.control}
               name="phone_number"
               render={({ field }) => (
@@ -319,7 +316,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                         placeholder="+1234567890" 
                         variant="modern"
                         size="lg"
-                        className="pl-12 pr-4"
+                        className="pl-10 pr-4"
                         {...field} 
                       />
                     </FormControl>
@@ -327,9 +324,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
                   <FormMessage />
                 </FormItem>
               )}
-            />
-          </div>
-          
+            /> */}
           {/* <FormField
             control={form.control}
             name="website"
@@ -376,14 +371,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             )}
           /> */}
           
-          <div className="dark:bg-transparent dark:px-0 p-4 rounded-lg border dark:border-0">
+          <div className="dark:bg-transparent dark:px-0 py-2 rounded-lg">
             <p className="text-sm text-gray-600 dark:text-neutral-400 leading-relaxed">
               By creating an account, you agree to our{" "}
-              <a href="/terms" className="text-muted-foreground hover:text-foreground font-bold transition-colors">
+              <a href="/terms" className="text-muted-foreground hover:text-foreground underline transition-colors">
                 Terms of Service
               </a>{" "}
               and{" "}
-              <a href="/privacy" className="text-muted-foreground hover:text-foreground font-bold transition-colors">
+              <a href="/privacy" className="text-muted-foreground hover:text-foreground underline transition-colors">
                 Privacy Policy
               </a>
               .

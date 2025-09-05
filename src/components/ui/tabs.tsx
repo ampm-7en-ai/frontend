@@ -30,7 +30,7 @@ const TabsList = React.forwardRef<
         sizeClasses[size],
         variant === "github" 
           ? "inline-flex w-full border-b border-border bg-background gap-1 px-4" 
-          : "inline-flex items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
+          : "inline-flex items-center justify-center rounded-lg bg-gray-200/60 p-1 text-muted-foreground",
         sticky && `sticky ${stickyOffset} z-40 bg-background`, // Allow customizing the sticky offset
         className
       )}

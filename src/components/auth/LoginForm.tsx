@@ -422,7 +422,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                       placeholder="Enter your username" 
                       variant="modern"
                       size="lg"
-                      className="pl-12 pr-4"
+                      className="pl-10 pr-4"
                       {...field}
                     />
                   </FormControl>
@@ -458,7 +458,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                       placeholder="Enter your password" 
                       variant="modern"
                       size="lg"
-                      className="pl-12 pr-12"
+                      className="pl-10 pr-10"
                       {...field}
                     />
                   </FormControl>
