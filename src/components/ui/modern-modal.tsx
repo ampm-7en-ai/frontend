@@ -53,7 +53,7 @@ export const ModernModal = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          'bg-white/95 dark:bg-neutral-800/95 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 shadow-2xl rounded-2xl',
+          'bg-white/95 dark:bg-neutral-800/95 backdrop-blur-xl border border-white/20 dark:border-neutral-700 shadow-2xl rounded-2xl',
           sizeClasses[size],
           fixedFooter && 'flex flex-col max-h-[85vh]',
           className
