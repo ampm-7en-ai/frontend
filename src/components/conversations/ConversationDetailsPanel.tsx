@@ -116,7 +116,7 @@ const ConversationDetailsPanel = ({
           <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center">
             <MessageSquare className="h-4 w-4 text-gray-400 dark:text-slate-500" />
           </div>
-          {/* <h3 className="text-xs font-medium text-gray-900 dark:text-slate-100 mb-1">No conversation selected</h3>
+          {/* <h3 className="text-xs font-medium text-foreground dark:text-slate-100 mb-1">No conversation selected</h3>
           <p className="text-[10px] text-gray-500 dark:text-slate-400">Select a conversation to view details</p> */}
         </div>
       </div>
@@ -155,7 +155,7 @@ const ConversationDetailsPanel = ({
       <div className="p-4 border-b border-gray-200/50 dark:border-neutral-700/50 bg-white/50 dark:bg-transparent backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Additional Information</h1>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Information</h1>
           </div>
         </div>
       </div>
@@ -185,27 +185,22 @@ const ConversationDetailsPanel = ({
                   
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Ticket Information</h3>
+                  <h3 className="font-semibold text-foreground dark:text-foreground">Ticket Information</h3>
                 </div>
               </div>
               
               <div className="space-y-3">
                 <div>
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2 text-sm">
+                  <h4 className="font-medium text-foreground dark:text-foreground mb-1 flex items-center gap-2 text-sm">
                     Provider
                   </h4>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm capitalize">{conversation.ticket_by}</p>
+                  <p className="text-muted-foreground dark:text-gray-400 text-sm capitalize">{conversation.ticket_by}</p>
                 </div>
                 
                 <div>
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 text-sm">Ticket ID</h4>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm font-mono">{conversation.ticket_id}</p>
+                  <h4 className="font-medium text-foreground dark:text-foreground mb-1 text-sm">Ticket ID</h4>
+                  <p className="text-muted-foreground dark:text-muted-foreground text-sm font-mono">{conversation.ticket_id}</p>
                 </div>
-
-                {/* <div>
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 text-sm">Priority</h4>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm font-mono">{conversation.priority}</p>
-                </div> */}
               </div>
             </div>
 
@@ -218,18 +213,13 @@ const ConversationDetailsPanel = ({
                 <User className="h-4 w-4 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Agent Info</h3>
+                <h3 className="font-semibold text-foreground dark:text-foreground">Agent Info</h3>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <Avatar className="h-8 w-8 bg-slate-300 dark:bg-slate-600 p-[1px]">
-                <AvatarFallback className="text-gray-500 text-sm font-medium bg-slate-100 dark:bg-slate-800">
-                  {assignedAgent.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
               <div>
-                <p className="font-medium text-gray-900 dark:text-gray-100">{assignedAgent}</p>
+                <p className="font-normal text-foreground dark:text-foreground">{assignedAgent}</p>
               </div>
             </div>
           </div>
@@ -241,28 +231,28 @@ const ConversationDetailsPanel = ({
                 <User className="h-4 w-4 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Customer Info</h3>
+                <h3 className="font-semibold text-foreground dark:text-foreground">Customer Info</h3>
               </div>
             </div>
 
             <div className="space-y-3">
               <div>
-                <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 text-sm">Full Name</h4>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">{conversation.customer || "Visitor"}</p>
+                <h4 className="font-medium text-foreground dark:text-foreground mb-1 text-sm">Full Name</h4>
+                <p className="text-muted-foreground dark:text-muted-foreground text-sm">{conversation.customer || "Visitor"}</p>
               </div>
               
               {conversation.email && (
                 <div>
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2 text-sm">
+                  <h4 className="font-medium text-foreground dark:text-foreground mb-1 flex items-center gap-2 text-sm">
                     Email
                   </h4>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">{conversation.email}</p>
+                  <p className="text-muted-foreground dark:text-muted-foreground text-sm">{conversation.email}</p>
                 </div>
               )}
               
               {hasSatisfactionData && (
                 <div>
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2 text-sm">
+                  <h4 className="font-medium text-foreground dark:text-foreground mb-1 flex items-center gap-2 text-sm">
               
                     Satisfaction
                   </h4>
@@ -280,7 +270,7 @@ const ConversationDetailsPanel = ({
                     <TrendingUp className="h-4 w-4 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">Customer Sentiment Journey</h3>
+                    <h3 className="font-semibold text-foreground dark:text-foreground">Customer Sentiment Journey</h3>
                   </div>
                 </div>
 
@@ -341,7 +331,7 @@ const ConversationDetailsPanel = ({
                   <MessageSquare className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Agent Handoffs</h3>
+                  <h3 className="font-semibold text-foreground dark:text-foreground">Agent Handoffs</h3>
                 </div>
               </div>
 
@@ -360,7 +350,7 @@ const ConversationDetailsPanel = ({
                   <Tag className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">All Agents</h3>
+                  <h3 className="font-semibold text-foreground dark:text-foreground">All Agents</h3>
                 </div>
               </div>
               

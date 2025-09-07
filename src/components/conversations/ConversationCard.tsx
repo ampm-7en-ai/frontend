@@ -103,47 +103,29 @@ const ConversationCard = ({
     switch (conversation.channel?.toLowerCase()) {
       case 'ticketing':
         return (
-          <div className={cn(containerClass, "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700")}>
-            <Mail className={cn(iconClass, "text-blue-600 dark:text-blue-400")} strokeWidth={2} />
-            {conversation.agentType && (
-              <span className='absolute -bottom-0.5 -right-0.5 text-[8px] text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 px-1 py-0.5 shadow-sm rounded-full border border-gray-200 dark:border-slate-600 font-medium'>
-                {conversation.agentType === 'ai' ? 'AI' : 'H'}
-              </span>
-            )}
+          <div className={cn(containerClass, "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-none")}>
+            <Mail className={cn(iconClass, "text-neutral-600 dark:text-neutral-400")} strokeWidth={2} />
+            
           </div>
         );
       case 'phone':
         return (
-          <div className={cn(containerClass, "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700")}>
+          <div className={cn(containerClass, "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-none")}>
             <Phone className={cn(iconClass, "text-slate-600 dark:text-slate-400")} strokeWidth={2} />
-            {conversation.agentType && (
-              <span className='absolute -bottom-0.5 -right-0.5 text-[8px] text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 px-1 py-0.5 shadow-sm rounded-full border border-gray-200 dark:border-slate-600 font-medium'>
-                {conversation.agentType === 'ai' ? 'AI' : 'H'}
-              </span>
-            )}
           </div>
         );
       case 'website':
         return (
-          <div className={cn(containerClass, "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700")}>
-            <Globe className={cn(iconClass, "text-green-600 dark:text-green-400")} strokeWidth={2} />
-            {conversation.agentType && (
-              <span className='absolute -bottom-0.5 -right-0.5 text-[8px] text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 px-1 py-0.5 shadow-sm rounded-full border border-gray-200 dark:border-slate-600 font-medium'>
-                {conversation.agentType === 'ai' ? 'AI' : 'H'}
-              </span>
-            )}
+          <div className={cn(containerClass, "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-none")}>
+            <Globe className={cn(iconClass, "text-neutral-600 dark:text-neutral-400")} strokeWidth={2} />
           </div>
         );
       case 'whatsapp':
       default:
         return (
-          <div className={cn(containerClass, "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 relative")}>
-            <MessageSquare className={cn(iconClass, "text-green-600 dark:text-green-400")} strokeWidth={2} />
-            {conversation.agentType && (
-              <span className='absolute -bottom-0.5 -right-0.5 text-[8px] text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 px-1 py-0.5 shadow-sm rounded-full border border-gray-200 dark:border-slate-600 font-medium'>
-                {conversation.agentType === 'ai' ? 'AI' : 'H'}
-              </span>
-            )}
+          <div className={cn(containerClass, "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-none relative")}>
+            <MessageSquare className={cn(iconClass, "text-neutral-600 dark:text-neutral-400")} strokeWidth={2} />
+           
           </div>
         );
     }
@@ -197,7 +179,7 @@ const ConversationCard = ({
             <div className="flex justify-between items-start mb-1">
               <div className="flex items-center gap-2">
                 <h3 className={cn(
-                  "text-gray-800 dark:text-slate-200 text-sm truncate", 
+                  "text-foreground dark:text-foreground text-sm truncate", 
                   conversation.isUnread ? "font-semibold" : "font-medium"
                 )}>
                   {conversation.customer || "Visitor"}
@@ -209,7 +191,7 @@ const ConversationCard = ({
               <div className="flex flex-col items-end">
                 <p className={cn(
                   "text-xs whitespace-nowrap",
-                  conversation.isUnread ? "font-medium text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-slate-500"
+                  conversation.isUnread ? "font-medium text-blue-600 dark:text-blue-400" : "text-neutral-400 dark:text-neutral-600"
                 )}>
                   {reformatTimeAgo(conversation.time)}
                 </p>
@@ -218,7 +200,7 @@ const ConversationCard = ({
             
             <p className={cn(
               "text-xs truncate leading-relaxed",
-              conversation.isUnread ? "font-medium text-gray-700 dark:text-slate-300" : "text-gray-500 dark:text-slate-400"
+              conversation.isUnread ? "font-medium text-gray-700 dark:text-muted-foreground" : "text-muted-foreground dark:text-muted-foreground"
             )}>
               {escapeHTML(conversation.lastMessage)}
             </p>

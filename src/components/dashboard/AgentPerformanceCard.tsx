@@ -96,7 +96,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               <XAxis 
                 type="number"
                 tick={{ fontSize: 12, fill: 'currentColor' }}
-                className="text-slate-600 dark:text-slate-400"
+                className="text-muted-foreground dark:text-muted-foreground"
                 axisLine={false}
                 tickLine={false}
               />
@@ -104,7 +104,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
                 type="category"
                 dataKey="name" 
                 tick={{ fontSize: 11, fill: 'currentColor' }}
-                className="text-slate-600 dark:text-slate-400"
+                className="text-muted-foreground dark:text-muted-foreground"
                 axisLine={false}
                 tickLine={false}
                 width={70}
@@ -181,7 +181,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               type="number"
               domain={[0, 100]}
               tick={{ fontSize: 12, fill: 'currentColor' }}
-              className="text-slate-600 dark:text-slate-400"
+              className="text-muted-foreground dark:text-muted-foreground"
               axisLine={false}
               tickLine={false}
             />
@@ -189,7 +189,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               type="category"
               dataKey="name" 
               tick={{ fontSize: 11, fill: 'currentColor' }}
-              className="text-slate-600 dark:text-slate-400"
+              className="text-muted-foreground dark:text-muted-foreground"
               axisLine={false}
               tickLine={false}
               width={70}
@@ -234,7 +234,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
             <XAxis 
               dataKey="name" 
               tick={{ fontSize: 12, fill: 'currentColor' }}
-              className="text-slate-600 dark:text-slate-400"
+              className="text-muted-foreground dark:text-muted-foreground"
               axisLine={false}
               tickLine={false}
               angle={performanceData.length > 10 ? -45 : 0}
@@ -244,7 +244,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
             <YAxis 
               yAxisId="left"
               tick={{ fontSize: 12, fill: 'currentColor' }}
-              className="text-slate-600 dark:text-slate-400"
+              className="text-muted-foreground dark:text-muted-foreground"
               axisLine={false}
               tickLine={false}
               domain={[0, 10]}
@@ -254,7 +254,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               yAxisId="right"
               orientation="right"
               tick={{ fontSize: 12, fill: 'currentColor' }}
-              className="text-slate-600 dark:text-slate-400"
+              className="text-muted-foreground dark:text-muted-foreground"
               axisLine={false}
               tickLine={false}
               domain={[-100, 100]}
@@ -307,7 +307,7 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
   };
 
   return (
-    <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-3xl overflow-hidden">
+    <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-lg overflow-hidden">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

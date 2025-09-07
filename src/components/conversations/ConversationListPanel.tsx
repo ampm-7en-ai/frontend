@@ -413,7 +413,7 @@ const ConversationListPanel = ({
   return (
     <div className="flex flex-col h-full bg-white dark:bg-[hsla(0,0%,0%,0.95)]">
       {/* Filters */}
-      <div className="flex-shrink-0 bg-white dark:bg-[hsla(0,0%,0%,0.95)] border-b border-gray-100 dark:border-slate-700">
+      <div className="flex-shrink-0 bg-white dark:bg-[hsla(0,0%,0%,0.95)] border-b border-gray-100 dark:border-muted">
         <ConversationFiltersModern 
           filterResolved={filterStatus}
           onFilterResolvedChange={setFilterStatus}

@@ -25,11 +25,11 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
   ];
 
   return (
-    <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-3xl overflow-hidden h-full">
+    <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-lg overflow-hidden h-full">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center pl-0">
+            <CardTitle className="text-lg font-semibold text-foreground dark:text-foreground flex items-center pl-0">
               Customer Satisfaction
             </CardTitle>
           </div>
@@ -46,13 +46,13 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
               <XAxis 
                 dataKey="name" 
                 tick={{ fontSize: 12, fill: 'currentColor' }}
-                className="text-slate-600 dark:text-slate-400"
+                className="text-muted-foreground dark:text-muted-foreground"
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis 
                 tick={{ fontSize: 12, fill: 'currentColor' }}
-                className="text-slate-600 dark:text-slate-400"
+                className="text-muted-foreground dark:text-muted-foreground"
                 axisLine={false}
                 tickLine={false}
                 domain={[-100, 100]}

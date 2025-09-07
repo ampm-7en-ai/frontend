@@ -108,7 +108,7 @@ const MessageList = ({
         className="flex justify-center my-3"
       >
         <div className="bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 rounded-lg px-3 py-1.5 text-xs text-slate-600 dark:text-slate-400 max-w-[80%] flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
-          <Info className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+          <Info className="h-3.5 w-3.5 text-neutral-500 dark:text-neutral-400" />
           <div>{message.content}</div>
         </div>
       </div>
@@ -143,7 +143,7 @@ const MessageList = ({
     );
   }
 
-  const userMessageStyle = "bg-primary text-primary-foreground dark:bg-blue-600 dark:text-white";
+  const userMessageStyle = "bg-primary text-primary-foreground dark:bg-[#f06425] dark:text-white";
   
   return (
     <>
@@ -212,7 +212,7 @@ const MessageList = ({
                 className={cn(
                   "p-3 transition-all max-w-full",
                   "rounded-2xl rounded-tl-sm bg-white dark:bg-neutral-800/90 backdrop-blur-sm",
-                  "border border-slate-200/60 dark:border-slate-700/60 shadow-none"
+                  "border border-slate-200/60 dark:border-none shadow-none"
                 )}
               >
                 <div className="prose-sm max-w-none break-words text-slate-800 dark:text-slate-200">
@@ -225,7 +225,7 @@ const MessageList = ({
                     />
                   )}
                 </div>
-                <div className="text-xs mt-2 text-slate-500 dark:text-slate-400">
+                <div className="text-xs mt-2 text-neutral-500 dark:text-neutral-400">
                   {message.timestamp}
                 </div>
               </div>
@@ -246,7 +246,7 @@ const MessageList = ({
                         size="icon" 
                         variant="ghost" 
                         className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
-                        <Copy className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                        <Copy className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -263,7 +263,7 @@ const MessageList = ({
                         size="icon" 
                         variant="ghost" 
                         className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
-                        <RotateCcw className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                        <RotateCcw className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -284,7 +284,7 @@ const MessageList = ({
                           "h-4 w-4",
                           feedback === 'helpful' 
                             ? "text-green-600 fill-green-600" 
-                            : "text-slate-500 dark:text-slate-400"
+                            : "text-neutral-500 dark:text-neutral-400"
                         )} />
                       </Button>
                     </TooltipTrigger>
@@ -306,7 +306,7 @@ const MessageList = ({
                           "h-4 w-4",
                           feedback === 'unhelpful' 
                             ? "text-red-600 fill-red-600" 
-                            : "text-slate-500 dark:text-slate-400"
+                            : "text-neutral-500 dark:text-neutral-400"
                         )} />
                       </Button>
                     </TooltipTrigger>
@@ -322,7 +322,7 @@ const MessageList = ({
         
         {message.sender === 'user' && (
           <Avatar className="h-8 w-8 ml-3 mt-0.5 bg-slate-300 dark:bg-slate-600 p-[1px]">
-            <AvatarFallback className="text-gray-500 text-sm font-medium bg-slate-100 dark:bg-slate-800">
+            <AvatarFallback className="text-gray-500 text-sm font-medium bg-slate-100 dark:bg-neutral-700">
               <User className="h-4 w-4" />
             </AvatarFallback>
           </Avatar>

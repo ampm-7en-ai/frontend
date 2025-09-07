@@ -17,7 +17,7 @@ export const ModernStatCard: React.FC<ModernStatCardProps> = ({
   gradient
 }) => {
   return (
-    <Card className="bg-white dark:bg-neutral-800 border border-slate-200 dark:border-transparent rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
+    <Card className="bg-white dark:bg-neutral-800 0 dark:border-transparent rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300">
       <CardContent className="p-6 relative pb-2">
         {/* Icon positioned at top right */}
         <div className={`absolute top-4 right-4 p-2 rounded-xl ${gradient}`}>
@@ -25,10 +25,10 @@ export const ModernStatCard: React.FC<ModernStatCardProps> = ({
         </div>
         
         <div className="pr-12">
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+          <p className="text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-2">
             {title}
           </p>
-          <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+          <p className="text-3xl font-bold text-foreground dark:text-foreground mb-3">
             {value.toLocaleString()}
           </p>
         </div>
