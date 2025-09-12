@@ -414,12 +414,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-foreground font-medium">Username</FormLabel>
+                <FormLabel className="text-foreground font-medium">Email or Username</FormLabel>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
                   <FormControl>
                     <Input 
-                      placeholder="Enter your username" 
+                      placeholder="Type username or email" 
                       variant="modern"
                       size="lg"
                       className="pl-10 pr-4"
@@ -455,7 +455,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                   <FormControl>
                     <Input 
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password" 
+                      placeholder="Type password" 
                       variant="modern"
                       size="lg"
                       className="pl-10 pr-10"

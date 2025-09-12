@@ -112,7 +112,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                     </div>
                   )}
                 </div>
-                <CardDescription className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm mb-4">
+                <CardDescription className="text-muted-foreground dark:text-muted-foreground leading-relaxed text-sm mb-4">
                   {agent.description}
                 </CardDescription>
               </div>
@@ -133,14 +133,14 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
               {/* Left side - Metrics */}
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/40 rounded-lg flex items-center justify-center">
-                    <MessageSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <div className="w-8 h-8 bg-neutral-600 dark:bg-neutral-700 rounded-lg flex items-center justify-center">
+                    <MessageSquare className="h-4 w-4 text-blue-600 dark:text-neutral-400" />
                   </div>
                   <div>
                     <div className="text-sm font-bold text-slate-900 dark:text-white/80">
                       {agent.conversations?.toLocaleString() || '0'}
                     </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">Conversations</div>
+                    <div className="text-xs text-muted-foreground dark:text-muted-foreground">Conversations</div>
                   </div>
                 </div>
                 
@@ -152,7 +152,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                     <div className="text-sm font-bold text-slate-900 dark:text-white/80">
                       {formattedDate}
                     </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">Last Updated</div>
+                    <div className="text-xs text-muted-foreground dark:text-muted-foreground">Last Updated</div>
                   </div>
                 </div>
                 
@@ -164,7 +164,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                     <div className={`text-sm font-bold ${getModelStyles()}`}>
                       {getModelDisplayName()}
                     </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">AI Model</div>
+                    <div className="text-xs text-muted-foreground dark:text-muted-foreground">AI Model</div>
                   </div>
                 </div>
 
@@ -178,7 +178,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                         <div className={`text-sm font-bold dark:text-white/80`}>
                           {agent.default_ticketing_provider}
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400">Connected App</div>
+                        <div className="text-xs text-muted-foreground dark:text-muted-foreground">Connected App</div>
                       </div>
                     </div>
                   )
@@ -187,7 +187,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
               
               {/* Right side - Knowledge Base Trigger */}
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">
+                <span className="text-xs text-muted-foreground dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">
                   {agent.knowledgeSources?.length || 0} sources
                 </span>
                 {/* <Collapsible open={isKnowledgeExpanded} onOpenChange={setIsKnowledgeExpanded}>

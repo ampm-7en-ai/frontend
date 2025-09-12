@@ -224,8 +224,8 @@ const AgentList = () => {
             {/* Header Section */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 px-4">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">AI Agents</h1>
-                <p className="text-slate-600 dark:text-slate-400 text-base">Manage and create your AI agents</p>
+                <h1 className="text-2xl font-bold text-foreground dark:text-foreground mb-2">AI Agents</h1>
+                <p className="text-muted-foreground dark:text-muted-foreground text-base">Manage and create your AI agents</p>
               </div>
               <div className="flex items-center gap-3">
                 <ModernButton variant="gradient" icon={Plus} onClick={handleCreateAgent}>
