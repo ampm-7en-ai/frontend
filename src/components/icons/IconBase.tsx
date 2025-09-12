@@ -6,6 +6,7 @@ import Book from './library/Book';
 import Earth from './library/Earth';
 import Discover from './library/Discover';
 import Help from './library/Help';
+import Team from './library/Team';
 
 const IconBase = ({ type, className = '', iconType }) => {
 
@@ -26,6 +27,8 @@ const IconBase = ({ type, className = '', iconType }) => {
         return <Discover type={type} className={baseClass} />;
       case 'Help':
         return <Help type={type} className={baseClass} />;
+      case 'Team':
+        return <Team type={type} className={baseClass} />;
       default:
         return null;
     }

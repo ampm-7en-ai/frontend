@@ -6,7 +6,7 @@ import { LucideIcon } from 'lucide-react';
 interface ModernStatCardProps {
   title: string;
   value: number;
-  icon: LucideIcon;
+  icon: any;
   gradient: string;
 }
 
@@ -20,8 +20,9 @@ export const ModernStatCard: React.FC<ModernStatCardProps> = ({
     <Card className="bg-white dark:bg-neutral-800 0 dark:border-transparent rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300">
       <CardContent className="p-6 relative pb-2">
         {/* Icon positioned at top right */}
-        <div className={`absolute top-4 right-4 p-2 rounded-xl ${gradient}`}>
-          <Icon className="h-4 w-4 text-white" />
+        <div className={`absolute top-4 right-4 p-0 z-10`}>
+          <span className="absolute top-1 right-1 p-3 bg-[#f06425] -z-10 blur-md opacity-50 hidden dark:block"></span>
+          <Icon className="h-7 w-7 text-white" />
         </div>
         
         <div className="pr-12">

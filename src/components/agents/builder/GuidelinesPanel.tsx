@@ -405,7 +405,12 @@ export const GuidelinesPanel = () => {
     
       try {
       const res = await agentApi.update(agentData.id as string,{
-        default_ticketing_provider: providerId
+        default_ticketing_provider: providerId,
+        behavior: {
+          ...agentData.behavior,
+          expertHandoff: true,
+          ticketType: "thirdparty"
+        }
       })
       const data = await res.json();
       agentData.default_ticketing_provider = await data.data.default_ticketing_provider;

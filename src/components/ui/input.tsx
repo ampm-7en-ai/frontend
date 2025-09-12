@@ -8,9 +8,9 @@ const inputVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-input px-3 py-2 dark:text-gray-200 dark:bg-neutral-800 dark:!border-neutral-500/40",
-        modern: "border-slate-200/60 dark:border-neutral-600/60 bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm px-4 py-3 rounded-lg focus-visible:ring-blue-500/50 dark:focus-visible:ring-blue-400/50 focus-visible:border-transparent hover:border-slate-300/80 dark:hover:border-slate-500/80 dark:!text-gray-200 dark:!bg-neutral-800 dark:!border-neutral-500/40",
-        glass: "border-slate-200/40 dark:border-slate-600/40 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md px-4 py-3 rounded-lg focus-visible:ring-blue-500/40 dark:focus-visible:ring-blue-400/40 focus-visible:border-transparent hover:border-slate-300/60 dark:hover:border-slate-500/60"
+        default: "border-input px-3 py-2 bg-white/80 dark:text-gray-200 dark:bg-neutral-800 dark:!border-neutral-500/40",
+        modern: "border-slate-200/60 dark:border-neutral-600/60 bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm px-4 py-3 rounded-lg focus-visible:ring-neutral-500/50 dark:focus-visible:ring-neutral-400/50 focus-visible:border-transparent hover:border-slate-300/80 dark:hover:border-slate-500/80 dark:!text-gray-200 dark:!bg-neutral-800 dark:!border-neutral-500/40",
+        glass: "border-slate-200/40 dark:border-slate-600/40 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md px-4 py-3 rounded-lg focus-visible:ring-neutral-500/40 dark:focus-visible:ring-neutral-400/40 focus-visible:border-transparent hover:border-slate-300/60 dark:hover:border-slate-500/60"
       },
       size: {
         sm: "h-9 text-sm px-3 py-2",

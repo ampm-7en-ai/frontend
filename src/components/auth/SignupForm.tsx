@@ -207,7 +207,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             name="business_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-gray-700 font-medium">Business Name</FormLabel>
+                <FormLabel className="text-foreground font-medium">Business Name</FormLabel>
                 <div className="relative">
                   <Building className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                   <FormControl>
@@ -230,7 +230,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">Username</FormLabel>
+                  <FormLabel className="text-foreground font-medium">Username</FormLabel>
                   <div className="relative">
                     <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                     <FormControl>
@@ -253,7 +253,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">Email</FormLabel>
+                  <FormLabel className="text-foreground font-medium">Email</FormLabel>
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                     <FormControl>
@@ -277,7 +277,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">Password</FormLabel>
+                  <FormLabel className="text-foreground font-medium">Password</FormLabel>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                     <FormControl>
@@ -308,7 +308,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
               name="phone_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">Phone Number</FormLabel>
+                  <FormLabel className="text-foreground font-medium">Phone Number</FormLabel>
                   <div className="relative">
                     <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                     <FormControl>
@@ -330,7 +330,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             name="website"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-gray-700 font-medium">Website (Optional)</FormLabel>
+                <FormLabel className="text-foreground font-medium">Website (Optional)</FormLabel>
                 <div className="relative">
                   <Globe className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                   <FormControl>
@@ -353,7 +353,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-gray-700 font-medium">Address</FormLabel>
+                <FormLabel className="text-foreground font-medium">Address</FormLabel>
                 <div className="relative">
                   <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
                   <FormControl>

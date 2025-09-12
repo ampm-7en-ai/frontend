@@ -202,7 +202,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
 
   return (
     <div className="relative flex">
-      <div className={`flex flex-col h-full ${isCollapsed ? 'w-16' : 'w-64'} bg-white dark:bg-[hsla(0,0%,0%,0.95)] dark:[background-image:radial-gradient(at_center_bottom,hsla(18,72%,55%,0.15)_0px,transparent_0%),radial-gradient(at_top_right,hsla(45,80%,55%,0.25)_0px,transparent_10%),radial-gradient(at_80%_0%,hsla(0,0%,0%,0.9)_0px,transparent_10%),radial-gradient(at_87%_5%,hsla(0,0%,0%,0.9)_0px,transparent_10%),radial-gradient(at_0%_100%,hsla(0,0%,0%,0.9)_0px,transparent_10%),radial-gradient(at_80%_100%,hsla(0,0%,0%,0.9)_0px,transparent_10%),radial-gradient(at_0%_0%,hsla(0,0%,0%,0.9)_0px,transparent_10%)] transition-all duration-300 ease-in-out border-r border-muted dark:border-muted overflow-hidden`}>
+      <div className={`flex flex-col h-full ${isCollapsed ? 'w-16' : 'w-64'} bg-white dark:bg-[hsla(0,0%,0%,0.95)] dark:[background-image:radial-gradient(at_center_bottom,hsla(18,72%,55%,0.15)_0px,transparent_0%),radial-gradient(at_top_right,hsla(45,80%,55%,0.25)_0px,transparent_10%),radial-gradient(at_80%_0%,hsla(0,0%,0%,0.9)_0px,transparent_10%),radial-gradient(at_87%_5%,hsla(0,0%,0%,0.9)_0px,transparent_10%),radial-gradient(at_0%_100%,hsla(0,0%,0%,0.9)_0px,transparent_10%),radial-gradient(at_80%_100%,hsla(0,0%,0%,0.9)_0px,transparent_10%),radial-gradient(at_0%_0%,hsla(0,0%,0%,0.9)_0px,transparent_10%)] transition-all duration-300 ease-in-out border-r border-muted dark:border-neutral-50/10 overflow-hidden`}>
         {/* Header with Logo */}
         <div className="flex items-center justify-between h-14 px-4">
           {!isCollapsed ? 
@@ -284,7 +284,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                         <span className={`${item.highlight ? 'font-medium' : ''}`}>
                           {item.label}
                           {item.highlight && (
-                            <span className="ml-2 bg-[#e67904] dark:bg-[#ff8400] text-white text-xs py-0.5 px-1.5 rounded-sm font-normal scale-75 inline-block">
+                            <span className="ml-2 bg-[#f06425] text-white text-xs py-0.5 px-1.5 rounded-sm font-normal scale-75 inline-block">
                               New
                             </span>
                           )}
@@ -318,6 +318,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
             </div>
           ))}
         </nav>
+          {/* background logo element */}
+        <div className="absolute right-[-50px] left-auto bottom-0 w-[600px] top-1/2 opacity-5">
+          {!isCollapsed ? 
+              theme === 'light' ? (<img src='/logo-icon-new.svg' className="w-full" alt="Logo" />) : (<img src='/logo-white-icon-new.svg' className="w-full" alt="Logo" />)
+            : <></>}
+        </div>
         
         {/* User Profile Section */}
         <div className="p-4">
@@ -398,7 +404,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                 variant="ghost"
                 size="icon"
                 onClick={toggleSidebar}
-                className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors dark:text-gray-400 dark:hover:text-gray-200"
+                className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors dark:text-gray-400 dark:hover:text-gray-200 z-10"
               >
                 <ArrowLeftFromLine className="h-4 w-4" />
               </Button>
@@ -467,7 +473,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                 variant="ghost"
                 size="icon"
                 onClick={toggleSidebar}
-                className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors dark:text-gray-400 dark:hover:text-gray-200"
+                className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors dark:text-gray-400 dark:hover:text-gray-200 z-10"
               >
                 <ArrowRightFromLine className="h-4 w-4" />
               </Button>

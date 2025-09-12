@@ -133,7 +133,7 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
               {/* Left side - Metrics */}
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-neutral-600 dark:bg-neutral-700 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-900/40 dark:to-neutral-800/40 rounded-lg flex items-center justify-center">
                     <MessageSquare className="h-4 w-4 text-blue-600 dark:text-neutral-400" />
                   </div>
                   <div>
