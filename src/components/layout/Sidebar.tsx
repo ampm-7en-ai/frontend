@@ -284,7 +284,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                         <span className={`${item.highlight ? 'font-medium' : ''}`}>
                           {item.label}
                           {item.highlight && (
-                            <span className="ml-2 bg-[#f06425] text-white text-xs py-0.5 px-1.5 rounded-sm font-normal scale-75 inline-block">
+                            <span className="ml-2 bg-[#f06425] text-white text-xs py-0.5 px-1.5 rounded-[4px] font-normal scale-75 inline-block">
                               New
                             </span>
                           )}
@@ -297,7 +297,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-5 w-5 transition-opacity dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-300"
+                        className="h-5 w-5 transition-opacity dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-300 rounded-[4px]"
                         disabled={isCreatingAgent && item.id === 'agents'}
                         onClick={(e) => {
                           e.preventDefault();
@@ -319,7 +319,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
           ))}
         </nav>
           {/* background logo element */}
-        <div className="absolute right-[-50px] left-auto bottom-0 w-[600px] top-1/2 opacity-5">
+        <div className="absolute right-[-50px] left-auto bottom-0 w-[600px] top-1/2 opacity-5 overflow-hidden">
           {!isCollapsed ? 
               theme === 'light' ? (<img src='/logo-icon-new.svg' className="w-full" alt="Logo" />) : (<img src='/logo-white-icon-new.svg' className="w-full" alt="Logo" />)
             : <></>}

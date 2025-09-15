@@ -40,9 +40,9 @@ const ModernButton = React.forwardRef<HTMLButtonElement, ModernButtonProps>(({
   };
   
   const sizeClasses = {
-    sm: iconOnly ? "p-1.5 text-sm rounded-lg" : "px-3 py-1.5 text-sm rounded-lg",
-    md: "px-4 py-2 text-sm rounded-lg",
-    lg: "px-6 py-3 text-base rounded-lg"
+    sm: iconOnly ? "p-1.5 text-sm rounded-[8px]" : "px-3 py-1.5 text-sm rounded-[8px]",
+    md: "px-4 py-2 text-sm rounded-[8px]",
+    lg: "px-6 py-3 text-base rounded-[8px]"
   };
 
   // Enhanced icon-only detection

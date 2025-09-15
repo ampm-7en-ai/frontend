@@ -249,7 +249,7 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
               onValueChange={setSelectedChannel}
               options={channelOptions}
               placeholder="Select Channel"
-              className="w-32 h-8 text-xs rounded-xl border-slate-200 dark:border-slate-700"
+              className="w-32 h-8 text-xs border-slate-200 dark:border-slate-700"
             />
           </div>
         </div>

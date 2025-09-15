@@ -86,9 +86,11 @@ export default {
 				},
 			},
 			borderRadius: {
-				lg: '0.5rem',
-				md: '0.375rem',
-				sm: '0.25rem',
+				lg: '8px',
+				md: '8px',
+				sm: '8px',
+				xl: '8px',
+				'2xl': '8px'
 			},
 			fontSize: {
 				'heading-1': '1.5rem',    // 24px

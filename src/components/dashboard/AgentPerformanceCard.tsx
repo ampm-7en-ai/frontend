@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Icon } from '../icons';
 
 interface AgentPerformanceCardProps {
   agentPerformanceComparison: AgentPerformanceComparison[];
@@ -318,8 +319,8 @@ const AgentPerformanceCard: React.FC<AgentPerformanceCardProps> = ({
               className="text-xs"
             />
           </div>
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600">
-            <TrendingUp className="h-4 w-4 text-white" />
+          <div className="rounded-2xl bg-transparent">
+            <Icon type='gradient' name="Chart" className="h-7 w-7 text-white" />
           </div>
         </div>
       </CardHeader>

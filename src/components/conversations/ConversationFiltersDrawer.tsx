@@ -124,8 +124,7 @@ const ConversationFiltersDrawer = ({
       >
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-blue-500" />
+            <div className="flex items-center gap-2"> 
               <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 Filter Conversations
               </h3>
@@ -172,7 +171,7 @@ const ConversationFiltersDrawer = ({
                         id={`channel-${channel.value}`}
                         checked={channelFilter.includes(channel.value)}
                         onCheckedChange={() => handleChannelChange(channel.value)}
-                        className="rounded-md"
+                        className="rounded-[4px]"
                       />
                       <Label 
                         htmlFor={`channel-${channel.value}`}
@@ -212,7 +211,7 @@ const ConversationFiltersDrawer = ({
                       id="agent-type-human"
                       checked={agentTypeFilter.includes('human')}
                       onCheckedChange={() => handleAgentTypeChange('human')}
-                      className="rounded-md"
+                      className="rounded-[4px]"
                     />
                     <Label 
                       htmlFor="agent-type-human"

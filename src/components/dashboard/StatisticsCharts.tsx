@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Heart } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Icon } from '../icons';
 
 interface StatisticsChartsProps {
   satisfactionTrends?: Array<{ name: string; satisfaction: number; csat?: number; nps?: number; }>;
@@ -33,8 +34,8 @@ const StatisticsCharts: React.FC<StatisticsChartsProps> = ({
               Customer Satisfaction
             </CardTitle>
           </div>
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600">
-            <Heart className="h-4 w-4 text-white" />
+          <div className="rounded-2xl bg-transparent">
+            <Icon name="Love" type='gradient' className="h-7 w-7 text-white" />
           </div>
         </div>
       </CardHeader>

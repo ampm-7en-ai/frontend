@@ -88,7 +88,7 @@ export const ModernDropdown = ({
             variant="default"
             disabled={disabled}
             className={cn(
-              "w-full justify-between rounded-lg border dark:border-0 bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 font-normal text-gray-900 hover:text-gray-950 dark:text-gray-100 px-3 py-2 h-10",
+              "w-full justify-between rounded-[8px] border dark:border-0 bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 font-normal text-gray-900 hover:text-gray-950 dark:text-gray-100 px-3 py-2 h-10",
               className
             )}
           >

@@ -392,7 +392,7 @@ const TeamManagementSection = () => {
                       })) : [{ value: "no-roles", label: "No roles available" }]}
                       placeholder="Select Role"
                       disabled={loadingRoles || availableRoles.length === 0}
-                      className="bg-white/80 border-slate-200 rounded-xl h-11"
+                      className="bg-white/80 border-slate-200 h-11"
                     />
                   </FormControl>
                   <FormMessage />
@@ -443,7 +443,7 @@ const TeamManagementSection = () => {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-semibold text-slate-900 dark:text-slate-100">{user?.name || 'You'}</h3>
-              <Badge className="text-white border-0 text-xs">Owner</Badge>
+              <Badge className="text-purple-600 border-0 text-xs">Owner</Badge>
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400">{user?.email}</p>
           </div>
