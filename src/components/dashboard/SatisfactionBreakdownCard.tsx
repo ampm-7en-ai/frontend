@@ -15,10 +15,10 @@ const SatisfactionBreakdownCard: React.FC<SatisfactionBreakdownCardProps> = ({
   negative = 3
 }) => {
   return (
-    <Card className="bg-card dark:bg-card border-border dark:border-border">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium flex items-center gap-2">
-          <Heart className="h-4 w-4 text-muted-foreground" />
+    <Card className="bg-white dark:bg-neutral-800/60 border-0 shadow-card rounded-lg">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
+          <Heart className="h-5 w-5 text-muted-foreground" />
           Customer satisfaction
         </CardTitle>
       </CardHeader>

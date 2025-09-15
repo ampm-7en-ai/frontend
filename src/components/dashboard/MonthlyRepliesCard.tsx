@@ -18,19 +18,20 @@ const MonthlyRepliesCard: React.FC<MonthlyRepliesCardProps> = ({ data }) => {
   ];
 
   const chartData = data || defaultData;
-  const maxValue = Math.max(...chartData.map(item => item.replies));
+  const maxValue = Math.max(...chartData.map(d => d.replies));
 
   return (
-    <Card className="bg-card dark:bg-card border-border dark:border-border">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium flex items-center gap-2">
-          <RefreshCcw className="h-4 w-4 text-muted-foreground" />
+    <Card className="bg-white dark:bg-neutral-800/60 border-0 shadow-card rounded-lg">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
+          <RefreshCcw className="h-5 w-5 text-muted-foreground" />
           AI replies per month
         </CardTitle>
+        <div className="text-2xl font-bold text-foreground mt-1">
+          {chartData.reduce((sum, item) => sum + item.replies, 0).toLocaleString()}
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <p className="text-sm text-muted-foreground">Last 6 months</p>
-        
+      <CardContent>
         <div className="h-40 w-full">
           <div className="flex items-end justify-between h-full gap-2 px-2">
             {chartData.map((item, index) => (

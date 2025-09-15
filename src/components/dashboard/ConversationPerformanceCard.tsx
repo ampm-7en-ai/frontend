@@ -24,14 +24,14 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
   const agentData = agents || defaultAgents;
 
   return (
-    <Card className="bg-card dark:bg-card border-border dark:border-border h-full">
+    <Card className="bg-white dark:bg-neutral-800/60 border-0 shadow-card rounded-lg h-full">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-muted-foreground" />
             Conversation performance
           </CardTitle>
-          <MoreHorizontal className="h-5 w-5 text-muted-foreground cursor-pointer" />
+          <MoreHorizontal className="h-5 w-5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors" />
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -45,7 +45,7 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
                 <span className="text-sm text-muted-foreground">{agent.total} conversations</span>
               </div>
               
-              <div className="w-full bg-muted rounded-full h-2">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div 
                   className="h-2 bg-orange-500 rounded-full transition-all duration-500"
                   style={{ width: `${closedPercentage}%` }}
@@ -60,8 +60,8 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
           );
         })}
         
-        <div className="pt-4 border-t border-border">
-          <button className="text-sm text-primary hover:text-primary/80 font-medium">
+        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+          <button className="text-sm text-primary hover:text-primary/80 font-medium transition-colors">
             See all
           </button>
         </div>

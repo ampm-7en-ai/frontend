@@ -16,10 +16,10 @@ const RepliesCreditCard: React.FC<RepliesCreditCardProps> = ({ used, total }) =>
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <Card className="bg-card dark:bg-card border-border dark:border-border">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium flex items-center gap-2">
-          <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+    <Card className="bg-white dark:bg-neutral-800/60 border-0 shadow-card rounded-lg">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
+          <ShoppingCart className="h-5 w-5 text-muted-foreground" />
           Replies credit
         </CardTitle>
       </CardHeader>
@@ -65,7 +65,7 @@ const RepliesCreditCard: React.FC<RepliesCreditCardProps> = ({ used, total }) =>
           </div>
         </div>
         
-        <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+        <Button className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors">
           Upgrade plan
         </Button>
       </CardContent>

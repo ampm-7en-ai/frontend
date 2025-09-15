@@ -33,14 +33,14 @@ const HandoverAnalyticsCard: React.FC<HandoverAnalyticsCardProps> = ({ data }) =
   const maxValue = Math.max(...chartData.map(d => d.ai + d.human));
 
   return (
-    <Card className="bg-card dark:bg-card border-border dark:border-border h-full">
+    <Card className="bg-white dark:bg-neutral-800/60 border-0 shadow-card rounded-lg h-full">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
             <Users className="h-5 w-5 text-muted-foreground" />
             AI replies x Handover to human
           </CardTitle>
-          <MoreHorizontal className="h-5 w-5 text-muted-foreground cursor-pointer" />
+          <MoreHorizontal className="h-5 w-5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors" />
         </div>
       </CardHeader>
       <CardContent>
@@ -80,13 +80,13 @@ const HandoverAnalyticsCard: React.FC<HandoverAnalyticsCardProps> = ({ data }) =
           </div>
         </div>
         
-        <div className="flex items-center gap-6 mt-4 pt-4 border-t border-border">
+        <div className="flex items-center gap-6 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-orange-500 rounded-sm" />
             <span className="text-sm text-foreground">AI</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-gray-500 rounded-sm" />
+            <div className="w-3 h-3 bg-gray-500 dark:bg-gray-400 rounded-sm" />
             <span className="text-sm text-foreground">Human</span>
           </div>
         </div>

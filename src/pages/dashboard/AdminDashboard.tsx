@@ -51,13 +51,13 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[hsla(0,0%,0%,0.95)] p-8">
+    <div className="min-h-screen bg-gray-50/50 dark:bg-[hsl(var(--background-new))] p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header with Navigation */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground dark:text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground dark:text-muted-foreground mt-1">Welcome back! Here's what's happening with your agents.</p>
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">Welcome back! Here's what's happening with your agents.</p>
           </div>
         </div>
 

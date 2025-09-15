@@ -231,10 +231,10 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
   };
 
   return (
-    <Card className="bg-white dark:bg-neutral-800/50 border-0 0 rounded-lg shadow-sm overflow-hidden h-full pl-0">
+    <Card className="bg-white dark:bg-neutral-800/60 border-0 shadow-card rounded-lg h-full pl-0">
       <CardHeader className="pb-4 pl-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-foreground dark:text-foreground pl-5">
+          <CardTitle className="text-lg font-semibold text-foreground pl-5">
             Conversation Statistics
           </CardTitle>
           <div className="flex items-center gap-3">
