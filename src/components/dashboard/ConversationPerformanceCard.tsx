@@ -2,8 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp } from 'lucide-react';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from 'recharts';
 import { useConversations } from '@/hooks/useConversations';
 import { useConversationUtils } from '@/hooks/useConversationUtils';
 
@@ -95,72 +94,87 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[300px] w-full">
-          <BarChart
-            data={chartData}
-            layout="horizontal"
-            margin={{ top: 20, right: 20, bottom: 20, left: 80 }}
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart 
+            data={chartData} 
+            layout="vertical"
+            margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
+            barCategoryGap="20%"
           >
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
             <XAxis 
-              type="number" 
+              type="number"
+              tick={{ fontSize: 12, fill: 'currentColor' }}
+              className="text-muted-foreground"
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
             />
             <YAxis 
-              type="category" 
-              dataKey="name"
+              type="category"
+              dataKey="name" 
+              tick={{ fontSize: 11, fill: 'currentColor' }}
+              className="text-muted-foreground"
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }}
               width={70}
             />
-            <ChartTooltip
-              content={({ active, payload, label }) => {
-                if (active && payload && payload.length) {
-                  const data = payload[0].payload;
-                  return (
-                    <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
-                      <p className="font-medium text-foreground mb-2">{data.fullName || data.name}</p>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between gap-4">
-                          <span className="text-muted-foreground">Total Conversations:</span>
-                          <span className="font-medium">{data.total}</span>
-                        </div>
-                        <div className="flex justify-between gap-4">
-                          <span className="text-muted-foreground">Closed (Resolved):</span>
-                          <span className="font-medium text-primary">{data.closed}</span>
-                        </div>
-                        <div className="flex justify-between gap-4">
-                          <span className="text-muted-foreground">Open (Unresolved):</span>
-                          <span className="font-medium text-muted-foreground">{data.open}</span>
-                        </div>
-                        <div className="flex justify-between gap-4 border-t pt-1 mt-2">
-                          <span className="text-muted-foreground">Resolution Rate:</span>
-                          <span className="font-medium">{data.total > 0 ? Math.round((data.closed / data.total) * 100) : 0}%</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '12px',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                color: 'hsl(var(--foreground))',
+                fontSize: '12px'
               }}
-              cursor={{ fill: 'hsl(var(--muted))' }}
+              labelFormatter={(label) => {
+                const agent = chartData.find(a => a.name === label);
+                return agent ? agent.fullName || agent.name : label;
+              }}
+              formatter={(value, name, props) => {
+                const agent = props.payload;
+                if (name === 'Closed') {
+                  return [
+                    <div key="closed" className="space-y-1">
+                      <div className="flex justify-between gap-4">
+                        <span>Total Conversations:</span>
+                        <span className="font-medium">{agent.total}</span>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <span>Closed (Resolved):</span>
+                        <span className="font-medium text-green-600">{agent.closed}</span>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <span>Open (Unresolved):</span>
+                        <span className="font-medium text-amber-600">{agent.open}</span>
+                      </div>
+                      <div className="flex justify-between gap-4 border-t pt-1">
+                        <span>Resolution Rate:</span>
+                        <span className="font-medium">{agent.total > 0 ? Math.round((agent.closed / agent.total) * 100) : 0}%</span>
+                      </div>
+                    </div>,
+                    ''
+                  ];
+                }
+                return [value, name];
+              }}
             />
             <Bar 
               dataKey="closed" 
               stackId="a"
-              fill="hsl(var(--primary))"
+              fill="#10b981" 
               radius={[0, 0, 0, 0]}
+              name="Closed"
             />
             <Bar 
               dataKey="open" 
               stackId="a"
-              fill="hsl(var(--muted-foreground))"
+              fill="#f59e0b" 
               radius={[0, 4, 4, 0]}
+              name="Open"
             />
           </BarChart>
-        </ChartContainer>
+        </ResponsiveContainer>
         
         <div className="pt-4 border-t border-border">
           <button className="text-sm text-foreground hover:text-foreground/80 font-medium transition-colors hover:underline">
