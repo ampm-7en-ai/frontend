@@ -49,62 +49,137 @@ const HandoverAnalyticsCard: React.FC<HandoverAnalyticsCardProps> = ({ data }) =
         </CardHeader>
         <CardContent>
           <div className="h-48 w-full relative">
-            <div className="flex items-end justify-between h-full gap-1">
+            <svg className="w-full h-full" viewBox="0 0 400 180">
+              <defs>
+                <linearGradient id="aiGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.8"/>
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.3"/>
+                </linearGradient>
+                <linearGradient id="humanGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.6"/>
+                  <stop offset="100%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.2"/>
+                </linearGradient>
+              </defs>
+              
+              {/* Grid lines */}
+              {[0, 25, 50, 75, 100].map(y => (
+                <line
+                  key={y}
+                  x1="40"
+                  y1={20 + (y * 140) / 100}
+                  x2="380"
+                  y2={20 + (y * 140) / 100}
+                  stroke="hsl(var(--border))"
+                  strokeOpacity="0.3"
+                  strokeWidth="1"
+                />
+              ))}
+              
+              {/* AI Area */}
+              <path
+                d={`M 40 ${160 - (chartData[0].ai / maxValue) * 140} ${chartData.map((item, index) => 
+                  `L ${40 + (index * 340) / (chartData.length - 1)} ${160 - (item.ai / maxValue) * 140}`
+                ).join(' ')} L 380 160 L 40 160 Z`}
+                fill="url(#aiGradient)"
+                className="transition-all duration-500"
+              />
+              
+              {/* Human Area */}
+              <path
+                d={`M 40 ${160 - ((chartData[0].ai + chartData[0].human) / maxValue) * 140} ${chartData.map((item, index) => 
+                  `L ${40 + (index * 340) / (chartData.length - 1)} ${160 - ((item.ai + item.human) / maxValue) * 140}`
+                ).join(' ')} ${chartData.map((item, index) => 
+                  `L ${40 + ((chartData.length - 1 - index) * 340) / (chartData.length - 1)} ${160 - (chartData[chartData.length - 1 - index].ai / maxValue) * 140}`
+                ).join(' ')} Z`}
+                fill="url(#humanGradient)"
+                className="transition-all duration-500"
+              />
+              
+              {/* AI Line */}
+              <path
+                d={`M 40 ${160 - (chartData[0].ai / maxValue) * 140} ${chartData.map((item, index) => 
+                  `L ${40 + (index * 340) / (chartData.length - 1)} ${160 - (item.ai / maxValue) * 140}`
+                ).join(' ')}`}
+                fill="none"
+                stroke="hsl(var(--primary))"
+                strokeWidth="2"
+                className="transition-all duration-500"
+              />
+              
+              {/* Human Line */}
+              <path
+                d={`M 40 ${160 - ((chartData[0].ai + chartData[0].human) / maxValue) * 140} ${chartData.map((item, index) => 
+                  `L ${40 + (index * 340) / (chartData.length - 1)} ${160 - ((item.ai + item.human) / maxValue) * 140}`
+                ).join(' ')}`}
+                fill="none"
+                stroke="hsl(var(--muted-foreground))"
+                strokeWidth="2"
+                className="transition-all duration-500"
+              />
+              
+              {/* Interactive Points */}
               {chartData.map((item, index) => {
-                const total = item.ai + item.human;
-                const aiHeight = (item.ai / maxValue) * 100;
-                const humanHeight = (item.human / maxValue) * 100;
+                const x = 40 + (index * 340) / (chartData.length - 1);
+                const aiY = 160 - (item.ai / maxValue) * 140;
+                const totalY = 160 - ((item.ai + item.human) / maxValue) * 140;
                 const isHovered = hoveredIndex === index;
                 
                 return (
-                  <Tooltip key={index}>
-                    <TooltipTrigger asChild>
-                      <div 
-                        className="flex flex-col items-center space-y-1 flex-1 cursor-pointer transition-transform duration-200"
-                        onMouseEnter={() => setHoveredIndex(index)}
-                        onMouseLeave={() => setHoveredIndex(null)}
-                        style={{ transform: isHovered ? 'scale(1.05)' : 'scale(1)' }}
-                      >
-                        <div className="w-full flex flex-col" style={{ height: '160px' }}>
-                          <div className="w-full flex flex-col justify-end h-full">
-                            {/* Human (top) */}
-                            <div
-                              className={`w-full bg-muted rounded-t-sm transition-all duration-500 ${isHovered ? 'shadow-md' : ''}`}
-                              style={{
-                                height: `${humanHeight}%`,
-                                minHeight: item.human > 0 ? '2px' : '0px'
-                              }}
-                            />
-                            {/* AI (bottom) */}
-                            <div
-                              className={`w-full bg-primary transition-all duration-500 ${isHovered ? 'shadow-md' : ''}`}
-                              style={{
-                                height: `${aiHeight}%`,
-                                minHeight: item.ai > 0 ? '2px' : '0px'
-                              }}
-                            />
-                          </div>
+                  <g key={index}>
+                    {/* AI Point */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <circle
+                          cx={x}
+                          cy={aiY}
+                          r={isHovered ? "6" : "4"}
+                          fill="hsl(var(--primary))"
+                          stroke="hsl(var(--background))"
+                          strokeWidth="2"
+                          className="cursor-pointer transition-all duration-200 hover-scale"
+                          onMouseEnter={() => setHoveredIndex(index)}
+                          onMouseLeave={() => setHoveredIndex(null)}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="text-xs space-y-1">
+                          <p className="font-medium">{item.month}</p>
+                          <p>AI Replies: {item.ai.toLocaleString()}</p>
+                          <p>Human Handovers: {item.human.toLocaleString()}</p>
+                          <p className="border-t pt-1 mt-1">Total: {(item.ai + item.human).toLocaleString()}</p>
+                          <p className="text-muted-foreground">
+                            AI Rate: {Math.round((item.ai / (item.ai + item.human)) * 100)}%
+                          </p>
                         </div>
-                        <span className={`text-xs transition-colors ${isHovered ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-                          {item.month}
-                        </span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <div className="text-xs space-y-1">
-                        <p className="font-medium">{item.month}</p>
-                        <p>AI Replies: {item.ai.toLocaleString()}</p>
-                        <p>Human Handovers: {item.human.toLocaleString()}</p>
-                        <p className="border-t pt-1 mt-1">Total: {total.toLocaleString()}</p>
-                        <p className="text-muted-foreground">
-                          AI Rate: {Math.round((item.ai / total) * 100)}%
-                        </p>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
+                      </TooltipContent>
+                    </Tooltip>
+                    
+                    {/* Human Point */}
+                    <circle
+                      cx={x}
+                      cy={totalY}
+                      r={isHovered ? "6" : "4"}
+                      fill="hsl(var(--muted-foreground))"
+                      stroke="hsl(var(--background))"
+                      strokeWidth="2"
+                      className="cursor-pointer transition-all duration-200"
+                      onMouseEnter={() => setHoveredIndex(index)}
+                      onMouseLeave={() => setHoveredIndex(null)}
+                    />
+                    
+                    {/* Month Labels */}
+                    <text
+                      x={x}
+                      y="175"
+                      textAnchor="middle"
+                      className={`text-xs transition-colors ${isHovered ? 'fill-primary font-medium' : 'fill-muted-foreground'}`}
+                    >
+                      {item.month}
+                    </text>
+                  </g>
                 );
               })}
-            </div>
+            </svg>
           </div>
           
           <div className="flex items-center gap-6 mt-4 pt-4 border-t border-border">
