@@ -44,152 +44,61 @@ const HandoverAnalyticsCard: React.FC<HandoverAnalyticsCardProps> = ({ data }) =
               AI replies x Handover to human
             </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="h-48 w-full relative bg-muted/30 dark:bg-muted/20 rounded-lg p-4 border border-border/50">
-            <svg className="w-full h-full" viewBox="0 0 400 160" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="aiAreaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.8"/>
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.6"/>
-                </linearGradient>
-                <linearGradient id="humanAreaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.5"/>
-                  <stop offset="100%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.3"/>
-                </linearGradient>
-              </defs>
-              
-              {/* AI Area (bottom) */}
-              <path
-                d={`M 0 ${140 - (chartData[0].ai / maxValue) * 120} 
-                   ${chartData.map((item, index) => {
-                     const x = (index * 400) / (chartData.length - 1);
-                     const y = 140 - (item.ai / maxValue) * 120;
-                     return index === 0 ? `M ${x} ${y}` : `C ${x - 20} ${y} ${x - 20} ${y} ${x} ${y}`;
-                   }).join(' ')} 
-                   L 400 140 L 0 140 Z`}
-                fill="url(#aiAreaGradient)"
-                className="transition-all duration-1000 ease-out"
-              />
-              
-              {/* Human Area (top) */}
-              <path
-                d={`M 0 ${140 - ((chartData[0].ai + chartData[0].human) / maxValue) * 120} 
-                   ${chartData.map((item, index) => {
-                     const x = (index * 400) / (chartData.length - 1);
-                     const y = 140 - ((item.ai + item.human) / maxValue) * 120;
-                     return index === 0 ? `M ${x} ${y}` : `C ${x - 20} ${y} ${x - 20} ${y} ${x} ${y}`;
-                   }).join(' ')} 
-                   ${chartData.slice().reverse().map((item, index) => {
-                     const actualIndex = chartData.length - 1 - index;
-                     const x = (actualIndex * 400) / (chartData.length - 1);
-                     const y = 140 - (item.ai / maxValue) * 120;
-                     return `C ${x + 20} ${y} ${x + 20} ${y} ${x} ${y}`;
-                   }).join(' ')} Z`}
-                fill="url(#humanAreaGradient)"
-                className="transition-all duration-1000 ease-out"
-              />
-              
-              {/* Interactive overlay for tooltips */}
-              {chartData.map((item, index) => {
-                const x = (index * 400) / (chartData.length - 1);
-                const isHovered = hoveredIndex === index;
-                const total = item.ai + item.human;
-                const aiPercentage = Math.round((item.ai / total) * 100);
-                
-                return (
-                  <g key={index}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <rect
-                          x={x - 20}
-                          y="0"
-                          width="40"
-                          height="140"
-                          fill="rgba(255,255,255,0.01)"
-                          className="cursor-pointer hover:fill-primary/10 transition-colors"
-                          onMouseEnter={() => setHoveredIndex(index)}
-                          onMouseLeave={() => setHoveredIndex(null)}
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="p-3 bg-background border border-border shadow-lg z-50">
-                        <div className="text-xs space-y-2 min-w-[200px]">
-                          <p className="font-semibold text-base text-foreground">{item.month} Analytics</p>
-                          
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between gap-4">
-                              <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 bg-primary rounded-sm"></div>
-                                <span className="text-foreground">AI Replies</span>
-                              </div>
-                              <span className="font-bold text-primary">{item.ai.toLocaleString()}</span>
-                            </div>
-                            
-                            <div className="flex items-center justify-between gap-4">
-                              <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 bg-muted-foreground rounded-sm"></div>
-                                <span className="text-foreground">Human Handovers</span>
-                              </div>
-                              <span className="font-bold text-muted-foreground">{item.human.toLocaleString()}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="border-t border-border pt-2 space-y-1">
-                            <div className="flex justify-between items-center">
-                              <span className="text-muted-foreground">Total:</span>
-                              <span className="font-semibold text-foreground">{total.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-muted-foreground">AI Rate:</span>
-                              <span className="font-semibold text-primary">{aiPercentage}%</span>
-                            </div>
-                          </div>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                    
-                    {/* Hover indicator line */}
-                    {isHovered && (
-                      <line
-                        x1={x}
-                        y1="0"
-                        x2={x}
-                        y2="140"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth="2"
-                        strokeOpacity="0.6"
-                        className="animate-fade-in"
-                      />
-                    )}
-                  </g>
-                );
-              })}
-            </svg>
+        <CardContent className="space-y-6">
+          {chartData.map((item, index) => {
+            const total = item.ai + item.human;
+            const aiPercentage = (item.ai / total) * 100;
+            const isHovered = hoveredIndex === index;
             
-            {/* Month labels */}
-            <div className="flex justify-between items-center mt-2 px-1">
-              {chartData.map((item, index) => {
-                const isHovered = hoveredIndex === index;
-                return (
-                  <span 
-                    key={index}
-                    className={`text-xs transition-colors ${isHovered ? 'text-primary font-medium' : 'text-muted-foreground'}`}
-                  >
+            return (
+              <div 
+                key={index} 
+                className="space-y-2 transition-all duration-200"
+                onMouseEnter={() => setHoveredIndex(index)}
+                onMouseLeave={() => setHoveredIndex(null)}
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className={`text-sm font-medium transition-colors text-foreground`}>
                     {item.month}
+                  </h4>
+                  <span className="text-sm text-muted-foreground">{total.toLocaleString()} conversations</span>
+                </div>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className={`w-full bg-muted rounded-full h-2 cursor-pointer transition-all duration-200`}>
+                      <div 
+                        className={`bg-gradient-to-b from-[#F06425]/90 via-[#F06425]/70 to-[#F06425]/100 rounded-full transition-all duration-500 h-2`}
+                        style={{ width: `${aiPercentage}%` }}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="text-xs">
+                      <p className="font-medium">{item.month}</p>
+                      <p>AI Replies: {item.ai.toLocaleString()} ({Math.round(aiPercentage)}%)</p>
+                      <p>Human Handovers: {item.human.toLocaleString()} ({Math.round((item.human / total) * 100)}%)</p>
+                      <p>Total: {total.toLocaleString()} conversations</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                
+                <div className="flex items-center gap-4 text-sm">
+                  <span className={`transition-colors text-[#f06425]`}>
+                    AI Replies: {item.ai.toLocaleString()}
                   </span>
-                );
-              })}
-            </div>
-          </div>
+                  <span className={`transition-colors ${isHovered ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    Human Handovers: {item.human.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
           
-          <div className="flex items-center gap-6 mt-4 pt-4 border-t border-border">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-primary rounded-sm" />
-              <span className="text-sm text-foreground">AI Replies</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-muted-foreground rounded-sm" />
-              <span className="text-sm text-foreground">Human Handovers</span>
-            </div>
+          <div className="pt-4 border-t border-border">
+            <button className="text-sm text-foreground hover:text-foreground/80 font-medium transition-colors hover:underline">
+              See all
+            </button>
           </div>
         </CardContent>
       </Card>
