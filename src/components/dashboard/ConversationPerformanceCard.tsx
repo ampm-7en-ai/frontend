@@ -20,7 +20,6 @@ interface ConversationPerformanceCardProps {
 const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = ({ agents }) => {
   const { conversations, isLoading } = useConversations();
   const { normalizeStatus } = useConversationUtils();
-
   // Process real conversation data to get agent performance
   const getAgentPerformanceData = () => {
     if (isLoading || !conversations.length) {
@@ -162,25 +161,20 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
             <Bar 
               dataKey="closed" 
               stackId="a"
-              fill="#10b981" 
+              fill='#0E1215'
               radius={[0, 0, 0, 0]}
               name="Closed"
             />
             <Bar 
               dataKey="open" 
               stackId="a"
-              fill="#f59e0b" 
+              fill="#f06425"
               radius={[0, 4, 4, 0]}
               name="Open"
             />
           </BarChart>
         </ResponsiveContainer>
         
-        <div className="pt-4 border-t border-border">
-          <button className="text-sm text-foreground hover:text-foreground/80 font-medium transition-colors hover:underline">
-            See all
-          </button>
-        </div>
       </CardContent>
     </Card>
   );
