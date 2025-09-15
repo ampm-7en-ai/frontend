@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { useConversations } from '@/hooks/useConversations';
+import { useConversationUtils } from '@/hooks/useConversationUtils';
 
 interface AgentPerformance {
   name: string;
@@ -17,13 +19,53 @@ interface ConversationPerformanceCardProps {
 }
 
 const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = ({ agents }) => {
-  const defaultAgents: AgentPerformance[] = [
-    { name: 'Agent SPSS', closed: 51, open: 45, total: 96 },
-    { name: 'Agent HMIE', closed: 754, open: 255, total: 1009 },
-    { name: 'Agent QCPL', closed: 354, open: 91, total: 445 }
-  ];
+  const { conversations, isLoading } = useConversations();
+  const { normalizeStatus } = useConversationUtils();
 
-  const agentData = agents || defaultAgents;
+  // Process real conversation data to get agent performance
+  const getAgentPerformanceData = () => {
+    if (isLoading || !conversations.length) {
+      // Fallback to default data while loading or if no data
+      return [
+        { name: 'Agent SPSS', closed: 51, open: 45, total: 96 },
+        { name: 'Agent HMIE', closed: 754, open: 255, total: 1009 },
+        { name: 'Agent QCPL', closed: 354, open: 91, total: 445 }
+      ];
+    }
+
+    // Group conversations by agent
+    const agentStats = conversations.reduce((acc, conversation) => {
+      const agentName = conversation.agent || 'Unknown Agent';
+      const normalizedStatus = normalizeStatus(conversation.status);
+      
+      if (!acc[agentName]) {
+        acc[agentName] = { closed: 0, open: 0, total: 0 };
+      }
+      
+      acc[agentName].total++;
+      
+      // Map resolved/completed to closed, everything else to open
+      if (normalizedStatus === 'resolved' || normalizedStatus === 'closed') {
+        acc[agentName].closed++;
+      } else {
+        acc[agentName].open++;
+      }
+      
+      return acc;
+    }, {} as Record<string, { closed: number; open: number; total: number }>);
+
+    // Convert to array and sort by total conversations (descending)
+    return Object.entries(agentStats)
+      .map(([name, stats]) => ({
+        name: name.length > 15 ? name.substring(0, 15) + '...' : name,
+        fullName: name,
+        ...stats
+      }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 10); // Show top 10 agents
+  };
+
+  const agentData = agents || getAgentPerformanceData();
   
   // Transform data for horizontal bar chart
   const chartData = agentData.map(agent => ({
@@ -74,7 +116,35 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
               width={70}
             />
             <ChartTooltip
-              content={<ChartTooltipContent />}
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  const data = payload[0].payload;
+                  return (
+                    <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
+                      <p className="font-medium text-foreground mb-2">{data.fullName || data.name}</p>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">Total Conversations:</span>
+                          <span className="font-medium">{data.total}</span>
+                        </div>
+                        <div className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">Closed (Resolved):</span>
+                          <span className="font-medium text-primary">{data.closed}</span>
+                        </div>
+                        <div className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">Open (Unresolved):</span>
+                          <span className="font-medium text-muted-foreground">{data.open}</span>
+                        </div>
+                        <div className="flex justify-between gap-4 border-t pt-1 mt-2">
+                          <span className="text-muted-foreground">Resolution Rate:</span>
+                          <span className="font-medium">{data.total > 0 ? Math.round((data.closed / data.total) * 100) : 0}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }}
               cursor={{ fill: 'hsl(var(--muted))' }}
             />
             <Bar 
