@@ -109,7 +109,7 @@ const AdminDashboard = () => {
         
         {/* New Analytics Cards Row 2 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ConversationPerformanceCard />
+          <ConversationPerformanceCard agentPerformanceComparison={data.agent_performance_comparison} />
           <HandoverAnalyticsCard />
         </div>
         

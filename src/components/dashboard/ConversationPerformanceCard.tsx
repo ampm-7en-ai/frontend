@@ -3,26 +3,16 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from 'recharts';
-import { useConversations } from '@/hooks/useConversations';
-import { useConversationUtils } from '@/hooks/useConversationUtils';
-
-interface AgentPerformance {
-  name: string;
-  closed: number;
-  open: number;
-  total: number;
-}
+import { AgentPerformanceComparison } from '@/hooks/useAdminDashboard';
 
 interface ConversationPerformanceCardProps {
-  agents?: AgentPerformance[];
+  agentPerformanceComparison?: AgentPerformanceComparison[];
 }
 
-const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = ({ agents }) => {
-  const { conversations, isLoading } = useConversations();
-  const { normalizeStatus } = useConversationUtils();
-  // Process real conversation data to get agent performance
+const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = ({ agentPerformanceComparison }) => {
+  // Process dashboard API data to get agent performance
   const getAgentPerformanceData = () => {
-    if (isLoading || !conversations.length) {
+    if (!agentPerformanceComparison?.length) {
       // Fallback to default data while loading or if no data
       return [
         { name: 'Agent SPSS', closed: 51, open: 45, total: 96 },
@@ -31,39 +21,20 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
       ];
     }
 
-    // Group conversations by agent
-    const agentStats = conversations.reduce((acc, conversation) => {
-      const agentName = conversation.agent || 'Unknown Agent';
-      const normalizedStatus = normalizeStatus(conversation.status);
-      
-      if (!acc[agentName]) {
-        acc[agentName] = { closed: 0, open: 0, total: 0 };
-      }
-      
-      acc[agentName].total++;
-      
-      // Map resolved/completed to closed, everything else to open
-      if (normalizedStatus === 'resolved' || normalizedStatus === 'closed') {
-        acc[agentName].closed++;
-      } else {
-        acc[agentName].open++;
-      }
-      
-      return acc;
-    }, {} as Record<string, { closed: number; open: number; total: number }>);
-
-    // Convert to array and sort by total conversations (descending)
-    return Object.entries(agentStats)
-      .map(([name, stats]) => ({
-        name: name.length > 15 ? name.substring(0, 15) + '...' : name,
-        fullName: name,
-        ...stats
+    // Transform API data to chart format
+    return agentPerformanceComparison
+      .map(agent => ({
+        name: agent.agent_name.length > 15 ? agent.agent_name.substring(0, 15) + '...' : agent.agent_name,
+        fullName: agent.agent_name,
+        closed: agent.resolved || 0,
+        open: agent.pending || 0,
+        total: agent.conversations || 0
       }))
       .sort((a, b) => b.total - a.total)
       .slice(0, 10); // Show top 10 agents
   };
 
-  const agentData = agents || getAgentPerformanceData();
+  const agentData = getAgentPerformanceData();
   
   // Transform data for horizontal bar chart
   const chartData = agentData.map(agent => ({
@@ -161,14 +132,14 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
             <Bar 
               dataKey="closed" 
               stackId="a"
-              fill='#0E1215'
+              fill="hsl(var(--primary))"
               radius={[0, 0, 0, 0]}
               name="Closed"
             />
             <Bar 
               dataKey="open" 
               stackId="a"
-              fill="#f06425"
+              fill="hsl(var(--muted-foreground))"
               radius={[0, 4, 4, 0]}
               name="Open"
             />
