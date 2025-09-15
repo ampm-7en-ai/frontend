@@ -37,15 +37,12 @@ const HandoverAnalyticsCard: React.FC<HandoverAnalyticsCardProps> = ({ data }) =
 
   return (
     <TooltipProvider>
-      <Card className="bg-white dark:bg-neutral-800/60 border-0 shadow-card rounded-lg h-full">
+      <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-lg h-full">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <CardTitle className="text-lg font-semibold text-foreground flex items-center justify-between flex-row-reverse gap-2 pl-0">
               <Users className="h-5 w-5 text-muted-foreground" />
               AI replies x Handover to human
             </CardTitle>
-            <MoreHorizontal className="h-5 w-5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors" />
-          </div>
         </CardHeader>
         <CardContent>
           <div className="h-48 w-full relative bg-muted/30 dark:bg-muted/20 rounded-lg p-4 border border-border/50">

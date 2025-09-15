@@ -28,15 +28,12 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
 
   return (
     <TooltipProvider>
-      <Card className="bg-white dark:bg-neutral-800/60 border-0 shadow-card rounded-lg h-full">
+      <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-lg h-full">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <CardTitle className="text-lg font-semibold text-foreground flex items-center justify-between flex-row-reverse gap-2 pl-0">
               <TrendingUp className="h-5 w-5 text-muted-foreground" />
               Conversation performance
             </CardTitle>
-            <MoreHorizontal className="h-5 w-5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors" />
-          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {agentData.map((agent, index) => {
@@ -51,7 +48,7 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
                 onMouseLeave={() => setHoveredAgent(null)}
               >
                 <div className="flex items-center justify-between">
-                  <h4 className={`text-sm font-medium transition-colors ${isHovered ? 'text-primary' : 'text-foreground'}`}>
+                  <h4 className={`text-sm font-medium transition-colors text-foreground`}>
                     {agent.name}
                   </h4>
                   <span className="text-sm text-muted-foreground">{agent.total} conversations</span>
@@ -59,9 +56,9 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
                 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className={`w-full bg-muted rounded-full h-2 cursor-pointer transition-all duration-200 ${isHovered ? 'h-3' : 'h-2'}`}>
+                    <div className={`w-full bg-muted rounded-full h-2 cursor-pointer transition-all duration-200`}>
                       <div 
-                        className={`bg-primary rounded-full transition-all duration-500 ${isHovered ? 'h-3 shadow-lg' : 'h-2'}`}
+                        className={`bg-gradient-to-b from-[#F06425]/90 via-[#F06425]/70 to-[#F06425]/100 rounded-full transition-all duration-500 h-2`}
                         style={{ width: `${closedPercentage}%` }}
                       />
                     </div>
@@ -77,7 +74,7 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
                 </Tooltip>
                 
                 <div className="flex items-center gap-4 text-sm">
-                  <span className={`transition-colors ${isHovered ? 'text-primary font-medium' : 'text-primary'}`}>
+                  <span className={`transition-colors text-[#f06425]`}>
                     Closed: {agent.closed}
                   </span>
                   <span className={`transition-colors ${isHovered ? 'text-foreground' : 'text-muted-foreground'}`}>
@@ -89,7 +86,7 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
           })}
           
           <div className="pt-4 border-t border-border">
-            <button className="text-sm text-primary hover:text-primary/80 font-medium transition-colors hover:underline">
+            <button className="text-sm text-foreground hover:text-foreground/80 font-medium transition-colors hover:underline">
               See all
             </button>
           </div>

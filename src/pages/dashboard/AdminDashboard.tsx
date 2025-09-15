@@ -51,7 +51,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 dark:bg-[hsl(var(--background-new))] p-8">
+    <div className="min-h-screen bg-gray-50/50 dark:bg-[hsla(0,0%,0%,0.95)] p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header with Navigation */}
         <div className="flex items-center justify-between">
@@ -69,19 +69,8 @@ const AdminDashboard = () => {
           teamMembers={data.team_members}
         />
 
-        {/* New Analytics Cards Row 1 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <RepliesCreditCard used={1000} total={2000} />
-          <MonthlyRepliesCard />
-          <SatisfactionBreakdownCard />
-        </div>
         
-        {/* New Analytics Cards Row 2 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ConversationPerformanceCard />
-          <HandoverAnalyticsCard />
-        </div>
-        
+
         {/* Main Content Grid */}
         <div className="space-y-8">
           {/* Top Row - Conversation Statistics and Customer Satisfaction */}
@@ -97,7 +86,7 @@ const AdminDashboard = () => {
           </div>
 
           {/* Bottom Row - Full Width Agent Performance Card */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          {/* <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
             <div className="">
               <AgentPerformanceCard 
                 agentPerformanceComparison={data.agent_performance_comparison}
@@ -109,8 +98,22 @@ const AdminDashboard = () => {
                 satisfactionBreakdown={data.chart_data.satisfaction_breakdown}
               />
             </div>
-          </div>
+          </div> */}
         </div>
+        {/* New Analytics Cards Row 1 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <RepliesCreditCard used={1000} total={2000} />
+          <MonthlyRepliesCard />
+          <SatisfactionBreakdownCard />
+        </div>
+        
+        {/* New Analytics Cards Row 2 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <ConversationPerformanceCard />
+          <HandoverAnalyticsCard />
+        </div>
+        
+        
       </div>
     </div>
   );
