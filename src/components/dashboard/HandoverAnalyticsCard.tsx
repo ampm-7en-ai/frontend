@@ -104,21 +104,21 @@ const HandoverAnalyticsCard: React.FC<HandoverAnalyticsCardProps> = ({ data }) =
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <rect
-                          x={x - 15}
+                          x={x - 20}
                           y="0"
-                          width="30"
+                          width="40"
                           height="140"
-                          fill="transparent"
-                          className="cursor-pointer"
+                          fill="rgba(255,255,255,0.01)"
+                          className="cursor-pointer hover:fill-primary/10 transition-colors"
                           onMouseEnter={() => setHoveredIndex(index)}
                           onMouseLeave={() => setHoveredIndex(null)}
                         />
                       </TooltipTrigger>
-                      <TooltipContent side="top" className="p-3">
-                        <div className="text-xs space-y-2">
-                          <p className="font-medium text-lg text-foreground">{item.month} Analytics</p>
+                      <TooltipContent side="top" className="p-3 bg-background border border-border shadow-lg z-50">
+                        <div className="text-xs space-y-2 min-w-[200px]">
+                          <p className="font-semibold text-base text-foreground">{item.month} Analytics</p>
                           
-                          <div className="space-y-1">
+                          <div className="space-y-2">
                             <div className="flex items-center justify-between gap-4">
                               <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 bg-primary rounded-sm"></div>
@@ -137,12 +137,12 @@ const HandoverAnalyticsCard: React.FC<HandoverAnalyticsCardProps> = ({ data }) =
                           </div>
                           
                           <div className="border-t border-border pt-2 space-y-1">
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Total Interactions:</span>
-                              <span className="font-semibold">{total.toLocaleString()}</span>
+                            <div className="flex justify-between items-center">
+                              <span className="text-muted-foreground">Total:</span>
+                              <span className="font-semibold text-foreground">{total.toLocaleString()}</span>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">AI Resolution Rate:</span>
+                            <div className="flex justify-between items-center">
+                              <span className="text-muted-foreground">AI Rate:</span>
                               <span className="font-semibold text-primary">{aiPercentage}%</span>
                             </div>
                           </div>
@@ -157,9 +157,9 @@ const HandoverAnalyticsCard: React.FC<HandoverAnalyticsCardProps> = ({ data }) =
                         y1="0"
                         x2={x}
                         y2="140"
-                        stroke="hsl(var(--foreground))"
-                        strokeWidth="1"
-                        strokeOpacity="0.4"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth="2"
+                        strokeOpacity="0.6"
                         className="animate-fade-in"
                       />
                     )}
