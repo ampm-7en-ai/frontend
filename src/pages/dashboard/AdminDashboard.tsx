@@ -11,6 +11,8 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import RepliesCreditCard from '@/components/dashboard/RepliesCreditCard';
 import MonthlyRepliesCard from '@/components/dashboard/MonthlyRepliesCard';
 import SatisfactionBreakdownCard from '@/components/dashboard/SatisfactionBreakdownCard';
+import ConversationPerformanceCard from '@/components/dashboard/ConversationPerformanceCard';
+import HandoverAnalyticsCard from '@/components/dashboard/HandoverAnalyticsCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Download, RefreshCw, Settings } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -67,11 +69,17 @@ const AdminDashboard = () => {
           teamMembers={data.team_members}
         />
 
-        {/* New Analytics Cards */}
+        {/* New Analytics Cards Row 1 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <RepliesCreditCard used={1000} total={2000} />
           <MonthlyRepliesCard />
           <SatisfactionBreakdownCard />
+        </div>
+        
+        {/* New Analytics Cards Row 2 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <ConversationPerformanceCard />
+          <HandoverAnalyticsCard />
         </div>
         
         {/* Main Content Grid */}
