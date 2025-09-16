@@ -133,10 +133,10 @@ const KnowledgeBase = () => {
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-medium text-sm text-slate-900 dark:text-slate-100 flex items-center gap-2">
                       {folder.name}
-                      <ArrowRight className="h-3 w-3 text-slate-400" />
+                      <ArrowRight className="h-3 w-3 text-muted-foreground" />
                     </h3>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  <p className="text-xs text-muted-foreground dark:text-muted-foreground leading-relaxed">
                     Agent {folder.agent} • Created {formatDate(folder.created_at)}
                   </p>
                 </div>
