@@ -12,6 +12,8 @@ export const API_ENDPOINTS = {
   REGISTER: "users/register/",
   VERIFY_OTP: "users/verify_otp/",
   LOGIN: "users/login/",
+  CODE_LOGIN: "users/code-login/",
+  VERIFY_CODE_LOGIN: "users/verify-code-login/",
   RESEND_OTP: "users/resend-otp/",
   SSO_LOGIN: "users/sso_login/",
   VALIDATE_INVITE: "users/validate_invite_token/",
@@ -223,6 +225,21 @@ export const authApi = {
       token,
       email,
       new_password: newPassword
+    }, false);
+    return response;
+  },
+
+  codeLogin: async (email: string) => {
+    const response = await apiPost(getApiUrl(API_ENDPOINTS.CODE_LOGIN), {
+      email
+    }, false);
+    return response;
+  },
+
+  verifyCodeLogin: async (email: string, code: string) => {
+    const response = await apiPost(getApiUrl(API_ENDPOINTS.VERIFY_CODE_LOGIN), {
+      email,
+      code
     }, false);
     return response;
   }
