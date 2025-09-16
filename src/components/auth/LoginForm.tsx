@@ -6,14 +6,13 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, User, Lock, Mail } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { getApiUrl, API_ENDPOINTS, authApi } from '@/utils/api-config';
 import { GOOGLE_AUTH_CONFIG, GOOGLE_OAUTH_SCOPES } from '@/utils/auth-config';
 import ForgotPasswordDialog from './ForgotPasswordDialog';
-import OtpVerificationPanel from './OtpVerificationPanel';
-import OtpResendTimer from './OtpResendTimer';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
@@ -22,11 +21,16 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+const otpSchema = z.object({
+  otp: z.string().length(6, "Login code must be exactly 6 digits")
+});
+
 const otpLoginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  email: z.string().min(1, "Email or username is required"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
+type OtpFormValues = z.infer<typeof otpSchema>;
 type OtpLoginFormValues = z.infer<typeof otpLoginSchema>;
 
 interface LoginFormProps {
@@ -45,7 +49,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
   const [otpEmail, setOtpEmail] = useState('');
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
   const { login, setPendingVerificationEmail, setNeedsVerification } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -59,6 +62,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     }
   });
 
+  const otpForm = useForm<OtpFormValues>({
+    resolver: zodResolver(otpSchema),
+    defaultValues: {
+      otp: ''
+    }
+  });
+
   const emailForm = useForm<OtpLoginFormValues>({
     resolver: zodResolver(otpLoginSchema),
     defaultValues: {
@@ -66,16 +76,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     }
   });
 
-  // Effect for resend cooldown
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (resendCooldown > 0) {
-      interval = setInterval(() => {
-        setResendCooldown((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [resendCooldown]);
+
+  const isValidEmail = (input: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(input);
+  };
 
   const handleEmailSubmit = (values: OtpLoginFormValues) => {
     setCurrentEmail(values.email);
@@ -94,10 +99,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         const data = await response.json();
         setOtpEmail(currentEmail);
         setShowOtpVerification(true);
-        setResendCooldown(60); // 60 second cooldown
         
         toast({
-          title: "OTP Sent",
+          title: "Login Code Sent",
           description: data.message || "Login code sent to your email.",
           variant: "default",
         });
@@ -182,7 +186,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         const errorData = await response.json();
         toast({
           title: "Invalid Code",
-          description: errorData.error?.message || "The verification code is invalid or expired.",
+          description: errorData.error?.message || "The login code is invalid or expired.",
           variant: "destructive",
         });
       }
@@ -190,7 +194,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       console.error("Verify OTP error:", error);
       toast({
         title: "Error",
-        description: "Could not verify code. Please try again later.",
+        description: "Could not verify login code. Please try again later.",
         variant: "destructive",
       });
     } finally {
@@ -198,42 +202,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     }
   };
 
-  const handleResendOtp = async () => {
-    if (resendCooldown > 0) return;
-    
-    try {
-      const response = await authApi.codeLogin(otpEmail);
-      
-      if (response.ok) {
-        const data = await response.json();
-        setResendCooldown(60);
-        
-        toast({
-          title: "OTP Sent",
-          description: data.message || "New login code sent to your email.",
-          variant: "default",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to resend OTP. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Resend OTP error:", error);
-      toast({
-        title: "Error",
-        description: "Could not resend OTP. Please try again later.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const resetOtpFlow = () => {
     setShowOtpVerification(false);
     setOtpEmail('');
-    setResendCooldown(0);
   };
 
   const resetEmailFlow = () => {
@@ -241,9 +213,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     setCurrentEmail('');
     setShowOtpVerification(false);
     setOtpEmail('');
-    setResendCooldown(0);
     emailForm.reset();
     form.reset();
+    otpForm.reset();
   };
 
   const handleSSOLogin = async (provider: 'google' | 'apple', token: string) => {
@@ -619,17 +591,51 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             </button>
           </div>
           
-          <OtpVerificationPanel
-            email={otpEmail}
-            isVerifying={isVerifyingOtp}
-            onVerifyOtp={handleVerifyOtpCode}
-          />
+      <div className="w-full p-6 bg-card rounded-lg shadow-sm border border-border">
+        <div className="mb-6 text-center">
+          <h2 className="text-2xl font-semibold text-foreground">Enter Login Code</h2>
+          <p className="text-muted-foreground mt-2">
+            Enter the 6-digit code sent to {otpEmail}
+          </p>
+        </div>
+        
+        <Form {...otpForm}>
+          <form onSubmit={otpForm.handleSubmit(handleVerifyOtpCode)} className="space-y-6">
+            <FormField
+              control={otpForm.control}
+              name="otp"
+              render={({ field }) => (
+                <FormItem className="mx-auto flex flex-col items-center">
+                  <FormControl>
+                    <InputOTP maxLength={6} {...field}>
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <div className="flex justify-center">
+              <ModernButton 
+                type="submit"
+                disabled={isVerifyingOtp}
+                className="w-full"
+              >
+                {isVerifyingOtp ? "Verifying..." : "Login"}
+              </ModernButton>
+            </div>
+          </form>
+        </Form>
+      </div>
           
-          <OtpResendTimer
-            cooldown={resendCooldown}
-            isResending={false}
-            onResend={handleResendOtp}
-          />
         </div>
       ) : !emailEntered ? (
         /* Email Input Step */
@@ -640,13 +646,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground font-medium">Email Address</FormLabel>
+                  <FormLabel className="text-foreground font-medium">Email or Username</FormLabel>
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
                     <FormControl>
                       <Input 
-                        type="email"
-                        placeholder="Enter your email address" 
+                        type="text"
+                        placeholder="Enter your email or username" 
                         variant="modern"
                         size="lg"
                         className="pl-10 pr-4"
