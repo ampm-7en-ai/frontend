@@ -61,20 +61,20 @@ export const ModernModal = ({
         fixedFooter={fixedFooter}
       >
         {/* Custom Close Button */}
-        <DialogClose className="absolute right-6 top-6 rounded-full p-2 bg-neutral-100/80 dark:bg-neutral-700/80 backdrop-blur-sm opacity-70 transition-all hover:opacity-100 hover:bg-neutral-200/80 dark:hover:bg-neutral-700/90 focus:outline-none focus:ring-2 focus:ring-0 focus:ring-offset-2 z-50">
-          <X className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+        <DialogClose className="absolute right-6 top-6 rounded-full p-2 bg-slate-100/80 dark:bg-neutral-700/80 backdrop-blur-sm opacity-70 ring-offset-background transition-all hover:opacity-100 hover:bg-slate-200/80 dark:hover:bg-neutral-700/90 focus:outline-none focus:ring-2 focus:ring-0 focus:ring-offset-2 z-50">
+          <X className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
           <span className="sr-only">Close</span>
         </DialogClose>
 
         {(title || description) && (
-          <DialogHeader className={cn(type === 'alert' ? "" : "space-y-3 pb-6")}>
+          <DialogHeader className={cn(type === 'alert' ? "" : "space-y-1 pb-4")}>
             {title && (
               <DialogTitle className="text-xl font-semibold text-neutral-900 dark:text-neutral-100 pr-12">
                 {title}
               </DialogTitle>
             )}
             {description && (
-              <DialogDescription className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              <DialogDescription className="text-sm text-muted-foreground dark:text-muted-foreground leading-relaxed">
                 {description}
               </DialogDescription>
             )}
@@ -84,7 +84,7 @@ export const ModernModal = ({
         {
           type === 'alert' ? (<></>) : (
             <div className={cn(
-              'flex-1 px-1',
+              'flex-1 px-0',
               fixedFooter && 'overflow-auto',
               // Beautiful scrollbar styling
               '[&::-webkit-scrollbar]:w-2',

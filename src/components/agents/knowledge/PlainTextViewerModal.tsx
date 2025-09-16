@@ -40,7 +40,7 @@ const PlainTextViewerModal: React.FC<PlainTextViewerModalProps> = ({
           <Textarea
             value={content}
             readOnly
-            className="min-h-[480px] w-full resize-none border-0 bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 text-sm leading-relaxed p-4 focus:outline-none focus:ring-0"
+            className="min-h-[480px] w-full resize-none border-0 bg-slate-50 dark:bg-muted-foreground text-slate-700 dark:text-slate-300 text-sm leading-relaxed p-4 focus:outline-none focus:ring-0"
             placeholder="No content available"
           />
         </ScrollArea>

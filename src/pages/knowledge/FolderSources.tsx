@@ -404,7 +404,7 @@ const FolderSources = () => {
                         {source.title}
                       </h3>
                     </div>
-                    <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground leading-relaxed">
                       {getFileInfo(source) || (source.urls ? renderUrls(source.urls, source) : 'Plain text')} • {formatDate(source?.metadata?.upload_date)}
                     </p>
                   </div>
@@ -499,7 +499,7 @@ const FolderSources = () => {
         }
       >
         <div className="py-4">
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-muted-foreground dark:text-muted-foreground">
             This will permanently remove the knowledge source from your agent.
           </p>
         </div>
