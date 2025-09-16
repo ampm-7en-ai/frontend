@@ -27,17 +27,15 @@ const MonthlyRepliesCard: React.FC<MonthlyRepliesCardProps> = ({ data }) => {
 
   return (
     <TooltipProvider>
-      <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-lg">
+      <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-lg shadow-none">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold text-foreground flex items-center justify-between flex-row-reverse gap-2 pl-0">
             <RefreshCcw className="h-5 w-5 text-muted-foreground" />
             AI replies per month
           </CardTitle>
-          <div className="text-2xl font-bold text-foreground mt-1">
-            {chartData.reduce((sum, item) => sum + item.replies, 0).toLocaleString()}
-          </div>
         </CardHeader>
         <CardContent>
+          <p className="text-sm text-muted-foreground">Last 6 months</p>
           <div className="h-40 w-full">
             <div className="flex items-end justify-center h-full gap-4 px-2">
               {chartData.map((item, index) => {
