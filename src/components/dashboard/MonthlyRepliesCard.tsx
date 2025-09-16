@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshCcw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { Icon } from '../icons';
 
 interface MonthlyRepliesCardProps {
   data?: Array<{ month: string; replies: number }>;
@@ -30,13 +31,13 @@ const MonthlyRepliesCard: React.FC<MonthlyRepliesCardProps> = ({ data }) => {
       <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-lg shadow-none">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold text-foreground flex items-center justify-between flex-row-reverse gap-2 pl-0">
-            <RefreshCcw className="h-5 w-5 text-muted-foreground" />
+             <Icon type='plain' name='Transaction' className='h-5 w-5 text-muted-foreground' color='hsl(var(--foreground))' />
             AI replies per month
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">Last 6 months</p>
-          <div className="h-40 w-full">
+          <div className="h-40 w-full mt-6">
             <div className="flex items-end justify-center h-full gap-4 px-2">
               {chartData.map((item, index) => {
                 const fillPercentage = (item.replies / maxValue) * 100;
@@ -77,7 +78,7 @@ const MonthlyRepliesCard: React.FC<MonthlyRepliesCardProps> = ({ data }) => {
                               rx="8" 
                               ry="8" 
                               fill="none" 
-                              stroke="hsl(var(--border))" 
+                              stroke="hsl(var(--muted))" 
                               strokeWidth="2"
                             />
                             
@@ -97,7 +98,7 @@ const MonthlyRepliesCard: React.FC<MonthlyRepliesCardProps> = ({ data }) => {
                           </svg>
                         </div>
                         
-                        <span className={`text-xs transition-colors ${isHovered ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                        <span className={`text-xs transition-colors text-muted-foreground`}>
                           {item.month}
                         </span>
                       </div>
@@ -105,7 +106,7 @@ const MonthlyRepliesCard: React.FC<MonthlyRepliesCardProps> = ({ data }) => {
                     <TooltipContent>
                       <div className="text-xs space-y-1">
                         <p className="font-medium">{item.month} Replies</p>
-                        <p className="text-lg font-bold text-primary">{item.replies.toLocaleString()}</p>
+                        <p className="text-lg font-bold text-[#f06425]">{item.replies.toLocaleString()}</p>
                         <p className="text-muted-foreground">
                           {Math.round(fillPercentage)}% of max month
                         </p>

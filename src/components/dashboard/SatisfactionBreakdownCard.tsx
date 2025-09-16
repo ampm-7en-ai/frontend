@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart } from 'lucide-react';
+import { Icon } from '../icons';
 
 interface SatisfactionBreakdownCardProps {
   positive?: number;
@@ -18,14 +19,14 @@ const SatisfactionBreakdownCard: React.FC<SatisfactionBreakdownCardProps> = ({
     <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-lg shadow-none">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg font-semibold text-foreground flex items-center justify-between flex-row-reverse gap-2 pl-0">
-          <Heart className="h-5 w-5 text-muted-foreground" />
+          <Icon type='plain' name='Like' className='h-5 w-5 text-muted-foreground' color='hsl(var(--foreground))' />
           Customer satisfaction
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <p className="text-sm text-muted-foreground">All over satisfaction</p>
         
-        <div className="flex justify-around items-center">
+        <div className="flex justify-around items-center pt-6">
           {/* Positive */}
           <div className="flex flex-col items-center space-y-2">
             <div className="w-12 h-12 rounded-full flex items-center justify-center">

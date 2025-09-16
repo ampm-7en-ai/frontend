@@ -127,7 +127,7 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
                 </linearGradient>
               ))}
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
             <XAxis 
               dataKey="name" 
               tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
@@ -145,7 +145,7 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'hsl(var(--background))',
+                backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
@@ -163,7 +163,8 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
                 type="monotone"
                 dataKey={`${channel}_queries`}
                 stroke={CHANNEL_COLORS[channel as keyof typeof CHANNEL_COLORS] || '#6b7280'}
-                fill={`url(#${channel}Gradient)`}
+                //fill={`url(#${channel}Gradient)`}
+                fill='none'
                 strokeWidth={2}
                 fillOpacity={1}
                 name={channel.charAt(0).toUpperCase() + channel.slice(1)}

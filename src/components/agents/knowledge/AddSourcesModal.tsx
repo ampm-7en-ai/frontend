@@ -563,7 +563,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
           <ModernButton 
             onClick={handleSubmit}
             disabled={isUploading}
-            className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100"
+            className="bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-100"
           >
             {isUploading ? 'Processing...' : 'Add Source'}
           </ModernButton>
@@ -572,7 +572,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
     >
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="space-y-3">
-          <Label htmlFor="document-name" className="text-sm font-medium text-slate-700 dark:text-slate-300">Source Name *</Label>
+          <Label htmlFor="document-name" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Source Name *</Label>
           <Input 
             id="document-name" 
             variant="modern"

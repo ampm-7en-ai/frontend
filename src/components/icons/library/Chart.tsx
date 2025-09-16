@@ -2,7 +2,7 @@
 import React from 'react';
 import { Gradient } from '../Gradient';
 
-const Chart = ({ type, className = '' }) => {
+const Chart = ({ type, className = '', color = '#737373' }) => {
   return (
     
     <svg xmlns="http://www.w3.org/2000/svg" 
@@ -10,7 +10,7 @@ const Chart = ({ type, className = '' }) => {
         height="24" 
         viewBox="0 0 24 24" 
         fill="none" 
-        stroke={type === 'plain' ? '#1e1e1e' : 'url(#globalGradient)'} 
+        stroke={type === 'plain' ? color : 'url(#globalGradient)'} 
         strokeWidth="1.5"
         strokeLinecap="round"
         className={className} 

@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, User, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, Mail, ChevronLeft } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -574,6 +574,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     }
   };
 
+  //check email
+  const isEmail = (str) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str || "");
+
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
@@ -582,16 +585,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
 
       {showOtpVerification ? (
         <div className="space-y-4">
-          <div className="text-center">
-            <button
-              onClick={resetEmailFlow}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
-            >
-              ← Back to login options
-            </button>
+          <div className="text-left">
+            <ModernButton
+                onClick={resetEmailFlow}
+                variant='outline'
+                size='sm'
+                className="!ml-0 gap-2"
+                iconOnly
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </ModernButton>
           </div>
           
-      <div className="w-full p-6 bg-card rounded-lg shadow-sm border border-border">
+      <div className="w-full p-6 bg-transparent rounded-lg">
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-semibold text-foreground">Enter Login Code</h2>
           <p className="text-muted-foreground mt-2">
@@ -679,15 +685,22 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         /* Password and OTP Options Step */
         <div className="space-y-4">
           <div className="text-center border-b border-border pb-4">
-            <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-              <Mail className="h-4 w-4" />
+            <div className="flex flex-row-reverse items-center justify-between space-x-2 text-sm text-muted-foreground">
+              <div className='flex gap-2 items-center text-foreground'>
+                {
+                isEmail(currentEmail) ? <Mail className="h-4 w-4" /> : <User className="h-4 w-4" />
+              }
               <span>{currentEmail}</span>
-              <button
+              </div>
+              <ModernButton
                 onClick={resetEmailFlow}
-                className="text-primary hover:text-primary/80 transition-colors ml-2"
+                variant='outline'
+                size='sm'
+                className="!ml-0 gap-2"
+                iconOnly
               >
-                Change
-              </button>
+                <ChevronLeft className="h-4 w-4" />
+              </ModernButton>
             </div>
           </div>
           
@@ -750,12 +763,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                   className="w-full h-11"
                   disabled={isLoggingIn}
                 >
-                  {isLoggingIn ? "Signing in..." : "Sign in with Password"}
+                  {isLoggingIn ? "Signing in..." : "Sign in"}
                 </ModernButton>
                 
+                
+              </div>
+            </form>
+          </Form>
+        </div>
+      )}
+      
+      {!showOtpVerification && (
+        <>
+          
+
+          {
+            isEmail(currentEmail) && (
+              <>
                 <div className="relative">
                   <Separator className="bg-neutral-400/10" />
-                  <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-background dark:bg-neutral-900 px-3 text-sm text-muted-foreground">
+                  <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-100 dark:bg-neutral-900 px-3 text-sm text-muted-foreground">
                     or
                   </span>
                 </div>
@@ -768,19 +795,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                   onClick={handleSendOtpCode}
                   disabled={isSendingOtp}
                 >
-                  {isSendingOtp ? "Sending code..." : "Login with OTP Code"}
+                  {isSendingOtp ? "Sending code..." : "Sign in with OTP Code"}
                 </ModernButton>
-              </div>
-            </form>
-          </Form>
-        </div>
-      )}
-      
-      {!showOtpVerification && (
-        <>
+              </>
+            )
+          }
           <div className="relative">
             <Separator className="bg-neutral-400/10" />
-            <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 dark:bg-neutral-900 bg-background px-3 text-sm text-muted-foreground">
+            <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 dark:bg-neutral-900 bg-gray-100 px-3 text-sm text-muted-foreground mr-1">
               or continue with
             </span>
           </div>

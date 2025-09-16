@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from 'recharts';
 import { AgentPerformanceComparison } from '@/hooks/useAdminDashboard';
+import { Icon } from '../icons';
 
 interface ConversationPerformanceCardProps {
   agentPerformanceComparison?: AgentPerformanceComparison[];
@@ -57,9 +58,9 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
 
   return (
     <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-lg h-full">
-      <CardHeader className="pb-4">
+      <CardHeader className="pb-6">
         <CardTitle className="text-lg font-semibold text-foreground flex items-center justify-between flex-row-reverse gap-2 pl-0">
-          <TrendingUp className="h-5 w-5 text-muted-foreground" />
+          <Icon type='plain' name='AreaChart' className='h-5 w-5 text-muted-foreground' color='hsl(var(--foreground))' />
           Conversation performance
         </CardTitle>
       </CardHeader>
@@ -69,9 +70,9 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
             data={chartData} 
             layout="vertical"
             margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
-            barCategoryGap="20%"
+            barCategoryGap="30%"
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
             <XAxis 
               type="number"
               tick={{ fontSize: 12, fill: 'currentColor' }}
@@ -90,7 +91,7 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'hsl(var(--background))',
+                backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
@@ -105,18 +106,18 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
                 const agent = props.payload;
                 if (name === 'Closed') {
                   return [
-                    <div key="closed" className="space-y-1">
+                    <div key="closed" className="space-y-1 text-foreground">
                       <div className="flex justify-between gap-4">
                         <span>Total Conversations:</span>
                         <span className="font-medium">{agent.total}</span>
                       </div>
                       <div className="flex justify-between gap-4">
                         <span>Closed (Resolved):</span>
-                        <span className="font-medium text-green-600">{agent.closed}</span>
+                        <span className="font-medium text-amber-600">{agent.closed}</span>
                       </div>
                       <div className="flex justify-between gap-4">
                         <span>Open (Unresolved):</span>
-                        <span className="font-medium text-amber-600">{agent.open}</span>
+                        <span className="font-medium text-green-600">{agent.open}</span>
                       </div>
                       <div className="flex justify-between gap-4 border-t pt-1">
                         <span>Resolution Rate:</span>
@@ -132,14 +133,14 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
             <Bar 
               dataKey="closed" 
               stackId="a"
-              fill="hsl(var(--primary))"
+              fill="#f06425"
               radius={[0, 0, 0, 0]}
               name="Closed"
             />
             <Bar 
               dataKey="open" 
               stackId="a"
-              fill="hsl(var(--muted-foreground))"
+              fill="hsl(var(--chart-2))"
               radius={[0, 4, 4, 0]}
               name="Open"
             />

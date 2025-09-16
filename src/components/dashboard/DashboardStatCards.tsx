@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Bot, MessageSquare, Users } from 'lucide-react';
+import { Bot, MessageSquare } from 'lucide-react';
 import { ModernStatCard } from '@/components/ui/modern-stat-card';
-import Person from '../icons/library/Person';
-import Chat from '../icons/library/Chat';
-import Book from '../icons/library/Book';
-import Team from '../icons/library/Team';
+import Magic from '../icons/library/Magic';
+import Bubbles from '../icons/library/Bubbles';
+import Folder from '../icons/library/Folder';
+import Users from '../icons/library/Users';
 
 interface DashboardStatCardsProps {
   myAgents: number;
@@ -24,25 +24,25 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({
     {
       title: 'My Agents',
       value: myAgents,
-      icon: Person,
+      icon: Magic,
       gradient: 'bg-gradient-to-br from-blue-500 to-blue-600'
     },
     {
       title: 'Conversations',
       value: conversations,
-      icon: Chat,
+      icon: Bubbles,
       gradient: 'bg-gradient-to-br from-green-500 to-green-600'
     },
     {
       title: 'Knowledge Base',
       value: knowledgeBase,
-      icon: Book,
+      icon: Folder,
       gradient: 'bg-gradient-to-br from-purple-500 to-purple-600'
     },
     {
       title: 'Team Members',
       value: teamMembers,
-      icon: Team,
+      icon: Users,
       gradient: 'bg-gradient-to-br from-orange-500 to-orange-600'
     }
   ];

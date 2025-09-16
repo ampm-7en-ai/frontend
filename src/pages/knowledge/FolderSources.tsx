@@ -13,6 +13,7 @@ import KnowledgeStatsCard from '@/components/dashboard/KnowledgeStatsCard';
 import { ModernModal } from '@/components/ui/modern-modal';
 import PlainTextViewerModal from '@/components/agents/knowledge/PlainTextViewerModal';
 import UrlsViewerModal from '@/components/agents/knowledge/UrlsViewerModal';
+import { Icon } from '@/components/icons';
 
 const FolderSources = () => {
   const { agentId } = useParams();
@@ -97,23 +98,37 @@ const FolderSources = () => {
   };
 
   const renderSourceIcon = (source) => {
-    switch (source.type) {
-      case 'docs':
-        return <FileText className="h-4 w-4 text-white" />;
-      case 'website':
-        return <Globe className="h-4 w-4 text-white" />;
-      case 'csv':
-        return <FileSpreadsheet className="h-4 w-4 text-white" />;
-      case 'plain_text':
-        return <File className="h-4 w-4 text-white" />;
-      case 'third_party':
-        return <Layers className="h-4 w-4 text-white" />;
-      default:
-        return <File className="h-4 w-4 text-white" />;
+    
+    if(source.type === 'custom') {
+      const { mimeType, size} = source.metadata;
+      switch (mimeType) {
+        case 'application/vnd.google-apps.document':
+          return <Icon name="TextFile" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
+        case 'application/vnd.google-apps.spreadsheet':
+          return <Icon name="SheetFile" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
+        default:
+          return <File className="h-4 w-4 text-white" />;
+          }
+    }else {
+        switch (source.type) {
+          case 'docs':
+            return <Icon name="TextFile" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
+          case 'website':
+            return <Icon name="WebPage" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
+          case 'csv':
+            return <Icon name="SheetFile" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
+          case 'plain_text':
+            return <Icon name="Typing" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
+          case 'third_party':
+            return <Layers className="h-4 w-4 text-white" />;
+          default:
+            return <File className="h-4 w-4 text-white" />;
+        }
     }
   };
 
   const getIconBackground = (source) => {
+    return 'bg-transparent';
     switch (source.type) {
       case 'docs':
         return 'bg-gradient-to-br from-blue-500 to-blue-600';
@@ -292,9 +307,10 @@ const FolderSources = () => {
           <ModernButton 
             variant="primary"
             icon={Plus}
+            size='sm'
             onClick={() => setIsAddModalOpen(true)}
           >
-            Add Sources
+            Add
           </ModernButton>
         </div>
 
@@ -378,17 +394,17 @@ const FolderSources = () => {
               >
                 <div className="flex items-center gap-4">
                   <div className="flex-shrink-0">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getIconBackground(source.type === 'custom' ? {...source,type:'docs'} : source )}`}>
-                      {renderSourceIcon(source.type === 'custom' ? {...source,type:'docs'} : source )}
+                    <div className={`w-6 h-6 rounded-xl flex items-center justify-center ${getIconBackground(source.type === 'custom' ? {...source,type:'docs'} : source )}`}>
+                      {renderSourceIcon( source )}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium text-sm text-slate-900 dark:text-slate-100">
+                      <h3 className="font-medium text-sm text-neutral-900 dark:text-neutral-100">
                         {source.title}
                       </h3>
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
                       {getFileInfo(source) || (source.urls ? renderUrls(source.urls, source) : 'Plain text')} • {formatDate(source?.metadata?.upload_date)}
                     </p>
                   </div>

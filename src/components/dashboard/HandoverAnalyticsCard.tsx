@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, MoreHorizontal } from 'lucide-react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
+import { Icon } from '../icons';
 
 interface MonthlyData {
   month: string;
@@ -39,9 +40,9 @@ const HandoverAnalyticsCard: React.FC<HandoverAnalyticsCardProps> = ({ data }) =
   return (
     <TooltipProvider>
       <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-lg h-full">
-        <CardHeader className="pb-4">
+        <CardHeader className="pb-10">
             <CardTitle className="text-lg font-semibold text-foreground flex items-center justify-between flex-row-reverse gap-2 pl-0">
-              <Users className="h-5 w-5 text-muted-foreground" />
+              <Icon type='plain' name='Layer' className='h-5 w-5 text-muted-foreground' color='hsl(var(--foreground))' />
               AI replies x Handover to human
             </CardTitle>
         </CardHeader>
@@ -59,7 +60,7 @@ const HandoverAnalyticsCard: React.FC<HandoverAnalyticsCardProps> = ({ data }) =
                     <stop offset="95%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.05} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
                 <XAxis 
                   dataKey="month" 
                   tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
@@ -73,7 +74,7 @@ const HandoverAnalyticsCard: React.FC<HandoverAnalyticsCardProps> = ({ data }) =
                 />
                 <RechartsTooltip 
                   contentStyle={{ 
-                    backgroundColor: 'hsl(var(--background))',
+                    backgroundColor: 'hsl(var(--card))',
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '12px',
                     boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
@@ -85,7 +86,7 @@ const HandoverAnalyticsCard: React.FC<HandoverAnalyticsCardProps> = ({ data }) =
                   stackId="1"
                   dataKey="ai"
                   stroke="hsl(var(--primary))"
-                  fill="url(#aiGradient)"
+                  fill="none"
                   strokeWidth={2}
                   fillOpacity={1}
                   name="AI Replies"
@@ -94,8 +95,8 @@ const HandoverAnalyticsCard: React.FC<HandoverAnalyticsCardProps> = ({ data }) =
                   type="monotone"
                   stackId="1"
                   dataKey="human"
-                  stroke="hsl(var(--muted-foreground))"
-                  fill="url(#humanGradient)"
+                  stroke="#f06425"
+                  fill="none"
                   strokeWidth={2}
                   fillOpacity={1}
                   name="Human Handovers"

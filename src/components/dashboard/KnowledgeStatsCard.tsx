@@ -2,6 +2,11 @@
 import React, { useMemo } from 'react';
 import { ModernStatCard } from '@/components/ui/modern-stat-card';
 import { Layers, BookOpen, FileSpreadsheet, Globe, FileText } from 'lucide-react';
+import Folder from '../icons/library/Folder';
+import TextFile from '../icons/library/TextFile';
+import WebPage from '../icons/library/WebPage';
+import SheetFile from '../icons/library/SheetFile';
+import Typing from '../icons/library/Typing';
 
 interface KnowledgeStatsCardProps {
   sources?: any[];
@@ -36,31 +41,31 @@ const KnowledgeStatsCard = ({ sources = [] }: KnowledgeStatsCardProps) => {
     {
       title: 'Total Sources',
       value: stats.totalSources,
-      icon: Layers,
+      icon: Folder,
       gradient: 'bg-gradient-to-br from-gray-500 to-gray-600'
     },
     {
       title: 'Document Files',
       value: stats.documentFiles,
-      icon: BookOpen,
+      icon: TextFile,
       gradient: 'bg-gradient-to-br from-blue-500 to-blue-600'
     },
     {
       title: 'Websites',
       value: stats.websites,
-      icon: Globe,
+      icon: WebPage,
       gradient: 'bg-gradient-to-br from-green-500 to-green-600'
     },
     {
       title: 'Spreadsheet Files',
       value: stats.spreadsheetFiles,
-      icon: FileSpreadsheet,
+      icon: SheetFile,
       gradient: 'bg-gradient-to-br from-purple-500 to-purple-600'
     },
     {
       title: 'Plain Text',
       value: stats.plainText,
-      icon: FileText,
+      icon: Typing,
       gradient: 'bg-gradient-to-br from-orange-500 to-orange-600'
     }
   ];

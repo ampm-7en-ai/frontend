@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart } from 'lucide-react';
 import ModernButton from './ModernButton';
+import { Icon } from '../icons';
 
 interface RepliesCreditCardProps {
   used: number;
@@ -20,7 +21,7 @@ const RepliesCreditCard: React.FC<RepliesCreditCardProps> = ({ used, total }) =>
     <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-lg">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg font-semibold text-foreground flex items-center justify-between flex-row-reverse gap-2 pl-0">
-          <ShoppingCart className="h-5 w-5 text-muted-foreground" />
+          <Icon type='plain' name='Cart' className='h-5 w-5 text-muted-foreground' color='hsl(var(--foreground))' />
           Replies credit
         </CardTitle>
       </CardHeader>
@@ -30,7 +31,7 @@ const RepliesCreditCard: React.FC<RepliesCreditCardProps> = ({ used, total }) =>
             Replies used: <span className="text-[#F06425] font-semibold">{used}</span> on {total}
           </p>
           
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-6 mt-10">
             <div className="relative">
               <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
                 <defs>
@@ -74,9 +75,9 @@ const RepliesCreditCard: React.FC<RepliesCreditCardProps> = ({ used, total }) =>
         </div>
         
         <div className='text-center'>
-          <ModernButton variant='gradient' size='sm'>
+          <Button variant='link' size='sm' className='text-foreground'>
           Upgrade plan
-        </ModernButton>
+        </Button>
         </div>
       </CardContent>
     </Card>

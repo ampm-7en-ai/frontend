@@ -11,6 +11,7 @@ import { BASE_URL, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Badge } from "@/components/ui/badge";
+import { Icon } from '@/components/icons';
 
 const KnowledgeBase = () => {
   const { user } = useAuth();
@@ -125,18 +126,18 @@ const KnowledgeBase = () => {
             >
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                    <FolderOpen className="h-4 w-4 text-white" />
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center">
+                    <Icon type='plain' name={`Folder`} color='hsl(var(--primary))' className="h-5 w-5 text-white" />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-medium text-sm text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <h3 className="font-medium text-sm text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
                       {folder.name}
-                      <ArrowRight className="h-3 w-3 text-slate-400" />
+                      <ArrowRight className="h-3 w-3 text-neutral-400" />
                     </h3>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
                     Agent {folder.agent} • Created {formatDate(folder.created_at)}
                   </p>
                 </div>
