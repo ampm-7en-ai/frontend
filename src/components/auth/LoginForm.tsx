@@ -34,7 +34,8 @@ interface LoginFormProps {
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
-  const [loginMethod, setLoginMethod] = useState<'password' | 'otp'>('password');
+  const [emailEntered, setEmailEntered] = useState(false);
+  const [currentEmail, setCurrentEmail] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -58,7 +59,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     }
   });
 
-  const otpForm = useForm<OtpLoginFormValues>({
+  const emailForm = useForm<OtpLoginFormValues>({
     resolver: zodResolver(otpLoginSchema),
     defaultValues: {
       email: '',
@@ -76,15 +77,22 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     return () => clearInterval(interval);
   }, [resendCooldown]);
 
-  const handleSendOtpCode = async (values: OtpLoginFormValues) => {
+  const handleEmailSubmit = (values: OtpLoginFormValues) => {
+    setCurrentEmail(values.email);
+    setEmailEntered(true);
+    // Pre-fill the username field for password login
+    form.setValue('username', values.email);
+  };
+
+  const handleSendOtpCode = async () => {
     setIsSendingOtp(true);
     
     try {
-      const response = await authApi.codeLogin(values.email);
+      const response = await authApi.codeLogin(currentEmail);
       
       if (response.ok) {
         const data = await response.json();
-        setOtpEmail(values.email);
+        setOtpEmail(currentEmail);
         setShowOtpVerification(true);
         setResendCooldown(60); // 60 second cooldown
         
@@ -95,15 +103,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         });
       } else {
         const errorData = await response.json();
-        if (errorData.error?.fields?.email) {
-          otpForm.setError("email", { message: errorData.error.fields.email[0] });
-        } else {
-          toast({
-            title: "Error",
-            description: errorData.error?.message || "Failed to send OTP. Please try again.",
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: "Error",
+          description: errorData.error?.message || "Failed to send OTP. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Send OTP error:", error);
@@ -230,7 +234,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     setShowOtpVerification(false);
     setOtpEmail('');
     setResendCooldown(0);
-    otpForm.reset();
+  };
+
+  const resetEmailFlow = () => {
+    setEmailEntered(false);
+    setCurrentEmail('');
+    setShowOtpVerification(false);
+    setOtpEmail('');
+    setResendCooldown(0);
+    emailForm.reset();
+    form.reset();
   };
 
   const handleSSOLogin = async (provider: 'google' | 'apple', token: string) => {
@@ -599,7 +612,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         <div className="space-y-4">
           <div className="text-center">
             <button
-              onClick={resetOtpFlow}
+              onClick={resetEmailFlow}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
             >
               ← Back to login options
@@ -618,109 +631,112 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             onResend={handleResendOtp}
           />
         </div>
-      ) : (
-        <>
-          {/* Login Method Toggle */}
-          <div className="flex rounded-lg bg-muted p-1 mb-6">
-            <button
-              type="button"
-              onClick={() => setLoginMethod('password')}
-              className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all ${
-                loginMethod === 'password'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Password
-            </button>
-            <button
-              type="button"
-              onClick={() => setLoginMethod('otp')}
-              className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all ${
-                loginMethod === 'otp'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              OTP Code
-            </button>
-          </div>
-
-          {loginMethod === 'password' ? (
-            <Form {...form}>
-              <form className="space-y-4" onSubmit={form.handleSubmit(handleLogin)}>
-                <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-foreground font-medium">Email or Username</FormLabel>
-                      <div className="relative">
-                        <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
-                        <FormControl>
-                          <Input 
-                            placeholder="Type username or email" 
-                            variant="modern"
-                            size="lg"
-                            className="pl-10 pr-4"
-                            {...field}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="flex justify-between items-center">
-                        <FormLabel className="text-foreground font-medium">Password</FormLabel>
-                        <button 
-                          type="button" 
-                          className="text-sm text-muted-foreground hover:text-foreground font-normal transition-colors"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setIsForgotPasswordOpen(true);
-                          }}
-                        >
-                          Forgot password?
-                        </button>
-                      </div>
-                      <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
-                        <FormControl>
-                          <Input 
-                            type={showPassword ? "text" : "password"}
-                            placeholder="Type password" 
-                            variant="modern"
-                            size="lg"
-                            className="pl-10 pr-10"
-                            {...field}
-                          />
-                        </FormControl>
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors z-10"
-                        >
-                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {form.formState.errors.root && (
-                  <div className="text-sm font-medium text-destructive bg-destructive/5 p-3 rounded-lg border border-destructive/20">
-                    {form.formState.errors.root.message}
+      ) : !emailEntered ? (
+        /* Email Input Step */
+        <Form {...emailForm}>
+          <form className="space-y-4" onSubmit={emailForm.handleSubmit(handleEmailSubmit)}>
+            <FormField
+              control={emailForm.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-foreground font-medium">Email Address</FormLabel>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
+                    <FormControl>
+                      <Input 
+                        type="email"
+                        placeholder="Enter your email address" 
+                        variant="modern"
+                        size="lg"
+                        className="pl-10 pr-4"
+                        {...field}
+                      />
+                    </FormControl>
                   </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <ModernButton 
+              type="submit" 
+              variant="primary"
+              size="lg"
+              className="w-full h-11"
+            >
+              Continue
+            </ModernButton>
+          </form>
+        </Form>
+      ) : (
+        /* Password and OTP Options Step */
+        <div className="space-y-4">
+          <div className="text-center border-b border-border pb-4">
+            <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+              <Mail className="h-4 w-4" />
+              <span>{currentEmail}</span>
+              <button
+                onClick={resetEmailFlow}
+                className="text-primary hover:text-primary/80 transition-colors ml-2"
+              >
+                Change
+              </button>
+            </div>
+          </div>
+          
+          <Form {...form}>
+            <form className="space-y-4" onSubmit={form.handleSubmit(handleLogin)}>
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex justify-between items-center">
+                      <FormLabel className="text-foreground font-medium">Password</FormLabel>
+                      <button 
+                        type="button" 
+                        className="text-sm text-muted-foreground hover:text-foreground font-normal transition-colors"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setIsForgotPasswordOpen(true);
+                        }}
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
+                      <FormControl>
+                        <Input 
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your password" 
+                          variant="modern"
+                          size="lg"
+                          className="pl-10 pr-10"
+                          {...field}
+                        />
+                      </FormControl>
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors z-10"
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
                 )}
-                
+              />
+              
+              {form.formState.errors.root && (
+                <div className="text-sm font-medium text-destructive bg-destructive/5 p-3 rounded-lg border border-destructive/20">
+                  {form.formState.errors.root.message}
+                </div>
+              )}
+              
+              <div className="space-y-3">
                 <ModernButton 
                   type="submit" 
                   variant="primary"
@@ -728,60 +744,37 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                   className="w-full h-11"
                   disabled={isLoggingIn}
                 >
-                  {isLoggingIn ? "Signing in..." : "Sign in"}
+                  {isLoggingIn ? "Signing in..." : "Sign in with Password"}
                 </ModernButton>
-              </form>
-            </Form>
-          ) : (
-            <Form {...otpForm}>
-              <form className="space-y-4" onSubmit={otpForm.handleSubmit(handleSendOtpCode)}>
-                <FormField
-                  control={otpForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-foreground font-medium">Email Address</FormLabel>
-                      <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
-                        <FormControl>
-                          <Input 
-                            type="email"
-                            placeholder="Enter your email address" 
-                            variant="modern"
-                            size="lg"
-                            className="pl-10 pr-4"
-                            {...field}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        We'll send a login code to your email address
-                      </p>
-                    </FormItem>
-                  )}
-                />
+                
+                <div className="relative">
+                  <Separator className="bg-neutral-400/10" />
+                  <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-background dark:bg-neutral-900 px-3 text-sm text-muted-foreground">
+                    or
+                  </span>
+                </div>
                 
                 <ModernButton 
-                  type="submit" 
-                  variant="primary"
+                  type="button"
+                  variant="outline"
                   size="lg"
                   className="w-full h-11"
+                  onClick={handleSendOtpCode}
                   disabled={isSendingOtp}
                 >
-                  {isSendingOtp ? "Sending code..." : "Send login code"}
+                  {isSendingOtp ? "Sending code..." : "Login with OTP Code"}
                 </ModernButton>
-              </form>
-            </Form>
-          )}
-        </>
+              </div>
+            </form>
+          </Form>
+        </div>
       )}
       
       {!showOtpVerification && (
         <>
           <div className="relative">
             <Separator className="bg-neutral-400/10" />
-            <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 dark:bg-neutral-900 px-3 text-sm text-muted-foreground">
+            <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 dark:bg-neutral-900 bg-background px-3 text-sm text-muted-foreground">
               or continue with
             </span>
           </div>
