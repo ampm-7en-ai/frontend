@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { KnowledgeActionDropdown } from './KnowledgeActionDropdown';
 import { removeKnowledgeSourceFromAgentCache } from '@/utils/knowledgeSourceCacheUtils';
+import { Icon } from '@/components/icons';
 
 const getIconForType = (type: string) => {
   switch (type?.toLowerCase()) {
@@ -247,7 +248,8 @@ export const BuilderSidebar = () => {
               {displaySources.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Book className="h-8 w-8 text-gray-600" />
+                    
+                    <Icon name={`Folder`} type='plain' color='hsl(var(--primary))' className='h-8 w-8'/>
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No knowledge sources yet</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 max-w-sm mx-auto mb-4">
