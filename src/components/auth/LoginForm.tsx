@@ -658,19 +658,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <div className="flex justify-between items-center">
-                      <FormLabel className="text-foreground font-medium">Email</FormLabel>
-                      <button 
-                        type="button" 
-                        className="text-sm text-muted-foreground hover:text-foreground font-normal transition-colors"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          //display password field
-                        }}
-                      >
-                        Use password
-                      </button>
-                    </div>
+                  <FormLabel className="text-foreground font-medium">Email</FormLabel>
+                      
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
                     <FormControl>
@@ -695,7 +684,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
               size="lg"
               className="w-full h-11"
             >
-              Get code
+              Get OTP
+            </ModernButton>
+
+            <ModernButton 
+              type="submit" 
+              variant="outline"
+              size="lg"
+              className="w-full h-11"
+            >
+              Enter Password
             </ModernButton>
           </form>
         </Form>
