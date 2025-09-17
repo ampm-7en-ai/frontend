@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import ModernButton from '../dashboard/ModernButton';
 
 const otpSchema = z.object({
   otp: z.string().length(6, "OTP must be exactly 6 digits")
@@ -66,13 +67,15 @@ const OtpVerificationPanel: React.FC<OtpVerificationPanelProps> = ({
             />
             
             <div className="flex justify-center">
-              <Button 
+              <ModernButton 
                 type="submit"
                 disabled={isVerifying}
-                className="w-full"
+                variant='primary'
+                size='lg'
+                className="w-full h-11"
               >
-                {isVerifying ? "Logging in..." : "Login"}
-              </Button>
+                {isVerifying ? "Logging in..." : "Sign in"}
+              </ModernButton>
             </div>
           </form>
         </Form>

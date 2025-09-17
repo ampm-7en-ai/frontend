@@ -708,7 +708,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             </div>
           </div>
           
-          <div className="space-y-3">
+          <div className="space-y-3 flex items-center gap-3 justify-between">
             {isEmail(currentEmail) && (
               <ModernButton 
                 type="button"
@@ -718,7 +718,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                 onClick={handleSendOtpCode}
                 disabled={isSendingOtp}
               >
-                {isSendingOtp ? "Sending code..." : "Sign in with OTP Code"}
+                {isSendingOtp ? "Sending code..." : "Send OTP Code"}
               </ModernButton>
             )}
             
@@ -726,7 +726,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
               type="button"
               variant="primary"
               size="lg"
-              className="w-full h-11"
+              className="w-full h-11 !mt-0"
               onClick={handleShowPasswordField}
             >
               Enter Password
