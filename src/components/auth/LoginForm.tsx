@@ -91,15 +91,31 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
   };
 
   const handleSendOtpCode = async () => {
+    if (!currentEmail) {
+      const email = emailForm.getValues('email');
+      if (email) {
+        setCurrentEmail(email);
+      } else {
+        toast({
+          title: "Error",
+          description: "Please enter your email first.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     setIsSendingOtp(true);
     
     try {
-      const response = await authApi.codeLogin(currentEmail);
+      const emailToUse = currentEmail || emailForm.getValues('email');
+      const response = await authApi.codeLogin(emailToUse);
       
       if (response.ok) {
         const data = await response.json();
-        setOtpEmail(currentEmail);
+        setOtpEmail(emailToUse);
         setShowOtpVerification(true);
+        setEmailEntered(true);
         
         toast({
           title: "Login Code Sent",
@@ -652,7 +668,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
       ) : !emailEntered ? (
         /* Email Input Step */
         <Form {...emailForm}>
-          <form className="space-y-4" onSubmit={emailForm.handleSubmit(handleEmailSubmit)}>
+          <form className="space-y-4">
             <FormField
               control={emailForm.control}
               name="email"
@@ -678,14 +694,43 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
               )}
             />
             
-            <ModernButton 
-              type="submit" 
-              variant="primary"
-              size="lg"
-              className="w-full h-11"
-            >
-              Continue
-            </ModernButton>
+            <div className="space-y-3">
+              {emailForm.watch('email') && isEmail(emailForm.watch('email')) && (
+                <ModernButton 
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  className="w-full h-11"
+                  onClick={() => {
+                    if (emailForm.getValues('email')) {
+                      setCurrentEmail(emailForm.getValues('email'));
+                      handleSendOtpCode();
+                    }
+                  }}
+                  disabled={isSendingOtp || !emailForm.watch('email')}
+                >
+                  {isSendingOtp ? "Sending..." : "Get OTP"}
+                </ModernButton>
+              )}
+              
+              <ModernButton 
+                type="button"
+                variant="primary"
+                size="lg"
+                className="w-full h-11"
+                onClick={() => {
+                  if (emailForm.getValues('email')) {
+                    setCurrentEmail(emailForm.getValues('email'));
+                    setEmailEntered(true);
+                    setShowPasswordField(true);
+                    form.setValue('username', emailForm.getValues('email'));
+                  }
+                }}
+                disabled={!emailForm.watch('email')}
+              >
+                Enter Password
+              </ModernButton>
+            </div>
           </form>
         </Form>
       ) : !showPasswordField ? (
