@@ -684,16 +684,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
               size="lg"
               className="w-full h-11"
             >
-              Get OTP
-            </ModernButton>
-
-            <ModernButton 
-              type="submit" 
-              variant="outline"
-              size="lg"
-              className="w-full h-11"
-            >
-              Enter Password
+              Continue
             </ModernButton>
           </form>
         </Form>
@@ -718,7 +709,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             </div>
           </div>
           
-          <div className="space-y-3 flex items-center gap-3 justify-between">
+          <div className="space-y-3">
             {isEmail(currentEmail) && (
               <ModernButton 
                 type="button"
@@ -728,7 +719,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                 onClick={handleSendOtpCode}
                 disabled={isSendingOtp}
               >
-                {isSendingOtp ? "Sending code..." : "Send OTP Code"}
+                {isSendingOtp ? "Sending..." : "Get OTP"}
               </ModernButton>
             )}
             
@@ -736,7 +727,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
               type="button"
               variant="primary"
               size="lg"
-              className="w-full h-11 !mt-0"
+              className="w-full h-11"
               onClick={handleShowPasswordField}
             >
               Enter Password
@@ -744,30 +735,39 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
           </div>
         </div>
       ) : (
-        /* Password and OTP Options Step */
+        /* Password Input Step */
         <div className="space-y-4">
-          <div className="text-center border-b border-border pb-4">
-            <div className="flex flex-row-reverse items-center justify-between space-x-2 text-sm text-muted-foreground">
-              <div className='flex gap-2 items-center text-foreground'>
-                {
-                isEmail(currentEmail) ? <Mail className="h-4 w-4" /> : <User className="h-4 w-4" />
-              }
-              <span>{currentEmail}</span>
-              </div>
-              <ModernButton
-                onClick={resetEmailFlow}
-                variant='outline'
-                size='sm'
-                className="!ml-0 gap-2"
-                iconOnly
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </ModernButton>
-            </div>
+          <div className="text-left">
+            <ModernButton
+              onClick={() => setShowPasswordField(false)}
+              variant='outline'
+              size='sm'
+              className="!ml-0 gap-2"
+              iconOnly
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </ModernButton>
           </div>
           
           <Form {...form}>
             <form className="space-y-4" onSubmit={form.handleSubmit(handleLogin)}>
+              {/* Email field (readonly) */}
+              <FormItem>
+                <FormLabel className="text-foreground font-medium">Email</FormLabel>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
+                  <Input 
+                    type="text"
+                    value={currentEmail}
+                    variant="modern"
+                    size="lg"
+                    className="pl-10 pr-4 bg-muted/50"
+                    readOnly
+                  />
+                </div>
+              </FormItem>
+
+              {/* Password field */}
               <FormField
                 control={form.control}
                 name="password"
@@ -817,19 +817,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                 </div>
               )}
               
-              <div className="space-y-3">
-                <ModernButton 
-                  type="submit" 
-                  variant="primary"
-                  size="lg"
-                  className="w-full h-11"
-                  disabled={isLoggingIn}
-                >
-                  {isLoggingIn ? "Signing in..." : "Sign in"}
-                </ModernButton>
-                
-                
-              </div>
+              <ModernButton 
+                type="submit" 
+                variant="primary"
+                size="lg"
+                className="w-full h-11"
+                disabled={isLoggingIn}
+              >
+                {isLoggingIn ? "Signing in..." : "Sign in"}
+              </ModernButton>
             </form>
           </Form>
         </div>
