@@ -83,7 +83,7 @@ const ConversationCard = ({
     switch (conversation.channel?.toLowerCase()) {
       case 'ticketing':
         const ticketIcon = document.createElement('div');
-        ticketIcon.innerHTML = `<svg class="${iconClass} text-blue-600 dark:text-blue-400" stroke-width="2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 8v11a3 3 0 0 1-3 3H6a3 3 0 0 1-3 3V8m18 0-9 5L3 8m18 0V5a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v3"></path></svg>`;
+        ticketIcon.innerHTML = `<svg class="${iconClass} text-orange-600 dark:text-orange-400" stroke-width="2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 8v11a3 3 0 0 1-3 3H6a3 3 0 0 1-3 3V8m18 0-9 5L3 8m18 0V5a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v3"></path></svg>`;
         return ticketIcon;
       case 'phone':
         const phoneIcon = document.createElement('div');
@@ -185,13 +185,13 @@ const ConversationCard = ({
                   {conversation.customer || "Visitor"}
                 </h3>
                 {conversation.isUnread && (
-                  <span className="inline-block w-2 h-2 bg-blue-500 rounded-full shadow-sm"></span>
+                  <span className="inline-block w-2 h-2 bg-orange-500 rounded-full shadow-sm"></span>
                 )}
               </div>
               <div className="flex flex-col items-end">
                 <p className={cn(
                   "text-xs whitespace-nowrap",
-                  conversation.isUnread ? "font-medium text-blue-600 dark:text-blue-400" : "text-neutral-400 dark:text-neutral-600"
+                  conversation.isUnread ? "font-medium text-orange-600 dark:text-orange-400" : "text-neutral-400 dark:text-neutral-600"
                 )}>
                   {reformatTimeAgo(conversation.time)}
                 </p>

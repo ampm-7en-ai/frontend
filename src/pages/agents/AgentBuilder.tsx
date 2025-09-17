@@ -220,7 +220,7 @@ const AgentBuilderContent = () => {
   ).length;
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-[hsla(0,0%,0%,0.95)]">
+    <div className="h-screen flex flex-col bg-neutral-50 dark:bg-[hsla(0,0%,0%,0.95)]">
       {/* Training Alert Badge */}
       {/* <TrainingAlertBadge 
         isVisible={isTraining}
@@ -247,11 +247,11 @@ const AgentBuilderContent = () => {
       
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Knowledge Base */}
-        <div className={`${leftPanelCollapsed ? 'w-12' : 'w-80'} border-r border-gray-200 dark:border-gray-700 transition-all duration-300 relative`}>
+        <div className={`${leftPanelCollapsed ? 'w-12' : 'w-80'} border-r border-neutral-200 dark:border-neutral-700 transition-all duration-300 relative`}>
           <Button
             variant="ghost"
             size="sm"
-            className="absolute top-2 -right-3 z-10 h-6 w-6 p-0 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md"
+            className="absolute top-2 -right-3 z-10 h-6 w-6 p-0 rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-md"
             onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
           >
             {leftPanelCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
@@ -260,16 +260,16 @@ const AgentBuilderContent = () => {
         </div>
         
         {/* Center Canvas */}
-        <div className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-700 relative">
+        <div className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-neutral-800 dark:to-neutral-700 relative">
           <InteractiveCanvas isTraining={isTraining} onAgentDataRefresh={refetchAgentData} />
         </div>
         
         {/* Right Sidebar - Configuration & Guidelines */}
-        <div className={`${rightPanelCollapsed ? 'w-12' : 'w-80'} border-l border-gray-200 dark:border-gray-700 transition-all duration-300 relative`}>
+        <div className={`${rightPanelCollapsed ? 'w-12' : 'w-80'} border-l border-neutral-200 dark:border-neutral-700 transition-all duration-300 relative`}>
           <Button
             variant="ghost"
             size="sm"
-            className="absolute top-2 -left-3 z-10 h-6 w-6 p-0 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md"
+            className="absolute top-2 -left-3 z-10 h-6 w-6 p-0 rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-md"
             onClick={() => setRightPanelCollapsed(!rightPanelCollapsed)}
           >
             {rightPanelCollapsed ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}

@@ -6,6 +6,7 @@ import { Info, Phone, Video, MoreHorizontal, CheckCircle, TicketPlus } from 'luc
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import CreateSupportTicketModal from './CreateSupportTicketModal';
+import { Icon } from '../icons';
 
 interface ConversationHeaderProps {
   conversation: {
@@ -129,19 +130,21 @@ const ConversationHeader = ({
 
   return (
     <>
-      <div className="flex items-center justify-between p-4 border-b border-gray-200/60 dark:border-slate-700/60 bg-white/70 dark:bg-[hsla(0,0%,0%,0.95)] backdrop-blur-sm py-2">
+      <div className="flex items-center justify-between p-4 border-b border-neutral-200/60 dark:border-neutral-700/60 bg-white/70 dark:bg-[hsla(0,0%,0%,0.95)] backdrop-blur-sm py-[7px]">
         <div className="flex items-center gap-3">
           <Avatar className="w-11 h-11 rounded-2xl">
-            <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-300 font-medium rounded-lg">
-              {conversation.customer?.charAt(0)?.toUpperCase() || 'U'}
+            <AvatarFallback className="bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 font-medium rounded-lg">
+              <Icon type='plain' name={`Person`} color='hsl(var(--muted-foreground))' className='h-5 w-5' />
             </AvatarFallback>
           </Avatar>
           
           <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-gray-900 dark:text-slate-100">{conversation.customer}</h3>
-              {getStatusBadge(conversation.status)}
-              {conversation.channel && getChannelBadge(conversation.channel)}
+            <div className="flex flex-col items-start gap-0">
+              <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 leading-6">{conversation.customer}</h3>
+              <div className='scale-75 flex gap-2 items-start origin-left'>
+                {getStatusBadge(conversation.status)}
+                {conversation.channel && getChannelBadge(conversation.channel)}
+              </div>
             </div>
           </div>
         </div>

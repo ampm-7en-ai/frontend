@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import rehypeRaw from 'rehype-raw';
-
+import remarkGfm from "remark-gfm";
 interface StyledMarkdownProps {
   content: string;
   primaryColor: string;
@@ -30,6 +30,7 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = memo(({
       }}>
         <ReactMarkdown
           rehypePlugins={[rehypeRaw]}
+          remarkPlugins={[remarkGfm]}
           components={{
             pre({ children }) {
               // Extract the content of the <pre> block
@@ -56,7 +57,7 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = memo(({
               if (isInline) {
                 return (
                   <code
-                    className="px-1.5 py-0.5 rounded-md !font-mono !text-xs font-medium"
+                    className="px-1.5 py-0.5 rounded-[4px] !font-mono !text-xs font-medium !bg-muted/40 dark:!bg-muted/60"
                     style={{
                       backgroundColor: `${isDarkTheme ? inlineCodeBg : inlineCodeBg}${isDarkTheme ? '40' : '80'}`,
                       color: primaryColor,
@@ -118,13 +119,13 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = memo(({
               );
             },
             h1({ children }) {
-              return <h1 className="text-2xl font-bold mb-4 mt-6" style={{ color: primaryColor }}>{children}</h1>;
+              return <h1 className="text-2xl font-bold mb-4 mt-6" style={{ color: 'hsl(var(--primary))' }}>{children}</h1>;
             },
             h2({ children }) {
-              return <h2 className="text-xl font-bold mb-3 mt-5" style={{ color: primaryColor }}>{children}</h2>;
+              return <h2 className="text-xl font-bold mb-3 mt-5" style={{ color: 'hsl(var(--primary))' }}>{children}</h2>;
             },
             h3({ children }) {
-              return <h3 className="text-lg font-semibold mb-3 mt-4" style={{ color: primaryColor }}>{children}</h3>;
+              return <h3 className="text-lg font-semibold mb-3 mt-4" style={{ color: 'hsl(var(--primary))' }}>{children}</h3>;
             },
             h4({ children }) {
               return <h4 className="text-base font-semibold mb-2 mt-3" style={{ color: primaryColor }}>{children}</h4>;

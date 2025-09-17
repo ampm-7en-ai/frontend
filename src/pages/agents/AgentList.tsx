@@ -217,12 +217,12 @@ const AgentList = () => {
   console.log('💾 Render cache status:', agents.length > 0 ? 'USING CACHE' : 'LOADING/EMPTY');
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>
-      <div className="min-h-screen bg-slate-50 dark:bg-[hsla(0,0%,0%,0.95)] transition-colors duration-200">
+    <div className={`min-h-screen bg-gray-50/50`}>
+      <div className="min-h-screen bg-gray-50/50 dark:bg-[hsla(0,0%,0%,0.95)] transition-colors duration-200">
         <div className="container mx-auto px-4 py-6">
           <div className="space-y-6 p-8">
             {/* Header Section */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 px-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 px-0">
               <div>
                 <h1 className="text-2xl font-bold text-foreground dark:text-foreground mb-2">AI Agents</h1>
                 <p className="text-muted-foreground dark:text-muted-foreground text-base">Manage and create your AI agents</p>

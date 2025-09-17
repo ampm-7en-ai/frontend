@@ -696,6 +696,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             
             <div className="space-y-3">
               {emailForm.watch('email') && isEmail(emailForm.watch('email')) && (
+                <>
                 <ModernButton 
                   type="button"
                   variant="outline"
@@ -711,25 +712,32 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
                 >
                   {isSendingOtp ? "Sending..." : "Get OTP"}
                 </ModernButton>
+                
+              </>
               )}
+              {
+                emailForm.getValues('email').trim() !== '' && (
+                  <ModernButton 
+                    type="button"
+                    variant="primary"
+                    size="lg"
+                    className="w-full h-11"
+                    onClick={() => {
+                      if (emailForm.getValues('email')) {
+                        setCurrentEmail(emailForm.getValues('email'));
+                        setEmailEntered(true);
+                        setShowPasswordField(true);
+                        form.setValue('username', emailForm.getValues('email'));
+                      }
+                    }}
+                    disabled={!emailForm.watch('email')}
+                  >
+                    {!emailForm.watch('email') ? "Continue" : "Enter Password"}
+                    
+                  </ModernButton>
+                )
+              }
               
-              <ModernButton 
-                type="button"
-                variant="primary"
-                size="lg"
-                className="w-full h-11"
-                onClick={() => {
-                  if (emailForm.getValues('email')) {
-                    setCurrentEmail(emailForm.getValues('email'));
-                    setEmailEntered(true);
-                    setShowPasswordField(true);
-                    form.setValue('username', emailForm.getValues('email'));
-                  }
-                }}
-                disabled={!emailForm.watch('email')}
-              >
-                Enter Password
-              </ModernButton>
             </div>
           </form>
         </Form>
@@ -784,7 +792,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         <div className="space-y-4">
           <div className="text-left">
             <ModernButton
-              onClick={() => setShowPasswordField(false)}
+              onClick={resetEmailFlow}
               variant='outline'
               size='sm'
               className="!ml-0 gap-2"

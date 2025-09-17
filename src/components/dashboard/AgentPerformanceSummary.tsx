@@ -24,7 +24,7 @@ const CHANNEL_COLORS = {
   website: '#3b82f6',
   facebook: '#1877f2',
   whatsapp: '#25d366',
-  instagram: '#e4405f',
+  instagram: '#f06425',
   playground: '#8b5cf6',
   ticketing: '#f59e0b'
 };
@@ -47,13 +47,12 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
 
   // Generate channel options from actual conversation_channels data
   const channelOptions = [
-    { value: 'all', label: 'All Channels' },
+    { label: 'All Channels', value: 'all' },
     ...Object.keys(conversationChannel).map(channel => ({
       value: channel,
       label: channel.charAt(0).toUpperCase() + channel.slice(1)
     }))
   ];
-
   // Get chart data based on activeTab
   const getChartData = () => {
     let baseData: PerformanceDataItem[] = [];
@@ -205,7 +204,7 @@ const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'hsl(var(--background))',
+                backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',

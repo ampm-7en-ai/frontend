@@ -48,7 +48,7 @@ const ConversationFilters = ({
       id: 'email', 
       label: 'Ticket',
       logo: (
-        <div className="w-5 h-5 rounded bg-blue-500 flex items-center justify-center">
+        <div className="w-5 h-5 rounded bg-amber-500 flex items-center justify-center">
           <svg viewBox="0 0 24 24" className="w-3 h-3 fill-white">
             <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
           </svg>
@@ -123,7 +123,7 @@ const ConversationFilters = ({
   };
 
   return (
-    <div className="p-4 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 py-[12px]">
+    <div className="p-4 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-700 py-[12px]">
       <div className="flex items-center justify-between gap-4">
         <ModernTabNavigation
           tabs={statusTabs}
@@ -137,28 +137,28 @@ const ConversationFilters = ({
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className={`relative inline-flex items-center justify-center w-8 h-8 rounded-xl text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-300 ${
+                className={`relative inline-flex items-center justify-center w-8 h-8 rounded-xl text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-300 ${
                   hasActiveFilters 
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800' 
-                    : 'border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 border border-amber-200 dark:border-amber-800' 
+                    : 'border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800'
                 }`}
               >
                 <Filter className="w-4 h-4" />
                 {hasActiveFilters && (
-                  <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-[9px] rounded-full h-4 w-4 flex items-center justify-center font-medium">
+                  <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-[9px] rounded-full h-4 w-4 flex items-center justify-center font-medium">
                     {getActiveFiltersCount()}
                   </span>
                 )}
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0 backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border border-gray-200/50 dark:border-slate-700/50 shadow-xl z-[9999] rounded-xl" align="end" side="right">
+            <PopoverContent className="w-80 p-0 backdrop-blur-md bg-white/90 dark:bg-neutral-900/90 border border-gray-200/50 dark:border-neutral-700/50 shadow-xl z-[9999] rounded-xl" align="end" side="right">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h4 className="font-semibold text-base text-slate-900 dark:text-slate-100">Filters</h4>
+                  <h4 className="font-semibold text-base text-neutral-900 dark:text-neutral-100">Filters</h4>
                   {hasActiveFilters && (
                     <button
                       onClick={clearAllFilters}
-                      className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors font-medium"
+                      className="text-sm text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 transition-colors font-medium"
                     >
                       Clear all
                     </button>
@@ -167,18 +167,18 @@ const ConversationFilters = ({
                 
                 {/* Channel Filters */}
                 <div className="mb-6">
-                  <h5 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-4">
+                  <h5 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-4">
                     Channels
                   </h5>
                   <div className="space-y-3">
                     {channelOptions.map((option) => (
-                      <div key={option.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100/50 dark:border-slate-700/50 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors group backdrop-blur-sm">
+                      <div key={option.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100/50 dark:border-neutral-700/50 hover:bg-gray-50/50 dark:hover:bg-neutral-800/30 transition-colors group backdrop-blur-sm">
                         <label 
                           htmlFor={`channel-${option.id}`}
                           className="flex items-center gap-3 cursor-pointer flex-1"
                         >
                           {option.logo}
-                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">
+                          <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-neutral-100 transition-colors">
                             {option.label}
                           </span>
                         </label>
@@ -197,18 +197,18 @@ const ConversationFilters = ({
 
                 {/* Agent Type Filters */}
                 <div>
-                  <h5 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-4">
+                  <h5 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-4">
                     Agent Types
                   </h5>
                   <div className="space-y-3">
                     {agentTypeOptions.map((option) => (
-                      <div key={option.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100/50 dark:border-slate-700/50 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors group backdrop-blur-sm">
+                      <div key={option.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100/50 dark:border-neutral-700/50 hover:bg-gray-50/50 dark:hover:bg-neutral-800/30 transition-colors group backdrop-blur-sm">
                         <label 
                           htmlFor={`agent-${option.id}`}
                           className="flex items-center gap-3 cursor-pointer flex-1"
                         >
                           <span className="text-lg">{option.icon}</span>
-                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">
+                          <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-neutral-100 transition-colors">
                             {option.label}
                           </span>
                         </label>
@@ -227,19 +227,19 @@ const ConversationFilters = ({
                   <>
                     <Separator className="my-6" />
                     <div>
-                      <h5 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-3">
+                      <h5 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-3">
                         Active Filters
                       </h5>
                       <div className="flex flex-wrap gap-2">
                         {channelFilter.map(channelId => {
                           const channel = channelOptions.find(c => c.id === channelId);
                           return channel ? (
-                            <span key={channelId} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-blue-50/80 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
+                            <span key={channelId} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-amber-50/80 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/50 backdrop-blur-sm">
                               <span className="scale-75">{channel.logo}</span>
                               {channel.label}
                               <button
                                 onClick={() => handleChannelChange(channelId, false)}
-                                className="hover:bg-blue-100/50 dark:hover:bg-blue-800/30 rounded-full p-0.5 transition-colors"
+                                className="hover:bg-amber-100/50 dark:hover:bg-amber-800/30 rounded-full p-0.5 transition-colors"
                               >
                                 <X className="w-3 h-3" />
                               </button>
@@ -249,12 +249,12 @@ const ConversationFilters = ({
                         {agentTypeFilter.map(typeId => {
                           const type = agentTypeOptions.find(t => t.id === typeId);
                           return type ? (
-                            <span key={typeId} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-slate-100/80 text-slate-700 dark:bg-slate-800/50 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm">
+                            <span key={typeId} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-neutral-100/80 text-neutral-700 dark:bg-neutral-800/50 dark:text-neutral-300 border border-neutral-200/50 dark:border-neutral-700/50 backdrop-blur-sm">
                               <span>{type.icon}</span>
                               {type.label}
                               <button
                                 onClick={() => handleAgentTypeChange(typeId, false)}
-                                className="hover:bg-slate-200/50 dark:hover:bg-slate-700/50 rounded-full p-0.5 transition-colors"
+                                className="hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 rounded-full p-0.5 transition-colors"
                               >
                                 <X className="w-3 h-3" />
                               </button>

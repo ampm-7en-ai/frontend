@@ -11,6 +11,7 @@ import HandoffHistory from './HandoffHistory';
 import CreateSupportTicketModal from './CreateSupportTicketModal';
 import { analyzeSentiment } from '@/lib/sentiment';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Icon } from '../icons';
 
 interface ConversationDetailsPanelProps {
   conversation: any;
@@ -91,12 +92,39 @@ const ConversationDetailsPanel = ({
   const getSentimentEmoji = (sentiment: string) => {
     switch (sentiment) {
       case 'Frustrated':
-        return '😤 Frustrated';
+        return (
+         <svg width="39" height="42" viewBox="0 0 39 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="19.1436" cy="19.1436" r="18.3645" className='stroke-foreground' stroke-width="1.5582"/>
+          <mask id="path-2-inside-1_60_396" fill="white">
+          <path d="M10.8169 28.915C11.1923 26.7244 12.3358 24.7391 14.0424 23.3153C15.7489 21.8914 17.9069 21.1221 20.1293 21.1453C22.3517 21.1685 24.4932 21.9826 26.1697 23.4417C27.8462 24.9009 28.948 26.9095 29.2776 29.1075L27.5036 29.3735C27.2373 27.5973 26.3468 25.974 24.992 24.7949C23.6372 23.6157 21.9066 22.9578 20.1106 22.939C18.3146 22.9203 16.5707 23.542 15.1916 24.6927C13.8124 25.8433 12.8884 27.4476 12.585 29.2179L10.8169 28.915Z"/>
+          </mask>
+          <path d="M10.8169 28.915C11.1923 26.7244 12.3358 24.7391 14.0424 23.3153C15.7489 21.8914 17.9069 21.1221 20.1293 21.1453C22.3517 21.1685 24.4932 21.9826 26.1697 23.4417C27.8462 24.9009 28.948 26.9095 29.2776 29.1075L27.5036 29.3735C27.2373 27.5973 26.3468 25.974 24.992 24.7949C23.6372 23.6157 21.9066 22.9578 20.1106 22.939C18.3146 22.9203 16.5707 23.542 15.1916 24.6927C13.8124 25.8433 12.8884 27.4476 12.585 29.2179L10.8169 28.915Z" className='stroke-foreground' stroke-width="3.1164" mask="url(#path-2-inside-1_60_396)"/>
+          <circle cx="12.577" cy="13.9125" r="1.8921" className='fill-foreground'/>
+          <circle cx="25.8217" cy="13.9125" r="1.8921" className='fill-foreground'/>
+          </svg>
+        );
       case 'Satisfied':
-        return '😊 Satisfied';
+        return (
+          <svg width="39" height="39" viewBox="0 0 39 39" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="19.1436" cy="19.1436" r="18.3645" className='stroke-foreground' stroke-width="1.5582"/>
+            <mask id="path-2-inside-1_60_382" fill="white">
+            <path d="M28.4928 21.8148C28.4928 24.2519 27.5412 26.5926 25.8407 28.3383C24.1402 30.0841 21.8253 31.0968 19.389 31.1608C16.9528 31.2247 14.5879 30.3349 12.7981 28.6808C11.0084 27.0268 9.9352 24.7392 9.80729 22.3055L11.5987 22.2114C11.702 24.1781 12.5693 26.0267 14.0157 27.3634C15.462 28.7001 17.3732 29.4192 19.3419 29.3675C21.3107 29.3158 23.1815 28.4974 24.5557 27.0866C25.9299 25.6759 26.6989 23.7843 26.6989 21.8148H28.4928Z"/>
+            </mask>
+            <path d="M28.4928 21.8148C28.4928 24.2519 27.5412 26.5926 25.8407 28.3383C24.1402 30.0841 21.8253 31.0968 19.389 31.1608C16.9528 31.2247 14.5879 30.3349 12.7981 28.6808C11.0084 27.0268 9.9352 24.7392 9.80729 22.3055L11.5987 22.2114C11.702 24.1781 12.5693 26.0267 14.0157 27.3634C15.462 28.7001 17.3732 29.4192 19.3419 29.3675C21.3107 29.3158 23.1815 28.4974 24.5557 27.0866C25.9299 25.6759 26.6989 23.7843 26.6989 21.8148H28.4928Z" className='stroke-foreground' stroke-width="3.1164" mask="url(#path-2-inside-1_60_382)"/>
+            <circle cx="12.5769" cy="13.9125" r="1.8921" className='fill-foreground'/>
+            <circle cx="25.8215" cy="13.9125" r="1.8921" className='fill-foreground'/>
+          </svg>
+        );
       case 'Neutral':
       default:
-        return '😐 Neutral';
+        return (
+           <svg width="39" height="39" viewBox="0 0 39 39" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="19.1436" cy="19.1436" r="18.3645" className='stroke-foreground' stroke-width="1.5582"/>
+          <circle cx="12.5769" cy="13.9125" r="1.8921" className='fill-foreground'/>
+          <circle cx="25.8216" cy="13.9125" r="1.8921" className='fill-foreground'/>
+          <line x1="10.6848" y1="25.3207" x2="27.7137" y2="25.3207" className='stroke-foreground' stroke-width="2.7825"/>
+          </svg>
+        );
     }
   };
 
@@ -113,11 +141,11 @@ const ConversationDetailsPanel = ({
     return (
       <div className="h-full bg-white/80 dark:bg-[hsla(0,0%,0%,0.95)] backdrop-blur-sm p-3 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center">
-            <MessageSquare className="h-4 w-4 text-gray-400 dark:text-slate-500" />
+          <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
+            <MessageSquare className="h-4 w-4 text-gray-400 dark:text-neutral-500" />
           </div>
-          {/* <h3 className="text-xs font-medium text-foreground dark:text-slate-100 mb-1">No conversation selected</h3>
-          <p className="text-[10px] text-gray-500 dark:text-slate-400">Select a conversation to view details</p> */}
+          {/* <h3 className="text-xs font-medium text-foreground dark:text-neutral-100 mb-1">No conversation selected</h3>
+          <p className="text-[10px] text-gray-500 dark:text-neutral-400">Select a conversation to view details</p> */}
         </div>
       </div>
     );
@@ -155,7 +183,7 @@ const ConversationDetailsPanel = ({
       <div className="p-4 border-b border-gray-200/50 dark:border-neutral-700/50 bg-white/50 dark:bg-transparent backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Information</h1>
+            <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Information</h1>
           </div>
         </div>
       </div>
@@ -209,8 +237,8 @@ const ConversationDetailsPanel = ({
           {/* Agent Information Section */}
           <div className="border rounded-lg bg-white dark:bg-neutral-800 dark:border-0 px-4 py-4">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-                <User className="h-4 w-4 text-white" />
+              <div className="rounded-xl bg-transparent">
+                <Icon type='plain' color='hsl(var(--primary))' name={`Magic`} className='h-5 w-5' />
               </div>
               <div>
                 <h3 className="font-semibold text-foreground dark:text-foreground">Agent Info</h3>
@@ -227,8 +255,8 @@ const ConversationDetailsPanel = ({
           {/* Customer Information */}
           <div className="border rounded-lg bg-white dark:bg-neutral-800 dark:border-0 px-4 py-4">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
-                <User className="h-4 w-4 text-white" />
+              <div className="rounded-xl bg-transparent">
+                <Icon type='plain' color='hsl(var(--primary))' name={`Person`} className='h-5 w-5' />
               </div>
               <div>
                 <h3 className="font-semibold text-foreground dark:text-foreground">Customer Info</h3>
@@ -252,7 +280,7 @@ const ConversationDetailsPanel = ({
               
               {hasSatisfactionData && (
                 <div>
-                  <h4 className="font-medium text-foreground dark:text-foreground mb-1 flex items-center gap-2 text-sm">
+                  <h4 className="font-medium text-foreground dark:text-foreground mb-2 flex items-center gap-2 text-sm">
               
                     Satisfaction
                   </h4>
@@ -266,8 +294,8 @@ const ConversationDetailsPanel = ({
           {hasSatisfactionData && (
             <div className="border rounded-lg bg-white dark:bg-neutral-800 dark:border-0 px-4 py-4">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
-                    <TrendingUp className="h-4 w-4 text-white" />
+                  <div className="rounded-xl bg-transparent">
+                    <Icon type='plain' color='hsl(var(--primary))' name={`Chart`} className='h-5 w-5' />
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground dark:text-foreground">Customer Sentiment Journey</h3>
@@ -275,9 +303,9 @@ const ConversationDetailsPanel = ({
                 </div>
 
                 <div className="text-center py-4">
-                  <div className="scale-90">
+                  <div className="scale-95 origin-left">
                     <LineChart
-                      width={400}
+                      width={350}
                       height={300}
                       data={chartData}
                       margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
@@ -294,13 +322,14 @@ const ConversationDetailsPanel = ({
                         ticks={[0, 2, 4, 6, 8, 10]}
                       />
                       <Tooltip contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))',
+                        backgroundColor: 'hsl(var(--card))',
                         border: '1px solid hsl(var(--border))',
                         borderRadius: '12px',
                         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                        color: 'hsl(var(--foreground))'
+                        color: 'hsl(var(--foreground))',
+                        transform: 'scale(0.75)'
                       }} />
-                      <Legend verticalAlign="top" height={36} />
+                      {/* <Legend verticalAlign="top" height={36} /> */}
                       <Line
                         type="monotone"
                         dataKey="score"
@@ -327,8 +356,8 @@ const ConversationDetailsPanel = ({
           {handoffData.handoffs.length > 0 && (
             <div className="border rounded-lg bg-white dark:bg-neutral-800 dark:border-0 px-4 py-4">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600">
-                  <MessageSquare className="h-4 w-4 text-white" />
+                <div className="rounded-xl bg-transparent">
+                  <Icon type='plain' color='hsl(var(--primary))' name={`Users`} className='h-5 w-5' />
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground dark:text-foreground">Agent Handoffs</h3>
@@ -346,8 +375,8 @@ const ConversationDetailsPanel = ({
           {handoffData.allAgents.length > 1 && (
             <div className="border rounded-lg bg-white dark:bg-neutral-800 dark:border-0 px-4 py-4">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600">
-                  <Tag className="h-4 w-4 text-white" />
+                <div className="rounded-xl bg-transparent">
+                  <Icon type='plain' color='hsl(var(--primary))' name={`Transaction`} className='h-5 w-5' />
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground dark:text-foreground">All Agents</h3>

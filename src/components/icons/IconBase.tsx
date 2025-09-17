@@ -3,8 +3,6 @@ import Person from './library/Person';
 import Chat from './library/Chat';
 import Home from './library/Home';
 import Book from './library/Book';
-import Earth from './library/Earth';
-import Discover from './library/Discover';
 import Help from './library/Help';
 import Team from './library/Team';
 import Love from './library/Love';
@@ -22,6 +20,19 @@ import Typing from './library/Typing';
 import SheetFile from './library/SheetFile';
 import WebPage from './library/WebPage';
 import TextFile from './library/TextFile';
+import Cog from './library/Cog';
+import Extension from './library/Extension';
+import Receipt from './library/Receipt';
+import Moon from './library/Moon';
+import Sun from './library/Sun';
+import Logout from './library/Logout';
+import Adjust from './library/Adjust';
+import Drop from './library/Drop';
+import Scatter from './library/Scatter';
+import Bulb from './library/Bulb';
+import Bin from './library/Bin';
+import Edit from './library/Edit';
+import Copy from './library/Copy';
 
 const IconBase = ({ type, className = '', iconType, color }) => {
 
@@ -36,10 +47,10 @@ const IconBase = ({ type, className = '', iconType, color }) => {
         return <Home type={type} className={baseClass} color={color} />;
       case 'Book':
         return <Book type={type} className={baseClass} color={color} />;
-      case 'Earth':
-        return <Earth type={type} className={baseClass} color={color} />;
-      case 'Discover':
-        return <Discover type={type} className={baseClass} color={color} />;
+      case 'Extension':
+        return <Extension type={type} className={baseClass} color={color} />;
+      case 'Cog':
+        return <Cog type={type} className={baseClass} color={color} />;
       case 'Help':
         return <Help type={type} className={baseClass} color={color} />;
       case 'Team':
@@ -68,12 +79,34 @@ const IconBase = ({ type, className = '', iconType, color }) => {
         return <Bubbles type={type} className={baseClass} color={color} />;
       case 'TextFile':
         return <TextFile type={type} className={baseClass} color={color} />;
-      case 'Webpage':
+      case 'WebPage':
         return <WebPage type={type} className={baseClass} color={color} />;
       case 'SheetFile':
         return <SheetFile type={type} className={baseClass} color={color} />;
       case 'Typing':
         return <Typing type={type} className={baseClass} color={color} />;
+      case 'Receipt':
+        return <Receipt type={type} className={baseClass} color={color} />;
+      case 'Sun':
+        return <Sun type={type} className={baseClass} color={color} />;
+      case 'Moon':
+        return <Moon type={type} className={baseClass} color={color} />;
+      case 'Logout':
+        return <Logout type={type} className={baseClass} color={color} />;
+      case 'Adjust':
+        return <Adjust type={type} className={baseClass} color={color} />;
+      case 'Drop':
+        return <Drop type={type} className={baseClass} color={color} />;
+      case 'Scatter':
+        return <Scatter type={type} className={baseClass} color={color} />;
+      case 'Bulb':
+        return <Bulb type={type} className={baseClass} color={color} />;
+      case 'Bin':
+        return <Bin type={type} className={baseClass} color={color} />;
+      case 'Copy':
+        return <Copy type={type} className={baseClass} color={color} />;
+      case 'Edit':
+        return <Edit type={type} className={baseClass} color={color} />;
       default:
         return null;
     }

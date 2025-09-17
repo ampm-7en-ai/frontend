@@ -1061,15 +1061,10 @@ export const ChatboxPreview = ({
               )}
             </div>
             {/* Online indicator */}
-            {isConnected && (
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
-            )}
+           
           </div>
           <div className="flex flex-col">
             <span className="font-semibold text-white text-lg drop-shadow-sm" style={{color: secondaryColor}}>{chatbotName}</span>
-            <span className="text-white/80 text-sm" style={{color: `${secondaryColor}80`}}>
-              {isConnected ? 'Online' : 'Connecting...'}
-            </span>
           </div>
         </div>
         

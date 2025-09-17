@@ -363,8 +363,8 @@ const FolderSources = () => {
             </div>
           ) : filteredSources.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/30 flex items-center justify-center">
-                <FileText className="h-8 w-8 text-muted-foreground" />
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
+                <Icon name={`TextFile`} type='plain' color='hsl(var(--primary))' className='w-8 h-8' />
               </div>
               <h3 className="text-lg font-medium text-foreground mb-2">
                 {sources.length === 0 ? 'No knowledge sources found' : 'No sources match your filter'}

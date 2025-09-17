@@ -27,7 +27,7 @@ const channelData = [
   { name: 'WhatsApp', value: 40, color: '#25D366' },
   { name: 'Website', value: 25, color: '#4f46e5' },
   { name: 'Mobile App', value: 20, color: '#0ea5e9' },
-  { name: 'Instagram', value: 10, color: '#e11d48' },
+  { name: 'Instagram', value: 10, color: '#f06425' },
   { name: 'Other', value: 5, color: '#6b7280' },
 ];
 

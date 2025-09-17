@@ -14,6 +14,7 @@ import { useFloatingToast } from '@/context/FloatingToastContext';
 import MessageRevisionModal from './MessageRevisionModal';
 import { StyledMarkdown } from '@/components/ui/styled-markdown';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { Icon } from '../icons';
 
 interface MessageProps {
   message: any;
@@ -107,7 +108,7 @@ const MessageList = ({
         id={`message-${message.id}`}
         className="flex justify-center my-3"
       >
-        <div className="bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 rounded-lg px-3 py-1.5 text-xs text-slate-600 dark:text-slate-400 max-w-[80%] flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
+        <div className="bg-neutral-100/80 dark:bg-neutral-800/80 border border-neutral-200/60 dark:border-neutral-700/60 rounded-lg px-3 py-1.5 text-xs text-neutral-600 dark:text-neutral-400 max-w-[80%] flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
           <Info className="h-3.5 w-3.5 text-neutral-500 dark:text-neutral-400" />
           <div>{message.content}</div>
         </div>
@@ -143,7 +144,7 @@ const MessageList = ({
     );
   }
 
-  const userMessageStyle = "bg-primary text-primary-foreground dark:bg-[#f06425] dark:text-white";
+  const userMessageStyle = "text-primary-foreground bg-foreground dark:bg-neutral-600 dark:text-white";
   
   return (
     <>
@@ -212,15 +213,15 @@ const MessageList = ({
                 className={cn(
                   "p-3 transition-all max-w-full",
                   "rounded-2xl rounded-tl-sm bg-white dark:bg-neutral-800/90 backdrop-blur-sm",
-                  "border border-slate-200/60 dark:border-none shadow-none"
+                  "border border-neutral-200/60 dark:border-none shadow-none"
                 )}
               >
-                <div className="prose-sm max-w-none break-words text-slate-800 dark:text-slate-200">
+                <div className="prose-sm max-w-none break-words text-neutral-800 dark:text-neutral-200">
                   {typeof message.content === 'string' && (
                     <StyledMarkdown
                       key={`markdown-${message.id}-${theme}`}
                       content={message.content}
-                      primaryColor={theme === 'dark' ? '#60a5fa' : '#2563eb'}
+                      primaryColor={theme === 'dark' ? '#f06425' : '#f06425'}
                       isDarkTheme={theme === 'dark'}
                     />
                   )}
@@ -245,7 +246,7 @@ const MessageList = ({
                         onClick={handleCopy} 
                         size="icon" 
                         variant="ghost" 
-                        className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
+                        className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-neutral-800/80 backdrop-blur-sm">
                         <Copy className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
                       </Button>
                     </TooltipTrigger>
@@ -262,7 +263,7 @@ const MessageList = ({
                         onClick={handleRevise}
                         size="icon" 
                         variant="ghost" 
-                        className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
+                        className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-neutral-800/80 backdrop-blur-sm">
                         <RotateCcw className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
                       </Button>
                     </TooltipTrigger>
@@ -279,7 +280,7 @@ const MessageList = ({
                         onClick={() => handleFeedback('helpful')}
                         size="icon" 
                         variant="ghost" 
-                        className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
+                        className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-neutral-800/80 backdrop-blur-sm">
                         <ThumbsUp className={cn(
                           "h-4 w-4",
                           feedback === 'helpful' 
@@ -301,7 +302,7 @@ const MessageList = ({
                         onClick={() => handleFeedback('unhelpful')}
                         size="icon" 
                         variant="ghost" 
-                        className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 backdrop-blur-sm">
+                        className="h-8 w-8 rounded-full hover:bg-white/80 dark:hover:bg-neutral-800/80 backdrop-blur-sm">
                         <ThumbsDown className={cn(
                           "h-4 w-4",
                           feedback === 'unhelpful' 
@@ -321,9 +322,9 @@ const MessageList = ({
         </div>
         
         {message.sender === 'user' && (
-          <Avatar className="h-8 w-8 ml-3 mt-0.5 bg-slate-300 dark:bg-slate-600 p-[1px]">
-            <AvatarFallback className="text-gray-500 text-sm font-medium bg-slate-100 dark:bg-neutral-700">
-              <User className="h-4 w-4" />
+          <Avatar className="h-8 w-8 ml-3 mt-0.5 bg-transparent p-[1px]">
+            <AvatarFallback className="text-gray-500 text-sm font-medium bg-transparent">
+              <Icon name="Person" type='plain' className='h-5 w-5' color='hsl(var(--primary))' />
             </AvatarFallback>
           </Avatar>
         )}

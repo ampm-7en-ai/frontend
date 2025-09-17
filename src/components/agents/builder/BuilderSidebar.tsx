@@ -14,21 +14,34 @@ import { KnowledgeActionDropdown } from './KnowledgeActionDropdown';
 import { removeKnowledgeSourceFromAgentCache } from '@/utils/knowledgeSourceCacheUtils';
 import { Icon } from '@/components/icons';
 
-const getIconForType = (type: string) => {
-  switch (type?.toLowerCase()) {
-    case 'docs':
-      return FileText;
-    case 'website':
-      return Globe;
-    case 'csv':
-      return FileSpreadsheet;
-    case 'plain_text':
-      return File;
-    case 'third_party':
-      return Layers;
-    default:
-      return File;
-  }
+const getIconForType = (source) => {
+  if(source.type === 'custom') {
+        const { mimeType, size} = source.metadata;
+        switch (mimeType) {
+          case 'application/vnd.google-apps.document':
+            return <Icon name="TextFile" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
+          case 'application/vnd.google-apps.spreadsheet':
+            return <Icon name="SheetFile" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
+          default:
+            return <File className="h-4 w-4 text-white" />;
+            }
+      }else {
+        switch (source.type) {
+          case 'docs':
+            return <Icon name="TextFile" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
+          case 'website':
+            return <Icon name="WebPage" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
+          case 'csv':
+            return <Icon name="SheetFile" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
+          case 'plain_text':
+            return <Icon name="Typing" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
+          case 'third_party':
+            return <Icon name="TextFile" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
+          default:
+            return <Icon name="TextFile" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
+        }
+      }
+   
 };
 
 const getStatusBadge = (status) => {
@@ -46,6 +59,7 @@ const getStatusBadge = (status) => {
 };
 
 const getIconBackground = (type: string) => {
+  return 'bg-transparent';
   switch (type?.toLowerCase()) {
     case 'docs':
       return 'bg-gradient-to-br from-blue-500 to-blue-600';
@@ -66,13 +80,12 @@ const KnowledgeSourceCard = ({ source, onDelete }: {
   source: any, 
   onDelete: () => void
 }) => {
-  const IconComponent = getIconForType(source.type);
   
   return (
     <div className="group border dark:border-0 rounded-lg bg-white dark:bg-neutral-800/70 hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition-all duration-200">
       <div className="flex items-center gap-3 p-3">
         <div className={`flex items-center justify-center w-6 h-6 rounded-lg flex-shrink-0 ${getIconBackground(source.type)}`}>
-          <IconComponent className="h-3 w-3 text-white" />
+          {getIconForType(source)}
         </div>
         
         <div className="flex-1 min-w-0">
@@ -201,7 +214,7 @@ export const BuilderSidebar = () => {
         <div className="flex-1">
           <div className="p-4 space-y-3">
             {[...Array(4)].map((_, index) => (
-              <div key={index} className="border border-border rounded-lg bg-transparent dark:border-gray-600 p-3">
+              <div key={index} className="rounded-lg bg-transparent border dark:border-0 dark:bg-neutral-900 p-3">
                 <div className="flex items-center gap-2">
                   <Skeleton className="h-8 w-8 rounded-md" />
                   <div className="flex-1 space-y-2">

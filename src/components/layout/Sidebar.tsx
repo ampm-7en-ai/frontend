@@ -120,12 +120,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   ];
 
   const adminItems: SidebarItem[] = [
-    { id: 'conversations', label: 'Conversations', href: '/conversations', icon: "Chat", permission: 'conversation' },
+    { id: 'conversations', label: 'Conversations', href: '/conversations', icon: "Bubbles", permission: 'conversation' },
     { 
       id: 'agents', 
       label: 'AI Agents', 
       href: '/agents', 
-      icon: "Person", 
+      icon: "Magic", 
       permission: 'agents',
       showPlusOnHover: true,
       plusAction: handleAgentPlus
@@ -134,7 +134,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       id: 'knowledge', 
       label: 'Knowledge', 
       href: '/knowledge', 
-      icon: "Book", 
+      icon: "Folder", 
       permission: 'knowledgebase',
       showPlusOnHover: true,
       plusAction: handleKnowledgePlus
@@ -143,11 +143,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       id: 'integrations', 
       label: 'Integrations', 
       href: '/integrations', 
-      icon: "Earth", 
+      icon: "Extension", 
       permission: 'settings',
       highlight: true 
     },
-    { id: 'settings', label: 'Settings', href: '/settings', icon: "Discover", permission: 'settings' },
+    { id: 'settings', label: 'Settings', href: '/settings', icon: "Cog", permission: 'settings' },
     { id: 'help', label: 'Help & Support', href: '#', icon: "Help" },
   ];
 
@@ -163,7 +163,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       id: 'platform',
       label: 'Platform Settings', 
       href: '/settings', 
-      icon: "Discover",
+      icon: "Cog",
       permission: 'dashboard', 
       children: [
         { label: 'General', href: '/settings/platform/general',permission: 'dashboard' },
@@ -277,10 +277,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     to={item.href}
                     onClick={item.id === "help" ? () => handlehelp("https://docs.7en.ai/") : null}
                     className="flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-gray-100"
-                    style={{paddingLeft:isCollapsed && "9px"}}
+                    style={{paddingLeft:isCollapsed && "11px"}}
                   >
                     <div className="flex items-center">
-                      <Icon name={item.icon} type='gradient' className={`w-5 h-5 ${theme === 'dark' ? 'dark' : ''} ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0 ${item.highlight ? 'text-white dark:text-white' : ''}`} />
+                      <Icon name={item.icon} type='plain' color='hsl(var(--primary))' className={`w-4 h-4 ${theme === 'dark' ? 'dark' : ''} ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0 ${item.highlight ? 'text-white dark:text-white' : ''}`} />
                       {!isCollapsed && (
                         <span className={`${item.highlight ? 'font-medium' : ''}`}>
                           {item.label}
@@ -356,13 +356,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                         <DropdownMenuItem 
                         className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:!bg-neutral-700"
                         onClick={() => navigate('/settings')}>
-                          <User className="h-4 w-4" />
+                          <Icon type='plain' name={`Person`} color='hsl(var(--primary))'className="h-4 w-4" /> 
                           Profile
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                         className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:!bg-neutral-700"
                         onClick={() => navigate('/settings/business/payment-history')}>
-                          <CreditCard className="h-4 w-4" />
+                          <Icon type='plain' name={`Receipt`} color='hsl(var(--primary))'className="h-4 w-4" /> 
                           Billing
                         </DropdownMenuItem>
                       </>
@@ -380,12 +380,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                   >
                     {theme === 'light' ? (
                       <>
-                        <Moon className="h-4 w-4" />
+                        <Icon type='plain' name={`Moon`} color='hsl(var(--primary))'className="h-4 w-4" /> 
                         Switch to Dark
                       </>
                     ) : (
                       <>
-                        <Sun className="h-4 w-4" />
+                        <Icon type='plain' name={`Sun`} color='hsl(var(--primary))'className="h-4 w-4" /> 
                         Switch to Light
                       </>
                     )}
@@ -395,7 +395,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:!bg-neutral-700"
                     onClick={logout}
                   >
-                    <LogOut className="h-4 w-4" />
+                    <Icon type='plain' name={`Logout`} color='hsl(var(--primary))'className="h-4 w-4" /> 
                     Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -432,11 +432,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     </p>
                   </div>
                   <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:!bg-neutral-700">
-                    <User className="h-4 w-4" />
+                    
+                    <Icon type='plain' name={`Person`} color='hsl(var(--primary))'className="h-4 w-4" /> 
                     Profile
                   </DropdownMenuItem>
                   <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:!bg-neutral-700">
-                    <CreditCard className="h-4 w-4" />
+                    <Icon type='plain' name={`Receipt`} color='hsl(var(--primary))'className="h-4 w-4" /> 
                     Billing
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="dark:bg-neutral-700" />
@@ -450,12 +451,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                   >
                     {theme === 'light' ? (
                       <>
-                        <Moon className="h-4 w-4" />
+                       <Icon type='plain' name={`Moon`} color='hsl(var(--primary))'className="h-4 w-4" /> 
                         Switch to Dark
                       </>
                     ) : (
                       <>
-                        <Sun className="h-4 w-4" />
+                        <Icon type='plain' name={`Sun`} color='hsl(var(--primary))'className="h-4 w-4" /> 
                         Switch to Light
                       </>
                     )}
@@ -465,7 +466,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:!bg-neutral-700"
                     onClick={logout}
                   >
-                    <LogOut className="h-4 w-4" />
+                    <Icon type='plain' name={`Logout`} color='hsl(var(--primary))'className="h-4 w-4" /> 
                     Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>

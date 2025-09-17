@@ -20,6 +20,7 @@ import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useNotifications } from '@/context/NotificationContext';
 import CleanupDialog from '@/components/agents/CleanupDialog';
 import { agentApi } from '@/utils/api-config';
+import { Icon } from '@/components/icons';
 
 interface BuilderToolbarProps {
   onTrainingStateChange?: (isTraining: boolean) => void;
@@ -208,8 +209,8 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
           <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
           
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <span className="text-white text-sm font-bold">A</span>
+            <div className="w-8 h-8 rounded-lg bg-transparent flex items-center justify-center">
+              <Icon name={`Magic`} className='w-5 h-5'/>
             </div>
             <span className="font-medium text-gray-900 dark:text-gray-100">
               {agentData.name || 'Untitled Agent'}

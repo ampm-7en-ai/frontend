@@ -68,10 +68,11 @@ export const KnowledgeActionDropdown = () => {
         variant="outline"
         size="sm"
         icon={Plus}
-        iconOnly
-        className="h-9 w-9"
+        className="h-7 !px-2"
         onClick={() => setShowUploadModal(true)}
-      />
+      >
+        Add
+      </ModernButton>
 
       {/* Add Sources Modal */}
       {

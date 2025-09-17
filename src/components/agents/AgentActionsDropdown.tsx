@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Icon } from '../icons';
 
 interface AgentActionsDropdownProps {
   agentId: string;
@@ -205,23 +206,23 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, agent }: AgentActi
               className={`flex items-center gap-3 ${
                 option.value === 'delete'
                   ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                  : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
               }`}
             >
               <div className={`p-1 rounded-lg ${
                 option.value === 'delete'
-                  ? 'bg-gradient-to-br from-red-500 to-red-600'
+                  ? 'bg-transparent'
                   : option.value === 'duplicate'
-                  ? 'bg-gradient-to-br from-green-500 to-green-600'
-                  : 'bg-gradient-to-br from-blue-500 to-blue-600'
+                  ? 'bg-transparent'
+                  : 'bg-transparent'
               }`}>
-                {option.value === 'configure' && <Edit className="h-3 w-3 text-white" />}
-                {option.value === 'duplicate' && <Copy className="h-3 w-3 text-white" />}
-                {option.value === 'delete' && <Trash2 className="h-3 w-3 text-white" />}
+                {option.value === 'configure' && <Icon name={`Edit`} type='plain' className='h-5 w-5' color='hsl(var(--primary))' />}
+                {option.value === 'duplicate' && <Icon name={`Copy`} type='plain' className='h-5 w-5' color='hsl(var(--primary))' />}
+                {option.value === 'delete' && <Icon name={`Bin`} type='plain' className='h-5 w-5' color='hsl(var(--primary))' />}
               </div>
               <div className="flex-1 text-left">
                 <div className="font-medium">{option.label}</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">{option.description}</div>
+                <div className="text-xs text-neutral-500 dark:text-neutral-400">{option.description}</div>
               </div>
             </div>
           )}

@@ -24,6 +24,7 @@ import { agentApi, getAccessToken, getApiUrl } from '@/utils/api-config';
 import { Link } from 'react-router-dom';
 import { TICKETING_PROVIDERS_LOGOS } from '@/utils/integrationUtils';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Icon } from '@/components/icons';
 
 export const GuidelinesPanel = () => {
   const { state, updateAgentData, saveAgent } = useBuilder();
@@ -437,8 +438,8 @@ export const GuidelinesPanel = () => {
 
   if (showSkeleton) {
     return (
-      <div className="w-full h-full bg-white dark:bg-neutral-900">
-        <div className="p-4 border-b border-gray-100 dark:border-neutral-500">
+      <div className="w-full h-full bg-white dark:bg-transparent">
+        <div className="p-4 border-b border-neutral-100 dark:border-neutral-500">
           <div className="flex items-center gap-2">
             <Skeleton className="h-6 w-48" />
           </div>
@@ -549,8 +550,8 @@ export const GuidelinesPanel = () => {
 
   return (
     <div className="w-full h-full bg-white dark:bg-[hsla(0,0%,0%,0.95)]">
-      <div className="p-4 border-b border-gray-100 dark:border-gray-800">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+      <div className="p-4 border-b border-neutral-100 dark:border-neutral-800">
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
           Configuration & Guidelines
         </h2>
       </div>
@@ -559,7 +560,7 @@ export const GuidelinesPanel = () => {
         <div className="p-4">
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Agent Category</Label>
+              <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Agent Category</Label>
               
                 <div className="mt-1.5">
                   <ModernDropdown
@@ -582,8 +583,8 @@ export const GuidelinesPanel = () => {
             <AccordionItem value="basic" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-0 backdrop-blur-sm px-4 shadow-none">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-                    <Bot className="h-4 w-4 text-white" />
+                  <div className="p-2 pl-1 rounded-xl bg-transparent">
+                    <Icon type='plain' color='hsl(var(--primary))' name={`Cog`} className='h-5 w-5' />
                   </div>
                   <span className="text-sm font-medium">Basic Settings</span>
                 </div>
@@ -591,35 +592,35 @@ export const GuidelinesPanel = () => {
               <AccordionContent className="pb-4 px-1">
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">Agent Name</Label>
+                    <Label htmlFor="name" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Agent Name</Label>
                     <Input
                       id="name"
                       value={agentData.name}
                       onChange={(e) => updateAgentData({ name: e.target.value })}
                       placeholder="Enter agent name"
-                      className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700"
+                      className="mt-1.5 h-10 rounded-xl border-neutral-200 dark:border-neutral-700"
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="chatbotName" className="text-sm font-medium text-gray-700 dark:text-gray-300">Chatbot Display Name</Label>
+                    <Label htmlFor="chatbotName" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Chatbot Display Name</Label>
                     <Input
                       id="chatbotName"
                       value={agentData.chatbotName}
                       onChange={(e) => updateAgentData({ chatbotName: e.target.value })}
                       placeholder="Enter chatbot name"
-                      className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700"
+                      className="mt-1.5 h-10 rounded-xl border-neutral-200 dark:border-neutral-700"
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">Description</Label>
+                    <Label htmlFor="description" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Description</Label>
                     <Textarea
                       id="description"
                       value={agentData.description}
                       onChange={(e) => updateAgentData({ description: e.target.value })}
                       placeholder="Describe your agent's purpose"
-                      className="mt-1.5 min-h-[80px] rounded-xl border-gray-200 dark:border-gray-700"
+                      className="mt-1.5 min-h-[80px] rounded-xl border-neutral-200 dark:border-neutral-700"
                     />
                   </div>
                 </div>
@@ -630,8 +631,8 @@ export const GuidelinesPanel = () => {
             <AccordionItem value="model" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-0 backdrop-blur-sm px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-                    <Zap className="h-4 w-4 text-white" />
+                  <div className="p-2 pl-1 rounded-xl bg-transparent pl-2">
+                   <Icon type='plain' color='hsl(var(--primary))' name={`Adjust`} className='h-5 w-5' />
                   </div>
                   <span className="text-sm font-medium">Model Settings</span>
                   
@@ -641,13 +642,13 @@ export const GuidelinesPanel = () => {
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Model</Label>
+                      <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Model</Label>
                     </div>
                     
                     {modelsLoading ? (
-                      <div className="flex items-center gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                      <div className="flex items-center gap-2 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
                         <LoadingSpinner size="sm" />
-                        <span className="text-sm text-gray-500">Loading models...</span>
+                        <span className="text-sm text-neutral-500">Loading models...</span>
                       </div>
                     ) : (
                       <>
@@ -666,7 +667,7 @@ export const GuidelinesPanel = () => {
                   </div>
 
                   <div>
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Temperature: {agentData.temperature}</Label>
+                    <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Temperature: {agentData.temperature}</Label>
                     <Slider
                       value={[agentData.temperature]}
                       onValueChange={(value) => updateAgentData({ temperature: value[0] })}
@@ -678,7 +679,7 @@ export const GuidelinesPanel = () => {
                   </div>
 
                   {/* <div>
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Max Tokens</Label>
+                    <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Max Tokens</Label>
                     <div className="mt-1.5">
                       <ModernDropdown
                         value={agentData.maxTokens?.toString() || '8000'}
@@ -696,8 +697,8 @@ export const GuidelinesPanel = () => {
             <AccordionItem value="appearance" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-0 backdrop-blur-sm px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
-                    <Palette className="h-4 w-4 text-white" />
+                  <div className="p-2 pl-1 rounded-xl bg-transparent">
+                    <Icon type='plain' color='hsl(var(--primary))' name={`Drop`} className='h-5 w-5' />
                   </div>
                   <span className="text-sm font-medium">Appearance</span>
                 </div>
@@ -705,43 +706,43 @@ export const GuidelinesPanel = () => {
               <AccordionContent className="pb-4 px-1">
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="primaryColor" className="text-sm font-medium text-gray-700 dark:text-gray-300">Primary Color</Label>
+                    <Label htmlFor="primaryColor" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Primary Color</Label>
                     <div className="flex gap-3 mt-1.5">
                       <Input
                         id="primaryColor"
                         type="color"
                         value={agentData.primaryColor}
                         onChange={(e) => updateAgentData({ primaryColor: e.target.value })}
-                        className="w-12 h-10 p-1 rounded-xl border-gray-200 dark:border-gray-700"
+                        className="w-12 h-10 p-1 rounded-xl border-neutral-200 dark:border-neutral-700"
                       />
                       <Input
                         value={agentData.primaryColor}
                         onChange={(e) => updateAgentData({ primaryColor: e.target.value })}
-                        className="flex-1 h-10 rounded-xl border-gray-200 dark:border-gray-700"
+                        className="flex-1 h-10 rounded-xl border-neutral-200 dark:border-neutral-700"
                       />
                     </div>
                   </div>
                   
                   <div>
-                    <Label htmlFor="secondaryColor" className="text-sm font-medium text-gray-700 dark:text-gray-300">Secondary Color</Label>
+                    <Label htmlFor="secondaryColor" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Secondary Color</Label>
                     <div className="flex gap-3 mt-1.5">
                       <Input
                         id="secondaryColor"
                         type="color"
                         value={agentData.secondaryColor}
                         onChange={(e) => updateAgentData({ secondaryColor: e.target.value })}
-                        className="w-12 h-10 p-1 rounded-xl border-gray-200 dark:border-gray-700"
+                        className="w-12 h-10 p-1 rounded-xl border-neutral-200 dark:border-neutral-700"
                       />
                       <Input
                         value={agentData.secondaryColor}
                         onChange={(e) => updateAgentData({ secondaryColor: e.target.value })}
-                        className="flex-1 h-10 rounded-xl border-gray-200 dark:border-gray-700"
+                        className="flex-1 h-10 rounded-xl border-neutral-200 dark:border-neutral-700"
                       />
                     </div>
                   </div>
                   
                   <div>
-                    <Label htmlFor="fontFamily" className="text-sm font-medium text-gray-700 dark:text-gray-300">Font Family</Label>
+                    <Label htmlFor="fontFamily" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Font Family</Label>
                     <div className="mt-1.5">
                       <ModernDropdown
                         value={agentData.fontFamily || 'Inter'}
@@ -753,7 +754,7 @@ export const GuidelinesPanel = () => {
                   </div>
                   
                    <div>
-                     <Label htmlFor="position" className="text-sm font-medium text-gray-700 dark:text-gray-300">Chat Button Position</Label>
+                     <Label htmlFor="position" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Chat Button Position</Label>
                      <div className="mt-1.5">
                        <ModernDropdown
                          value={agentData.position || 'bottom-right'}
@@ -765,21 +766,21 @@ export const GuidelinesPanel = () => {
                    </div>
                    
                    <div>
-                     <Label htmlFor="buttonText" className="text-sm font-medium text-gray-700 dark:text-gray-300">Chat Button Text</Label>
+                     <Label htmlFor="buttonText" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Chat Button Text</Label>
                      <Input
                        id="buttonText"
                        value={agentData.buttonText}
                        onChange={(e) => updateAgentData({ buttonText: e.target.value })}
                        placeholder="Leave empty for icon-only button"
-                       className="mt-1.5 h-10 rounded-xl border-gray-200 dark:border-gray-700"
+                       className="mt-1.5 h-10 rounded-xl border-neutral-200 dark:border-neutral-700"
                      />
                    </div>
                    
                    <div>
-                     <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Avatar Image</Label>
+                     <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Avatar Image</Label>
                      <div className="mt-1.5 space-y-3">
                        {(agentData.avatar || agentData.avatarUrl) && (
-                         <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-700">
+                         <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-neutral-200 dark:border-neutral-700">
                            <img 
                              src={agentData.avatar || agentData.avatarUrl} 
                              alt="Avatar preview" 
@@ -805,7 +806,7 @@ export const GuidelinesPanel = () => {
                            variant="outline"
                            onClick={() => fileInputRef.current?.click()}
                            disabled={isUploadingAvatar || isRemovingAvatar}
-                           className="flex items-center gap-2 h-10 rounded-xl border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                           className="flex items-center gap-2 h-10 rounded-xl border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700"
                          >
                            {isUploadingAvatar ? (
                              <LoadingSpinner size="sm" />
@@ -820,7 +821,7 @@ export const GuidelinesPanel = () => {
                              variant="outline"
                              onClick={handleRemoveAvatar}
                              disabled={isRemovingAvatar}
-                             className="h-10 rounded-xl border-gray-200 dark:border-gray-700 hover:!bg-red-50 dark:hover:!bg-red-900/20 !text-red-600"
+                             className="h-10 rounded-xl border-neutral-200 dark:border-neutral-700 hover:!bg-red-50 dark:hover:!bg-red-900/20 !text-red-600"
                            >
                              {isRemovingAvatar ? (
                                <LoadingSpinner size="sm" />
@@ -834,13 +835,13 @@ export const GuidelinesPanel = () => {
                    </div>
                    
                    <div>
-                     <Label htmlFor="welcomeMessage" className="text-sm font-medium text-gray-700 dark:text-gray-300">Disclaimer Message</Label>
+                     <Label htmlFor="welcomeMessage" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Disclaimer Message</Label>
                      <Textarea
                        id="welcomeMessage"
                        value={agentData.welcomeMessage}
                        onChange={(e) => updateAgentData({ welcomeMessage: e.target.value })}
                        placeholder="Enter your message"
-                       className="mt-1.5 min-h-[80px] rounded-xl border-gray-200 dark:border-gray-700"
+                       className="mt-1.5 min-h-[80px] rounded-xl border-neutral-200 dark:border-neutral-700"
                      />
                    </div>
                 </div>
@@ -851,8 +852,8 @@ export const GuidelinesPanel = () => {
             <AccordionItem value="guidelines" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-0 backdrop-blur-sm px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600">
-                    <Target className="h-4 w-4 text-white" />
+                  <div className="p-2 pl-1 rounded-xl bg-transparent">
+                    <Icon type='plain' color='hsl(var(--primary))' name={`Scatter`} className='h-5 w-5' />
                   </div>
                   <span className="text-sm font-medium">Behavior Guidelines</span>
                 </div>
@@ -861,11 +862,11 @@ export const GuidelinesPanel = () => {
                 <div className="space-y-6">
                   {/* Agent Persona Selection */}
                   <div>
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Agent Persona Type</Label>
+                    <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Agent Persona Type</Label>
                     { promptsLoading ? (
-                       <div className="flex items-center gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                       <div className="flex items-center gap-2 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
                         <LoadingSpinner size="sm" />
-                        <span className="text-sm text-gray-500">Loading models...</span>
+                        <span className="text-sm text-neutral-500">Loading models...</span>
                       </div>
                     ) : (
                       <div className="mt-1.5">
@@ -883,7 +884,7 @@ export const GuidelinesPanel = () => {
                   {/* Simplified System Prompt */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Prompt</Label>
+                      <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Prompt</Label>
                       <div className="flex items-center gap-2">
                         <ModernButton
                           variant="ghost"
@@ -906,7 +907,7 @@ export const GuidelinesPanel = () => {
                               size="sm"
                               icon={Expand}
                               iconOnly
-                              className="h-8 w-8 p-0 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              className="h-8 w-8 p-0 rounded-lg text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700"
                             />
                           }
                         />
@@ -916,7 +917,7 @@ export const GuidelinesPanel = () => {
                       value={agentData.systemPrompt || ''}
                       onChange={(e) => handleSystemPromptChange(e.target.value)}
                       placeholder="Define how your agent behaves..."
-                      className="min-h-[100px] rounded-xl border-gray-200 dark:border-gray-700"
+                      className="min-h-[100px] rounded-xl border-neutral-200 dark:border-neutral-700"
                     />
                   </div>
 
@@ -929,7 +930,7 @@ export const GuidelinesPanel = () => {
                             value={guideline}
                             onChange={(e) => updateGuideline('dos', index, e.target.value)}
                             placeholder="Enter a do guideline"
-                            className="h-10 rounded-xl border-gray-200 dark:border-gray-700"
+                            className="h-10 rounded-xl border-neutral-200 dark:border-neutral-700"
                           />
                           <ModernButton
                             variant="ghost"
@@ -962,7 +963,7 @@ export const GuidelinesPanel = () => {
                             value={guideline}
                             onChange={(e) => updateGuideline('donts', index, e.target.value)}
                             placeholder="Enter a don't guideline"
-                            className="h-10 rounded-xl border-gray-200 dark:border-gray-700"
+                            className="h-10 rounded-xl border-neutral-200 dark:border-neutral-700"
                           />
                           <ModernButton
                             variant="ghost"
@@ -995,8 +996,8 @@ export const GuidelinesPanel = () => {
                 <AccordionItem value="behavior" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-0 backdrop-blur-sm px-4">
                     <AccordionTrigger className="py-3 hover:no-underline">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
-                          <Settings className="h-4 w-4 text-white" />
+                        <div className="p-2 pl-1 rounded-xl bg-transparent">
+                          <Icon type='plain' color='hsl(var(--primary))' name={`Transaction`} className='h-5 w-5' />
                         </div>
                         <span className="text-sm font-medium">Escalation</span>
                       </div>
@@ -1005,13 +1006,13 @@ export const GuidelinesPanel = () => {
                       <div className="space-y-4">
                         
                         
-                        <div className="flex items-center flex-col p-4 rounded-lg bg-gray-50 dark:bg-neutral-800/70 dark:border-0 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+                        <div className="flex items-center flex-col p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/70 dark:border-0 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
                           <div className="flex items-center justify-between">
                             <div className="space-y-1">
-                              <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              <Label className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                                 Human Handoff
                               </Label>
-                              <p className="text-xs text-gray-600 dark:text-gray-400">
+                              <p className="text-xs text-neutral-600 dark:text-neutral-400">
                                 Allow the agent to create ticket for human support
                               </p>
                             </div>
@@ -1055,9 +1056,9 @@ export const GuidelinesPanel = () => {
                                       <>
                                       {
                                         IsAdding ? (
-                                          <div className="flex items-center gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                                          <div className="flex items-center gap-2 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
                                             <LoadingSpinner size="sm" />
-                                            <span className="text-sm text-gray-500">updating provider...</span>
+                                            <span className="text-sm text-neutral-500">updating provider...</span>
                                           </div>
                                         ) : (
                                           <ModernDropdown
@@ -1076,6 +1077,7 @@ export const GuidelinesPanel = () => {
                                           <Checkbox 
                                             id={`auto-reply`}
                                             checked={agentData.behavior?.autoTicketReply || false}
+                                            className='rounded-[4px]'
                                             onCheckedChange={(checked: any) => updateAgentData({ 
                                               behavior: { ...agentData.behavior, autoTicketReply: checked }
                                             })}
@@ -1091,7 +1093,7 @@ export const GuidelinesPanel = () => {
                                         </div>
                                       </>
                                     ) : (
-                                      <div className="text-left py-2 text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600/50 !pb-3 !pl-2 rounded-lg !mt-3">
+                                      <div className="text-left py-2 text-neutral-500 dark:text-neutral-400 bg-neutral-200 dark:bg-neutral-600/50 !pb-3 !pl-2 rounded-lg !mt-3">
                                         <p className="text-sm font-semibold p-0 pl-0">No provider integrated.</p>
                                         <p className="text-xs mt-1">Go to <Link to="/integrations" className="underline text-primary dark:text-white">Integrations</Link></p>
                                       </div>
@@ -1105,9 +1107,9 @@ export const GuidelinesPanel = () => {
                                         size="sm"
                                         onChange={(e) => updateAgentData({behavior: {...agentData.behavior, email: e.target.value}})}
                                         placeholder="Enter email address"
-                                        className="rounded-xl border-gray-200 dark:border-gray-700"
+                                        className="rounded-xl border-neutral-200 dark:border-neutral-700"
                                       />
-                                      <p className="text-[10px] leading-[10px] pt-2 text-gray-500 dark:text-gray-400">You will receive an email to this address if agent is unable to answer.</p>
+                                      <p className="text-[10px] leading-[10px] pt-2 text-neutral-500 dark:text-neutral-400">You will receive an email to this address if agent is unable to answer.</p>
                                     </div>
                                   )
                                 }
@@ -1117,12 +1119,12 @@ export const GuidelinesPanel = () => {
                           }
                         </div>
                         
-                        <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-neutral-800/70 dark:border-0 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+                        <div className="flex items-center justify-between p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/70 dark:border-0 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
                           <div className="space-y-1">
-                            <Label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            <Label className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                               AI to AI Handoff
                             </Label>
-                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                            <p className="text-xs text-neutral-600 dark:text-neutral-400">
                               Allow the agent to escalate to other AI agents when needed
                             </p>
                           </div>
@@ -1146,8 +1148,8 @@ export const GuidelinesPanel = () => {
             <AccordionItem value="suggestions" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-0 backdrop-blur-sm  px-4">
               <AccordionTrigger className="py-3 hover:no-underline">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
-                    <Target className="h-4 w-4 text-white" />
+                  <div className="p-2 pl-1 rounded-xl bg-transparent">
+                    <Icon type='plain' color='hsl(var(--primary))' name={`Bulb`} className='h-5 w-5' />
                   </div>
                   <span className="text-sm font-medium">Quick Suggestions</span>
                 </div>
@@ -1160,7 +1162,7 @@ export const GuidelinesPanel = () => {
                         value={suggestion}
                         onChange={(e) => updateSuggestion(index, e.target.value)}
                         placeholder="Enter a suggestion"
-                        className="h-10 rounded-xl border-gray-200 dark:border-gray-700"
+                        className="h-10 rounded-xl border-neutral-200 dark:border-neutral-700"
                       />
                       <ModernButton
                         variant="ghost"
@@ -1191,12 +1193,12 @@ export const GuidelinesPanel = () => {
                 <AccordionItem value="integrations" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-0 backdrop-blur-sm  px-4">
                   <AccordionTrigger className="py-3 hover:no-underline">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600">
+                      <div className="p-2 pl-1 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600">
                         <Settings2 className="h-4 w-4 text-white" />
                       </div>
                       <span className="text-sm font-medium">Ticket Providers</span>
                       {agentData.ticketing_providers && agentData.ticketing_providers.length > 0 && (
-                        <Badge variant="secondary" className="text-xs dark:bg-gray-500 dark:text-gray-200">
+                        <Badge variant="secondary" className="text-xs dark:bg-neutral-500 dark:text-neutral-200">
                           {agentData.ticketing_providers.length}
                         </Badge>
                       )}
@@ -1218,7 +1220,7 @@ export const GuidelinesPanel = () => {
                           ))}
                         </>
                       ) : (
-                        <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                        <div className="text-center py-6 text-neutral-500 dark:text-neutral-400">
                           <Settings2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
                           <p className="text-sm font-semibold">No any apps are being added.</p>
                           <p className="text-xs mt-1">Go to <Link to="/integrations" className="underline text-primary dark:text-white">Integrations</Link> page to connect apps.</p>

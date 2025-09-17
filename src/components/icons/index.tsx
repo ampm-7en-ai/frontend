@@ -8,8 +8,8 @@ const Icon = ({ name, type = 'gradient', className = '', color = '#737373' }) =>
      'Chat', 
      'Home', 
      'Book', 
-     'Earth', 
-     'Discover', 
+     'Extension', 
+     'Cog', 
      'Help', 
      'Team', 
      'Love', 
@@ -26,6 +26,17 @@ const Icon = ({ name, type = 'gradient', className = '', color = '#737373' }) =>
      'SheetFile',
      'WebPage',
      'TextFile',
+     'Receipt',
+     'Sun',
+     'Moon',
+     'Logout',
+     'Adjust',
+     'Drop',
+     'Scatter',
+     'Bulb',
+     'Bin',
+     'Copy',
+     'Edit',
      'Cart'].includes(name)) return null;
   return (
   <>

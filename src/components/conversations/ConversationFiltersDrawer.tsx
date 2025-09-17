@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Icon } from '../icons';
 
 interface ConversationFiltersDrawerProps {
   open: boolean;
@@ -118,31 +119,31 @@ const ConversationFiltersDrawer = ({
         {trigger}
       </PopoverTrigger>
       <PopoverContent 
-        className="w-80 p-0 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-white/30 dark:border-slate-700/30 shadow-2xl rounded-2xl"
+        className="w-80 p-0 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-white/30 dark:border-neutral-700/30 shadow-2xl rounded-2xl"
         align="end"
         sideOffset={8}
       >
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2"> 
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
                 Filter Conversations
               </h3>
             </div>
             <button 
               onClick={() => onOpenChange(false)}
-              className="rounded-full p-2 bg-white/50 dark:bg-slate-600/50 backdrop-blur-sm opacity-70 hover:opacity-100 transition-all"
+              className="rounded-full p-2 bg-white/50 dark:bg-neutral-600/50 backdrop-blur-sm opacity-70 hover:opacity-100 transition-all"
             >
               <X className="h-4 w-4 dark:text-gray-400" />
             </button>
           </div>
 
-          <ScrollArea className="h-[500px] pr-4 [&>[data-radix-scroll-area-viewport]]:scrollbar-thin [&>[data-radix-scroll-area-viewport]]:scrollbar-track-transparent [&>[data-radix-scroll-area-viewport]]:scrollbar-thumb-slate-400/50 [&>[data-radix-scroll-area-viewport]]:hover:scrollbar-thumb-slate-400/80">
+          <ScrollArea className="h-[500px] pr-4 [&>[data-radix-scroll-area-viewport]]:scrollbar-thin [&>[data-radix-scroll-area-viewport]]:scrollbar-track-transparent [&>[data-radix-scroll-area-viewport]]:scrollbar-thumb-neutral-400/50 [&>[data-radix-scroll-area-viewport]]:hover:scrollbar-thumb-neutral-400/80">
             <div className="space-y-6">
               
               {/* Agent Name Section */}
               <div className="space-y-3">
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                   Agent Name
                 </Label>
                 <ModernDropdown
@@ -153,15 +154,15 @@ const ConversationFiltersDrawer = ({
                     ...agentOptions
                   ]}
                   placeholder="Select agent..."
-                  className="bg-white/60 dark:bg-neutral-800/60 border-slate-200/60 dark:border-slate-700/60 backdrop-blur-sm h-8 text-xs"
+                  className="bg-white/60 dark:bg-neutral-800/60 border-neutral-200/60 dark:border-neutral-700/60 backdrop-blur-sm h-8 text-xs"
                 />
               </div>
 
-              <Separator className="bg-slate-200/60 dark:bg-slate-700/60" />
+              <Separator className="bg-neutral-200/60 dark:bg-neutral-700/60" />
 
               {/* Channel Section */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                   Channels
                 </Label>
                 <div className="space-y-2">
@@ -175,9 +176,9 @@ const ConversationFiltersDrawer = ({
                       />
                       <Label 
                         htmlFor={`channel-${channel.value}`}
-                        className="text-sm text-slate-700 dark:text-slate-300 cursor-pointer flex-1 flex items-center gap-3"
+                        className="text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer flex-1 flex items-center gap-3"
                       >
-                        <div className="w-6 h-6 flex items-center justify-center rounded-lg bg-white/60 dark:bg-slate-800/60 border border-gray-200/50 dark:border-slate-700/50 backdrop-blur-sm">
+                        <div className="w-6 h-6 flex items-center justify-center rounded-lg bg-white/60 dark:bg-neutral-800/60 border border-gray-200/50 dark:border-neutral-700/50 backdrop-blur-sm">
                           {channel.logo ? (
                             <img 
                               src={channel.logo} 
@@ -188,7 +189,7 @@ const ConversationFiltersDrawer = ({
                               }}
                             />
                           ) : channel.icon ? (
-                            <channel.icon className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                            <channel.icon className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
                           ) : null}
                         </div>
                         {channel.label}
@@ -198,15 +199,15 @@ const ConversationFiltersDrawer = ({
                 </div>
               </div>
 
-              <Separator className="bg-slate-200/60 dark:bg-slate-700/60" />
+              <Separator className="bg-neutral-200/60 dark:bg-neutral-700/60" />
 
               {/* Agent Type Section */}
               <div className="space-y-3">
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                   Agent Type
                 </Label>
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-600/30 backdrop-blur-sm transition-colors">
+                  <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-600/30 backdrop-blur-sm transition-colors">
                     <Checkbox
                       id="agent-type-human"
                       checked={agentTypeFilter.includes('human')}
@@ -215,9 +216,11 @@ const ConversationFiltersDrawer = ({
                     />
                     <Label 
                       htmlFor="agent-type-human"
-                      className="text-sm text-slate-700 dark:text-slate-300 cursor-pointer flex-1 flex items-center gap-3"
+                      className="text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer flex-1 flex items-center gap-3"
                     >
-                      <span className="text-lg">👤</span>
+                      <div className="w-6 h-6 flex items-center justify-center rounded-lg bg-white/60 dark:bg-neutral-800/60 border border-gray-200/50 dark:border-neutral-700/50 backdrop-blur-sm">
+                      <Icon name={`Magic`} type='gradient' className='h-4 w-4' />
+                      </div>
                       Human Agents
                     </Label>
                   </div>
@@ -225,10 +228,10 @@ const ConversationFiltersDrawer = ({
               </div>
 
               {/* Clear All Button */}
-              <div className="pt-4 border-t border-slate-200/60 dark:border-slate-700/60">
+              <div className="pt-4 border-t border-neutral-200/60 dark:border-neutral-700/60">
                 <button
                   onClick={clearAllFilters}
-                  className="w-full px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-white/40 dark:bg-slate-800/40 hover:bg-white/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors backdrop-blur-sm border border-slate-200/30 dark:border-slate-700/30"
+                  className="w-full px-4 py-2 text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200 bg-white/40 dark:bg-neutral-800/40 hover:bg-white/60 dark:hover:bg-neutral-700/60 rounded-lg transition-colors backdrop-blur-sm border border-neutral-200/30 dark:border-neutral-700/30"
                 >
                   Clear All Filters
                 </button>

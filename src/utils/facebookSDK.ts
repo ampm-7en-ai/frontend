@@ -154,7 +154,7 @@ function processAuthResponse(response: FB.LoginStatusResponse): Promise<{fbRespo
             code: code,
             phone_id: whatsappData.phone_id,
             waba_id: whatsappData.waba_id,
-            user_id: userID.id.toString()
+            user_id: userID?.id.toString() || ""
           })
         })
         .then(res => res.json())

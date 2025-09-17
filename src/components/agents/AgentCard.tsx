@@ -27,6 +27,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Settings, Play } from 'lucide-react';
 import { TICKETING_PROVIDERS_LOGOS } from '@/utils/integrationUtils';
+import { Icon } from '../icons';
 
 interface AgentCardProps {
   agent: Agent;
@@ -95,19 +96,18 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
   return (
     <div className="w-full">
       {/* Main Agent Card */}
-      <div className="bg-transparent rounded-3xl p-1 border-0 backdrop-blur-md shadow-none hover:shadow-xl transition-all duration-300">
-        <Card className="bg-white/60 dark:bg-neutral-800/70 rounded-2xl border-0 shadow-none hover:bg-white/80 dark:hover:bg-neutral-800/80 transition-all duration-300 overflow-hidden backdrop-blur-sm cursor-pointer" onClick={()=>handleConfigure(agent.id)}>
+      <div className="rounded-2xl p-1 border-0 shadow-none">
+        <Card className="bg-white/50 dark:bg-neutral-800/70 rounded-xl p-4 dark:border-slate-600/50 cursor-pointer hover:bg-white dark:hover:bg-neutral-800 transition-colors duration-200 animate-fade-in" onClick={()=>handleConfigure(agent.id)}>
           <CardHeader className="p-6 pb-4">
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-3">
-                  <CardTitle className="text-xl font-bold text-slate-900 dark:text-slate-100 truncate pl-0">
+                  <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100 truncate pl-0">
                     {agent.name}
                   </CardTitle>
                   {/* Status Badge */}
                   {agent.status && (
-                    <div className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold border backdrop-blur-sm ${getStatusBadgeColor(agent.status)}`}>
-                      <ActivitySquare className="h-3 w-3 mr-1.5" />
+                    <div className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold border backdrop-blur-sm scale-75 origin-left ${getStatusBadgeColor(agent.status)}`}>
                       {agent.status}
                     </div>
                   )}
@@ -133,18 +133,18 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
               {/* Left side - Metrics */}
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-900/40 dark:to-neutral-800/40 rounded-lg flex items-center justify-center">
-                    <MessageSquare className="h-4 w-4 text-blue-600 dark:text-neutral-400" />
+                  <div className="w-8 h-8 bg-transparent border border-muted/50 rounded-lg flex items-center justify-center">
+                    <Icon name={`Bubbles`} type='plain' className='h-5 w-5' color='hsl(var(--primary))' />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-slate-900 dark:text-white/80">
+                    <div className="text-sm font-semibold text-slate-900 dark:text-white/80">
                       {agent.conversations?.toLocaleString() || '0'}
                     </div>
                     <div className="text-xs text-muted-foreground dark:text-muted-foreground">Conversations</div>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2">
+                {/* <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/40 dark:to-green-800/40 rounded-lg flex items-center justify-center">
                     <CalendarClock className="h-4 w-4 text-green-600 dark:text-green-400" />
                   </div>
@@ -154,28 +154,40 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
                     </div>
                     <div className="text-xs text-muted-foreground dark:text-muted-foreground">Last Updated</div>
                   </div>
-                </div>
+                </div> */}
                 
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/40 dark:to-purple-800/40 rounded-lg flex items-center justify-center">
-                    <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  <div className="w-8 h-8 bg-transparent border border-muted/50 rounded-lg flex items-center justify-center">
+                    <Icon name={`Magic`} type='plain' className='h-5 w-5' color='hsl(var(--primary))' />
                   </div>
                   <div>
-                    <div className={`text-sm font-bold ${getModelStyles()}`}>
+                    <div className={`text-sm font-semibold text-foreground`}>
                       {getModelDisplayName()}
                     </div>
                     <div className="text-xs text-muted-foreground dark:text-muted-foreground">AI Model</div>
                   </div>
                 </div>
 
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-transparent border border-muted/50 rounded-lg flex items-center justify-center">
+                    <Icon name={`Folder`} type='plain' className='h-5 w-5' color='hsl(var(--primary))' />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-slate-900 dark:text-white/80">
+                      {agent.knowledgeSources?.length || 0}
+                    </div>
+                    <div className="text-xs text-muted-foreground dark:text-muted-foreground">Sources</div>
+                  </div>
+                </div>
+
                 {
                   agent.default_ticketing_provider && (
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/40 dark:to-orange-800/40 rounded-lg flex items-center justify-center overflow-hidden rounded-2xl">
-                        <img src={TICKETING_PROVIDERS_LOGOS[agent.default_ticketing_provider].logo} alt={agent.default_ticketing_provider} className="w-full h-full object-fill" />
+                      <div className="w-8 h-8 bg-transparent flex items-center justify-center overflow-hidden rounded-2xl border border-muted/50">
+                        <img src={TICKETING_PROVIDERS_LOGOS[agent.default_ticketing_provider].logo} alt={agent.default_ticketing_provider} className="w-5 h-5 object-fill rounded-[4px]" />
                       </div>
                       <div>
-                        <div className={`text-sm font-bold dark:text-white/80`}>
+                        <div className={`text-sm font-semibold capitalize dark:text-white/80`}>
                           {agent.default_ticketing_provider}
                         </div>
                         <div className="text-xs text-muted-foreground dark:text-muted-foreground">Connected App</div>
@@ -187,9 +199,9 @@ const AgentCard = ({ agent, getModelBadgeColor, getStatusBadgeColor, onDelete }:
               
               {/* Right side - Knowledge Base Trigger */}
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">
+                {/* <span className="text-xs text-muted-foreground dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">
                   {agent.knowledgeSources?.length || 0} sources
-                </span>
+                </span> */}
                 {/* <Collapsible open={isKnowledgeExpanded} onOpenChange={setIsKnowledgeExpanded}>
                   <CollapsibleTrigger asChild>
                     <ModernButton variant="outline" size="sm" className="h-8 w-8 p-0" iconOnly>
