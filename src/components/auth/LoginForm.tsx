@@ -40,6 +40,7 @@ interface LoginFormProps {
 const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
   const [emailEntered, setEmailEntered] = useState(false);
   const [currentEmail, setCurrentEmail] = useState('');
+  const [showPasswordField, setShowPasswordField] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -208,9 +209,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     setOtpEmail('');
   };
 
+  const handleShowPasswordField = () => {
+    setShowPasswordField(true);
+  };
+
   const resetEmailFlow = () => {
     setEmailEntered(false);
     setCurrentEmail('');
+    setShowPasswordField(false);
     setShowOtpVerification(false);
     setOtpEmail('');
     emailForm.reset();
@@ -681,6 +687,52 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
             </ModernButton>
           </form>
         </Form>
+      ) : !showPasswordField ? (
+        /* Login Options Step */
+        <div className="space-y-4">
+          <div className="text-center border-b border-border pb-4">
+            <div className="flex flex-row-reverse items-center justify-between space-x-2 text-sm text-muted-foreground">
+              <div className='flex gap-2 items-center text-foreground'>
+                {isEmail(currentEmail) ? <Mail className="h-4 w-4" /> : <User className="h-4 w-4" />}
+                <span>{currentEmail}</span>
+              </div>
+              <ModernButton
+                onClick={resetEmailFlow}
+                variant='outline'
+                size='sm'
+                className="!ml-0 gap-2"
+                iconOnly
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </ModernButton>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            {isEmail(currentEmail) && (
+              <ModernButton 
+                type="button"
+                variant="outline"
+                size="lg"
+                className="w-full h-11"
+                onClick={handleSendOtpCode}
+                disabled={isSendingOtp}
+              >
+                {isSendingOtp ? "Sending code..." : "Sign in with OTP Code"}
+              </ModernButton>
+            )}
+            
+            <ModernButton 
+              type="button"
+              variant="primary"
+              size="lg"
+              className="w-full h-11"
+              onClick={handleShowPasswordField}
+            >
+              Enter Password
+            </ModernButton>
+          </div>
+        </div>
       ) : (
         /* Password and OTP Options Step */
         <div className="space-y-4">
@@ -773,33 +825,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
         </div>
       )}
       
-      {!showOtpVerification && (
+      {!showOtpVerification && !emailEntered && (
         <>
-          
-
-          {
-            isEmail(currentEmail) && (
-              <>
-                <div className="relative">
-                  <Separator className="bg-neutral-400/10" />
-                  <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-100 dark:bg-neutral-900 px-3 text-sm text-muted-foreground">
-                    or
-                  </span>
-                </div>
-                
-                <ModernButton 
-                  type="button"
-                  variant="outline"
-                  size="lg"
-                  className="w-full h-11"
-                  onClick={handleSendOtpCode}
-                  disabled={isSendingOtp}
-                >
-                  {isSendingOtp ? "Sending code..." : "Sign in with OTP Code"}
-                </ModernButton>
-              </>
-            )
-          }
           <div className="relative">
             <Separator className="bg-neutral-400/10" />
             <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 dark:bg-neutral-900 bg-gray-100 px-3 text-sm text-muted-foreground mr-1">
