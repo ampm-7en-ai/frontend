@@ -127,10 +127,14 @@ export const ChatboxPreview = ({
   const startIdleTimeout = () => {
     clearIdleTimers();
     
-    // First timeout - send timeout_question after 5 minutes
+    console.log('Starting idle timeout tracking, last bot message:', lastBotMessageTime);
+    
+    // First timeout - send timeout_question after 1 minute
     timeoutQuestionTimerRef.current = setTimeout(() => {
+      console.log('Timeout question timer triggered. Connected:', isConnected, 'Already sent:', isTimeoutQuestionSentRef.current);
+      
       if (chatServiceRef.current && isConnected && !isTimeoutQuestionSentRef.current) {
-        console.log('Sending timeout_question after 5 minutes of inactivity');
+        console.log('Sending timeout_question after 1 minute of inactivity');
         isTimeoutQuestionSentRef.current = true;
         
         try {
@@ -139,14 +143,17 @@ export const ChatboxPreview = ({
             content: 'timeout_question',
             timestamp: new Date().toISOString()
           });
+          console.log('timeout_question message sent successfully');
         } catch (error) {
           console.error('Error sending timeout_question:', error);
         }
         
-        // Start second timeout - send timeout after another 5 minutes
+        // Start second timeout - send timeout after another 1 minute
         finalTimeoutTimerRef.current = setTimeout(() => {
+          console.log('Final timeout timer triggered. Connected:', isConnected);
+          
           if (chatServiceRef.current && isConnected) {
-            console.log('Sending timeout after 10 minutes total inactivity');
+            console.log('Sending timeout after 2 minutes total inactivity');
             
             try {
               chatServiceRef.current.send({
@@ -154,13 +161,14 @@ export const ChatboxPreview = ({
                 content: 'timeout',
                 timestamp: new Date().toISOString()
               });
+              console.log('timeout message sent successfully');
             } catch (error) {
               console.error('Error sending timeout:', error);
             }
           }
-        }, 5 * 60 * 1000); // Another 5 minutes
+        }, 1 * 60 * 1000); // Another 1 minute
       }
-    }, 5 * 60 * 1000); // 5 minutes
+    }, 1 * 60 * 1000); // 1 minute
   };
 
   // Reset idle timeout when user types
@@ -247,7 +255,9 @@ export const ChatboxPreview = ({
         
         // Track bot messages for idle timeout
         if (message.type === 'bot_response' || (message.type !== 'user' && message.type !== 'ui')) {
-          setLastBotMessageTime(new Date());
+          const currentTime = new Date();
+          console.log('Bot message received, updating last bot message time:', currentTime);
+          setLastBotMessageTime(currentTime);
           startIdleTimeout();
         }
         
@@ -282,6 +292,11 @@ export const ChatboxPreview = ({
         setIsInitializing(false);
         if (status) {
           setConnectionError(null);
+          // Start idle timeout tracking when connected
+          console.log('Connection established, starting idle timeout tracking');
+          setLastBotMessageTime(new Date());
+          startIdleTimeout();
+          
           if (enableSessionStorage && sessionId && chatServiceRef.current) {
             console.log('Sending session initialization:', sessionId);
             chatServiceRef.current.sendSessionInit(sessionId);
