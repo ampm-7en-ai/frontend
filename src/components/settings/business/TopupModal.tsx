@@ -135,10 +135,36 @@ export const TopupModal = ({ open, onOpenChange }: TopupModalProps) => {
               </div>
             )}
 
-            {/* Custom Amount */}
+            {/* Custom */}
             {topupOptions?.ranges && topupOptions.ranges.length > 0 && (
               <div className="space-y-3">
-                <Label className="text-sm font-medium">Or enter custom amount</Label>
+                <Label className="text-sm font-medium">Or custom</Label>
+                
+                {/* Quick select pills */}
+                <div className="flex flex-wrap gap-1">
+                  {topupOptions.ranges.map((range) => {
+                    const suggestedValues = [
+                      range.min_qty,
+                      Math.floor((range.min_qty + range.max_qty) / 2),
+                      range.max_qty
+                    ].filter((value, index, array) => array.indexOf(value) === index);
+                    
+                    return suggestedValues.map((value) => (
+                      <button
+                        key={`${range.id}-${value}`}
+                        type="button"
+                        onClick={() => {
+                          setCustomReplies(value.toString());
+                          setSelectedPackage(null);
+                        }}
+                        className="px-2 py-1 text-xs bg-muted hover:bg-muted/80 rounded-md transition-colors"
+                      >
+                        {value.toLocaleString()}
+                      </button>
+                    ));
+                  })}
+                </div>
+                
                 <div>
                   <Input
                     type="number"
