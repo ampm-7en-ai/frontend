@@ -120,19 +120,32 @@ export const ChatboxPreview = ({
       clearTimeout(finalTimeoutTimerRef.current);
       finalTimeoutTimerRef.current = null;
     }
-    isTimeoutQuestionSentRef.current = false;
+    // Don't reset the flag here - only reset when user sends a message
   };
 
-  // Start idle timeout tracking
+  // Check if the latest message is from the bot
+  const isLatestMessageFromBot = () => {
+    if (messages.length === 0) return false;
+    const latestMessage = messages[messages.length - 1];
+    return latestMessage.type === 'bot_response' || (latestMessage.type !== 'user' && latestMessage.type !== 'ui');
+  };
+
+  // Start idle timeout tracking - only if latest message is from bot
   const startIdleTimeout = () => {
+    // Only start timeout if the latest message is from the bot
+    if (!isLatestMessageFromBot()) {
+      console.log('Latest message is not from bot, not starting idle timeout');
+      return;
+    }
+
     clearIdleTimers();
     
-    console.log('Starting idle timeout tracking, last bot message:', lastBotMessageTime);
+    console.log('Starting idle timeout tracking, latest message is from bot');
     
     // First timeout - send timeout_question after 1 minute
     timeoutQuestionTimerRef.current = setTimeout(() => {
       const wsConnected = chatServiceRef.current?.isConnected() || false;
-      console.log('Timeout question timer triggered. State Connected:', isConnected, 'WS Connected:', wsConnected, 'Already sent:', isTimeoutQuestionSentRef.current);
+      console.log('Timeout question timer triggered. WS Connected:', wsConnected, 'Already sent:', isTimeoutQuestionSentRef.current);
       
       if (chatServiceRef.current && wsConnected && !isTimeoutQuestionSentRef.current) {
         console.log('Sending timeout_question after 1 minute of inactivity');
@@ -152,7 +165,7 @@ export const ChatboxPreview = ({
         // Start second timeout - send timeout after another 1 minute
         finalTimeoutTimerRef.current = setTimeout(() => {
           const wsConnected2 = chatServiceRef.current?.isConnected() || false;
-          console.log('Final timeout timer triggered. State Connected:', isConnected, 'WS Connected:', wsConnected2);
+          console.log('Final timeout timer triggered. WS Connected:', wsConnected2);
           
           if (chatServiceRef.current && wsConnected2) {
             console.log('Sending timeout after 2 minutes total inactivity');
@@ -177,10 +190,18 @@ export const ChatboxPreview = ({
     }, 1 * 60 * 1000); // 1 minute
   };
 
-  // Reset idle timeout when user types
+  // Reset idle timeout when user types - but only start if latest message is from bot
   const resetIdleTimeout = () => {
-    if (lastBotMessageTime) {
+    console.log('User activity detected, clearing timers and resetting timeout flag');
+    clearIdleTimers();
+    isTimeoutQuestionSentRef.current = false; // Reset the flag when user is active
+    
+    // Only restart timer if the latest message is from bot
+    if (isLatestMessageFromBot()) {
+      console.log('Latest message is from bot, restarting idle timeout');
       startIdleTimeout();
+    } else {
+      console.log('Latest message is not from bot, not restarting idle timeout');
     }
   };
 
@@ -264,11 +285,22 @@ export const ChatboxPreview = ({
           const currentTime = new Date();
           console.log('Bot message received, updating last bot message time:', currentTime);
           setLastBotMessageTime(currentTime);
-          startIdleTimeout();
         }
         
         // Add message to state
-        setMessages(prev => [...prev, { ...message, messageId }]);
+        setMessages(prev => {
+          const newMessages = [...prev, { ...message, messageId }];
+          
+          // Start idle timeout after state update if this is a bot message
+          if (message.type === 'bot_response' || (message.type !== 'user' && message.type !== 'ui')) {
+            // Use setTimeout to ensure state is updated before checking latest message
+            setTimeout(() => {
+              startIdleTimeout();
+            }, 0);
+          }
+          
+          return newMessages;
+        });
       },
       onTypingStart: () => {
         console.log("Typing indicator started");
