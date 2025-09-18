@@ -16,14 +16,14 @@ import { Icon } from '@/components/icons';
 
 const getIconForType = (source) => {
   if(source.type === 'custom') {
-        const { mimeType, size} = source.metadata;
+        const { mimeType, size} = source?.metadata || '';
         switch (mimeType) {
           case 'application/vnd.google-apps.document':
             return <Icon name="TextFile" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
           case 'application/vnd.google-apps.spreadsheet':
             return <Icon name="SheetFile" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
           default:
-            return <File className="h-4 w-4 text-white" />;
+            return <Icon name="TextFile" type='plain' color='hsl(var(--primary))' className="h-5 w-5" />;
             }
       }else {
         switch (source.type) {
