@@ -124,9 +124,9 @@ export const ChatboxPreview = ({
   };
 
   // Check if the latest message is from the bot
-  const isLatestMessageFromBot = () => {
-    if (messages.length === 0) return false;
-    const latestMessage = messages[messages.length - 1];
+  const isLatestMessageFromBot = (messageArray = messages) => {
+    if (messageArray.length === 0) return false;
+    const latestMessage = messageArray[messageArray.length - 1];
     return latestMessage.type === 'bot_response' || (latestMessage.type !== 'user' && latestMessage.type !== 'ui');
   };
 
@@ -293,9 +293,55 @@ export const ChatboxPreview = ({
           
           // Start idle timeout after state update if this is a bot message
           if (message.type === 'bot_response' || (message.type !== 'user' && message.type !== 'ui')) {
-            // Use setTimeout to ensure state is updated before checking latest message
+            // Pass the updated messages array to check latest message correctly
             setTimeout(() => {
-              startIdleTimeout();
+              // Pass the newMessages array to avoid state timing issues
+              if (!isLatestMessageFromBot(newMessages)) {
+                console.log('Latest message is not from bot, not starting idle timeout');
+                return;
+              }
+              
+              clearIdleTimers();
+              
+              console.log('Starting idle timeout tracking, latest message is from bot');
+              
+              // First timeout - send timeout_question after 1 minute
+              timeoutQuestionTimerRef.current = setTimeout(() => {
+                const wsConnected = chatServiceRef.current?.isConnected() || false;
+                console.log('Timeout question timer triggered. WS Connected:', wsConnected, 'Already sent:', isTimeoutQuestionSentRef.current);
+                
+                if (chatServiceRef.current && wsConnected && !isTimeoutQuestionSentRef.current) {
+                  console.log('Sending timeout_question after 1 minute of inactivity');
+                  
+                  chatServiceRef.current.send({
+                    type: 'timeout_question',
+                    message: '',
+                    agentId: agentId || '',
+                    sessionId: sessionId || '',
+                    timestamp: Date.now()
+                  });
+                  
+                  isTimeoutQuestionSentRef.current = true;
+                  
+                  // Start second timeout - send timeout after another 1 minute
+                  finalTimeoutTimerRef.current = setTimeout(() => {
+                    const wsConnected2 = chatServiceRef.current?.isConnected() || false;
+                    console.log('Final timeout timer triggered. WS Connected:', wsConnected2);
+                    
+                    if (chatServiceRef.current && wsConnected2) {
+                      console.log('Sending timeout after 2 minutes total inactivity');
+                      
+                      chatServiceRef.current.send({
+                        type: 'timeout',
+                        message: '',
+                        agentId: agentId || '',
+                        sessionId: sessionId || '',
+                        timestamp: Date.now()
+                      });
+                    }
+                  }, 1 * 60 * 1000); // Another 1 minute
+                }
+              }, 1 * 60 * 1000); // 1 minute
             }, 0);
           }
           
