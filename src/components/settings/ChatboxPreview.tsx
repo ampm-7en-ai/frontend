@@ -131,9 +131,10 @@ export const ChatboxPreview = ({
     
     // First timeout - send timeout_question after 1 minute
     timeoutQuestionTimerRef.current = setTimeout(() => {
-      console.log('Timeout question timer triggered. Connected:', isConnected, 'Already sent:', isTimeoutQuestionSentRef.current);
+      const wsConnected = chatServiceRef.current?.isConnected() || false;
+      console.log('Timeout question timer triggered. State Connected:', isConnected, 'WS Connected:', wsConnected, 'Already sent:', isTimeoutQuestionSentRef.current);
       
-      if (chatServiceRef.current && isConnected && !isTimeoutQuestionSentRef.current) {
+      if (chatServiceRef.current && wsConnected && !isTimeoutQuestionSentRef.current) {
         console.log('Sending timeout_question after 1 minute of inactivity');
         isTimeoutQuestionSentRef.current = true;
         
@@ -150,9 +151,10 @@ export const ChatboxPreview = ({
         
         // Start second timeout - send timeout after another 1 minute
         finalTimeoutTimerRef.current = setTimeout(() => {
-          console.log('Final timeout timer triggered. Connected:', isConnected);
+          const wsConnected2 = chatServiceRef.current?.isConnected() || false;
+          console.log('Final timeout timer triggered. State Connected:', isConnected, 'WS Connected:', wsConnected2);
           
-          if (chatServiceRef.current && isConnected) {
+          if (chatServiceRef.current && wsConnected2) {
             console.log('Sending timeout after 2 minutes total inactivity');
             
             try {
@@ -165,8 +167,12 @@ export const ChatboxPreview = ({
             } catch (error) {
               console.error('Error sending timeout:', error);
             }
+          } else {
+            console.log('Cannot send final timeout - connection not available');
           }
         }, 1 * 60 * 1000); // Another 1 minute
+      } else {
+        console.log('Cannot send timeout_question - connection not available or already sent');
       }
     }, 1 * 60 * 1000); // 1 minute
   };
