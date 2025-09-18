@@ -8,8 +8,12 @@ import { usePricingModal } from '@/hooks/usePricingModal';
 import { format, differenceInDays } from 'date-fns';
 import { Link } from 'react-router-dom';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { TopupModal } from './TopupModal';
+import { Plus } from 'lucide-react';
 
 export const CurrentPlanCard = () => {
+  const [topupModalOpen, setTopupModalOpen] = React.useState(false);
+  
   // Only fetch current subscription, not all plans
   const { currentSubscription, isLoadingCurrentSubscription } = useSubscription({ 
     fetchCurrent: true, 
@@ -61,13 +65,22 @@ export const CurrentPlanCard = () => {
                 </div>
               )}
             </div>
-            <Link 
-              to="/settings/business/payment-history" 
-              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mt-2 transition-colors"
-            >
-              <CreditCard className="h-3 w-3 mr-1" />
-              View Payments
-            </Link>
+            <div className="flex items-center gap-4 mt-2">
+              <Link 
+                to="/settings/business/payment-history" 
+                className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+              >
+                <CreditCard className="h-3 w-3 mr-1" />
+                View Payments
+              </Link>
+              <button
+                onClick={() => setTopupModalOpen(true)}
+                className="inline-flex items-center text-sm text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 transition-colors"
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Top-up
+              </button>
+            </div>
           </div>
         </div>
         <ModernButton 
@@ -78,6 +91,11 @@ export const CurrentPlanCard = () => {
           {isPaidPlan ? 'Change Plan' : 'Upgrade Plan'}
         </ModernButton>
       </div>
+      
+      <TopupModal 
+        open={topupModalOpen} 
+        onOpenChange={setTopupModalOpen} 
+      />
     </div>
   );
 };
