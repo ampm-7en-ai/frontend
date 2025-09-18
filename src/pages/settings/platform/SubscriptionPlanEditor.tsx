@@ -22,6 +22,7 @@ interface SubscriptionPlan {
   for_type?: string;
   stripe_product_id?: string;
   stripe_price_id?: string;
+  total_replies?: number;
 }
 
 const SubscriptionPlanEditor = () => {
@@ -43,7 +44,8 @@ const SubscriptionPlanEditor = () => {
     description: [],
     price: 0,
     duration_days: 30,
-    for_type: ''
+    for_type: '',
+    total_replies: 0
   });
   const [isLoading, setIsLoading] = useState(false);
   const [featuresText, setFeaturesText] = useState('');
@@ -83,7 +85,8 @@ const SubscriptionPlanEditor = () => {
         duration_days: planData.duration_days,
         for_type: planData.for_type || planData.name,
         stripe_product_id: planData.stripe_product_id,
-        stripe_price_id: planData.stripe_price_id
+        stripe_price_id: planData.stripe_price_id,
+        total_replies: planData.total_Replies
       });
       
       // Join array features back to text for editing
@@ -136,7 +139,8 @@ const SubscriptionPlanEditor = () => {
         description: features, // Send as array
         price: plan.price, // Send as number
         duration_days: plan.duration_days,
-        for_type: plan.for_type || plan.name // Use plan name as default for_type
+        for_type: plan.for_type || plan.name, // Use plan name as default for_type
+        total_replies: plan.total_replies
       };
       
       console.log('Submitting plan data:', submitData);
@@ -252,6 +256,19 @@ const SubscriptionPlanEditor = () => {
                 required
               />
               <p className="text-xs text-muted-foreground">Enter price as a number</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="total_replies">Total Replies</Label>
+              <Input 
+                id="total_replies"
+                name="total_replies"
+                type="number"
+                min="1"
+                value={plan.total_replies}
+                onChange={handleChange}
+                required
+              />
             </div>
             
             <div className="space-y-2">

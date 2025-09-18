@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useSettings } from '@/hooks/useSettings';
 import UsageSection from '@/components/settings/business/UsageSection';
 import ConnectedAccountsSection from '@/components/settings/business/ConnectedAccountsSection';
@@ -72,7 +72,9 @@ const BusinessSettings = () => {
             <UsageSection usageMetrics={settingsData?.usage_metrics || {
               websites_crawled: 0,
               tokens_used: 0,
-              credits_used: 0
+              credits_used: 0,
+              remaining_credits: 0,
+              total_credits: 0
             }}/>
           </div>
 

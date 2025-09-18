@@ -17,6 +17,8 @@ interface UsageSectionProps {
     websites_crawled: number;
     tokens_used: number;
     credits_used: number;
+    total_credits: number;
+    remaining_credits: number;
   };
 }
 
@@ -67,9 +69,9 @@ const UsageSection = ({ usageMetrics }: UsageSectionProps) => {
                 </div>
                 <div className="flex items-baseline gap-2 mb-2">
                   <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                    {usageMetrics?.credits_used || 0}
+                    {usageMetrics?.remaining_credits || 0}
                   </span>
-                  <span className="text-slate-500 dark:text-slate-400">/ 50</span>
+                  <span className="text-slate-500 dark:text-slate-400">/ {usageMetrics.total_credits}</span>
                 </div>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
                   Please note that it takes a few minutes for the credits to be updated after a message is sent.

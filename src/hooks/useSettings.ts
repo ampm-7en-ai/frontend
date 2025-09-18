@@ -20,6 +20,8 @@ export interface BusinessSettings {
     websites_crawled: number;
     tokens_used: number;
     credits_used: number;
+    total_credits: number;
+    remaining_credits: number;
   };
   permissions: {
     can_manage_team: boolean;

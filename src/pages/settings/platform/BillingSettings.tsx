@@ -356,8 +356,9 @@ const BillingSettings = () => {
                           ))}
                         </div>
                         
-                        <div className="text-sm text-muted-foreground">
-                          Duration: {plan.duration_days} days
+                        <div className="text-sm text-muted-foreground flex gap-4">
+                          <div>Duration: {plan.duration_days} days</div>
+                          <div>Total Replies: {plan.total_replies}</div>
                         </div>
                       </div>
                     </Card>

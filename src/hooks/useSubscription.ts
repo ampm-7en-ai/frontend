@@ -11,6 +11,7 @@ export interface SubscriptionPlan {
   stripe_price_id?: string;
   duration_days: number;
   features?: string[];
+  total_replies?: number;
 }
 
 export interface Subscription {
