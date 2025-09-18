@@ -51,6 +51,7 @@ interface AgentFormData {
   status?: string; // 🔥 Add status field to preserve agent status from server
   ticketing_providers: String[];
   default_ticketing_provider: string;
+  is_slack_enabled: boolean;
 }
 
 interface BuilderState {
@@ -108,7 +109,8 @@ const defaultAgentData: AgentFormData = {
   },
   knowledgeSources: [],
   ticketing_providers: [],
-  default_ticketing_provider: ""
+  default_ticketing_provider: "",
+  is_slack_enabled: false
 };
 
 const initialState: BuilderState = {
@@ -227,7 +229,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         // 🔥 CRITICAL: Preserve the agent status from server
         status: agentData.status,
         ticketing_providers: agentData.ticketing_providers || [],
-        default_ticketing_provider: agentData.default_ticketing_provider || ""
+        default_ticketing_provider: agentData.default_ticketing_provider || "",
+        is_slack_enabled: agentData.is_slack_enabled || false
       };
 
       console.log('Mapped agent data with status preserved:', {
@@ -409,7 +412,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           agent_category: state.agentData.agent_category,
           systemPrompt: state.agentData.systemPrompt,
           knowledgeSources: state.agentData.knowledgeSources.map(ks => ks.id),
-          default_ticketing_provider: state.agentData.default_ticketing_provider
+          default_ticketing_provider: state.agentData.default_ticketing_provider,
+          is_slack_enabled: state.agentData.is_slack_enabled
         };
 
         console.log('Update payload:', updatePayload);
@@ -475,7 +479,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           systemPrompt: response.data.systemPrompt || state.agentData.systemPrompt,
           knowledgeSources: formatKnowledgeSources(response.data.knowledge_sources || []),
           ticketing_providers: response.data.ticketing_providers || state.agentData.ticketing_providers,
-          default_ticketing_provider: response.data.default_ticketing_provider || state.agentData.default_ticketing_provider
+          default_ticketing_provider: response.data.default_ticketing_provider || state.agentData.default_ticketing_provider,
+          is_slack_enabled: response.data.is_slack_enabled || state.agentData.is_slack_enabled
         };
         
         setState(prev => ({ 
