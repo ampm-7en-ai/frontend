@@ -94,7 +94,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
     <section className="p-8">
       <div className="mb-8 pl-2">
         <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Global Agent Settings</h2>
-        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+        <p className="text-muted-foreground dark:text-muted-foreground leading-relaxed">
           Configure default settings that will apply to all your AI agents
         </p>
       </div>
@@ -188,9 +188,6 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                           className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
                         />
                       </FormControl>
-                      <span className="text-sm text-slate-600 dark:text-slate-400">
-                        Lower values produce more deterministic responses, higher values produce more creative ones.
-                      </span>
                     </div>
                     <FormMessage />
                   </FormItem>
@@ -208,17 +205,13 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-neutral-600/50">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Response Model</h4>
-                <p className="text-slate-600 dark:text-slate-400">
+                <p className="text-muted-foreground dark:text-muted-foreground">
                   {modelOptionsForDropdown.find(option => option.value === globalSettingsForm.getValues().defaultModel)?.label || globalSettingsForm.getValues().defaultModel}
                 </p>
               </div>
-              {/* <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50">
-                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Maximum Context Length</h4>
-                <p className="text-slate-600 dark:text-slate-400">{globalSettingsForm.getValues().maxContextLength?.toLocaleString()} tokens</p>
-              </div> */}
               <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-neutral-600/50">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Temperature</h4>
-                <p className="text-slate-600 dark:text-slate-400">{globalSettingsForm.getValues().defaultTemperature}</p>
+                <p className="text-muted-foreground dark:text-muted-foreground">{globalSettingsForm.getValues().defaultTemperature}</p>
               </div>
             </div>
           </div>

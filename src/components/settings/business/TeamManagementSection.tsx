@@ -336,7 +336,7 @@ const TeamManagementSection = () => {
     <section className="p-8">
       <div className="mb-8 pl-2">
         <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Team Management</h2>
-        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+        <p className="text-muted-foreground dark:text-muted-foreground leading-relaxed">
           Manage team members and their access to your 7en.ai workspace
         </p>
       </div>
@@ -413,14 +413,14 @@ const TeamManagementSection = () => {
         </Form>
 
         {inviteForm.watch("team_role_id") && (
-          <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-slate-600/50 mt-4">
+          <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-neutral-600/50 mt-4">
             <h4 className="text-sm font-semibold mb-3 text-slate-900 dark:text-slate-100">Role Permissions</h4>
             <ScrollArea className="h-[200px]">
               <div className="space-y-2">
                 {availableRoles.find(r => r.id === inviteForm.watch("team_role_id"))?.permissions.map(permission => (
                   <div key={permission.id} className="flex items-center justify-between py-1.5 px-3 bg-white/60 dark:bg-neutral-700/60 rounded-lg">
                     <span className="font-medium text-sm text-slate-900 dark:text-neutral-100">{permission.name.replace(/_/g, ' ')}</span>
-                    <span className="text-xs text-slate-600 dark:text-slate-400">{permission.description}</span>
+                    <span className="text-xs text-slate-600 dark:text-muted-foreground">{permission.description}</span>
                   </div>
                 ))}
                 {availableRoles.find(r => r.id === inviteForm.watch("team_role_id"))?.permissions.length === 0 && (
@@ -445,7 +445,7 @@ const TeamManagementSection = () => {
               <h3 className="font-semibold text-slate-900 dark:text-slate-100">{user?.name || 'You'}</h3>
               <Badge className="text-purple-600 border-0 text-xs">Owner</Badge>
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400">{user?.email}</p>
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground">{user?.email}</p>
           </div>
         </div>
         {/* Team Members List - More Compact */}
@@ -456,7 +456,7 @@ const TeamManagementSection = () => {
               </div>
               
               {loading ? (
-                <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">
+                <div className="bg-none">
                   <div className="container mx-auto py-12 flex justify-center items-center h-64">
                     <LoadingSpinner size="lg" text="Loading..." />
                   </div>
@@ -466,8 +466,8 @@ const TeamManagementSection = () => {
                   {teamMembers.map((member) => (
                     <div key={member.id} className="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-neutral-700/30 transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-slate-200 dark:bg-slate-600 rounded-lg flex items-center justify-center">
-                          <User className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                        <div className="w-8 h-8 bg-neutral-200 dark:bg-neutral-600 rounded-lg flex items-center justify-center">
+                          <User className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2 mb-1">
@@ -485,7 +485,7 @@ const TeamManagementSection = () => {
                               </Badge>
                             )}
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground dark:muted-foreground">
                             <span className="capitalize">{member.role}</span>
                             <span>•</span>
                             <span>

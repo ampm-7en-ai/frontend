@@ -91,19 +91,19 @@ const ApiKeysSection = () => {
     return (
       <section className="p-8">
         <div className="mb-8 pl-2">
-          <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Your 7en.ai API Keys</h2>
-          <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+          <h2 className="text-2xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">Your 7en.ai API Keys</h2>
+          <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
             Manage your API key to access the 7en.ai API programmatically
           </p>
         </div>
         
-        <div className="bg-white/50 dark:bg-slate-800/50 rounded-2xl p-6 backdrop-blur-sm">
+        <div className="bg-white/50 dark:bg-neutral-800/50 rounded-2xl p-6 backdrop-blur-sm">
           <div className="flex items-center gap-4 justify-between">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center">
                 <AlertCircle className="h-5 w-5 text-white" />
               </div>
-              <p className="text-slate-700 dark:text-slate-300 font-medium">
+              <p className="text-neutral-700 dark:text-neutral-300 font-medium">
                 Upgrade your plan to enable API keys.
               </p>
             </div>
@@ -119,8 +119,8 @@ const ApiKeysSection = () => {
   return (
     <section className="p-8">
       <div className="mb-8 pl-2">
-        <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Your 7en.ai API Keys</h2>
-        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+        <h2 className="text-2xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">Your 7en.ai API Keys</h2>
+        <p className="text-muted-foreground dark:text-muted-foreground leading-relaxed">
           Manage your API keys to access the 7en.ai API programmatically. Keep your API keys secure - they have the same permissions as your account.
         </p>
       </div>
@@ -131,7 +131,7 @@ const ApiKeysSection = () => {
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
               <Key className="h-5 w-5 text-white" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">API Keys</h3>
+            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">API Keys</h3>
           </div>
           <ModernButton 
             variant="primary"
@@ -145,7 +145,7 @@ const ApiKeysSection = () => {
         </div>
 
         {isLoading ? (
-          <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+          <div className="bg-none">
             <div className="container mx-auto py-12 flex justify-center items-center h-64">
               <LoadingSpinner size="lg" text="Loading API Keys..." />
             </div>
@@ -156,10 +156,10 @@ const ApiKeysSection = () => {
           </div>
         ) : apiKeys.length > 0 ? (
           <div className="space-y-4">
-            <div className="bg-white dark:bg-neutral-800 rounded-xl border border-slate-200 dark:border-neutral-700">
+            <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700">
               <Table>
                 <TableHeader>
-                  <TableRow className="hover:bg-slate-50/50 dark:hover:bg-neutral-800/70 transition-colors dark:border-neutral-600">
+                  <TableRow className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/70 transition-colors dark:border-neutral-600">
                     <TableHead>Name</TableHead>
                     <TableHead>Key</TableHead>
                     <TableHead>Created</TableHead>
@@ -168,21 +168,21 @@ const ApiKeysSection = () => {
                 </TableHeader>
                 <TableBody>
                   {apiKeys.map((apiKey) => (
-                    <TableRow key={apiKey.id} className="hover:bg-slate-50/50 dark:hover:bg-neutral-800/80 transition-colors dark:border-neutral-600">
+                    <TableRow key={apiKey.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/80 transition-colors dark:border-neutral-600">
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <KeyRound className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <KeyRound className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
                           {apiKey.name || 'Unnamed API Key'}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2 font-mono text-sm">
-                          <span className="text-slate-600 dark:text-slate-400">
+                          <span className="text-muted-foreground dark:text-muted-foreground">
                             {apiKey.masked_key.slice(0,10)}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-slate-600 dark:text-slate-400">
+                      <TableCell className="text-muted-foreground dark:text-muted-foreground">
                         {formatDate(apiKey.created_at)}
                       </TableCell>
                       <TableCell className="text-right">
@@ -223,7 +223,7 @@ const ApiKeysSection = () => {
                       }
                     >
                       <div className="py-4">
-                        <p className="text-slate-600 dark:text-slate-400">
+                        <p className="text-neutral-600 dark:text-neutral-400">
                           This will permanently remove the knowledge source from your agent.
                         </p>
                       </div>
@@ -237,17 +237,17 @@ const ApiKeysSection = () => {
           </div>
         ) : (
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <KeyRound className="h-8 w-8 text-slate-400" />
+            <div className="w-16 h-16 bg-neutral-100 dark:bg-neutral-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <KeyRound className="h-8 w-8 text-muted-foreground" />
             </div>
-            <p className="text-slate-600 dark:text-slate-400 mb-2">No API keys found</p>
-            <p className="text-sm text-slate-500 dark:text-slate-500">Create your first API key to get started</p>
+            <p className="text-muted-foreground dark:text-muted-foreground mb-2">No API keys found</p>
+            <p className="text-sm text-neutral-500 dark:text-neutral-500">Create your first API key to get started</p>
           </div>
         )}
 
-        <div className="border-t border-slate-200/50 dark:border-slate-600/50 pt-6 mt-6">
-          <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">API Documentation</h4>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+        <div className="border-t border-neutral-200/50 dark:border-neutral-600/50 pt-6 mt-6">
+          <h4 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-3">API Documentation</h4>
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground mb-4">
             View our API documentation to learn how to integrate 7en.ai with your applications.
           </p>
           <ModernButton variant="outline">
@@ -317,7 +317,7 @@ const ApiKeysSection = () => {
           
         </div>
 
-        <div className="flex justify-end gap-3 pt-6 border-t border-border/50">
+        <div className="flex justify-end gap-3 pt-6">
           <ModernButton
             variant="outline"
             onClick={handleCloseDialog}

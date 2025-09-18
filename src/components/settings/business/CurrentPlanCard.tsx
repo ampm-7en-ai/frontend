@@ -48,7 +48,7 @@ export const CurrentPlanCard = () => {
           <div>
             <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{planName}</h3>
             <div className="flex items-center gap-3 mt-1">
-              <span className="text-slate-600 dark:text-slate-400">${planPrice}/month</span>
+              <span className="text-muted-foreground dark:text-muted-foreground">${planPrice}/month</span>
               {(remainingDays !== null &&  remainingDays >= 0) ? (
                 <div className="flex items-center text-sm gap-1 text-amber-600 dark:text-amber-400">
                   <Calendar className="h-3 w-3" />
