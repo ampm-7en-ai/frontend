@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, Save, Settings } from 'lucide-react';
+import { Edit, Pen, Save, Settings } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -99,7 +99,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
         </p>
       </div>
       
-      <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
+      <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
@@ -111,7 +111,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
             variant="outline"
             size="sm"
             onClick={() => setIsEditingGlobalSettings(!isEditingGlobalSettings)}
-            icon={isEditingGlobalSettings ? undefined : Edit}
+            icon={isEditingGlobalSettings ? undefined : Pen}
           >
             {isEditingGlobalSettings ? 'Cancel' : 'Edit'}
           </ModernButton>
@@ -203,13 +203,13 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
         ) : (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-neutral-600/50">
+              <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-neutral-200/50 dark:border-neutral-600/50">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Response Model</h4>
                 <p className="text-muted-foreground dark:text-muted-foreground">
                   {modelOptionsForDropdown.find(option => option.value === globalSettingsForm.getValues().defaultModel)?.label || globalSettingsForm.getValues().defaultModel}
                 </p>
               </div>
-              <div className="bg-slate-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-slate-200/50 dark:border-neutral-600/50">
+              <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-neutral-200/50 dark:border-neutral-600/50">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Temperature</h4>
                 <p className="text-muted-foreground dark:text-muted-foreground">{globalSettingsForm.getValues().defaultTemperature}</p>
               </div>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Info, ChevronRight, BarChart3, CreditCard } from 'lucide-react';
+import { Info, ChevronRight, BarChart3, CreditCard, Plus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Tooltip,
@@ -34,7 +34,7 @@ const UsageSection = ({ usageMetrics }: UsageSectionProps) => {
         </p>
       </div>
       
-      <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
+      <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
@@ -42,8 +42,8 @@ const UsageSection = ({ usageMetrics }: UsageSectionProps) => {
             </div>
             <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Current Usage</h3>
           </div>
-          <ModernButton variant="gradient" size="sm" onClick={openPricingModal} icon={ChevronRight}>
-            Upgrade Plan
+          <ModernButton variant="primary" size="sm" onClick={openPricingModal} icon={Plus}>
+            Top Up
           </ModernButton>
         </div>
 

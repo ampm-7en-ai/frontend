@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit, Save, User as UserIcon } from 'lucide-react';
+import { Edit, Pen, Save, User as UserIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -129,7 +129,7 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
         </p>
       </div>
       
-      <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
+      <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-[8px] flex items-center justify-center">
@@ -142,7 +142,7 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
               variant="outline"
               size="sm"
               onClick={() => setIsEditingProfile(!isEditingProfile)}
-              icon={isEditingProfile ? undefined : Edit}
+              icon={isEditingProfile ? undefined : Pen}
             >
               {isEditingProfile ? 'Cancel' : 'Edit'}
             </ModernButton>

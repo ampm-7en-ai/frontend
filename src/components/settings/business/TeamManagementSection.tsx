@@ -342,7 +342,7 @@ const TeamManagementSection = () => {
       </div>
 
       {/* Inline Invite Form */}
-      <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl p-6 mb-6 backdrop-blur-sm">
+      <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 mb-6 backdrop-blur-sm">
         <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100 flex items-center gap-2">
           <Mail className="h-5 w-5" />
           Invite Team Member
@@ -435,7 +435,7 @@ const TeamManagementSection = () => {
       </div>
 
       {/* Current Owner - More Compact */}
-      <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl p-6 mb-6 backdrop-blur-sm">
+      <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 mb-6 backdrop-blur-sm">
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
             <User className="h-5 w-5 text-white" />

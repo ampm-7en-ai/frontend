@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Calendar, CreditCard, Crown } from 'lucide-react';
+import { ChevronRight, Calendar, CreditCard, Crown, ArrowBigUp, ArrowUp } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { usePricingModal } from '@/hooks/usePricingModal'; 
 import { format, differenceInDays } from 'date-fns';
@@ -39,7 +39,7 @@ export const CurrentPlanCard = () => {
   const planPrice = currentSubscription?.plan?.price || "0";
   
   return (
-    <div className="bg-white/50 dark:bg-neutral-800 rounded-2xl p-6 backdrop-blur-sm mb-8">
+    <div className="bg-white/70 dark:bg-neutral-800 rounded-2xl p-6 backdrop-blur-sm mb-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
@@ -86,9 +86,9 @@ export const CurrentPlanCard = () => {
         <ModernButton 
           variant="gradient"
           onClick={openPricingModal}
-          icon={ChevronRight}
+          icon={ArrowUp}
         >
-          {isPaidPlan ? 'Change Plan' : 'Upgrade Plan'}
+          {isPaidPlan ? 'Change' : 'Upgrade'}
         </ModernButton>
       </div>
       

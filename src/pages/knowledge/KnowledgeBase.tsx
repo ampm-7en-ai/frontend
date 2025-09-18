@@ -120,7 +120,7 @@ const KnowledgeBase = () => {
           filteredFolders.map((folder, index) => (
             <div
               key={folder.id}
-              className="bg-white/50 dark:bg-neutral-800/70 rounded-xl p-4 dark:border-slate-600/50 cursor-pointer hover:bg-white dark:hover:bg-neutral-800 transition-colors duration-200 animate-fade-in"
+              className="bg-white/70 dark:bg-neutral-800/70 rounded-xl p-4 dark:border-slate-600/50 cursor-pointer hover:bg-white dark:hover:bg-neutral-800 transition-colors duration-200 animate-fade-in"
               style={{ animationDelay: `${index * 50}ms` }}
               onClick={() => handleFolderClick(folder)}
             >
