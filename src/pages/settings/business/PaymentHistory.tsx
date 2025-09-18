@@ -80,7 +80,7 @@ const PaymentHistory = () => {
           </ModernButton>
         
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mt-6">Payment History</h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-2">View your subscription and payment details</p>
+          <p className="text-muted-foreground dark:text-muted-foreground mt-2">View your subscription and payment details</p>
         </div>
 
         <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl border border-slate-200/50 dark:border-neutral-700/50 backdrop-blur-sm overflow-hidden">
@@ -108,7 +108,7 @@ const PaymentHistory = () => {
                 </div>
               </div>
             ) : !paymentHistory || paymentHistory.length === 0 ? (
-              <div className="text-center py-12 text-slate-600 dark:text-slate-400">
+              <div className="text-center py-12 text-muted-foreground dark:text-muted-foreground">
                 <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg font-medium mb-2">No payment history found</p>
                 <p className="text-sm">Your payment records will appear here once you subscribe to a plan.</p>
