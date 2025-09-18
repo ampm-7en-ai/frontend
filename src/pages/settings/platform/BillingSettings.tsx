@@ -36,6 +36,10 @@ import { CreateInvoiceDialog } from '@/components/settings/platform/CreateInvoic
 import { useSubscription, SubscriptionPlan } from '@/hooks/useSubscription';
 import DeleteSubscriptionPlanDialog from '@/components/settings/platform/DeleteSubscriptionPlanDialog';
 import { useBillingConfig, useUpdateBillingConfig } from '@/hooks/useBillingConfig';
+import { useTopupPackages, useDeleteTopupPackage, TopupPackage } from '@/hooks/useTopupPackages';
+import { useTopupRanges, useDeleteTopupRange, TopupRange } from '@/hooks/useTopupRanges';
+import TopupPackageDialog from '@/components/settings/platform/TopupPackageDialog';
+import TopupRangeDialog from '@/components/settings/platform/TopupRangeDialog';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
@@ -80,6 +84,18 @@ const BillingSettings = () => {
     subscriptionPlansError,
     refetchSubscriptionPlans
   } = useSubscription({ fetchCurrent: false, fetchAllPlans: true, fetchInvoice: true });
+
+  // Topup hooks
+  const { data: topupPackages, isLoading: isLoadingPackages } = useTopupPackages();
+  const { data: topupRanges, isLoading: isLoadingRanges } = useTopupRanges();
+  const deletePackageMutation = useDeleteTopupPackage();
+  const deleteRangeMutation = useDeleteTopupRange();
+  
+  // Topup dialog states
+  const [packageDialogOpen, setPackageDialogOpen] = useState(false);
+  const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
+  const [editingPackage, setEditingPackage] = useState<TopupPackage | null>(null);
+  const [editingRange, setEditingRange] = useState<TopupRange | null>(null);
 
   // Update form data when billing config is loaded
   useEffect(() => {
@@ -284,15 +300,58 @@ const BillingSettings = () => {
     navigate(`/settings/platform/subscription-plan/${planId}`);
   };
 
+  const handleDeletePackage = async (packageId: number) => {
+    try {
+      await deletePackageMutation.mutateAsync(packageId);
+      toast({
+        title: "Package Deleted",
+        description: "Topup package has been deleted successfully."
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete topup package.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteRange = async (rangeId: number) => {
+    try {
+      await deleteRangeMutation.mutateAsync(rangeId);
+      toast({
+        title: "Range Deleted", 
+        description: "Topup range has been deleted successfully."
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete topup range.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEditPackage = (pkg: TopupPackage) => {
+    setEditingPackage(pkg);
+    setPackageDialogOpen(true);
+  };
+
+  const handleEditRange = (range: TopupRange) => {
+    setEditingRange(range);
+    setRangeDialogOpen(true);
+  };
+
   return (
     <PlatformSettingsLayout
       title="Billing Settings"
       description="Manage subscription plans and platform billing configurations"
     >
       <Tabs defaultValue="plans">
-        <TabsList className="grid w-full grid-cols-3 mb-8 rounded-xl">
+        <TabsList className="grid w-full grid-cols-4 mb-8 rounded-xl">
           <TabsTrigger value="plans" className="rounded-lg">Subscription Plans</TabsTrigger>
           <TabsTrigger value="invoices" className="rounded-lg">Invoices</TabsTrigger>
+          <TabsTrigger value="topup" className="rounded-lg">Topup</TabsTrigger>
           <TabsTrigger value="settings" className="rounded-lg">Settings</TabsTrigger>
         </TabsList>
         
@@ -536,6 +595,173 @@ const BillingSettings = () => {
           </Card>
         </TabsContent>
         
+        <TabsContent value="topup">
+          <div className="space-y-6">
+            <Tabs defaultValue="packages" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="packages">Packages</TabsTrigger>
+                <TabsTrigger value="ranges">Ranges</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="packages">
+                <Card className="p-6">
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <CardTitle className="pl-0">Topup Packages</CardTitle>
+                        <CardDescription>Manage fixed topup packages</CardDescription>
+                      </div>
+                      <ModernButton 
+                        onClick={() => {
+                          setEditingPackage(null);
+                          setPackageDialogOpen(true);
+                        }}
+                        variant="primary"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Package
+                      </ModernButton>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingPackages ? (
+                      <div className="text-center py-8">Loading packages...</div>
+                    ) : topupPackages && topupPackages.length > 0 ? (
+                      <div className="space-y-4">
+                        {topupPackages.map((pkg) => (
+                          <Card key={pkg.id} className="border">
+                            <div className="p-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h3 className="text-lg font-semibold">{pkg.name}</h3>
+                                  <div className="text-2xl font-bold mt-1">
+                                    ${pkg.amount}
+                                    <span className="text-sm font-normal text-muted-foreground ml-2">
+                                      {pkg.replies} replies
+                                    </span>
+                                  </div>
+                                  <Badge 
+                                    variant={pkg.status === 'ACTIVE' ? 'default' : 'secondary'}
+                                    className="mt-2"
+                                  >
+                                    {pkg.status}
+                                  </Badge>
+                                </div>
+                                <div className="flex gap-2">
+                                  <ModernButton 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => handleEditPackage(pkg)}
+                                  >
+                                    <Edit className="h-4 w-4 mr-1" />
+                                    Edit
+                                  </ModernButton>
+                                  <ModernButton 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="text-red-500 hover:bg-red-50"
+                                    onClick={() => handleDeletePackage(pkg.id)}
+                                    disabled={deletePackageMutation.isPending}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    Delete
+                                  </ModernButton>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No topup packages found. Create your first package to get started.
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="ranges">
+                <Card className="p-6">
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <CardTitle className="pl-0">Topup Ranges</CardTitle>
+                        <CardDescription>Manage flexible topup pricing ranges</CardDescription>
+                      </div>
+                      <ModernButton 
+                        onClick={() => {
+                          setEditingRange(null);
+                          setRangeDialogOpen(true);
+                        }}
+                        variant="primary"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Range
+                      </ModernButton>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingRanges ? (
+                      <div className="text-center py-8">Loading ranges...</div>
+                    ) : topupRanges && topupRanges.length > 0 ? (
+                      <div className="space-y-4">
+                        {topupRanges.map((range) => (
+                          <Card key={range.id} className="border">
+                            <div className="p-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h3 className="text-lg font-semibold">{range.name}</h3>
+                                  <div className="text-lg font-bold mt-1">
+                                    ${range.price_per_reply} per reply
+                                  </div>
+                                  <div className="text-sm text-muted-foreground mt-1">
+                                    Quantity: {range.min_qty} - {range.max_qty} replies
+                                  </div>
+                                  <Badge 
+                                    variant={range.active ? 'default' : 'secondary'}
+                                    className="mt-2"
+                                  >
+                                    {range.active ? 'Active' : 'Inactive'}
+                                  </Badge>
+                                </div>
+                                <div className="flex gap-2">
+                                  <ModernButton 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => handleEditRange(range)}
+                                  >
+                                    <Edit className="h-4 w-4 mr-1" />
+                                    Edit
+                                  </ModernButton>
+                                  <ModernButton 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="text-red-500 hover:bg-red-50"
+                                    onClick={() => handleDeleteRange(range.id)}
+                                    disabled={deleteRangeMutation.isPending}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    Delete
+                                  </ModernButton>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No topup ranges found. Create your first range to get started.
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </TabsContent>
+
         <TabsContent value="settings">
           <Card className="p-6 dark:text-gray-200">
             <CardHeader>
@@ -697,6 +923,24 @@ const BillingSettings = () => {
         plan={planToDelete}
         onDelete={handleDeletePlanConfirm}
         isDeleting={isDeleting}
+      />
+
+      <TopupPackageDialog
+        open={packageDialogOpen}
+        onOpenChange={(open) => {
+          setPackageDialogOpen(open);
+          if (!open) setEditingPackage(null);
+        }}
+        editPackage={editingPackage}
+      />
+
+      <TopupRangeDialog
+        open={rangeDialogOpen}
+        onOpenChange={(open) => {
+          setRangeDialogOpen(open);
+          if (!open) setEditingRange(null);
+        }}
+        editRange={editingRange}
       />
     </PlatformSettingsLayout>
   );

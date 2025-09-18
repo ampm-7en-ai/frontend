@@ -17,6 +17,7 @@ const PlatformSettingsNav = () => {
     { label: 'LLM Providers', href: '/settings/platform/llm-providers', icon: Cpu },
     { label: 'Compliance', href: '/settings/platform/compliance', icon: FileCheck },
     { label: 'Billing', href: '/settings/platform/billing', icon: CreditCard },
+    { label: 'Topup', href: '/settings/platform/billing#topup', icon: CreditCard },
     { label: 'Customization', href: '/settings/platform/customization', icon: Palette },
   ];
 
