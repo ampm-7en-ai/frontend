@@ -94,6 +94,12 @@ export const ChatboxPreview = ({
   // Internal state for floating button mode
   const [isMinimized, setIsMinimized] = useState(initiallyMinimized);
 
+  // Idle time tracking state
+  const [lastBotMessageTime, setLastBotMessageTime] = useState<Date | null>(null);
+  const timeoutQuestionTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const finalTimeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isTimeoutQuestionSentRef = useRef(false);
+
   // Check if input should be disabled (when there's a pending yes/no question)
   const shouldDisableInput = messages.some(msg => 
     msg.type === 'ui' && msg.ui_type === 'email'
@@ -103,6 +109,66 @@ export const ChatboxPreview = ({
   const latestYesNoMessage = messages.slice().reverse().find(msg => 
     msg.type === 'ui' && msg.ui_type === 'email'
   );
+
+  // Clear all idle timers
+  const clearIdleTimers = () => {
+    if (timeoutQuestionTimerRef.current) {
+      clearTimeout(timeoutQuestionTimerRef.current);
+      timeoutQuestionTimerRef.current = null;
+    }
+    if (finalTimeoutTimerRef.current) {
+      clearTimeout(finalTimeoutTimerRef.current);
+      finalTimeoutTimerRef.current = null;
+    }
+    isTimeoutQuestionSentRef.current = false;
+  };
+
+  // Start idle timeout tracking
+  const startIdleTimeout = () => {
+    clearIdleTimers();
+    
+    // First timeout - send timeout_question after 5 minutes
+    timeoutQuestionTimerRef.current = setTimeout(() => {
+      if (chatServiceRef.current && isConnected && !isTimeoutQuestionSentRef.current) {
+        console.log('Sending timeout_question after 5 minutes of inactivity');
+        isTimeoutQuestionSentRef.current = true;
+        
+        try {
+          chatServiceRef.current.send({
+            type: 'timeout_question',
+            content: 'timeout_question',
+            timestamp: new Date().toISOString()
+          });
+        } catch (error) {
+          console.error('Error sending timeout_question:', error);
+        }
+        
+        // Start second timeout - send timeout after another 5 minutes
+        finalTimeoutTimerRef.current = setTimeout(() => {
+          if (chatServiceRef.current && isConnected) {
+            console.log('Sending timeout after 10 minutes total inactivity');
+            
+            try {
+              chatServiceRef.current.send({
+                type: 'timeout',
+                content: 'timeout',
+                timestamp: new Date().toISOString()
+              });
+            } catch (error) {
+              console.error('Error sending timeout:', error);
+            }
+          }
+        }, 5 * 60 * 1000); // Another 5 minutes
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+  };
+
+  // Reset idle timeout when user types
+  const resetIdleTimeout = () => {
+    if (lastBotMessageTime) {
+      startIdleTimeout();
+    }
+  };
 
   // Updated scroll effect to only scroll the message container, not the entire tab
   useEffect(() => {
@@ -179,8 +245,14 @@ export const ChatboxPreview = ({
         setShowTypingIndicator(false);
         setSystemMessage('');
         
+        // Track bot messages for idle timeout
+        if (message.type === 'bot_response' || (message.type !== 'user' && message.type !== 'ui')) {
+          setLastBotMessageTime(new Date());
+          startIdleTimeout();
+        }
+        
         // Add message to state
-        setMessages(prev => [...prev, { ...message, messageId }]); 
+        setMessages(prev => [...prev, { ...message, messageId }]);
       },
       onTypingStart: () => {
         console.log("Typing indicator started");
@@ -225,6 +297,7 @@ export const ChatboxPreview = ({
     
     return () => {
       console.log("Cleaning up ChatWebSocketService");
+      clearIdleTimers();
       if (chatServiceRef.current) {
         chatServiceRef.current.disconnect();
         chatServiceRef.current = null;
@@ -252,6 +325,9 @@ export const ChatboxPreview = ({
     
     setMessages(prev => [...prev, newMessage]);
     setShowTypingIndicator(true);
+    
+    // Reset idle timeout when user sends a message
+    resetIdleTimeout();
     
     try {
       chatServiceRef.current.sendMessage(messageContent);
@@ -285,6 +361,12 @@ export const ChatboxPreview = ({
         resetTextareaHeight();
       }, 0);
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputValue(e.target.value);
+    // Reset idle timeout when user types
+    resetIdleTimeout();
   };
 
   const handleYesNoClick = (response: 'Yes' | 'no_thanks') => {
@@ -859,7 +941,7 @@ export const ChatboxPreview = ({
                     <Textarea
                       ref={textareaRef}
                       value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
+                      onChange={handleInputChange}
                       placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
                       className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200 resize-none overflow-hidden pr-12"
                       style={{ 
@@ -1397,7 +1479,7 @@ export const ChatboxPreview = ({
             <Textarea
               ref={textareaRef}
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={handleInputChange}
               placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
               className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white dark:text-gray-700 dark:border-border rounded-xl transition-all duration-200 resize-none overflow-hidden pr-12"
               style={{ 
