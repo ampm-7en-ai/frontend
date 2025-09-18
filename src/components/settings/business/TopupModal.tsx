@@ -15,6 +15,7 @@ import { useTopupOptions, useCreateCheckout } from '@/hooks/useTopupOptions';
 import { CreditCard, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface TopupModalProps {
   open: boolean;
@@ -79,14 +80,13 @@ export const TopupModal = ({ open, onOpenChange }: TopupModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-white/95 dark:bg-neutral-800/95 backdrop-blur-xl border border-white/20 dark:border-neutral-700 shadow-2xl rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CreditCard className="h-4 w-4" />
-            Top-up Account
+            Top-up replies
           </DialogTitle>
           <DialogDescription>
-            Select a package or enter custom amount
+            Select a package or enter custom replies as desired.
           </DialogDescription>
         </DialogHeader>
 
@@ -105,15 +105,15 @@ export const TopupModal = ({ open, onOpenChange }: TopupModalProps) => {
                     <Card 
                       key={preset.id} 
                       className={cn(
-                        "cursor-pointer transition-all hover:bg-muted/50",
-                        selectedPackage === preset.id && "ring-2 ring-primary bg-primary/5"
+                        "cursor-pointer transition-all hover:bg-neutral-300/50 dark:bg-neutral-700/70",
+                        selectedPackage === preset.id && "ring-2 ring-[#f06425] bg-neutral-200/5"
                       )}
                       onClick={() => {
                         setSelectedPackage(selectedPackage === preset.id ? null : preset.id);
                         setCustomReplies('');
                       }}
                     >
-                      <CardContent className="p-3">
+                      <CardContent className="p-3 text-foreground">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="font-medium text-sm">{preset.name}</div>
@@ -123,9 +123,7 @@ export const TopupModal = ({ open, onOpenChange }: TopupModalProps) => {
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="font-semibold">${preset.amount}</span>
-                            {selectedPackage === preset.id && (
-                              <Check className="h-4 w-4 text-primary" />
-                            )}
+                           
                           </div>
                         </div>
                       </CardContent>
@@ -157,7 +155,7 @@ export const TopupModal = ({ open, onOpenChange }: TopupModalProps) => {
                           setCustomReplies(value.toString());
                           setSelectedPackage(null);
                         }}
-                        className="px-2 py-1 text-xs bg-muted hover:bg-muted/80 rounded-md transition-colors"
+                        className="px-2 py-1 text-xs bg-neutral-200 hover:bg-neutral-300/80 dark:bg-neutral-700/70 rounded-md transition-colors"
                       >
                         {value.toLocaleString()}
                       </button>
@@ -179,7 +177,7 @@ export const TopupModal = ({ open, onOpenChange }: TopupModalProps) => {
                 </div>
                 
                 {customPriceData && (
-                  <div className="p-3 bg-muted rounded-lg space-y-1">
+                  <div className="p-3 bg-neutral-200 dark:bg-neutral-700/70 rounded-lg space-y-1">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Total:</span>
                       <span className="font-semibold">${customPriceData.price}</span>
@@ -192,13 +190,14 @@ export const TopupModal = ({ open, onOpenChange }: TopupModalProps) => {
               </div>
             )}
 
-            <Button 
+            <ModernButton 
               onClick={handleCheckout}
               disabled={!canCheckout || createCheckout.isPending}
               className="w-full"
+              variant='primary'
             >
               {createCheckout.isPending ? 'Processing...' : 'Proceed to Checkout'}
-            </Button>
+            </ModernButton>
           </div>
         )}
       </DialogContent>

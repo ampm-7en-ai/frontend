@@ -52,7 +52,7 @@ const DialogContent = React.forwardRef<
       ) : (
         children
       )}
-      <DialogPrimitive.Close className="absolute right-6 top-6 rounded-full p-2 bg-slate-100/80 dark:bg-neutral-800 backdrop-blur-sm opacity-70 ring-offset-background transition-all hover:opacity-100 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+      <DialogPrimitive.Close className="absolute right-6 top-6 rounded-full p-2 bg-neutral-100/80 dark:bg-neutral-800 backdrop-blur-sm opacity-70 ring-offset-background transition-all hover:opacity-100 hover:bg-neutral-200/80 dark:hover:bg-neutral-700/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
@@ -83,7 +83,7 @@ const DialogFooter = ({
   <div
     className={cn(
       "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0 pt-6",
-      fixed && "border-t border-white/20 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm p-6 mt-auto -mx-8 -mb-8 rounded-b-2xl",
+      fixed && "border-t border-white/20 dark:border-slate-700/50 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm p-6 mt-auto -mx-8 -mb-8 rounded-b-2xl",
       className
     )}
     {...props}

@@ -15,6 +15,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
 import ModernButton from '../dashboard/ModernButton';
+import { LoadingSpinner } from '../ui/loading-spinner';
 
 interface SubscriptionPlan {
   id: number;
@@ -115,7 +116,7 @@ export const PricingModal = () => {
   if (loading) {
     return (
       <Dialog open={isOpen} onOpenChange={closePricingModal}>
-        <DialogContent className="sm:max-w-[900px]">
+        <DialogContent className="sm:max-w-[900px] bg-white/95 dark:bg-neutral-800/95 backdrop-blur-xl border border-white/20 dark:border-neutral-700 shadow-2xl rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-center">Choose Your Plan</DialogTitle>
             <DialogDescription className="text-center">
@@ -123,7 +124,7 @@ export const PricingModal = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <LoadingSpinner size='sm' />
           </div>
         </DialogContent>
       </Dialog>
@@ -132,7 +133,7 @@ export const PricingModal = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={closePricingModal}>
-      <DialogContent className="sm:max-w-[900px]">
+      <DialogContent className="sm:max-w-[900px] bg-white/95 dark:bg-neutral-800/95 backdrop-blur-xl border border-white/20 dark:border-neutral-700 shadow-2xl rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center">Choose Your Plan</DialogTitle>
           <DialogDescription className="text-center">
@@ -149,11 +150,11 @@ export const PricingModal = () => {
               <div 
                 key={plan.id} 
                 className={`border rounded-lg p-6 flex flex-col h-full ${
-                  isCurrent ? 'border-primary ring-2 ring-primary/10' : 'border-border'
+                  isCurrent ? 'border-[#f06425] ring-2 ring-primary/10' : 'border-border'
                 }`}
               >
                 {isCurrent && (
-                  <div className="px-3 py-1 text-xs font-semibold text-primary bg-primary/10 rounded-full w-fit mb-4">
+                  <div className="px-3 py-1 text-xs font-semibold text-[#f06425] bg-muted/40 rounded-full w-fit mb-4">
                     Current Plan
                   </div>
                 )}
@@ -168,7 +169,7 @@ export const PricingModal = () => {
                 <div className="mt-6 space-y-3 flex-grow">
                   {plan.description.map((feature, i) => (
                     <div key={i} className="flex items-start">
-                      <Check className="h-4 w-4 text-primary mr-2 mt-0.5 shrink-0" />
+                      <Check className="h-4 w-4 text-[#f06425] mr-2 mt-0.5 shrink-0" />
                       <span className="text-sm">{feature}</span>
                     </div>
                   ))}

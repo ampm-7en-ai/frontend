@@ -181,9 +181,7 @@ export const ModernDropdown = ({
                           )}
                         </div>
                       </div>
-                      {option.value === value && (
-                        <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      )}
+                      
                     </div>
                   )}
                 </DropdownMenuItem>

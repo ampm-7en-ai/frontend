@@ -11,6 +11,8 @@ export interface PaymentHistory {
   duration: number;
   status: 'ACTIVE' | 'CANCELLED' | 'EXPIRED';
   invoice_url: string | null;
+  amount?: number;
+  replies?: number;
 }
 
 async function fetchPaymentHistory(): Promise<PaymentHistory[]> {

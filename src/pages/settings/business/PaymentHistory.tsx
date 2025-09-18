@@ -133,15 +133,15 @@ const PaymentHistory = () => {
                         key={index}
                         className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors"
                       >
-                        <TableCell className="font-medium text-slate-900 dark:text-slate-100">{payment.plan_name}</TableCell>
-                        <TableCell className="text-slate-700 dark:text-slate-300">${payment.price}</TableCell>
+                        <TableCell className="font-medium text-slate-900 dark:text-slate-100">{payment.plan_name !== null ? payment.plan_name : `Topup - ${payment.replies} replies`}</TableCell>
+                        <TableCell className="text-slate-700 dark:text-slate-300">${payment?.price || payment?.amount}</TableCell>
                         <TableCell className="text-slate-700 dark:text-slate-300">
                           {format(new Date(payment.started_at), 'MMM dd, yyyy')}
                         </TableCell>
                         <TableCell className="text-slate-700 dark:text-slate-300">
-                          {format(new Date(payment.ended_at), 'MMM dd, yyyy')}
+                          {payment.ended_at !== null ? format(new Date(payment.ended_at), 'MMM dd, yyyy'): "-"}
                         </TableCell>
-                        <TableCell className="text-slate-700 dark:text-slate-300">{payment.duration} days</TableCell>
+                        <TableCell className="text-slate-700 dark:text-slate-300">{payment.duration == null ? `-` : payment.duration+` days`}</TableCell>
                         <TableCell>
                           {getStatusBadge(payment.status)}
                         </TableCell>
@@ -157,7 +157,7 @@ const PaymentHistory = () => {
                               Download
                             </ModernButton>
                           ) : (
-                            <span className="text-slate-400 dark:text-slate-500 text-sm">N/A</span>
+                            <span className="text-slate-400 dark:text-slate-500 text-sm">-</span>
                           )}
                         </TableCell>
                       </TableRow>

@@ -891,7 +891,7 @@ export const GuidelinesPanel = () => {
                   <div>
                     <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Agent Persona Type</Label>
                     { promptsLoading ? (
-                       <div className="flex items-center gap-2 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
+                       <div className="flex items-center gap-2 p-2 mt-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
                         <LoadingSpinner size="sm" />
                         <span className="text-sm text-neutral-500">Loading models...</span>
                       </div>
