@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Info, ChevronRight, BarChart3, CreditCard, Plus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -9,7 +9,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
-import { usePricingModal } from '@/hooks/usePricingModal';
+import { TopupModal } from './TopupModal';
 import ModernButton from '@/components/dashboard/ModernButton';
 
 interface UsageSectionProps {
@@ -23,7 +23,7 @@ interface UsageSectionProps {
 }
 
 const UsageSection = ({ usageMetrics }: UsageSectionProps) => {
-  const { openPricingModal } = usePricingModal();
+  const [isTopupModalOpen, setIsTopupModalOpen] = useState(false);
 
   return (
     <section className="p-8">
@@ -42,7 +42,7 @@ const UsageSection = ({ usageMetrics }: UsageSectionProps) => {
             </div>
             <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Current Usage</h3>
           </div>
-          <ModernButton variant="primary" size="sm" onClick={openPricingModal} icon={Plus}>
+          <ModernButton variant="primary" size="sm" onClick={() => setIsTopupModalOpen(true)} icon={Plus}>
             Top Up
           </ModernButton>
         </div>
@@ -81,6 +81,11 @@ const UsageSection = ({ usageMetrics }: UsageSectionProps) => {
           </div>
         </div>
       </div>
+
+      <TopupModal 
+        open={isTopupModalOpen} 
+        onOpenChange={setIsTopupModalOpen}
+      />
     </section>
   );
 };
