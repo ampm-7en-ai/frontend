@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Bot, Send, User, WifiOff, AlertCircle, Minus, RotateCcw, MessageCircleReplyIcon, User2, MessageSquare } from 'lucide-react';
+import { Bot, Send, User, WifiOff, AlertCircle, Minus, RotateCcw, MessageCircleReplyIcon, User2, MessageSquare, MoreHorizontal, Trash2, MessageCircle } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -15,6 +15,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '../ui/input';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { duotoneLight, oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 interface Message {
   type: string;
   content: string;
@@ -93,6 +96,12 @@ export const ChatboxPreview = ({
 
   // Internal state for floating button mode
   const [isMinimized, setIsMinimized] = useState(initiallyMinimized);
+
+  // Terms and conditions state
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
+  // Delete confirmation dialog state
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
   // Idle time tracking state
   const [lastBotMessageTime, setLastBotMessageTime] = useState<Date | null>(null);
@@ -670,6 +679,42 @@ export const ChatboxPreview = ({
     setIsMinimized(false);
   };
 
+  // Handle delete chat confirmation
+  const handleDeleteChat = () => {
+    if (!chatServiceRef.current || !isConnected) {
+      return;
+    }
+
+    try {
+      // Send timeout message to backend
+      chatServiceRef.current.send({
+        type: 'timeout',
+        content: 'timeout',
+        timestamp: new Date().toISOString()
+      });
+      
+      // Clear messages and restart connection
+      setMessages([]);
+      processedMessageIds.current.clear();
+      clearIdleTimers();
+      
+      // Close confirmation dialog
+      setShowDeleteConfirmation(false);
+      
+      toast({
+        title: "Chat Deleted",
+        description: "The conversation has been cleared.",
+      });
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete chat. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Enhanced floating button positioning - both chat and button always visible
   if (showFloatingButton) {
     const hasButtonText = buttonText && buttonText.trim() !== '';
@@ -728,16 +773,39 @@ export const ChatboxPreview = ({
                 </div>
                 
                 <div className="flex items-center gap-2 relative z-10">
-                  {/* Control buttons */}
-                  <ModernButton
-                    onClick={handleRestart}
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
-                    title="Restart chat"
-                    icon={RotateCcw}
-                    iconOnly
-                  />
+                  {/* Menu dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <ModernButton
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+                        title="Menu"
+                        icon={MoreHorizontal}
+                        iconOnly
+                      />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      align="end" 
+                      className="bg-white border border-gray-200 shadow-lg z-[9999] min-w-[150px]"
+                      sideOffset={5}
+                    >
+                      <DropdownMenuItem 
+                        onClick={handleRestart}
+                        className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                      >
+                        <RotateCcw size={16} />
+                        Restart chat
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => setShowDeleteConfirmation(true)}
+                        className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-red-600"
+                      >
+                        <Trash2 size={16} />
+                        Delete chat
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   
                   <ModernButton
                     onClick={handleMinimizeToggle}
@@ -1034,47 +1102,76 @@ export const ChatboxPreview = ({
                   </div>
                 )}
                 
-                {/* Message Input - With integrated send button */}
-                <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
-                  <form onSubmit={handleSubmit} className="relative">
-                    <Textarea
-                      ref={textareaRef}
-                      value={inputValue}
-                      onChange={handleInputChange}
-                      placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
-                      className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200 resize-none overflow-hidden pr-12"
-                      style={{ 
-                        borderColor: `${primaryColor}20`,
-                        minHeight: "44px",
-                        maxHeight: "120px"
-                      }}
-                      disabled={!isConnected || shouldDisableInput}
-                      rows={1}
-                      expandable={true}
-                      maxExpandedHeight="120px"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey && !shouldDisableInput) {
-                          e.preventDefault();
-                          handleSubmit(e);
-                        }
-                      }}
-                    />
-                    <button
-                      type="submit" 
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-lg transition-all hover:scale-105"
-                      style={{ 
-                        color: primaryColor,
-                        opacity: (isConnected && !shouldDisableInput && inputValue.trim()) ? 1 : 0.4
-                      }}
-                      disabled={!isConnected || shouldDisableInput || !inputValue.trim()}
-                    >
-                      <Send size={20} />
-                    </button>
-                  </form>
-                  <div className="text-center mt-3 text-xs text-gray-400 font-medium">
-                    powered by 7en.ai
-                  </div>
-                </div>
+        {/* Terms and Conditions */}
+        <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/80 backdrop-blur-sm">
+          <div className="flex items-center gap-2 text-xs text-gray-600">
+            <Checkbox 
+              id="terms-acceptance"
+              checked={termsAccepted}
+              onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
+              className="h-4 w-4"
+            />
+            <label htmlFor="terms-acceptance" className="cursor-pointer leading-relaxed">
+              By chatting you accept our{' '}
+              <a 
+                href="#" 
+                className="underline hover:text-gray-800 transition-colors"
+                onClick={(e) => e.preventDefault()}
+              >
+                terms and conditions
+              </a>
+              .
+            </label>
+          </div>
+        </div>
+
+        {/* Message Input - With integrated send button */}
+        <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
+          <form onSubmit={handleSubmit} className="relative">
+            <Textarea
+              ref={textareaRef}
+              value={inputValue}
+              onChange={handleInputChange}
+              placeholder={
+                !termsAccepted 
+                  ? "Please accept terms and conditions to continue..." 
+                  : shouldDisableInput 
+                    ? "Please select Yes or No above..." 
+                    : "Type your message..."
+              }
+              className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white rounded-xl transition-all duration-200 resize-none overflow-hidden pr-12"
+              style={{ 
+                borderColor: `${primaryColor}20`,
+                minHeight: "44px",
+                maxHeight: "120px"
+              }}
+              disabled={!isConnected || shouldDisableInput || !termsAccepted}
+              rows={1}
+              expandable={true}
+              maxExpandedHeight="120px"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey && !shouldDisableInput && termsAccepted) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+            />
+            <button
+              type="submit" 
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-lg transition-all hover:scale-105"
+              style={{ 
+                color: primaryColor,
+                opacity: (isConnected && !shouldDisableInput && inputValue.trim() && termsAccepted) ? 1 : 0.4
+              }}
+              disabled={!isConnected || shouldDisableInput || !inputValue.trim() || !termsAccepted}
+            >
+              <Send size={20} />
+            </button>
+          </form>
+          <div className="text-center mt-3 text-xs text-gray-400 font-medium">
+            powered by 7en.ai
+          </div>
+        </div>
               </div>
               
               {/* Enhanced CSS Animations */}
@@ -1250,19 +1347,42 @@ export const ChatboxPreview = ({
         </div>
         
         <div className="flex items-center gap-2 relative z-10">
-          {/* Control buttons */}
-          <ModernButton
-            onClick={handleRestart}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
-            title="Restart chat"
-            icon={RotateCcw}
-            style={{
-              color: `${secondaryColor}80`
-            }}
-            iconOnly
-          />
+          {/* Menu dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <ModernButton
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+                title="Menu"
+                icon={MoreHorizontal}
+                style={{
+                  color: `${secondaryColor}80`
+                }}
+                iconOnly
+              />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              align="end" 
+              className="bg-white border border-gray-200 shadow-lg z-[9999] min-w-[150px]"
+              sideOffset={5}
+            >
+              <DropdownMenuItem 
+                onClick={handleRestart}
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
+              >
+                <RotateCcw size={16} />
+                Restart chat
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setShowDeleteConfirmation(true)}
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-red-600"
+              >
+                <Trash2 size={16} />
+                Delete chat
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           
           {(onMinimize || showFloatingButton) && (
             <ModernButton
@@ -1572,6 +1692,29 @@ export const ChatboxPreview = ({
           </div>
         )}
         
+        {/* Terms and Conditions */}
+        <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/80 backdrop-blur-sm">
+          <div className="flex items-center gap-2 text-xs text-gray-600">
+            <Checkbox 
+              id="terms-acceptance-main"
+              checked={termsAccepted}
+              onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
+              className="h-4 w-4"
+            />
+            <label htmlFor="terms-acceptance-main" className="cursor-pointer leading-relaxed">
+              By chatting you accept our{' '}
+              <a 
+                href="#" 
+                className="underline hover:text-gray-800 transition-colors"
+                onClick={(e) => e.preventDefault()}
+              >
+                terms and conditions
+              </a>
+              .
+            </label>
+          </div>
+        </div>
+
         {/* Message Input - With integrated send button */}
         <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
           <form onSubmit={handleSubmit} className="relative">
@@ -1579,19 +1722,25 @@ export const ChatboxPreview = ({
               ref={textareaRef}
               value={inputValue}
               onChange={handleInputChange}
-              placeholder={shouldDisableInput ? "Please select Yes or No above..." : "Type your message..."}
+              placeholder={
+                !termsAccepted 
+                  ? "Please accept terms and conditions to continue..." 
+                  : shouldDisableInput 
+                    ? "Please select Yes or No above..." 
+                    : "Type your message..."
+              }
               className="text-sm border-2 focus-visible:ring-offset-0 dark:bg-white dark:text-gray-700 dark:border-border rounded-xl transition-all duration-200 resize-none overflow-hidden pr-12"
               style={{ 
                 borderColor: `${primaryColor}20`,
                 minHeight: "44px",
                 maxHeight: "120px"
               }}
-              disabled={!isConnected || shouldDisableInput}
+              disabled={!isConnected || shouldDisableInput || !termsAccepted}
               rows={1}
               expandable={true}
               maxExpandedHeight="120px"
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey && !shouldDisableInput) {
+                if (e.key === 'Enter' && !e.shiftKey && !shouldDisableInput && termsAccepted) {
                   e.preventDefault();
                   handleSubmit(e);
                 }
@@ -1602,9 +1751,9 @@ export const ChatboxPreview = ({
               className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-lg transition-all hover:scale-105"
               style={{ 
                 color: primaryColor,
-                opacity: (isConnected && !shouldDisableInput && inputValue.trim()) ? 1 : 0.4
+                opacity: (isConnected && !shouldDisableInput && inputValue.trim() && termsAccepted) ? 1 : 0.4
               }}
-              disabled={!isConnected || shouldDisableInput || !inputValue.trim()}
+              disabled={!isConnected || shouldDisableInput || !inputValue.trim() || !termsAccepted}
             >
               <Send size={20} />
             </button>
@@ -1701,6 +1850,38 @@ export const ChatboxPreview = ({
           }
         `}
       </style>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
+        <DialogContent className="sm:max-w-[400px] bg-white border border-gray-200 rounded-lg shadow-xl z-[10000]">
+          <DialogHeader className="text-center pb-4">
+            <div className="mx-auto mb-3 p-3 rounded-full bg-gray-100">
+              <MessageCircle className="h-6 w-6 text-gray-600" />
+            </div>
+            <DialogTitle className="text-lg font-semibold text-gray-900">
+              End chat
+            </DialogTitle>
+            <p className="text-sm text-gray-600 mt-2">
+              Do you want to end this chat?
+            </p>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col gap-2 pt-4">
+            <Button
+              onClick={handleDeleteChat}
+              className="w-full bg-black hover:bg-gray-800 text-white rounded-lg py-3 text-sm font-medium"
+            >
+              Yes, end chat
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteConfirmation(false)}
+              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-3 text-sm font-medium"
+            >
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
