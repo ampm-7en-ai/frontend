@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,70 +17,149 @@ import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
 import ModernButton from '../dashboard/ModernButton';
 import { LoadingSpinner } from '../ui/loading-spinner';
 
-interface SubscriptionPlan {
-  id: number;
-  name: string;
-  description: string[];
-  price: string;
-  duration_days: number;
-}
+// Static pricing data
+const pricingData = {
+  "Free": [
+    { "feature": "Billed monthly", "value": 0 },
+    { "feature": "Annually corresponding", "value": 0 },
+    { "feature": "Billed annually", "value": 0 },
+    { "feature": "Monthly corresponding", "value": 0 },
+    { "feature": "Numbers of replies", "value": 200 },
+    { "feature": "Approx. conversations", "value": 67 },
+    { "feature": "Knowledge base uploads", "value": "Unlimited" },
+    { "feature": "Supported channels", "value": "Web, WhatsApp, Messenger, Instagram, Slack" },
+    { "feature": "Team seats", "value": "Unlimited" },
+    { "feature": "Usage insights", "value": "Basic analytics" },
+    { "feature": "Integrations", "value": "Zapier, Google Drive" },
+    { "feature": "AI-powered ticketing automation", "value": "-" },
+    { "feature": "Caching & FAQ fallback", "value": "-" },
+    { "feature": "Multi-LLM choice", "value": "GPT (all versions), Claude, Gemini, Mistral, Deepseek" },
+    { "feature": "Model hosting", "value": "All LLMs hosted on European servers" },
+    { "feature": "Data privacy", "value": "Fully GDPR-compliant, no data leaves EU" },
+    { "feature": "Support", "value": "Community" },
+    { "feature": "Hosting / Compliance", "value": "Shared EU cloud" },
+    { "feature": "White-label branding", "value": "Add-on $35/mo" },
+    { "feature": "Enterprise extras", "value": "-" }
+  ],
+  "Starter": [
+    { "feature": "Billed monthly", "value": 30 },
+    { "feature": "Annually corresponding", "value": 360 },
+    { "feature": "Billed annually", "value": 288 },
+    { "feature": "Monthly corresponding", "value": 24 },
+    { "feature": "Numbers of replies", "value": 3500 },
+    { "feature": "Approx. conversations", "value": 1167 },
+    { "feature": "Knowledge base uploads", "value": "Unlimited" },
+    { "feature": "Supported channels", "value": "Web, WhatsApp, Messenger, Instagram, Slack" },
+    { "feature": "Team seats", "value": "Unlimited" },
+    { "feature": "Usage insights", "value": "Full analytics" },
+    { "feature": "Integrations", "value": "Zapier, Google Drive" },
+    { "feature": "AI-powered ticketing automation", "value": "Ticket sync only" },
+    { "feature": "Caching & FAQ fallback", "value": "-" },
+    { "feature": "Multi-LLM choice", "value": "GPT (all versions), Claude, Gemini, Mistral, Deepseek" },
+    { "feature": "Model hosting", "value": "All LLMs hosted on European servers" },
+    { "feature": "Data privacy", "value": "Fully GDPR-compliant, no data leaves EU" },
+    { "feature": "Support", "value": "Standard" },
+    { "feature": "Hosting / Compliance", "value": "Shared EU cloud" },
+    { "feature": "White-label branding", "value": "Add-on $35/mo" },
+    { "feature": "Enterprise extras", "value": "-" }
+  ],
+  "Growth": [
+    { "feature": "Billed monthly", "value": 120 },
+    { "feature": "Annually corresponding", "value": 1440 },
+    { "feature": "Billed annually", "value": 1152 },
+    { "feature": "Monthly corresponding", "value": 96 },
+    { "feature": "Numbers of replies", "value": 13000 },
+    { "feature": "Approx. conversations", "value": 4333 },
+    { "feature": "Knowledge base uploads", "value": "Unlimited" },
+    { "feature": "Supported channels", "value": "Web, WhatsApp, Messenger, Instagram, Slack" },
+    { "feature": "Team seats", "value": "Unlimited" },
+    { "feature": "Usage insights", "value": "Advanced analytics" },
+    { "feature": "Integrations", "value": "Zapier, Google Drive" },
+    { "feature": "AI-powered ticketing automation", "value": "Ticket sync only" },
+    { "feature": "Caching & FAQ fallback", "value": "Included" },
+    { "feature": "Multi-LLM choice", "value": "GPT (all versions), Claude, Gemini, Mistral, Deepseek" },
+    { "feature": "Model hosting", "value": "All LLMs hosted on European servers" },
+    { "feature": "Data privacy", "value": "Fully GDPR-compliant, no data leaves EU" },
+    { "feature": "Support", "value": "Priority" },
+    { "feature": "Hosting / Compliance", "value": "Shared EU cloud" },
+    { "feature": "White-label branding", "value": "Add-on $35/mo" },
+    { "feature": "Enterprise extras", "value": "-" }
+  ],
+  "Scale": [
+    { "feature": "Billed monthly", "value": 460 },
+    { "feature": "Annually corresponding", "value": 5520 },
+    { "feature": "Billed annually", "value": 4416 },
+    { "feature": "Monthly corresponding", "value": 368 },
+    { "feature": "Numbers of replies", "value": 50000 },
+    { "feature": "Approx. conversations", "value": 16667 },
+    { "feature": "Knowledge base uploads", "value": "Unlimited" },
+    { "feature": "Supported channels", "value": "Web, WhatsApp, Messenger, Instagram, Slack" },
+    { "feature": "Team seats", "value": "Unlimited" },
+    { "feature": "Usage insights", "value": "Advanced + optimization" },
+    { "feature": "Integrations", "value": "Zapier, Google Drive" },
+    { "feature": "AI-powered ticketing automation", "value": "Add-on: AI auto-responses (+ Google Reviews & Trustpilot)" },
+    { "feature": "Caching & FAQ fallback", "value": "Included" },
+    { "feature": "Multi-LLM choice", "value": "GPT (all versions), Claude, Gemini, Mistral, Deepseek" },
+    { "feature": "Model hosting", "value": "All LLMs hosted on European servers" },
+    { "feature": "Data privacy", "value": "Fully GDPR-compliant, no data leaves EU" },
+    { "feature": "Support", "value": "Priority + onboarding" },
+    { "feature": "Hosting / Compliance", "value": "EU cloud with geo-options" },
+    { "feature": "White-label branding", "value": "Add-on $35/mo" },
+    { "feature": "Enterprise extras", "value": "-" }
+  ],
+  "Enterprise": [
+    { "feature": "Billed monthly", "value": "Project based" },
+    { "feature": "Annually corresponding", "value": "Project based" },
+    { "feature": "Billed annually", "value": "Project based" },
+    { "feature": "Monthly corresponding", "value": "Project based" },
+    { "feature": "Numbers of replies", "value": "Project based" },
+    { "feature": "Approx. conversations", "value": "Project based" },
+    { "feature": "Knowledge base uploads", "value": "Unlimited" },
+    { "feature": "Supported channels", "value": "Web, WhatsApp, Messenger, Instagram, Slack" },
+    { "feature": "Team seats", "value": "Unlimited" },
+    { "feature": "Usage insights", "value": "Enterprise-level reporting & AI optimization" },
+    { "feature": "Integrations", "value": "Zapier, Google Drive" },
+    { "feature": "AI-powered ticketing automation", "value": "Included" },
+    { "feature": "Caching & FAQ fallback", "value": "Included" },
+    { "feature": "Multi-LLM choice", "value": "GPT (all versions), Claude, Gemini, Mistral, Deepseek" },
+    { "feature": "Model hosting", "value": "All LLMs hosted on European servers" },
+    { "feature": "Data privacy", "value": "Fully GDPR-compliant, no data leaves EU" },
+    { "feature": "Support", "value": "Dedicated account manager + SLA" },
+    { "feature": "Hosting / Compliance", "value": "On-premise / private EU hosting" },
+    { "feature": "White-label branding", "value": "Included" },
+    { "feature": "Enterprise extras", "value": "SLA, on-prem, fine-tuning, dedicated manager" }
+  ]
+};
 
 export const PricingModal = () => {
   const { isOpen, closePricingModal } = usePricingModal();
-  const { currentSubscription } = useSubscription({ fetchCurrent: true, fetchAllPlans: false });
+  const { currentSubscription, subscriptionPlans } = useSubscription({ fetchCurrent: true, fetchAllPlans: true });
   const { getToken } = useAuth();
   const { toast } = useToast();
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState<number | null>(null);
+  const [isAnnual, setIsAnnual] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
 
-  // Fetch subscription plans when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      fetchSubscriptionPlans();
-    }
-  }, [isOpen]);
+  const tiers = Object.keys(pricingData);
+  const features = pricingData.Free.map(f => f.feature);
 
-  const fetchSubscriptionPlans = async () => {
-    setLoading(true);
+  const handleUpgrade = async (tierName: string) => {
+    setCheckoutLoading(tierName);
     try {
       const token = getToken();
       if (!token) {
         throw new Error('Authentication token not found');
       }
 
-      const response = await fetch(`${BASE_URL}subscriptions/`, {
-        method: 'GET',
-        headers: getAuthHeaders(token),
-      });
+      // Find matching plan from API
+      const matchingPlan = subscriptionPlans.find(plan => 
+        plan.name.toLowerCase() === tierName.toLowerCase()
+      );
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch subscription plans');
+      if (!matchingPlan) {
+        throw new Error('Plan not found');
       }
 
-      const data = await response.json();
-      setPlans(data);
-    } catch (error) {
-      console.error('Error fetching subscription plans:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load subscription plans. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpgrade = async (planId: number) => {
-    setCheckoutLoading(planId);
-    try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-
-      const response = await fetch(`${BASE_URL}subscriptions/${planId}/checkout/`, {
+      const response = await fetch(`${BASE_URL}subscriptions/${matchingPlan.id}/checkout/`, {
         method: 'POST',
         headers: getAuthHeaders(token),
       });
@@ -92,7 +171,6 @@ export const PricingModal = () => {
       const result = await response.json();
       
       if (result.status === 'success' && result.data?.checkout_url) {
-        // Redirect to Stripe checkout
         window.location.href = result.data.checkout_url;
       } else {
         throw new Error(result.message || 'Failed to create checkout session');
@@ -109,99 +187,134 @@ export const PricingModal = () => {
     }
   };
 
-  const isCurrentPlan = (planId: number) => {
-    return currentSubscription?.plan?.id === planId;
+  const getPriceText = (tier: string, feature: string) => {
+    const value = pricingData[tier as keyof typeof pricingData].find(f => f.feature === feature)?.value;
+    if (tier === "Enterprise") return "Custom";
+    if (feature === "Billed monthly" || feature === "Monthly corresponding") {
+      return isAnnual ? `$${value}/mo (billed annually)` : `$${value}/mo`;
+    }
+    return typeof value === "number" ? value.toLocaleString() : value;
   };
 
-  if (loading) {
-    return (
-      <Dialog open={isOpen} onOpenChange={closePricingModal}>
-        <DialogContent className="sm:max-w-[900px] bg-white/95 dark:bg-neutral-800/95 backdrop-blur-xl border border-white/20 dark:border-neutral-700 shadow-2xl rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">Choose Your Plan</DialogTitle>
-            <DialogDescription className="text-center">
-              Loading subscription plans...
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-center py-8">
-            <LoadingSpinner size='sm' />
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  const isCurrentPlan = (tierName: string) => {
+    return currentSubscription?.plan?.name?.toLowerCase() === tierName.toLowerCase();
+  };
+
+  const getButtonText = (tier: string) => {
+    if (tier === "Enterprise") return "Contact Us";
+    if (isCurrentPlan(tier)) return "Current Plan";
+    return `Choose ${tier}`;
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={closePricingModal}>
-      <DialogContent className="sm:max-w-[900px] bg-white/95 dark:bg-neutral-800/95 backdrop-blur-xl border border-white/20 dark:border-neutral-700 shadow-2xl rounded-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">Choose Your Plan</DialogTitle>
+      <DialogContent className="max-w-[95vw] max-h-[90vh] bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border border-white/20 dark:border-neutral-800 shadow-2xl rounded-2xl p-0 overflow-hidden">
+        <DialogHeader className="px-8 pt-8 pb-4">
+          <DialogTitle className="text-2xl font-bold text-center">Compare Plans</DialogTitle>
           <DialogDescription className="text-center">
-            Select the plan that best fits your needs. All plans include our core features.
+            Choose the plan that best fits your needs
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-          {plans.map((plan, index) => {
-            const isCurrent = isCurrentPlan(plan.id);
-            const isLoadingCheckout = checkoutLoading === plan.id;
-            
-            return (
-              <div 
-                key={plan.id} 
-                className={`border rounded-lg p-6 flex flex-col h-full ${
-                  isCurrent ? 'border-[#f06425] ring-2 ring-primary/10' : 'border-border'
+        <div className="px-8 pb-4">
+          <div className="flex justify-center">
+            <div className="flex bg-muted rounded-lg p-1">
+              <button
+                onClick={() => setIsAnnual(true)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  isAnnual 
+                    ? "bg-primary text-primary-foreground shadow-sm" 
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {isCurrent && (
-                  <div className="px-3 py-1 text-xs font-semibold text-[#f06425] bg-muted/40 rounded-full w-fit mb-4">
-                    Current Plan
-                  </div>
-                )}
-                
-                <h3 className="text-lg font-semibold">{plan.name}</h3>
-                
-                <div className="mt-2">
-                  <span className="text-3xl font-bold">${plan.price}</span>
-                  <span className="text-sm text-muted-foreground">/{plan.duration_days} days</span>
-                </div>
-                
-                <div className="mt-6 space-y-3 flex-grow">
-                  {plan.description.map((feature, i) => (
-                    <div key={i} className="flex items-start">
-                      <Check className="h-4 w-4 text-[#f06425] mr-2 mt-0.5 shrink-0" />
-                      <span className="text-sm">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-                
-                <ModernButton 
-                  variant={isCurrent ? "outline" : "gradient"} 
-                  className="mt-6 w-full"
-                  disabled={isCurrent || isLoadingCheckout}
-                  onClick={() => handleUpgrade(plan.id)}
-                >
-                  {isLoadingCheckout ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                      Processing...
-                    </>
-                  ) : isCurrent ? (
-                    'Current Plan'
-                  ) : (
-                    'Upgrade'
-                  )}
-                </ModernButton>
-              </div>
-            );
-          })}
+                Annually
+              </button>
+              <button
+                onClick={() => setIsAnnual(false)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  !isAnnual 
+                    ? "bg-primary text-primary-foreground shadow-sm" 
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Monthly
+              </button>
+            </div>
+          </div>
         </div>
 
-        {plans.length === 0 && !loading && (
-          <div className="text-center py-8 text-muted-foreground">
-            No subscription plans available at the moment.
+        <div className="overflow-x-auto flex-1 px-8 pb-8">
+          <div className="min-w-[800px]">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="sticky left-0 z-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl p-4 text-left text-foreground font-semibold border-r border-border shadow-[2px_0_5px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_rgba(0,0,0,0.3)]">
+                    <div className="w-[200px]"></div>
+                  </th>
+                  {tiers.map(tier => (
+                    <th key={tier} className="min-w-[200px] max-w-[200px] p-4 text-center text-foreground font-semibold border-l border-border">
+                      <div className="space-y-3">
+                        <h3 className="text-lg font-bold">{tier}</h3>
+                        <p className="text-2xl font-bold text-primary">
+                          {getPriceText(tier, isAnnual ? "Monthly corresponding" : "Billed monthly")}
+                        </p>
+                        {tier !== "Free" && (
+                          <p className="text-sm text-muted-foreground">
+                            All included from {tier === "Starter" ? "Free" : tier === "Growth" ? "Starter" : tier === "Scale" ? "Growth" : "Scale"}
+                          </p>
+                        )}
+                        <ModernButton 
+                          variant={isCurrentPlan(tier) ? "outline" : tier === "Growth" ? "gradient" : "primary"}
+                          size="sm"
+                          className="w-full"
+                          disabled={isCurrentPlan(tier) || checkoutLoading === tier}
+                          onClick={() => handleUpgrade(tier)}
+                        >
+                          {checkoutLoading === tier ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                              Processing...
+                            </>
+                          ) : (
+                            getButtonText(tier)
+                          )}
+                        </ModernButton>
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {features.map((feature, index) => (
+                  <tr key={feature} className="border-t border-border hover:bg-muted/20 transition-colors">
+                    <td className="sticky left-0 z-10 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl p-4 text-foreground font-medium border-r border-border shadow-[2px_0_5px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_rgba(0,0,0,0.3)]">
+                      <div className="w-[200px] text-sm">{feature}</div>
+                    </td>
+                    {tiers.map(tier => {
+                      const value = pricingData[tier as keyof typeof pricingData].find(f => f.feature === feature)?.value;
+                      return (
+                        <td key={`${tier}-${feature}`} className="min-w-[200px] max-w-[200px] p-4 text-center text-foreground border-l border-border">
+                          <div className="text-sm">
+                            {value === "-" ? (
+                              <X className="w-4 h-4 text-muted-foreground mx-auto" />
+                            ) : (
+                              <span className="flex items-center justify-center gap-2">
+                                {getPriceText(tier, feature)}
+                                {feature === "Numbers of replies" && typeof value === "number" && (
+                                  <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
+        </div>
       </DialogContent>
     </Dialog>
   );
