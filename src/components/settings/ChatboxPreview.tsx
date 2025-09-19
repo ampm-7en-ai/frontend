@@ -165,8 +165,10 @@ export const ChatboxPreview = ({
         try {
           chatServiceRef.current.send({
             type: 'timeout_question',
-            content: 'timeout_question',
-            timestamp: new Date().toISOString()
+            message: '',
+            agentId: agentId || '',
+            sessionId: sessionId || '',
+            timestamp: Date.now()
           });
           console.log('timeout_question message sent successfully');
         } catch (error) {
@@ -184,10 +186,15 @@ export const ChatboxPreview = ({
             try {
               chatServiceRef.current.send({
                 type: 'timeout',
-                content: 'timeout',
-                timestamp: new Date().toISOString()
+                message: '',
+                agentId: agentId || '',
+                sessionId: sessionId || '',
+                timestamp: Date.now()
               });
               console.log('timeout message sent successfully');
+              
+              // Show feedback form after timeout
+              setShowFeedbackForm(true);
             } catch (error) {
               console.error('Error sending timeout:', error);
             }
@@ -298,66 +305,21 @@ export const ChatboxPreview = ({
           setLastBotMessageTime(currentTime);
         }
         
-        // Add message to state
-        setMessages(prev => {
-          const newMessages = [...prev, { ...message, messageId }];
-          
-          // Start idle timeout after state update if this is a bot message
-          if (message.type === 'bot_response' || (message.type !== 'user' && message.type !== 'ui')) {
-            // Pass the updated messages array to check latest message correctly
-            setTimeout(() => {
-              // Pass the newMessages array to avoid state timing issues
-              if (!isLatestMessageFromBot(newMessages)) {
-                console.log('Latest message is not from bot, not starting idle timeout');
-                return;
-              }
-              
-              clearIdleTimers();
-              
-              console.log('Starting idle timeout tracking, latest message is from bot');
-              
-              // First timeout - send timeout_question after 1 minute
-              timeoutQuestionTimerRef.current = setTimeout(() => {
-                const wsConnected = chatServiceRef.current?.isConnected() || false;
-                console.log('Timeout question timer triggered. WS Connected:', wsConnected, 'Already sent:', isTimeoutQuestionSentRef.current);
-                
-                if (chatServiceRef.current && wsConnected && !isTimeoutQuestionSentRef.current) {
-                  console.log('Sending timeout_question after 1 minute of inactivity');
-                  
-                  chatServiceRef.current.send({
-                    type: 'timeout_question',
-                    message: '',
-                    agentId: agentId || '',
-                    sessionId: sessionId || '',
-                    timestamp: Date.now()
-                  });
-                  
-                  isTimeoutQuestionSentRef.current = true;
-                  
-                  // Start second timeout - send timeout after another 1 minute
-                  finalTimeoutTimerRef.current = setTimeout(() => {
-                    const wsConnected2 = chatServiceRef.current?.isConnected() || false;
-                    console.log('Final timeout timer triggered. WS Connected:', wsConnected2);
-                    
-                    if (chatServiceRef.current && wsConnected2) {
-                      console.log('Sending timeout after 2 minutes total inactivity');
-                      
-                      chatServiceRef.current.send({
-                        type: 'timeout',
-                        message: '',
-                        agentId: agentId || '',
-                        sessionId: sessionId || '',
-                        timestamp: Date.now()
-                      });
-                    }
-                  }, 1 * 60 * 1000); // Another 1 minute
-                }
-              }, 1 * 60 * 1000); // 1 minute
-            }, 0);
-          }
-          
-          return newMessages;
-        });
+          // Add message to state
+          setMessages(prev => {
+            const newMessages = [...prev, { ...message, messageId }];
+            
+            // Start idle timeout after state update if this is a bot message
+            if (message.type === 'bot_response' || (message.type !== 'user' && message.type !== 'ui')) {
+              // Pass the updated messages array to check latest message correctly
+              setTimeout(() => {
+                // Use the existing startIdleTimeout function
+                startIdleTimeout();
+              }, 0);
+            }
+            
+            return newMessages;
+          });
       },
       onTypingStart: () => {
         console.log("Typing indicator started");
@@ -546,9 +508,16 @@ export const ChatboxPreview = ({
     setIsInitializing(true);
     setIsConnected(false);
     
+    // Reset terms acceptance on restart
+    setTermsAccepted(false);
+    
     // Clear processed message IDs and reset sequence
     processedMessageIds.current.clear();
     messageSequenceRef.current = 0;
+    
+    // Clear idle timers and reset flags
+    clearIdleTimers();
+    isTimeoutQuestionSentRef.current = false;
     
     // Properly disconnect and cleanup existing connection
     if (chatServiceRef.current) {
@@ -691,8 +660,10 @@ export const ChatboxPreview = ({
       // Send timeout message to backend
       chatServiceRef.current.send({
         type: 'timeout',
-        content: 'timeout',
-        timestamp: new Date().toISOString()
+        message: '',
+        agentId: agentId || '',
+        sessionId: sessionId || '',
+        timestamp: Date.now()
       });
       
       setShowEndChatConfirmation(false);
@@ -722,7 +693,10 @@ export const ChatboxPreview = ({
           rating: feedbackRating,
           text: feedbackText
         }),
-        timestamp: new Date().toISOString()
+        message: '',
+        agentId: agentId || '',
+        sessionId: sessionId || '',
+        timestamp: Date.now()
       });
       
       // Clear messages locally and hide feedback form
@@ -1863,28 +1837,30 @@ export const ChatboxPreview = ({
           </div>
         )}
         
-        {/* Terms and Conditions */}
-        <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/80 backdrop-blur-sm">
-          <div className="flex items-center gap-2 text-xs text-gray-600">
-            <Checkbox 
-              id="terms-acceptance-main"
-              checked={termsAccepted}
-              onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
-              className="h-4 w-4"
-            />
-            <label htmlFor="terms-acceptance-main" className="cursor-pointer leading-relaxed">
-              By chatting you accept our{' '}
-              <a 
-                href="#" 
-                className="underline hover:text-gray-800 transition-colors"
-                onClick={(e) => e.preventDefault()}
-              >
-                terms and conditions
-              </a>
-              .
-            </label>
+        {/* Terms and Conditions - Only show if not accepted */}
+        {!termsAccepted && (
+          <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/80 backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-xs text-gray-600">
+              <Checkbox 
+                id="terms-acceptance-main"
+                checked={termsAccepted}
+                onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
+                className="h-4 w-4"
+              />
+              <label htmlFor="terms-acceptance-main" className="cursor-pointer leading-relaxed">
+                By chatting you accept our{' '}
+                <a 
+                  href="#" 
+                  className="underline hover:text-gray-800 transition-colors"
+                  onClick={(e) => e.preventDefault()}
+                >
+                  terms and conditions
+                </a>
+                .
+              </label>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Message Input - With integrated send button */}
         <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
