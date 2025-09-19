@@ -1255,7 +1255,7 @@ export const ChatboxPreview = ({
               onChange={handleInputChange}
               placeholder={
                 !termsAccepted 
-                  ? "Please accept terms and conditions to continue..." 
+                  ? "" 
                   : (shouldDisableInput && !showFeedbackForm)
                     ? "Please select Yes or No above..." 
                     : "Type your message..."
@@ -1432,7 +1432,7 @@ export const ChatboxPreview = ({
         boxShadow: `0`,
         border: `none`,
         transformOrigin: showFloatingButton ? (position === 'bottom-left' ? 'bottom left' : 'bottom right') : 'center',
-        borderRadius: "14px"
+        borderRadius: "8px"
       }}
     >
       {/* Header */}
@@ -1537,7 +1537,7 @@ export const ChatboxPreview = ({
       </div>
       
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-h-0 relative" style={{overflow:"hidden",borderRadius:"0 0 20px 20px"}}>
+      <div className="flex-1 flex flex-col min-h-0 relative" style={{overflow:"hidden",borderRadius:"0 0 8px 8px"}}>
         {/* Messages Area */}
         <ScrollArea 
           ref={scrollAreaRef}
@@ -1594,6 +1594,23 @@ export const ChatboxPreview = ({
                           willChange: 'auto'
                         }}
                       >
+                        {
+                          message.type == 'bot_response' && (
+                            <div className='flex items-center gap-2'>
+
+                              <Avatar className="w-6 h-6 border border-white">
+                                <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                                <AvatarFallback style={{ 
+                                  background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
+                                  color: '#fff'
+                                }}>
+                                  <User2 size={10} />
+                                </AvatarFallback>
+                              </Avatar>
+                              <p className='text-sm font-semibold'>{chatbotName}</p>
+                            </div>
+                          )
+                        }
                         <div className="text-sm prose prose-sm max-w-none markdown-content">
                           <ReactMarkdown
                             components={{
@@ -1900,7 +1917,7 @@ export const ChatboxPreview = ({
                 className="h-4 w-4"
               />
               <label htmlFor="terms-acceptance-main" className="cursor-pointer leading-relaxed">
-                By chatting you accept our{' '}
+                By chatting, you accept our{' '}
                 <a 
                   href="#" 
                   className="underline hover:text-gray-800 transition-colors"
@@ -1923,7 +1940,7 @@ export const ChatboxPreview = ({
               onChange={handleInputChange}
               placeholder={
                 !termsAccepted 
-                  ? "Please accept terms and conditions to continue..." 
+                  ? "Type your message" 
                   : (shouldDisableInput && !showFeedbackForm)
                     ? "Please select Yes or No above..." 
                     : "Type your message..."
