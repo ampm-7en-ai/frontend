@@ -190,7 +190,7 @@ export const PricingModal = () => {
 
   const getPriceText = (tier: string, feature: string) => {
     const value = pricingData[tier as keyof typeof pricingData].find(f => f.feature === feature)?.value;
-    if (tier === "Enterprise") return "Custom";
+   // if (tier === "Enterprise") return "Custom";
     if (feature === "Billed monthly" || feature === "Monthly corresponding") {
       return isAnnual ? `$${value}/mo` : `$${value}/mo`;
     }
@@ -221,51 +221,32 @@ export const PricingModal = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={closePricingModal}>
-      <DialogContent className="max-w-[95vw] max-h-[90vh] bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border border-white/20 dark:border-neutral-800 shadow-2xl rounded-2xl p-0 overflow-hidden">
-        <DialogHeader className="px-8 pt-8 pb-4">
-          <DialogTitle className="text-2xl font-bold text-center">Compare Plans</DialogTitle>
-          <DialogDescription className="text-center">
-            Choose the plan that best fits your needs
-          </DialogDescription>
+      <DialogContent className="max-w-[95vw] min-h-[90vh] bg-white/95 dark:bg-neutral-800/95 backdrop-blur-xl border border-white/20 dark:border-neutral-700 shadow-2xl rounded-2xl p-0 overflow-hidden">
+        <DialogHeader className="">
+         
         </DialogHeader>
 
-        <div className="overflow-y-auto flex-1 px-8 pb-8 max-h-[60vh]">
+        <div className="overflow-y-auto flex-1 px-8 pb-8 max-h-[80vh]">
           <div className="min-w-full">
             <table className="w-full border-collapse">
-              <thead className="sticky top-0 z-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl">
+              <thead className="sticky top-0 z-20 bg-neutral-100/50 dark:bg-neutral-800/95 backdrop-blur-md">
                 <tr>
-                  <th className="w-[200px] p-4 text-left text-foreground font-semibold border-r border-border">
+                  <th className="w-[200px] p-4 text-left text-foreground font-semibold border-r border-foreground">
                     <div className="w-[200px]"></div>
                   </th>
                   {tiers.map(tier => (
-                    <th key={tier} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground font-semibold border-l border-border">
-                      <div className="space-y-3">
-                        <h3 className="text-lg font-bold">{tier}</h3>
+                    <th key={tier} className="min-w-[250px] max-w-[250px] p-4 text-left text-foreground font-semibold align-top bg-neutral-50 dark:bg-neutral-800/95 border-l border-foreground">
+                      <div className="space-y-3 mb-2">
+                        <h3 className="text-sm font-normal uppercase">{tier}</h3>
                         
-                        {tier !== "Free" && tier !== "Enterprise" && (
-                          <div className="flex items-center justify-center gap-2 mb-2">
-                            <span className="text-sm text-muted-foreground">Monthly</span>
-                            <Switch
-                              checked={isAnnual}
-                              onCheckedChange={setIsAnnual}
-                            />
-                            <span className="text-sm text-muted-foreground">Annual</span>
-                            {isAnnual && calculateSavings(tier) > 0 && (
-                              <span className="text-sm text-green-600 font-medium ml-2">
-                                Save ${calculateSavings(tier).toLocaleString()}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        
-                        <p className="text-2xl font-bold text-primary">
+                        <p className="text-2xl font-semibold text-foreground">
                           {getPriceText(tier, isAnnual ? "Monthly corresponding" : "Billed monthly")}
                         </p>
-                        {tier !== "Free" && (
+                        {/* {tier !== "Free" && (
                           <p className="text-sm text-muted-foreground">
                             All included from {tier === "Starter" ? "Free" : tier === "Growth" ? "Starter" : tier === "Scale" ? "Growth" : "Scale"}
                           </p>
-                        )}
+                        )} */}
                         <ModernButton 
                           variant={isCurrentPlan(tier) ? "outline" : tier === "Growth" ? "gradient" : "primary"}
                           size="sm"
@@ -283,6 +264,23 @@ export const PricingModal = () => {
                           )}
                         </ModernButton>
                       </div>
+                      {tier !== "Free" && tier !== "Enterprise" && (
+                        <div className="flex items-center justify-between gap-2 mb-0 py-4">
+                          <div className='flex items-center'>
+                            <Switch
+                            checked={isAnnual}
+                            onCheckedChange={setIsAnnual}
+                            className='scale-75 origin-left'
+                          />
+                          <span className="text-sm text-muted-foreground">Annual</span>
+                          </div>
+                          {isAnnual && calculateSavings(tier) > 0 && (
+                            <span className="text-sm text-green-600 font-medium ml-2">
+                              Save ${calculateSavings(tier).toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </th>
                   ))}
                 </tr>
