@@ -146,6 +146,12 @@ export const ChatboxPreview = ({
 
   // Start idle timeout tracking - only if latest message is from bot
   const startIdleTimeout = (messageArray = messages) => {
+    // Guard: If timeout_question was already sent, don't interfere with final timeout
+    if (isTimeoutQuestionSentRef.current) {
+      console.log('⛔ Timeout question already sent, not starting new idle timeout');
+      return;
+    }
+    
     // Only start timeout if the latest message is from the bot
     if (!isLatestMessageFromBot(messageArray)) {
       console.log('Latest message is not from bot, not starting idle timeout');
@@ -233,12 +239,12 @@ export const ChatboxPreview = ({
       console.log('⏰ Keeping final timeout timer running since timeout_question was already sent');
     }
     
-    isTimeoutQuestionSentRef.current = false; // Reset the flag when user is active
-    
-    // Only restart timer if the latest message is from bot
-    if (isLatestMessageFromBot()) {
+    // Only restart timer if the latest message is from bot AND timeout_question hasn't been sent
+    if (!isTimeoutQuestionSentRef.current && isLatestMessageFromBot()) {
       console.log('Latest message is from bot, restarting idle timeout');
       startIdleTimeout();
+    } else if (isTimeoutQuestionSentRef.current) {
+      console.log('⏰ Timeout question already sent, not restarting idle timeout');
     } else {
       console.log('Latest message is not from bot, not restarting idle timeout');
     }
