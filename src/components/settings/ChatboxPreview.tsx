@@ -138,7 +138,10 @@ export const ChatboxPreview = ({
   const isLatestMessageFromBot = (messageArray = messages) => {
     if (messageArray.length === 0) return false;
     const latestMessage = messageArray[messageArray.length - 1];
-    return latestMessage.type === 'bot_response' || (latestMessage.type !== 'user' && latestMessage.type !== 'ui');
+    console.log('Checking latest message:', latestMessage?.type, 'Content:', latestMessage?.content?.slice(0, 50));
+    const isFromBot = latestMessage.type === 'bot_response' || (latestMessage.type !== 'user' && latestMessage.type !== 'ui');
+    console.log('Is from bot:', isFromBot);
+    return isFromBot;
   };
 
   // Start idle timeout tracking - only if latest message is from bot
@@ -313,7 +316,13 @@ export const ChatboxPreview = ({
             if (message.type === 'bot_response' || (message.type !== 'user' && message.type !== 'ui')) {
               // Pass the updated messages array to check latest message correctly
               setTimeout(() => {
-                // Use the existing startIdleTimeout function
+                console.log('Checking if should start idle timeout with newMessages array');
+                // Pass the newMessages array to avoid state timing issues
+                if (!isLatestMessageFromBot(newMessages)) {
+                  console.log('Latest message is not from bot using newMessages, not starting idle timeout');
+                  return;
+                }
+                console.log('Latest message is from bot using newMessages, starting idle timeout');
                 startIdleTimeout();
               }, 0);
             }
