@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Bot, Send, User, WifiOff, AlertCircle, Minus, RotateCcw, MessageCircleReplyIcon, User2, MessageSquare, MoreHorizontal, MessageCircle, Star } from 'lucide-react';
+import { Bot, Send, User, WifiOff, AlertCircle, Minus, RotateCcw, MessageCircleReplyIcon, User2, MessageSquare, MoreHorizontal, MessageCircle, Star, X } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -712,6 +712,13 @@ export const ChatboxPreview = ({
     }
   };
 
+  // Handle feedback close
+  const handleFeedbackClose = () => {
+    setShowFeedbackForm(false);
+    setFeedbackRating(0);
+    setFeedbackText('');
+  };
+
   // Handle feedback submission
   const handleFeedbackSubmit = () => {
     if (!chatServiceRef.current || !isConnected) {
@@ -1171,7 +1178,13 @@ export const ChatboxPreview = ({
         {/* Feedback Form */}
         {showFeedbackForm && (
           <div className="px-4 py-3 bg-white border-t border-gray-100">
-            <div className="text-center">
+            <div className="text-center relative">
+              <button
+                onClick={handleFeedbackClose}
+                className="absolute right-0 top-0 p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X size={16} className="text-gray-500" />
+              </button>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">How was your experience?</h3>
               
               {/* Star Rating */}
@@ -1243,7 +1256,7 @@ export const ChatboxPreview = ({
               placeholder={
                 !termsAccepted 
                   ? "Please accept terms and conditions to continue..." 
-                  : shouldDisableInput 
+                  : (shouldDisableInput && !showFeedbackForm)
                     ? "Please select Yes or No above..." 
                     : "Type your message..."
               }
@@ -1831,7 +1844,13 @@ export const ChatboxPreview = ({
         {/* Feedback Form */}
         {showFeedbackForm && (
           <div className="px-4 py-3 bg-white border-t border-gray-100">
-            <div className="text-center">
+            <div className="text-center relative">
+              <button
+                onClick={handleFeedbackClose}
+                className="absolute right-0 top-0 p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X size={16} className="text-gray-500" />
+              </button>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">How was your experience?</h3>
               
               {/* Star Rating */}
@@ -1905,7 +1924,7 @@ export const ChatboxPreview = ({
               placeholder={
                 !termsAccepted 
                   ? "Please accept terms and conditions to continue..." 
-                  : shouldDisableInput 
+                  : (shouldDisableInput && !showFeedbackForm)
                     ? "Please select Yes or No above..." 
                     : "Type your message..."
               }
