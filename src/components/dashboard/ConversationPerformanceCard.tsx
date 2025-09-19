@@ -90,6 +90,7 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
               width={70}
             />
             <Tooltip 
+              cursor={{ fill: "transparent" }}
               contentStyle={{ 
                 backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
@@ -136,13 +137,15 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
               fill="#f06425"
               radius={[0, 0, 0, 0]}
               name="Closed"
+              activeBar={false}
             />
             <Bar 
               dataKey="open" 
               stackId="a"
-              fill="hsl(var(--chart-2))"
+              fill="hsl(var(--chart-6))"
               radius={[0, 4, 4, 0]}
               name="Open"
+              activeBar={false}
             />
           </BarChart>
         </ResponsiveContainer>
