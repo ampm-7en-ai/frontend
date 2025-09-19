@@ -17,6 +17,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { duotoneLight, oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Icon } from '../icons';
 interface Message {
   type: string;
   content: string;
@@ -1437,7 +1438,7 @@ export const ChatboxPreview = ({
     >
       {/* Header */}
       <div 
-        className="p-4 rounded-t-xl flex items-center justify-between relative overflow-hidden flex-shrink-0"
+        className="p-4 rounded-t-xl flex items-center justify-between relative overflow-hidden flex-shrink-0 py-5"
         style={{ 
           background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)}, ${adjustColor(primaryColor, -50)})`
         }}
@@ -1447,23 +1448,28 @@ export const ChatboxPreview = ({
         
         <div className="flex items-center gap-3 relative z-10">
           <div className="relative">
-            <div className="flex items-center justify-center overflow-hidden bg-white/20 backdrop-blur-sm rounded-full w-12 h-12 border border-white/30">
+            <div className="flex items-center justify-center overflow-hidden bg-white/20 backdrop-blur-sm rounded-full w-8 h-8">
               {avatarSrc ? (
-                <Avatar className="w-12 h-12">
+                <Avatar className="w-8 h-8">
                   <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
                   <AvatarFallback className="text-white bg-transparent">
-                    <User2 size={24} />
+                    <Icon name={`Person`} type='plain' color='#000000' />
                   </AvatarFallback>
                 </Avatar>
               ) : (
-                <User2 size={24} className="text-white drop-shadow-sm" style={{color: secondaryColor}}/>
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={window.location.origin+`/public/7en-thumbnail.png`} alt={chatbotName} className="object-cover" />
+                  <AvatarFallback className="text-white bg-transparent">
+                    <Icon name={`Person`} type='plain' color='#000000' />
+                  </AvatarFallback>
+                </Avatar>
               )}
             </div>
             {/* Online indicator */}
            
           </div>
           <div className="flex flex-col">
-            <span className="font-semibold text-white text-lg drop-shadow-sm" style={{color: secondaryColor}}>{chatbotName}</span>
+            <span className="font-normal text-white text-lg drop-shadow-sm" style={{color: secondaryColor}}>{chatbotName}</span>
           </div>
         </div>
         
@@ -1505,7 +1511,7 @@ export const ChatboxPreview = ({
             </DropdownMenuContent>
           </DropdownMenu>
           
-          {(onMinimize || showFloatingButton) && (
+          {/* {(onMinimize || showFloatingButton) && (
             <ModernButton
               onClick={handleMinimizeToggle}
               variant="ghost"
@@ -1518,7 +1524,7 @@ export const ChatboxPreview = ({
               }}
               iconOnly
             />
-          )}
+          )} */}
           
           {isInitializing ? (
             <LoadingSpinner size="sm" className="text-white/70" />
@@ -1574,7 +1580,7 @@ export const ChatboxPreview = ({
               const isConsecutive = index > 0 && messages[index - 1]?.type === message.type;
               
               return (
-                <div key={message.messageId || index} className={isConsecutive ? 'mt-2' : 'mt-4'}>
+                <div key={message.messageId || index} className={`${isConsecutive ? '!mt-2' : 'mt-4'}`}>
                   {message.type !== 'ui' && (
                     <div 
                       className={`flex gap-4 items-start ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-end'}`}
@@ -1584,7 +1590,7 @@ export const ChatboxPreview = ({
                     >
                       <div
                         className={cn(
-                          "rounded-2xl p-4 max-w-[92%] relative transition-all duration-300",
+                          `rounded-[20px] p-4 max-w-[92%] relative transition-all duration-300 ${message.type === 'user' ? "!py-2 rounded-br-sm" : !isConsecutive ? "rounded-bl-sm" : "rounded-tl-sm"}`,
                           styling.containerClass,
                           styling.textClass
                         )}
@@ -1595,16 +1601,16 @@ export const ChatboxPreview = ({
                         }}
                       >
                         {
-                          message.type == 'bot_response' && (
-                            <div className='flex items-center gap-2'>
+                          message.type == 'bot_response' && !isConsecutive && (
+                            <div className='flex items-center gap-2 bot mb-1'>
 
-                              <Avatar className="w-6 h-6 border border-white">
+                              <Avatar className="w-4 h-4">
                                 <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
                                 <AvatarFallback style={{ 
-                                  background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
+                                  background: ``,
                                   color: '#fff'
-                                }}>
-                                  <User2 size={10} />
+                                }} className='bg-transparent'>
+                                  <Icon name={`Person`} type='plain' color='#000000' className='h-4 w-4' />
                                 </AvatarFallback>
                               </Avatar>
                               <p className='text-sm font-semibold'>{chatbotName}</p>
@@ -1767,24 +1773,24 @@ export const ChatboxPreview = ({
             {/* Smaller Avatar (2x smaller) */}
             <div className="flex-shrink-0">
               {avatarSrc ? (
-                <Avatar className="w-5 h-5 border border-white">
-                  <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
-                  <AvatarFallback style={{ 
-                    background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
-                    color: '#fff'
-                  }}>
-                    <User2 size={10} />
-                  </AvatarFallback>
+                <Avatar className="w-6 h-6">
+                <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                <AvatarFallback style={{ 
+                  background: ``,
+                  color: '#fff'
+                }} className='bg-transparent'>
+                  <Icon name={`Person`} type='plain' color='#000000' />
+                </AvatarFallback>
                 </Avatar>
               ) : (
                 <div 
-                  className="w-5 h-5 rounded-full flex items-center justify-center border border-white"
+                  className="w-5 h-5 rounded-full flex items-center justify-center border border-white bg-transparent"
                   style={{ 
-                    background: `linear-gradient(135deg, ${primaryColor}, ${adjustColor(primaryColor, -30)})`,
+                    background: ``,
                     color: secondaryColor
                   }}
                 >
-                  <User2 size={10} />
+                  <Icon name={`Person`} type='plain' color='#000000' />
                 </div>
               )}
             </div>
@@ -1834,25 +1840,28 @@ export const ChatboxPreview = ({
         {showEndChatConfirmation && (
           <div className="px-4 py-3 bg-white border-t border-gray-100">
             <div className="text-center">
-              <div className="mb-3 p-3 rounded-full bg-gray-100 mx-auto w-fit">
-                <MessageCircle className="h-6 w-6 text-gray-600" />
+              <div className="mb-3 p-3 rounded-full bg-transparent mx-auto w-fit">
+                <Icon name={`Bubbles`} type='plain' color='#000000' />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">End chat</h3>
               <p className="text-sm text-gray-600 mb-4">Do you want to end this chat?</p>
               <div className="flex flex-col gap-2">
-                <Button
+                <ModernButton
                   onClick={handleEndChat}
+                  variant='primary'
+                  size='sm'
                   className="w-full bg-black hover:bg-gray-800 text-white rounded-lg py-3 text-sm font-medium"
                 >
                   Yes, end chat
-                </Button>
-                <Button
+                </ModernButton>
+                <ModernButton
                   variant="outline"
                   onClick={() => setShowEndChatConfirmation(false)}
+                  size='sm'
                   className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-3 text-sm font-medium"
                 >
-                  Cancel
-                </Button>
+                  No
+                </ModernButton>
               </div>
             </div>
           </div>
