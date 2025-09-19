@@ -179,12 +179,13 @@ export const ChatboxPreview = ({
         }
         
         // Start second timeout - send timeout after another 1 minute
+        console.log('🟡 Starting final timeout timer for 1 minute from now');
         finalTimeoutTimerRef.current = setTimeout(() => {
           const wsConnected2 = chatServiceRef.current?.isConnected() || false;
-          console.log('Final timeout timer triggered. WS Connected:', wsConnected2);
+          console.log('🔥 Final timeout timer triggered! WS Connected:', wsConnected2, 'Timeout question sent:', isTimeoutQuestionSentRef.current);
           
           if (chatServiceRef.current && wsConnected2) {
-            console.log('Sending timeout after 2 minutes total inactivity');
+            console.log('📤 Sending timeout message after 1 minute of timeout_question');
             
             try {
               chatServiceRef.current.send({
@@ -194,15 +195,16 @@ export const ChatboxPreview = ({
                 sessionId: sessionId || '',
                 timestamp: Date.now()
               });
-              console.log('timeout message sent successfully');
+              console.log('✅ timeout message sent successfully');
               
               // Show feedback form after timeout
+              console.log('📋 Showing feedback form after timeout');
               setShowFeedbackForm(true);
             } catch (error) {
-              console.error('Error sending timeout:', error);
+              console.error('❌ Error sending timeout:', error);
             }
           } else {
-            console.log('Cannot send final timeout - connection not available');
+            console.log('❌ Cannot send final timeout - connection not available');
           }
         }, 1 * 60 * 1000); // Another 1 minute
       } else {
@@ -214,7 +216,23 @@ export const ChatboxPreview = ({
   // Reset idle timeout when user types - but only start if latest message is from bot
   const resetIdleTimeout = () => {
     console.log('User activity detected, clearing timers and resetting timeout flag');
-    clearIdleTimers();
+    
+    // Only clear the timeout question timer, not the final timeout timer
+    // If timeout_question was already sent, let the final timeout complete
+    if (timeoutQuestionTimerRef.current) {
+      clearTimeout(timeoutQuestionTimerRef.current);
+      timeoutQuestionTimerRef.current = null;
+    }
+    
+    // Only clear final timeout timer if timeout_question hasn't been sent yet
+    if (!isTimeoutQuestionSentRef.current && finalTimeoutTimerRef.current) {
+      console.log('🛑 Clearing final timeout timer since timeout_question not sent yet');
+      clearTimeout(finalTimeoutTimerRef.current);
+      finalTimeoutTimerRef.current = null;
+    } else if (isTimeoutQuestionSentRef.current) {
+      console.log('⏰ Keeping final timeout timer running since timeout_question was already sent');
+    }
+    
     isTimeoutQuestionSentRef.current = false; // Reset the flag when user is active
     
     // Only restart timer if the latest message is from bot
