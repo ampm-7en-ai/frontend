@@ -243,16 +243,16 @@ export const PricingModal = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto flex-1 px-8 pb-8">
-          <div className="min-w-[800px]">
+        <div className="overflow-y-auto flex-1 px-8 pb-8 max-h-[60vh]">
+          <div className="min-w-full">
             <table className="w-full border-collapse">
-              <thead>
+              <thead className="sticky top-0 z-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl">
                 <tr>
-                  <th className="sticky left-0 z-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl p-4 text-left text-foreground font-semibold border-r border-border shadow-[2px_0_5px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_rgba(0,0,0,0.3)]">
+                  <th className="w-[200px] p-4 text-left text-foreground font-semibold border-r border-border">
                     <div className="w-[200px]"></div>
                   </th>
                   {tiers.map(tier => (
-                    <th key={tier} className="min-w-[200px] max-w-[200px] p-4 text-center text-foreground font-semibold border-l border-border">
+                    <th key={tier} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground font-semibold border-l border-border">
                       <div className="space-y-3">
                         <h3 className="text-lg font-bold">{tier}</h3>
                         <p className="text-2xl font-bold text-primary">
@@ -287,13 +287,13 @@ export const PricingModal = () => {
               <tbody>
                 {features.map((feature, index) => (
                   <tr key={feature} className="border-t border-border hover:bg-muted/20 transition-colors">
-                    <td className="sticky left-0 z-10 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl p-4 text-foreground font-medium border-r border-border shadow-[2px_0_5px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_rgba(0,0,0,0.3)]">
+                    <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
                       <div className="w-[200px] text-sm">{feature}</div>
                     </td>
                     {tiers.map(tier => {
                       const value = pricingData[tier as keyof typeof pricingData].find(f => f.feature === feature)?.value;
                       return (
-                        <td key={`${tier}-${feature}`} className="min-w-[200px] max-w-[200px] p-4 text-center text-foreground border-l border-border">
+                        <td key={`${tier}-${feature}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
                           <div className="text-sm">
                             {value === "-" ? (
                               <X className="w-4 h-4 text-muted-foreground mx-auto" />
