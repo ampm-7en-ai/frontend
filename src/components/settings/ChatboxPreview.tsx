@@ -145,9 +145,9 @@ export const ChatboxPreview = ({
   };
 
   // Start idle timeout tracking - only if latest message is from bot
-  const startIdleTimeout = () => {
+  const startIdleTimeout = (messageArray = messages) => {
     // Only start timeout if the latest message is from the bot
-    if (!isLatestMessageFromBot()) {
+    if (!isLatestMessageFromBot(messageArray)) {
       console.log('Latest message is not from bot, not starting idle timeout');
       return;
     }
@@ -323,7 +323,7 @@ export const ChatboxPreview = ({
                   return;
                 }
                 console.log('Latest message is from bot using newMessages, starting idle timeout');
-                startIdleTimeout();
+                startIdleTimeout(newMessages);
               }, 0);
             }
             
