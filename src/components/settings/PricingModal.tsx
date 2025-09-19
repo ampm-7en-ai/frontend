@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { usePricingModal } from '@/hooks/usePricingModal';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/context/AuthContext';
@@ -191,9 +192,21 @@ export const PricingModal = () => {
     const value = pricingData[tier as keyof typeof pricingData].find(f => f.feature === feature)?.value;
     if (tier === "Enterprise") return "Custom";
     if (feature === "Billed monthly" || feature === "Monthly corresponding") {
-      return isAnnual ? `$${value}/mo (billed annually)` : `$${value}/mo`;
+      return isAnnual ? `$${value}/mo` : `$${value}/mo`;
     }
     return typeof value === "number" ? value.toLocaleString() : value;
+  };
+
+  const calculateSavings = (tier: string) => {
+    const monthlyPrice = pricingData[tier as keyof typeof pricingData].find(f => f.feature === "Billed monthly")?.value;
+    const annualPrice = pricingData[tier as keyof typeof pricingData].find(f => f.feature === "Billed annually")?.value;
+    
+    if (typeof monthlyPrice === "number" && typeof annualPrice === "number") {
+      const annualCostIfMonthly = monthlyPrice * 12;
+      const savings = annualCostIfMonthly - annualPrice;
+      return savings > 0 ? savings : 0;
+    }
+    return 0;
   };
 
   const isCurrentPlan = (tierName: string) => {
@@ -215,33 +228,6 @@ export const PricingModal = () => {
             Choose the plan that best fits your needs
           </DialogDescription>
         </DialogHeader>
-        
-        <div className="px-8 pb-4">
-          <div className="flex justify-center">
-            <div className="flex bg-muted rounded-lg p-1">
-              <button
-                onClick={() => setIsAnnual(true)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isAnnual 
-                    ? "bg-primary text-primary-foreground shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Annually
-              </button>
-              <button
-                onClick={() => setIsAnnual(false)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  !isAnnual 
-                    ? "bg-primary text-primary-foreground shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Monthly
-              </button>
-            </div>
-          </div>
-        </div>
 
         <div className="overflow-y-auto flex-1 px-8 pb-8 max-h-[60vh]">
           <div className="min-w-full">
@@ -255,6 +241,23 @@ export const PricingModal = () => {
                     <th key={tier} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground font-semibold border-l border-border">
                       <div className="space-y-3">
                         <h3 className="text-lg font-bold">{tier}</h3>
+                        
+                        {tier !== "Free" && tier !== "Enterprise" && (
+                          <div className="flex items-center justify-center gap-2 mb-2">
+                            <span className="text-sm text-muted-foreground">Monthly</span>
+                            <Switch
+                              checked={isAnnual}
+                              onCheckedChange={setIsAnnual}
+                            />
+                            <span className="text-sm text-muted-foreground">Annual</span>
+                            {isAnnual && calculateSavings(tier) > 0 && (
+                              <span className="text-sm text-green-600 font-medium ml-2">
+                                Save ${calculateSavings(tier).toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        
                         <p className="text-2xl font-bold text-primary">
                           {getPriceText(tier, isAnnual ? "Monthly corresponding" : "Billed monthly")}
                         </p>
