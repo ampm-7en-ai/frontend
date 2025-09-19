@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Bot, Send, User, WifiOff, AlertCircle, Minus, RotateCcw, MessageCircleReplyIcon, User2, MessageSquare, MoreHorizontal, Trash2, MessageCircle } from 'lucide-react';
+import { Bot, Send, User, WifiOff, AlertCircle, Minus, RotateCcw, MessageCircleReplyIcon, User2, MessageSquare, MoreHorizontal, MessageCircle, Star } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -16,7 +16,6 @@ import { Input } from '../ui/input';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { duotoneLight, oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 interface Message {
   type: string;
@@ -100,8 +99,11 @@ export const ChatboxPreview = ({
   // Terms and conditions state
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  // Delete confirmation dialog state
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  // End chat confirmation and feedback states
+  const [showEndChatConfirmation, setShowEndChatConfirmation] = useState(false);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackText, setFeedbackText] = useState('');
 
   // Idle time tracking state
   const [lastBotMessageTime, setLastBotMessageTime] = useState<Date | null>(null);
@@ -109,10 +111,10 @@ export const ChatboxPreview = ({
   const finalTimeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isTimeoutQuestionSentRef = useRef(false);
 
-  // Check if input should be disabled (when there's a pending yes/no question)
+  // Check if input should be disabled (when there's a pending UI state)
   const shouldDisableInput = messages.some(msg => 
     msg.type === 'ui' && msg.ui_type === 'email'
-  );
+  ) || showEndChatConfirmation || showFeedbackForm;
 
   // Get the latest yes/no message for displaying buttons
   const latestYesNoMessage = messages.slice().reverse().find(msg => 
@@ -679,8 +681,8 @@ export const ChatboxPreview = ({
     setIsMinimized(false);
   };
 
-  // Handle delete chat confirmation
-  const handleDeleteChat = () => {
+  // Handle end chat confirmation
+  const handleEndChat = () => {
     if (!chatServiceRef.current || !isConnected) {
       return;
     }
@@ -693,23 +695,52 @@ export const ChatboxPreview = ({
         timestamp: new Date().toISOString()
       });
       
-      // Clear messages and restart connection
-      setMessages([]);
-      processedMessageIds.current.clear();
+      setShowEndChatConfirmation(false);
+      setShowFeedbackForm(true);
       clearIdleTimers();
-      
-      // Close confirmation dialog
-      setShowDeleteConfirmation(false);
-      
-      toast({
-        title: "Chat Deleted",
-        description: "The conversation has been cleared.",
-      });
     } catch (error) {
-      console.error('Error deleting chat:', error);
+      console.error('Error ending chat:', error);
       toast({
         title: "Error",
-        description: "Failed to delete chat. Please try again.",
+        description: "Failed to end chat. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle feedback submission
+  const handleFeedbackSubmit = () => {
+    if (!chatServiceRef.current || !isConnected) {
+      return;
+    }
+
+    try {
+      // Send feedback message to backend
+      chatServiceRef.current.send({
+        type: 'feedback',
+        content: JSON.stringify({
+          rating: feedbackRating,
+          text: feedbackText
+        }),
+        timestamp: new Date().toISOString()
+      });
+      
+      // Clear messages locally and hide feedback form
+      setMessages([]);
+      processedMessageIds.current.clear();
+      setShowFeedbackForm(false);
+      setFeedbackRating(0);
+      setFeedbackText('');
+      
+      toast({
+        title: "Feedback Sent",
+        description: "Thank you for your feedback!",
+      });
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit feedback. Please try again.",
         variant: "destructive",
       });
     }
@@ -798,11 +829,11 @@ export const ChatboxPreview = ({
                         Restart chat
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => setShowDeleteConfirmation(true)}
+                        onClick={() => setShowEndChatConfirmation(true)}
                         className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-red-600"
                       >
-                        <Trash2 size={16} />
-                        Delete chat
+                        <MessageCircle size={16} />
+                        End chat
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -1102,6 +1133,76 @@ export const ChatboxPreview = ({
                   </div>
                 )}
                 
+        {/* End Chat Confirmation */}
+        {showEndChatConfirmation && (
+          <div className="px-4 py-3 bg-white border-t border-gray-100">
+            <div className="text-center">
+              <div className="mb-3 p-3 rounded-full bg-gray-100 mx-auto w-fit">
+                <MessageCircle className="h-6 w-6 text-gray-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">End chat</h3>
+              <p className="text-sm text-gray-600 mb-4">Do you want to end this chat?</p>
+              <div className="flex flex-col gap-2">
+                <Button
+                  onClick={handleEndChat}
+                  className="w-full bg-black hover:bg-gray-800 text-white rounded-lg py-3 text-sm font-medium"
+                >
+                  Yes, end chat
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowEndChatConfirmation(false)}
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-3 text-sm font-medium"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Feedback Form */}
+        {showFeedbackForm && (
+          <div className="px-4 py-3 bg-white border-t border-gray-100">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">How was your experience?</h3>
+              
+              {/* Star Rating */}
+              <div className="flex justify-center gap-2 mb-4">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setFeedbackRating(star)}
+                    className={`transition-colors ${
+                      feedbackRating >= star ? 'text-yellow-400' : 'text-gray-300'
+                    } hover:text-yellow-400`}
+                  >
+                    <Star size={24} fill={feedbackRating >= star ? 'currentColor' : 'none'} />
+                  </button>
+                ))}
+              </div>
+              
+              {/* Feedback Text */}
+              <Textarea
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                placeholder="Tell us about your experience (optional)"
+                className="w-full mb-4 resize-none"
+                rows={3}
+              />
+              
+              {/* Submit Button */}
+              <Button
+                onClick={handleFeedbackSubmit}
+                className="w-full bg-black hover:bg-gray-800 text-white rounded-lg py-3 text-sm font-medium"
+                disabled={feedbackRating === 0}
+              >
+                Submit Feedback
+              </Button>
+            </div>
+          </div>
+        )}
+                
         {/* Terms and Conditions */}
         <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/80 backdrop-blur-sm">
           <div className="flex items-center gap-2 text-xs text-gray-600">
@@ -1375,11 +1476,11 @@ export const ChatboxPreview = ({
                 Restart chat
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => setShowDeleteConfirmation(true)}
+                onClick={() => setShowEndChatConfirmation(true)}
                 className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-red-600"
               >
-                <Trash2 size={16} />
-                Delete chat
+                <MessageCircle size={16} />
+                End chat
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -1692,6 +1793,76 @@ export const ChatboxPreview = ({
           </div>
         )}
         
+        {/* End Chat Confirmation */}
+        {showEndChatConfirmation && (
+          <div className="px-4 py-3 bg-white border-t border-gray-100">
+            <div className="text-center">
+              <div className="mb-3 p-3 rounded-full bg-gray-100 mx-auto w-fit">
+                <MessageCircle className="h-6 w-6 text-gray-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">End chat</h3>
+              <p className="text-sm text-gray-600 mb-4">Do you want to end this chat?</p>
+              <div className="flex flex-col gap-2">
+                <Button
+                  onClick={handleEndChat}
+                  className="w-full bg-black hover:bg-gray-800 text-white rounded-lg py-3 text-sm font-medium"
+                >
+                  Yes, end chat
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowEndChatConfirmation(false)}
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-3 text-sm font-medium"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Feedback Form */}
+        {showFeedbackForm && (
+          <div className="px-4 py-3 bg-white border-t border-gray-100">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">How was your experience?</h3>
+              
+              {/* Star Rating */}
+              <div className="flex justify-center gap-2 mb-4">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setFeedbackRating(star)}
+                    className={`transition-colors ${
+                      feedbackRating >= star ? 'text-yellow-400' : 'text-gray-300'
+                    } hover:text-yellow-400`}
+                  >
+                    <Star size={24} fill={feedbackRating >= star ? 'currentColor' : 'none'} />
+                  </button>
+                ))}
+              </div>
+              
+              {/* Feedback Text */}
+              <Textarea
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                placeholder="Tell us about your experience (optional)"
+                className="w-full mb-4 resize-none"
+                rows={3}
+              />
+              
+              {/* Submit Button */}
+              <Button
+                onClick={handleFeedbackSubmit}
+                className="w-full bg-black hover:bg-gray-800 text-white rounded-lg py-3 text-sm font-medium"
+                disabled={feedbackRating === 0}
+              >
+                Submit Feedback
+              </Button>
+            </div>
+          </div>
+        )}
+        
         {/* Terms and Conditions */}
         <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/80 backdrop-blur-sm">
           <div className="flex items-center gap-2 text-xs text-gray-600">
@@ -1850,38 +2021,6 @@ export const ChatboxPreview = ({
           }
         `}
       </style>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
-        <DialogContent className="sm:max-w-[400px] bg-white border border-gray-200 rounded-lg shadow-xl z-[10000]">
-          <DialogHeader className="text-center pb-4">
-            <div className="mx-auto mb-3 p-3 rounded-full bg-gray-100">
-              <MessageCircle className="h-6 w-6 text-gray-600" />
-            </div>
-            <DialogTitle className="text-lg font-semibold text-gray-900">
-              End chat
-            </DialogTitle>
-            <p className="text-sm text-gray-600 mt-2">
-              Do you want to end this chat?
-            </p>
-          </DialogHeader>
-          <DialogFooter className="flex flex-col gap-2 pt-4">
-            <Button
-              onClick={handleDeleteChat}
-              className="w-full bg-black hover:bg-gray-800 text-white rounded-lg py-3 text-sm font-medium"
-            >
-              Yes, end chat
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteConfirmation(false)}
-              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-3 text-sm font-medium"
-            >
-              Cancel
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 };
