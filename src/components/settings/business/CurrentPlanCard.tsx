@@ -42,9 +42,7 @@ export const CurrentPlanCard = () => {
     <div className="bg-white/70 dark:bg-neutral-800 rounded-2xl p-6 backdrop-blur-sm mb-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-            <Crown className="h-6 w-6 text-white" />
-          </div>
+          
           <div>
             <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{planName}</h3>
             <div className="flex items-center gap-3 mt-1">

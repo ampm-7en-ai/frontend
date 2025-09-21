@@ -15,6 +15,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { Label } from '@/components/ui/label';
 import { transformAgentList } from '@/utils/agentTransformUtils';
 import { updateCachesAfterAgentCreation } from '@/utils/agentCacheUtils';
+import AgentCreationWizard from '@/components/agents/wizard/AgentCreationWizard';
 
 interface ApiResponse {
   agents: any[];
@@ -39,6 +40,7 @@ interface ApiResponse {
 const AgentList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [modelFilter, setModelFilter] = useState('all');
+  const [isWizardOpen, setWizardOpen] = useState(false);
   const { toast } = useToast();
   const { theme } = useAppTheme();
   const navigate = useNavigate();
@@ -137,6 +139,9 @@ const AgentList = () => {
       refetch();
     }
   };
+  const handleCreateAgentWiard = () => {
+    setWizardOpen(true);
+  }
 
   const handleCreateAgent = async () => {
     const token = getAccessToken();
@@ -228,9 +233,14 @@ const AgentList = () => {
                 <p className="text-muted-foreground dark:text-muted-foreground text-base">Manage and create your AI agents</p>
               </div>
               <div className="flex items-center gap-3">
-                <ModernButton variant="gradient" icon={Plus} onClick={handleCreateAgent}>
+                <ModernButton variant="gradient" icon={Plus} onClick={handleCreateAgentWiard}>
                   Create Agent
                 </ModernButton>
+                {/* Agent creation wizard */}
+                <AgentCreationWizard
+                  open={isWizardOpen}
+                  onOpenChange={setWizardOpen}
+                  />
               </div>
             </div>
 
@@ -256,6 +266,7 @@ const AgentList = () => {
                 <ModernButton variant="gradient" icon={Plus} onClick={handleCreateAgent}>
                   Create Agent
                 </ModernButton>
+                
               </div>
             ) : (
               <div className="space-y-6">

@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Brain, FileText } from 'lucide-react';
+import { Icon } from '@/components/icons';
 
 interface SystemPromptModalProps {
   value: string;
@@ -89,11 +90,11 @@ export const SystemPromptModal = ({
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
             {isTemplate ? (
-              <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <Icon type='plain' name={`Magic`} color='hsl(var(--primary))' />
             ) : (
-              <Brain className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <Icon type='plain' name={`TextFile`} color='hsl(var(--primary))' />
             )}
-            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
               {isTemplate ? "Template Content" : "System Prompt"}
             </Label>
           </div>
@@ -105,12 +106,12 @@ export const SystemPromptModal = ({
               ? "Template content will be displayed here..." 
               : "You are a helpful AI assistant. Always be polite, professional, and provide accurate information..."
             }
-            className="min-h-[400px] resize-none bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400"
+            className="min-h-[400px] resize-none bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400"
             readOnly={isTemplate}
           />
           
-          <div className={`${isTemplate ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'} p-4 rounded-xl border`}>
-            <p className="text-sm text-blue-700 dark:text-blue-300">
+          <div className={`${isTemplate ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'} p-4 rounded-xl border`}>
+            <p className="text-sm text-amber-700 dark:text-amber-300">
               <strong>{isTemplate ? "Template:" : "Tip:"}</strong> {isTemplate 
                 ? "This template is designed for the selected agent type. Click 'Use Template' to replace your current system prompt with this content."
                 : "Be specific about the agent's role, tone, and behavior. Include any constraints or special instructions that should guide the AI's responses."

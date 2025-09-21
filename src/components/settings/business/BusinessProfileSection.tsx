@@ -12,6 +12,7 @@ import { updateSettings } from "@/utils/api-config";
 import { ModernDropdown } from "@/components/ui/modern-dropdown";
 import ModernButton from '@/components/dashboard/ModernButton';
 import countryData from "@/components/ui/countryData";
+import { Icon } from '@/components/icons';
 
 const profileFormSchema = z.object({
   businessName: z.string().min(2, "Business name must be at least 2 characters."),
@@ -132,8 +133,8 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
       <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-[8px] flex items-center justify-center">
-              <UserIcon className="h-5 w-5 text-white" />
+            <div className="bg-transparent rounded-xl flex items-center justify-start">
+              <Icon type='plain' name={`Person`} color='hsl(var(--primary))' className='h-5 w-5' />
             </div>
             <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Business Information</h3>
           </div>

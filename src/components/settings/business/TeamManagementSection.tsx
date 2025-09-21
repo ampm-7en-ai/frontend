@@ -17,6 +17,7 @@ import { getApiUrl, getAuthHeaders, API_ENDPOINTS, getAccessToken } from '@/util
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { Icon } from '@/components/icons';
 
 interface Role {
   id: number;
@@ -344,7 +345,9 @@ const TeamManagementSection = () => {
       {/* Inline Invite Form */}
       <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 mb-6 backdrop-blur-sm">
         <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100 flex items-center gap-2">
-          <Mail className="h-5 w-5" />
+          <div className="bg-transparent rounded-xl flex items-center justify-start">
+              <Icon type='plain' name={`Users`} color='hsl(var(--primary))' className='h-5 w-5 mr-1' />
+          </div>
           Invite Team Member
         </h3>
         
@@ -437,8 +440,8 @@ const TeamManagementSection = () => {
       {/* Current Owner - More Compact */}
       <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 mb-6 backdrop-blur-sm">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-            <User className="h-5 w-5 text-white" />
+          <div className="w-10 h-10 bg-transparent rounded-xl flex items-center justify-center">
+            <Icon type='plain' name={`Person`} color='hsl(var(--primary))' className='h-5 w-5 mr-1' />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
@@ -466,8 +469,8 @@ const TeamManagementSection = () => {
                   {teamMembers.map((member) => (
                     <div key={member.id} className="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-neutral-700/30 transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-neutral-200 dark:bg-neutral-600 rounded-lg flex items-center justify-center">
-                          <User className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+                        <div className="w-8 h-8 bg-transparent rounded-lg flex items-center justify-center">
+                          <Icon type='plain' name={`Person`} color='hsl(var(--primary))' className='h-5 w-5 mr-1' />
                         </div>
                         <div>
                           <div className="flex items-center gap-2 mb-1">
@@ -503,7 +506,7 @@ const TeamManagementSection = () => {
                         onClick={() => member.status === 'pending' ? cancelInvite(member.id) : removeActiveMember(member.id)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 h-10 w-10 p-0"
                       >
-                        <Trash className="h-5 w-5" />
+                        <Icon type='plain' name={`Bin`} color='hsl(var(--primary))' className='h-5 w-5' />
                       </ModernButton>
                     </div>
                   ))}

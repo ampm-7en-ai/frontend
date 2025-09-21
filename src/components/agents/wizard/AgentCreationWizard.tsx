@@ -16,6 +16,7 @@ import { knowledgeApi } from '@/utils/api-config';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Icon } from '@/components/icons';
 
 interface AgentCreationWizardProps {
   open: boolean;
@@ -46,8 +47,8 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
 
   const steps: Array<{ id: WizardStep; title: string; description: string; number: number }> = [
     { id: 'type', title: 'Agent Type', description: 'Choose your agent type', number: 1 },
-    { id: 'knowledge', title: 'Knowledge', description: 'Add initial knowledge', number: 2 },
-    { id: 'complete', title: 'Complete', description: 'Ready to build', number: 3 }
+    { id: 'knowledge', title: 'Knowledge', description: 'Complete knowledge base', number: 2 },
+    { id: 'complete', title: 'Finalize', description: 'Ready to build', number: 3 }
   ];
 
   const currentStepIndex = steps.findIndex(step => step.id === currentStep);
@@ -197,19 +198,19 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
           {steps.map((step, index) => (
             <div key={step.id} className="flex items-start space-x-3">
               <div className={cn(
-                'w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium border-2 flex-shrink-0',
+                'w-5 h-5 rounded-full flex items-center justify-center text-sm font-medium border-2 flex-shrink-0',
                 index < currentStepIndex
-                  ? 'bg-primary text-primary-foreground border-primary'
+                  ? 'bg-[#f06425] text-primary-foreground border-[#f06425]'
                   : index === currentStepIndex
-                  ? 'bg-primary text-primary-foreground border-primary'
+                  ? 'bg-[#f06425] text-primary-foreground border-[#f06425]'
                   : 'bg-background text-muted-foreground border-border'
               )}>
                 {index < currentStepIndex ? (
-                  <CheckCircle2 className="h-4 w-4" />
+                  step.number
                 ) : index === currentStepIndex ? (
                   step.number
                 ) : (
-                  <Circle className="h-4 w-4" />
+                  step.number
                 )}
               </div>
               
@@ -232,15 +233,15 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
 
         {/* Warning for AI Assistant */}
         {selectedType === 'assistant' && currentStep === 'type' && (
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mt-6">
+          <div className="bg-transparent rounded-xl p-0 mt-6">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <div className='h-5 w-5'>
+                <Icon type='plain' name={`Info`} color='hsl(var(--primary))' className='h-5 w-5' />
+              </div>
+              
               <div className="space-y-1">
-                <h4 className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                  Ticket Management Limitation
-                </h4>
-                <p className="text-xs text-amber-700 dark:text-amber-300">
-                  AI Assistants are not capable of managing support tickets. Consider selecting Chatbot for customer support scenarios.
+                <p className="text-xs text-foreground">
+                  AI Assistants cannot handle support ticket workflows. For customer support scenarios, please consider using a Chatbot.
                 </p>
               </div>
             </div>
@@ -315,7 +316,7 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
             
             {/* Create Agent Button */}
             {selectedType && (
-              <div className="flex justify-end pt-6 border-t border-border mt-6">
+              <div className="flex justify-end pt-6 mt-6">
                 <ModernButton 
                   onClick={handleCreateAgent}
                   disabled={!selectedType || isCreatingAgent}
@@ -351,8 +352,8 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
       case 'complete':
         return (
           <div className="text-center space-y-6 py-8">
-            <div className="w-16 h-16 mx-auto bg-primary rounded-full flex items-center justify-center">
-              <CheckCircle2 className="h-8 w-8 text-primary-foreground" />
+            <div className="bg-transparent rounded-xl flex items-center justify-center w-full">
+                <Icon type='plain' name={`Magic`} color='hsl(var(--primary))' className='h-8 w-8' />
             </div>
             
             <div className="space-y-2">
@@ -365,22 +366,7 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
                   : `Your ${selectedType} has been created successfully. Let's configure it further.`
                 }
               </p>
-              {
-                knowledgeData && (
-                  <div key={knowledgeData.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border border-border max-w-96 m-auto">
-                    {getSourceIcon(knowledgeData.type)}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{knowledgeData.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {knowledgeData.type === 'docs' && knowledgeData.metadata?.format ? `${knowledgeData.metadata.format.toUpperCase()} file` : 
-                        knowledgeData.type === 'url' && knowledgeData.urls.length > 0 ? `${knowledgeData.urls.length} URL(s)` :
-                        knowledgeData.type}
-                      </p>
-                    </div>
-                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                  </div>
-                )
-              }
+              
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
@@ -397,7 +383,6 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4 mr-2" />
                       Train Now
                     </>
                   )}
@@ -409,7 +394,6 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
                 variant={knowledgeData ? "outline" : "secondary"}
                 size="lg"
               >
-                <ArrowRight className="w-4 h-4 mr-2" />
                 Go to Builder
               </ModernButton>
             </div>

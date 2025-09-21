@@ -33,6 +33,8 @@ import Bulb from './library/Bulb';
 import Bin from './library/Bin';
 import Edit from './library/Edit';
 import Copy from './library/Copy';
+import CubeNode from './library/CubeNode';
+import Info from './library/Info';
 
 const IconBase = ({ type, className = '', iconType, color }) => {
 
@@ -107,6 +109,10 @@ const IconBase = ({ type, className = '', iconType, color }) => {
         return <Copy type={type} className={baseClass} color={color} />;
       case 'Edit':
         return <Edit type={type} className={baseClass} color={color} />;
+      case 'CubeNode':
+        return <CubeNode type={type} className={baseClass} color={color} />;
+      case 'Info':
+        return <Info type={type} className={baseClass} color={color} />;
       default:
         return null;
     }

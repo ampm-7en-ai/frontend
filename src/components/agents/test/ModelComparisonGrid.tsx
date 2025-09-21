@@ -15,6 +15,7 @@ import {
 import ModernButton from '@/components/dashboard/ModernButton';
 import { StyledMarkdown } from '@/components/ui/styled-markdown';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { Icon } from '@/components/icons';
 
 interface ModelCell {
   id: string;
@@ -88,10 +89,10 @@ export const ModelComparisonGrid = ({
       <Card 
         key={cell.id} 
         className={`
-          transition-all duration-200 cursor-pointer h-full rounded-none border-gray-600 dark:border-gray-700 flex flex-col
+          transition-all duration-200 cursor-pointer h-full rounded-none border-neutral-600 dark:border-neutral-700 flex flex-col
           ${isSelected 
-            ? 'bg-muted/50 dark:bg-neutral-900/30' 
-            : 'bg-card dark:bg-neutral-950/50 hover:bg-muted/30 dark:hover:bg-neutral-900/30'
+            ? 'bg-muted/50 dark:bg-neutral-800' 
+            : 'bg-card dark:bg-neutral-950 hover:bg-muted/30 dark:hover:bg-neutral-800'
           }
           ${isExpanded ? 'col-span-full row-span-full' : ''}
           ${expandedCellId && expandedCellId !== cell.id ? 'hidden' : ''}
@@ -105,7 +106,7 @@ export const ModelComparisonGrid = ({
                 // Show model name as read-only in history mode
                 <div className="h-8 text-xs bg-neutral-300 dark:bg-neutral-500 border-0 flex-1 justify-start px-2 rounded flex items-center">
                   <div className="flex items-center gap-2 w-full">
-                    <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                    <div className="w-2 h-2 rounded-full bg-[#f06425] flex-shrink-0" />
                     <span className="truncate">{getModelDisplay(cell.model)}</span>
                   </div>
                 </div>
@@ -124,7 +125,7 @@ export const ModelComparisonGrid = ({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="flex items-center gap-2 w-full">
-                        <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                        <div className="w-2 h-2 rounded-full bg-[#f06425] flex-shrink-0" />
                         <span className="truncate">{getModelDisplay(cell.model)}</span>
                       </div>
                     </ModernButton>
@@ -146,7 +147,7 @@ export const ModelComparisonGrid = ({
                       onConfigClick(cell.id);
                     }}
                   >
-                    <Settings className="h-4 w-4" />
+                    <Icon type='plain' name={`Cog`} color='hsl(var(--primary))' />
                   </ModernButton>
                 </TooltipTrigger>
                 <TooltipContent side="top">
@@ -210,7 +211,7 @@ export const ModelComparisonGrid = ({
                   
                   return latestAiMessage ? (
                     <div className="space-y-2">
-                      <p className="text-xs text-gray-400 uppercase dark:text-gray-500">AI Assistant</p>
+                      <p className="text-xs text-neutral-400 uppercase dark:text-neutral-500">AI Assistant</p>
                       <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
                         {typeof latestAiMessage.content === 'string' && (
                             <StyledMarkdown

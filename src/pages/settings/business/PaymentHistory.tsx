@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { Icon } from '@/components/icons';
 
 const PaymentHistory = () => {
   const { data: paymentHistory, isLoading, error } = usePaymentHistory();
@@ -86,9 +87,9 @@ const PaymentHistory = () => {
         <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl border border-slate-200/50 dark:border-neutral-700/50 backdrop-blur-sm overflow-hidden">
           <div className="p-6 border-b border-slate-200/50 dark:border-neutral-700/50">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
-                <DollarSign className="h-5 w-5 text-white" />
-              </div>
+              <div className="bg-transparent rounded-xl flex items-center justify-start">
+              <Icon type='plain' name={`Receipt`} color='hsl(var(--primary))' className='h-5 w-5' />
+            </div>
               <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Payment History</h2>
             </div>
           </div>

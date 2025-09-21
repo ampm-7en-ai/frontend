@@ -3,6 +3,8 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Bot, MessageSquare, Brain, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import CubeNode from '@/components/icons/library/CubeNode';
+import Bubbles from '@/components/icons/library/Bubbles';
 
 export type AgentType = 'assistant' | 'chatbot';
 
@@ -17,7 +19,7 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
       id: 'assistant' as AgentType,
       title: 'AI Assistant',
       description: 'Advanced guidance and help assistant',
-      icon: Brain,
+      icon: CubeNode,
       features: [
         'Complex reasoning & analysis',
         'Multi-step task execution',
@@ -30,7 +32,7 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
       id: 'chatbot' as AgentType,
       title: 'AI Chatbot',
       description: 'Quick responses and customer support',
-      icon: MessageSquare,
+      icon: Bubbles,
       features: [
         'Automatic ticket creation',
         'Seamless AI to AI agent handoff',
@@ -59,37 +61,31 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
             className={cn(
               'cursor-pointer transition-all duration-200 relative shadow-none border-2',
               selectedType === type.id
-                ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                : 'border-border hover:border-primary/30 hover:shadow-lg'
+                ? 'border-[#f06425] bg-[#f06425]/5 ring-2 ring-[#f06425]/20'
+                : 'border-muted hover:border-[#f06425]/30 hover:shadow-lg'
             )}
             onClick={() => onTypeSelect(type.id)}
           >
             <CardContent className="p-6">
-              <div className="flex items-start gap-4 mb-6">
+              <div className="flex items-center gap-4 mb-6">
                 <div className={cn(
-                  "p-3 rounded-2xl transition-colors",
-                  selectedType === type.id 
-                    ? "bg-primary/10" 
-                    : "bg-muted"
+                  "transition-colors"
                 )}>
                   <type.icon className={cn(
-                    "h-6 w-6 transition-colors",
+                    "h-8 w-8 transition-colors",
                     selectedType === type.id 
                       ? "text-primary" 
                       : "text-foreground"
-                  )} />
+                  )} type='plain' color='hsl(var(--primary))' />
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-lg font-semibold text-foreground">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-foreground">
                       {type.title}
                     </h4>
-                    {selectedType === type.id && (
-                      <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0" />
-                    )}
                   </div>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="text-neutral-200 dark:text-neutral-500 text-xs">
                     {type.description}
                   </p>
                 </div>
@@ -105,7 +101,7 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
                       <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
                         <div className={cn(
                           "w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors",
-                          selectedType === type.id ? "bg-primary" : "bg-muted-foreground/40"
+                          selectedType === type.id ? "bg-foreground" : "bg-muted-foreground/40"
                         )} />
                         {feature}
                       </li>

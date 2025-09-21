@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { TopupModal } from './TopupModal';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { Icon } from '@/components/icons';
 
 interface UsageSectionProps {
   usageMetrics?: {
@@ -37,8 +38,8 @@ const UsageSection = ({ usageMetrics }: UsageSectionProps) => {
       <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-              <BarChart3 className="h-5 w-5 text-white" />
+            <div className="bg-transparent rounded-xl flex items-center justify-start">
+              <Icon type='plain' name={`AreaChart`} color='hsl(var(--primary))' className='h-5 w-5' />
             </div>
             <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Current Usage</h3>
           </div>

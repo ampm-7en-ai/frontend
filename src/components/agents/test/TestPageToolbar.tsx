@@ -321,16 +321,7 @@ export const TestPageToolbar = ({
       <div className="h-14 bg-white dark:bg-[hsla(0,0%,0%,0.95)] border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 shadow-sm">
         {/* Left Section */}
         <div className="flex items-center gap-4">
-          <ModernButton
-            variant="ghost"
-            size="sm"
-            icon={ArrowLeft}
-            onClick={() => navigate('/agents')}
-          >
-            Back
-          </ModernButton>
           
-          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
           
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">

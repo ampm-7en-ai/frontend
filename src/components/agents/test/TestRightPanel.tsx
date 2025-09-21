@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { useAIModels } from '@/hooks/useAIModels';
 import { useToast } from '@/hooks/use-toast';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { Icon } from '@/components/icons';
 
 interface TestRightPanelProps {
   isOpen: boolean;
@@ -157,8 +158,8 @@ export const TestRightPanel = ({
               {/* Model Configuration Section */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3 pb-2">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Settings2 className="h-4 w-4 text-primary" />
+                  <div className="p-2 bg-transparent rounded-lg">
+                    <Icon type='plain' name={`Magic`} color='hsl(var(--primary))' />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-sm font-semibold text-foreground">Model</h3>
@@ -180,8 +181,8 @@ export const TestRightPanel = ({
               {/* Temperature Section */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3 pb-2">
-                  <div className="p-2 bg-orange-500/10 rounded-lg">
-                    <Thermometer className="h-4 w-4 text-orange-500" />
+                  <div className="p-2 bg-transparent rounded-lg">
+                    <Thermometer className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-sm font-semibold text-foreground">Temperature</h3>
@@ -233,8 +234,8 @@ export const TestRightPanel = ({
               {/* System Prompt Section */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3 pb-2">
-                  <div className="p-2 bg-green-500/10 rounded-lg">
-                    <FileText className="h-4 w-4 text-green-500" />
+                  <div className="p-2 bg-transparent rounded-lg">
+                    <Icon type='plain' name={`TextFile`} color='hsl(var(--primary))' />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-sm font-semibold text-foreground">Prompt</h3>

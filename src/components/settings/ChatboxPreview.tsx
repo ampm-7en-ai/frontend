@@ -1458,7 +1458,7 @@ export const ChatboxPreview = ({
                 </Avatar>
               ) : (
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src={window.location.origin+`/public/7en-thumbnail.png`} alt={chatbotName} className="object-cover" />
+                  <AvatarImage src={window.location.origin+`/7en-thumbnail.png`} alt={chatbotName} className="object-cover" />
                   <AvatarFallback className="text-white bg-transparent">
                     <Icon name={`Person`} type='plain' color='#000000' />
                   </AvatarFallback>

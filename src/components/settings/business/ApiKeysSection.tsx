@@ -12,6 +12,7 @@ import { ModernModal } from '@/components/ui/modern-modal';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { CreateApiKeyModal } from './CreateApiKeyModal';
 import { Link } from 'react-router-dom';
+import { Icon } from '@/components/icons';
 
 const ApiKeysSection = () => {
   const { openPricingModal } = usePricingModal();
@@ -128,8 +129,8 @@ const ApiKeysSection = () => {
       <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-              <Key className="h-5 w-5 text-white" />
+            <div className="bg-transparent rounded-xl flex items-center justify-start">
+              <Icon type='plain' name={`Transaction`} color='hsl(var(--primary))' className='h-5 w-5' />
             </div>
             <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">API Keys</h3>
           </div>
