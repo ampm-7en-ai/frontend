@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, Trash2 } from 'lucide-react';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import ConversationFiltersDrawer from './ConversationFiltersDrawer';
 import ModernButton from '../dashboard/ModernButton';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface ConversationFiltersProps {
   filterResolved: string;
@@ -14,6 +15,12 @@ interface ConversationFiltersProps {
   agentNameFilter: string[];
   setAgentNameFilter: (agents: string[]) => void;
   availableAgents: string[];
+  isBulkSelectMode: boolean;
+  onBulkSelectModeChange: (enabled: boolean) => void;
+  selectedConversations: string[];
+  onSelectAll: () => void;
+  onBulkDelete: () => void;
+  isBulkDeleting: boolean;
 }
 
 const ConversationFiltersModern = ({
@@ -25,7 +32,13 @@ const ConversationFiltersModern = ({
   setAgentTypeFilter,
   agentNameFilter,
   setAgentNameFilter,
-  availableAgents
+  availableAgents,
+  isBulkSelectMode,
+  onBulkSelectModeChange,
+  selectedConversations,
+  onSelectAll,
+  onBulkDelete,
+  isBulkDeleting
 }: ConversationFiltersProps) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -94,6 +107,42 @@ const ConversationFiltersModern = ({
         />
         
         <div className="flex items-center gap-2">
+          {isBulkSelectMode && selectedConversations.length > 0 && (
+            <ModernButton
+              onClick={onBulkDelete}
+              disabled={isBulkDeleting}
+              size="sm"
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              {isBulkDeleting ? 'Deleting...' : `Delete (${selectedConversations.length})`}
+            </ModernButton>
+          )}
+          
+          <div className="flex items-center gap-2">
+            <Checkbox 
+              checked={isBulkSelectMode}
+              onCheckedChange={onBulkSelectModeChange}
+              className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            />
+            <span 
+              className="text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer select-none"
+              onClick={() => onBulkSelectModeChange(!isBulkSelectMode)}
+            >
+              Select
+            </span>
+            {isBulkSelectMode && (
+              <ModernButton
+                onClick={onSelectAll}
+                size="sm"
+                variant="ghost"
+                className="text-xs"
+              >
+                Select All
+              </ModernButton>
+            )}
+          </div>
+
           <ConversationFiltersDrawer
             open={dropdownOpen}
             onOpenChange={setDropdownOpen}

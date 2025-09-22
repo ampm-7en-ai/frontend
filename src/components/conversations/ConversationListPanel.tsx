@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ConversationCard from './ConversationCard';
 import ConversationFiltersModern from './ConversationFiltersModern';
+import DeleteConversationDialog from './DeleteConversationDialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader } from 'lucide-react';
@@ -71,7 +72,12 @@ const ConversationListPanel = ({
   } = useChatSessions();
 
   // Add delete functionality 
-  const { deleteConversation } = useConversations();
+  const { deleteConversation, bulkDeleteConversations, isBulkDeleting } = useConversations();
+  
+  // Add bulk selection state
+  const [isBulkSelectMode, setIsBulkSelectMode] = useState(false);
+  const [selectedConversations, setSelectedConversations] = useState<string[]>([]);
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
 
   // Helper function to normalize status for case-insensitive comparison
   const normalizeStatus = (status: string) => {
@@ -173,6 +179,55 @@ const ConversationListPanel = ({
       .sort();
     return agents;
   }, [getSessionsWithLocalUpdates]);
+
+  // Handle bulk selection
+  const handleBulkSelectModeChange = (enabled: boolean) => {
+    setIsBulkSelectMode(enabled);
+    if (!enabled) {
+      setSelectedConversations([]);
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (selectedConversations.length === filteredSessions.length) {
+      setSelectedConversations([]);
+    } else {
+      setSelectedConversations(filteredSessions.map(conv => conv.id));
+    }
+  };
+
+  const handleBulkSelect = (conversationId: string, selected: boolean) => {
+    if (selected) {
+      setSelectedConversations(prev => [...prev, conversationId]);
+    } else {
+      setSelectedConversations(prev => prev.filter(id => id !== conversationId));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedConversations.length > 0) {
+      setShowBulkDeleteDialog(true);
+    }
+  };
+
+  const confirmBulkDelete = async () => {
+    try {
+      await bulkDeleteConversations(selectedConversations);
+      setSelectedConversations([]);
+      setIsBulkSelectMode(false);
+      setShowBulkDeleteDialog(false);
+      toast({
+        title: "Conversations deleted",
+        description: `Successfully deleted ${selectedConversations.length} conversations.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete conversations. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Apply all filters with validation and case-insensitive status matching
   const filteredSessions = React.useMemo(() => {
@@ -395,6 +450,9 @@ const ConversationListPanel = ({
                 isSelected={selectedConversation === session.id}
                 onClick={() => handleConversationClick(session.id)}
                 onDelete={deleteConversation}
+                isBulkSelectMode={isBulkSelectMode}
+                isSelectedForBulk={selectedConversations.includes(session.id)}
+                onBulkSelect={handleBulkSelect}
               />
             </div>
           );
@@ -428,6 +486,12 @@ const ConversationListPanel = ({
           agentNameFilter={agentNameFilter}
           setAgentNameFilter={setAgentNameFilter}
           availableAgents={availableAgents}
+          isBulkSelectMode={isBulkSelectMode}
+          onBulkSelectModeChange={handleBulkSelectModeChange}
+          selectedConversations={selectedConversations}
+          onSelectAll={handleSelectAll}
+          onBulkDelete={handleBulkDelete}
+          isBulkDeleting={isBulkDeleting}
         />
       </div>
       
@@ -439,6 +503,15 @@ const ConversationListPanel = ({
           </div>
         </ScrollArea>
       </div>
+
+      <DeleteConversationDialog
+        open={showBulkDeleteDialog}
+        onOpenChange={setShowBulkDeleteDialog}
+        conversationId="bulk"
+        customerName={`${selectedConversations.length} conversations`}
+        onDelete={confirmBulkDelete}
+        isDeleting={isBulkDeleting}
+      />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { Clock, Users, MessageSquare, Phone, Mail, Slack, Instagram, Globe2, Glo
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import DeleteConversationDialog from './DeleteConversationDialog';
 import { Icon } from '../icons';
 
@@ -31,13 +32,19 @@ interface ConversationCardProps {
   isSelected: boolean;
   onClick: () => void;
   onDelete?: (id: string) => Promise<void>;
+  isBulkSelectMode?: boolean;
+  isSelectedForBulk?: boolean;
+  onBulkSelect?: (id: string, selected: boolean) => void;
 }
 
 const ConversationCard = ({ 
   conversation, 
   isSelected, 
   onClick,
-  onDelete
+  onDelete,
+  isBulkSelectMode = false,
+  isSelectedForBulk = false,
+  onBulkSelect
 }: ConversationCardProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -60,6 +67,21 @@ const ConversationCard = ({
     e.stopPropagation();
     setShowDeleteDialog(true);
   };
+
+  const handleCardClick = () => {
+    if (isBulkSelectMode && onBulkSelect) {
+      onBulkSelect(conversation.id, !isSelectedForBulk);
+    } else if (onClick) {
+      onClick();
+    }
+  };
+
+  const handleCheckboxChange = (checked: boolean) => {
+    if (onBulkSelect) {
+      onBulkSelect(conversation.id, checked);
+    }
+  };
+
   // Channel logo mapping
   const channelLogos = {
     'whatsapp': 'https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg',
@@ -204,16 +226,25 @@ const ConversationCard = ({
       <Card 
         className={cn(
           "hover:!bg-gray-100/50 dark:hover:!bg-neutral-700/50 transition-all duration-200 cursor-pointer shadow-none rounded-xl !bg-transparent relative group",
-          isSelected 
+          isSelected && !isBulkSelectMode
             ? "!bg-gray-100/50 dark:!bg-neutral-700/50" 
-            : ""
+            : "",
+          isSelectedForBulk && "ring-2 ring-green-500 border-green-500 dark:border-green-400 shadow-sm"
         )}
-        onClick={onClick}
+        onClick={handleCardClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
       <CardContent className="p-4 pb-1">
         <div className="flex items-start gap-3">
+          {isBulkSelectMode && (
+            <Checkbox 
+              checked={isSelectedForBulk}
+              onCheckedChange={handleCheckboxChange}
+              onClick={(e) => e.stopPropagation()}
+              className="mt-1 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+            />
+          )}
           {getChannelIcon()}
           
           <div className="flex-1 min-w-0">
@@ -248,7 +279,7 @@ const ConversationCard = ({
               )}>
                 {escapeHTML(conversation.lastMessage)}
               </p>
-              {onDelete && (isHovered || isSelected) && (
+              {!isBulkSelectMode && onDelete && (isHovered || isSelected) && (
                   <Button
                     variant="ghost"
                     size="sm"
