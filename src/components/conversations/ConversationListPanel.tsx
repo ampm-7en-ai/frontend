@@ -72,7 +72,7 @@ const ConversationListPanel = ({
   } = useChatSessions();
 
   // Add delete functionality 
-  const { conversations: queryConversations, deleteConversation, bulkDeleteConversations, isBulkDeleting } = useConversations();
+  const { deleteConversation, bulkDeleteConversations, isBulkDeleting } = useConversations();
   
   // Add bulk selection state
   const [isBulkSelectMode, setIsBulkSelectMode] = useState(false);
@@ -236,11 +236,6 @@ const ConversationListPanel = ({
     console.log(`Applying filters to ${sessionsWithUpdates.length} sessions with local updates`);
     let result = sessionsWithUpdates;
     
-    // Filter out deleted conversations by cross-referencing with React Query cache
-    const queryConversationIds = new Set(queryConversations.map(conv => conv.id));
-    result = result.filter(session => queryConversationIds.has(session.id));
-    console.log(`After filtering deleted conversations: ${result.length} sessions`);
-    
     // Apply status filter with case-insensitive matching
     if (filterStatus !== 'all') {
       const normalizedFilterStatus = normalizeStatus(filterStatus);
@@ -304,7 +299,6 @@ const ConversationListPanel = ({
     return finalResult;
   }, [
     getSessionsWithLocalUpdates, 
-    queryConversations,
     filterStatus, 
     channelFilter, 
     agentTypeFilter, 
