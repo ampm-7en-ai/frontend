@@ -5,7 +5,7 @@ import DeleteConversationDialog from './DeleteConversationDialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader } from 'lucide-react';
-import { useChatSessions } from '@/hooks/useChatSessions';
+import type { ChatSessionData } from '@/services/ChatSessionsWebSocketService';
 import { useToast } from "@/hooks/use-toast";
 import { Icon } from '../icons';
 import { useConversations } from '@/hooks/useConversations';
@@ -23,6 +23,13 @@ interface ConversationListPanelProps {
   setSelectedConversation: (id: string) => void;
   isLoading?: boolean;
   localConversationUpdates?: {[key: string]: any};
+  // WebSocket data from parent
+  sessions: ChatSessionData[];
+  sessionsLoading: boolean;
+  isConnected: boolean;
+  error: string | null;
+  refreshSessions: () => void;
+  markSessionsAsDeleted: (sessionIds: string[]) => void;
 }
 
 interface ReadSessionInfo {
@@ -42,7 +49,13 @@ const ConversationListPanel = ({
   selectedConversation,
   setSelectedConversation,
   isLoading: externalLoading = false,
-  localConversationUpdates = {}
+  localConversationUpdates = {},
+  sessions,
+  sessionsLoading,
+  isConnected,
+  error,
+  refreshSessions,
+  markSessionsAsDeleted
 }: ConversationListPanelProps) => {
   const [displayCount, setDisplayCount] = useState(10);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -65,19 +78,33 @@ const ConversationListPanel = ({
     isBulkDeleting 
   } = useConversations();
   
-  // Get the markSessionsAsDeleted function from useChatSessions
-  const { 
-    sessions, 
-    isLoading: sessionsLoading, 
-    isConnected, 
-    error, 
-    refreshSessions,
-    filterSessionsByStatus,
-    filterSessionsByChannel,
-    filterSessionsByAgentType,
-    filterSessionsBySearch,
-    markSessionsAsDeleted
-  } = useChatSessions();
+  // Filter functions moved here since we get raw sessions as props
+  const filterSessionsByStatus = (statusFilter: string) => {
+    if (statusFilter === 'all') return sessions;
+    return sessions.filter(s => s.status === statusFilter);
+  };
+
+  const filterSessionsByChannel = (channelFilter: string) => {
+    if (channelFilter === 'all') return sessions;
+    return sessions.filter(s => s.channel === channelFilter);
+  };
+
+  const filterSessionsByAgentType = (agentTypeFilter: string) => {
+    if (agentTypeFilter === 'all') return sessions;
+    return sessions.filter(s => s.agentType === agentTypeFilter);
+  };
+
+  const filterSessionsBySearch = (query: string) => {
+    if (!query) return sessions;
+    const lowerQuery = query.toLowerCase();
+    return sessions.filter(s => 
+      s && (
+        s.customer?.toLowerCase().includes(lowerQuery) || 
+        s.lastMessage?.toLowerCase().includes(lowerQuery) ||
+        (s.email && s.email.toLowerCase().includes(lowerQuery))
+      )
+    );
+  };
   
   // Add bulk selection state
   const [isBulkSelectMode, setIsBulkSelectMode] = useState(false);

@@ -44,7 +44,14 @@ const ConversationList = () => {
   const [activeFeedback, setActiveFeedback] = useState();
 
   // Get the sessions from our WebSocket hook
-  const { sessions, refreshSessions } = useChatSessions();
+  const { 
+    sessions, 
+    isLoading: sessionsLoading,
+    isConnected,
+    error: sessionsError,
+    refreshSessions,
+    markSessionsAsDeleted
+  } = useChatSessions();
 
 
     
@@ -162,6 +169,12 @@ const ConversationList = () => {
                   agentTypeFilter={agentTypeFilter}
                   setAgentTypeFilter={setAgentTypeFilter}
                   localConversationUpdates={localConversationUpdates}
+                  sessions={sessions}
+                  sessionsLoading={sessionsLoading}
+                  isConnected={isConnected}
+                  error={sessionsError}
+                  refreshSessions={refreshSessions}
+                  markSessionsAsDeleted={markSessionsAsDeleted}
                 />
               </ConversationListErrorBoundary>
             </div>
@@ -233,6 +246,12 @@ const ConversationList = () => {
               agentTypeFilter={agentTypeFilter}
               setAgentTypeFilter={setAgentTypeFilter}
               localConversationUpdates={localConversationUpdates}
+              sessions={sessions}
+              sessionsLoading={sessionsLoading}
+              isConnected={isConnected}
+              error={sessionsError}
+              refreshSessions={refreshSessions}
+              markSessionsAsDeleted={markSessionsAsDeleted}
             />
           </ConversationListErrorBoundary>
         </div>
