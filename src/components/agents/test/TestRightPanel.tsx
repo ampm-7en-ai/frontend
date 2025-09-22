@@ -110,11 +110,11 @@ export const TestRightPanel = ({
   const isReadOnly = isHistoryMode && !isPreparingNewMessage;
 
   return (
-    <div className={`w-80 border-l border-border bg-background dark:bg-[hsla(0,0%,0%,0.95)] transition-all duration-300 ${
+    <div className={`w-80 border-l border-border bg-white dark:bg-[hsla(0,0%,0%,0.95)] transition-all duration-300 ${
       isOpen ? 'translate-x-0' : 'translate-x-full'
     } flex flex-col overflow-hidden`}>
       {/* Panel Header */}
-      <div className="h-14 px-4 bg-background dark:bg-[hsla(0,0%,0%,0.95)] border-b border-border flex items-center justify-between">
+      <div className="h-14 px-4 bg-white dark:bg-[hsla(0,0%,0%,0.95)] border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           {/* {showBackButton && (
             <Button

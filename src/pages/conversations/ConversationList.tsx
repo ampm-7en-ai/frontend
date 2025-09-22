@@ -39,6 +39,7 @@ const ConversationList = () => {
     sentimentScores: [],
     averageSentiment: null
   });
+  const [activeFeedback, setActiveFeedback] = useState();
 
   // Get the sessions from our WebSocket hook
   const { sessions, refreshSessions } = useChatSessions();
@@ -58,7 +59,7 @@ const ConversationList = () => {
   }, []);
 
   // Handle sentiment data changes from MessageContainer
-  const handleSentimentDataChange = useCallback((data: typeof activeSentimentData) => {
+  const handleSentimentDataChange = useCallback((data: typeof activeSentimentData, feedback: any) => {
     // Only update if the data has actually changed to prevent infinite loops
     setActiveSentimentData(prevData => {
       // Simple comparison to check if data is different
@@ -68,6 +69,7 @@ const ConversationList = () => {
       
       return hasChanged ? data : prevData;
     });
+    setActiveFeedback(feedback);
   }, []);
 
   // Reset sentiment data when conversation changes
@@ -92,7 +94,6 @@ const ConversationList = () => {
 
   const isDesktop = windowWidth >= 1024;
   const isTablet = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
-  console.log("pipipi",activeConversation);
   // Handle conversation updates (for resolve functionality)
   const handleConversationUpdate = (updatedConversation: any) => {
     console.log('Conversation updated:', updatedConversation);
@@ -196,6 +197,7 @@ const ConversationList = () => {
                 onHandoffClick={handleHandoffClick}
                 getSatisfactionIndicator={getSatisfactionIndicator}
                 sentimentData={activeSentimentData}
+                feedback={activeFeedback}
               />
             </div>
           </ResizablePanel>

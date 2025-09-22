@@ -28,7 +28,7 @@ interface MessageContainerProps {
       timestamp: string;
     }>;
     averageSentiment: number | null;
-  }) => void;
+  }, feedback: any) => void;
 }
 
 const MessageContainer = ({
@@ -56,7 +56,8 @@ const MessageContainer = ({
     isConnected,
     sendMessage,
     sentimentScores,
-    averageSentiment
+    averageSentiment,
+    feedback
   } = useChatMessagesWebSocket({
     sessionId: conversationId,
     autoConnect: !!conversationId
@@ -79,7 +80,7 @@ const MessageContainer = ({
 
   useEffect(() => {
     if (onSentimentDataChange) {
-      onSentimentDataChange(sentimentData);
+      onSentimentDataChange(sentimentData,feedback);
     }
   }, [sentimentData, onSentimentDataChange]);
 

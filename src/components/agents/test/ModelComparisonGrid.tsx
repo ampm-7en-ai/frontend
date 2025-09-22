@@ -91,8 +91,8 @@ export const ModelComparisonGrid = ({
         className={`
           transition-all duration-200 cursor-pointer h-full rounded-none border-neutral-600 dark:border-neutral-700 flex flex-col
           ${isSelected 
-            ? 'bg-muted/50 dark:bg-neutral-800' 
-            : 'bg-card dark:bg-neutral-950 hover:bg-muted/30 dark:hover:bg-neutral-800'
+            ? 'bg-neutral-50 dark:bg-neutral-800' 
+            : 'bg-white dark:bg-neutral-950 hover:bg-neutral-50 dark:hover:bg-neutral-800'
           }
           ${isExpanded ? 'col-span-full row-span-full' : ''}
           ${expandedCellId && expandedCellId !== cell.id ? 'hidden' : ''}

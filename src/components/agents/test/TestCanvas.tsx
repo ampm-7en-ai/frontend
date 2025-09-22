@@ -184,7 +184,7 @@ export const TestCanvas = ({
       
       <div className="h-full flex flex-col dotted-background relative">
         {/* Canvas Header */}
-        <div className="h-14 px-4 bg-background/80 dark:bg-[hsla(0,0%,0%,0.95)] backdrop-blur-sm border-b border-border flex items-center justify-between">
+        <div className="h-14 px-4 bg-white dark:bg-[hsla(0,0%,0%,0.95)] backdrop-blur-sm border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-foreground">
@@ -288,7 +288,7 @@ export const TestCanvas = ({
           </div>
 
           {/* Bottom Canvas - Chat Input */}
-          <div className="border-t bg-background/95 dark:bg-[hsla(0,0%,0%,0.95)] backdrop-blur-sm px-4 py-4 flex-shrink-0">
+          <div className="border-t bg-white dark:bg-[hsla(0,0%,0%,0.95)] backdrop-blur-sm px-4 py-4 flex-shrink-0">
             <ChatInput 
               onSendMessage={handleSendMessage}
               primaryColor={primaryColors[0] || '#9b87f5'}

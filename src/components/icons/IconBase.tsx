@@ -35,6 +35,7 @@ import Edit from './library/Edit';
 import Copy from './library/Copy';
 import CubeNode from './library/CubeNode';
 import Info from './library/Info';
+import Ratings from './library/Ratings';
 
 const IconBase = ({ type, className = '', iconType, color }) => {
 
@@ -113,6 +114,8 @@ const IconBase = ({ type, className = '', iconType, color }) => {
         return <CubeNode type={type} className={baseClass} color={color} />;
       case 'Info':
         return <Info type={type} className={baseClass} color={color} />;
+      case 'Ratings':
+        return <Ratings type={type} className={baseClass} color={color} />;
       default:
         return null;
     }

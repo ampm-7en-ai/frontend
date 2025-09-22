@@ -169,6 +169,7 @@ const ConversationHeader = ({
           >
             {isResolving ? 'Resolving...' : isResolved ? 'Resolved' : 'Resolve'}
           </ModernButton>
+          
         </div>
       </div>
 

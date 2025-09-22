@@ -39,6 +39,7 @@ const Icon = ({ name, type = 'gradient', className = '', color = '#737373' }) =>
      'Edit',
      'CubeNode',
      'Info',
+     'Ratings',
      'Cart'].includes(name)) return null;
   return (
   <>

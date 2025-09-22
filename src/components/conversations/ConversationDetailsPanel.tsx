@@ -27,6 +27,7 @@ interface ConversationDetailsPanelProps {
     }>;
     averageSentiment: number | null;
   };
+  feedback?: any;
 }
 
 const ConversationDetailsPanel = ({ 
@@ -34,7 +35,8 @@ const ConversationDetailsPanel = ({
   selectedAgent, 
   onHandoffClick, 
   getSatisfactionIndicator ,
-  sentimentData
+  sentimentData,
+  feedback
 }: ConversationDetailsPanelProps) => {
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const { sentimentScores, averageSentiment } = sentimentData;
@@ -60,6 +62,8 @@ const ConversationDetailsPanel = ({
       if (!message) return; // Skip null/undefined messages
       
       const currentAgent = message.agent || (message.sender === 'user' ? null : 'AI Assistant');
+
+
       
       if (currentAgent && currentAgent !== previousAgent) {
         agents.add(currentAgent);
@@ -250,6 +254,8 @@ const ConversationDetailsPanel = ({
                 <p className="font-normal text-foreground dark:text-foreground">{assignedAgent}</p>
               </div>
             </div>
+
+            
           </div>
 
           {/* Customer Information */}
@@ -351,6 +357,45 @@ const ConversationDetailsPanel = ({
               </div>
             </div>
           )}
+
+          {/* Customer Feedback */}
+          { feedback[0]?.text !== undefined && feedback[0]?.rating !== undefined && (
+            <div className="border rounded-lg bg-white dark:bg-neutral-800 dark:border-0 px-4 py-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="rounded-xl bg-transparent">
+                <Icon type='plain' color='hsl(var(--primary))' name={`Ratings`} className='h-5 w-5' />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground dark:text-foreground">Customer Feedback</h3>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div>
+                {/* Star Rating */}
+                <div>
+                  <div className="flex justify-start gap-1">
+                  {Array.from({ length: feedback[0].rating}, (_, i) => i + 1).map((star) => (
+                    
+                        <Star key={star} size={18} className='fill-yellow-400 stroke-none' />
+                      
+                    ))}
+                    <span className='text-xs'>({feedback[0].rating}/5)</span>
+                  </div>
+                 {
+                  feedback[0].text !== undefined && (
+                     <blockquote className='font-light text-sm' style={{fontStyle: "italic"}}>
+                      "{feedback[0].text}"
+                    </blockquote>
+                  )
+                 }
+                </div>
+              </div>
+            </div>
+          </div>
+          )
+            
+          }
 
           {/* Handoff History - Only show if there are handoffs */}
           {handoffData.handoffs.length > 0 && (

@@ -43,6 +43,10 @@ export function useChatMessagesWebSocket({
         score: number;
         timestamp: string;
       }>>([]);
+  const [feedback, setFeedback] = useState<Array<{
+        rating: number;
+        text: string;
+  }>>([])
 
    // function to extract sentiment scores from messages
   const extractSentimentScores = useCallback((messages: Message[]) => {
@@ -111,6 +115,7 @@ export function useChatMessagesWebSocket({
         const validMessages = data.data.filter((msg: any) => 
           msg && msg.content && typeof msg.content === 'string' && msg.content.trim() !== ''
         );
+       
 
         //Extract sentiment scores
         const scores = extractSentimentScores(validMessages);
@@ -124,6 +129,14 @@ export function useChatMessagesWebSocket({
         
         // Cache messages for this session ID
         messagesMapRef.current.set(sessionId, validMessages);
+      }
+      if (data.feedback_data && Array.isArray(data.feedback_data)) {
+        if (sessionId === currentSessionId.current) {
+          setFeedback([{
+            rating: data.feedback_data[0]?.rating || undefined,
+            text: data.feedback_data[0]?.text || undefined
+          }]);
+        }
       }
     });
     
@@ -256,6 +269,7 @@ export function useChatMessagesWebSocket({
     connect,
     disconnect,
     sentimentScores,
+    feedback,
     averageSentiment
   };
 }

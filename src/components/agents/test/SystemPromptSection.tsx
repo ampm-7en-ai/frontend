@@ -136,7 +136,7 @@ export const SystemPromptSection = ({
           value={systemPrompt || ''}
           onChange={(e) => handleSystemPromptChange(e.target.value)}
           placeholder="Define how your agent behaves..."
-          className="min-h-[100px] rounded-xl border-border bg-background text-foreground"
+          className="min-h-[100px] rounded-xl border-border text-foreground"
         />
       </div>
 
