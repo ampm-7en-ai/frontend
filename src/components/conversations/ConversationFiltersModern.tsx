@@ -4,6 +4,7 @@ import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import ConversationFiltersDrawer from './ConversationFiltersDrawer';
 import ModernButton from '../dashboard/ModernButton';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Icon } from '../icons';
 
 interface ConversationFiltersProps {
   filterResolved: string;
@@ -107,23 +108,13 @@ const ConversationFiltersModern = ({
         />
         
         <div className="flex items-center gap-2">
-          {isBulkSelectMode && selectedConversations.length > 0 && (
-            <ModernButton
-              onClick={onBulkDelete}
-              disabled={isBulkDeleting}
-              size="sm"
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              <Trash2 className="w-4 h-4 mr-1" />
-              {isBulkDeleting ? 'Deleting...' : `Delete (${selectedConversations.length})`}
-            </ModernButton>
-          )}
+          
           
           <div className="flex items-center gap-2">
             <Checkbox 
               checked={isBulkSelectMode}
               onCheckedChange={onBulkSelectModeChange}
-              className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+              className="rounded-[4px]"
             />
             <span 
               className="text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer select-none"
@@ -131,16 +122,7 @@ const ConversationFiltersModern = ({
             >
               Select
             </span>
-            {isBulkSelectMode && (
-              <ModernButton
-                onClick={onSelectAll}
-                size="sm"
-                variant="ghost"
-                className="text-xs"
-              >
-                Select All
-              </ModernButton>
-            )}
+            
           </div>
 
           <ConversationFiltersDrawer
@@ -176,7 +158,37 @@ const ConversationFiltersModern = ({
           />
         </div>
       </div>
+      {/* Bulk actions */}
+      
+        {isBulkSelectMode && (
+          <div className="px-4 mt-4 pt-4 border-t border-gray-200 dark:border-neutral-700">
+          <div className='flex items-center justify-end gap-2'>
+          <ModernButton
+            onClick={onSelectAll}
+            size="sm"
+            variant="ghost"
+            className="text-xs"
+          >
+            Select All
+          </ModernButton>
+          {isBulkSelectMode && selectedConversations.length > 0 && (
+            <ModernButton
+              onClick={onBulkDelete}
+              disabled={isBulkDeleting}
+              size="sm"
+              variant='ghost'
+              className="text-xs"
+            >
+              <Icon name={`Bin`} type='plain' color='hsl(var(--primary))' className='h-3 w-3 mr-1' />
+              {isBulkDeleting ? 'Deleting...' : `Delete (${selectedConversations.length})`}
+            </ModernButton>
+          )}
 
+          
+          </div>
+      </div>
+          
+        )}
       {hasActiveFilters && (
         <div className="px-4 mt-4 pt-4 border-t border-gray-200 dark:border-neutral-700">
           <div className="flex items-center justify-between mb-3">

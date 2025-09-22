@@ -158,32 +158,32 @@ const ConversationCard = ({
     switch (conversation.channel?.toLowerCase()) {
       case 'ticketing':
         return (
-          <div className={cn(containerClass, "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-none")}>
+          <div className={cn(containerClass, "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700")}>
             <Icon name={`Ticket`} type='plain' color='hsl(var(--primary))' />
           </div>
         );
       case 'phone':
         return (
-          <div className={cn(containerClass, "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-none")}>
+          <div className={cn(containerClass, "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700")}>
             <Phone className={cn(iconClass, "text-slate-600 dark:text-slate-400")} strokeWidth={2} />
           </div>
         );
       case 'website':
         return (
-          <div className={cn(containerClass, "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-none")}>
+          <div className={cn(containerClass, "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700")}>
             <Icon name={`WebPage`} type='plain' color='hsl(var(--primary))' />
           </div>
         );
       case 'playground':
         return (
-          <div className={cn(containerClass, "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-none")}>
+          <div className={cn(containerClass, "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700")}>
             <Icon name={`Playground`} type='plain' color='hsl(var(--primary))' />
           </div>
         );
       case 'whatsapp':
       default:
         return (
-          <div className={cn(containerClass, "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-none relative")}>
+          <div className={cn(containerClass, "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 relative")}>
             <MessageSquare className={cn(iconClass, "text-neutral-600 dark:text-neutral-400")} strokeWidth={2} />
            
           </div>
@@ -228,8 +228,7 @@ const ConversationCard = ({
           "hover:!bg-gray-100/50 dark:hover:!bg-neutral-700/50 transition-all duration-200 cursor-pointer shadow-none rounded-xl !bg-transparent relative group",
           isSelected && !isBulkSelectMode
             ? "!bg-gray-100/50 dark:!bg-neutral-700/50" 
-            : "",
-          isSelectedForBulk && "ring-2 ring-green-500 border-green-500 dark:border-green-400 shadow-sm"
+            : "",""
         )}
         onClick={handleCardClick}
         onMouseEnter={() => setIsHovered(true)}
@@ -242,7 +241,7 @@ const ConversationCard = ({
               checked={isSelectedForBulk}
               onCheckedChange={handleCheckboxChange}
               onClick={(e) => e.stopPropagation()}
-              className="mt-1 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+              className="rounded-[4px] mt-3"
             />
           )}
           {getChannelIcon()}
@@ -283,7 +282,7 @@ const ConversationCard = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-4 w-4 p-0 text-muted-foreground hover:bg-transparent dark:hover:bg-transparent opacity-0 group-hover:opacity-100 transition-all"
+                    className="h-4 w-4 p-0 text-muted-foreground dark:text-neutral-500 hover:bg-transparent dark:hover:bg-transparent dark:hover:text-neutral-400 opacity-0 group-hover:opacity-100 transition-all"
                     onClick={handleDeleteClick}
                   >
                     <Trash2 className="h-4 w-4" />

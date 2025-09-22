@@ -1020,6 +1020,7 @@ export const ChatboxPreview = ({
                                 value={emailValue}
                                 onChange={(e) => setEmailValue(e.target.value)}
                                 required
+                                className='dark:bg-white dark:text-neutral-900'
                                 />
                                 <ModernButton 
                                   type="submit" 
@@ -1480,7 +1481,7 @@ export const ChatboxPreview = ({
               <ModernButton
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+                className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors dark:hover:bg-white/20"
                 title="Menu"
                 icon={MoreHorizontal}
                 style={{
@@ -1491,19 +1492,19 @@ export const ChatboxPreview = ({
             </DropdownMenuTrigger>
             <DropdownMenuContent 
               align="end" 
-              className="bg-white border border-gray-200 shadow-lg z-[9999] min-w-[150px]"
+              className="bg-white dark:bg-white border border-gray-200 shadow-lg z-[9999] min-w-[150px] dark:!border-white"
               sideOffset={5}
             >
               <DropdownMenuItem 
                 onClick={handleRestart}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-200 dark:!text-neutral-900"
               >
                 <RotateCcw size={16} />
                 Restart chat
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => setShowEndChatConfirmation(true)}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-red-600"
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-red-600 dark:hover:!bg-neutral-200"
               >
                 <MessageCircle size={16} />
                 End chat
@@ -1708,12 +1709,13 @@ export const ChatboxPreview = ({
                         value={emailValue}
                         onChange={(e) => setEmailValue(e.target.value)}
                         required
+                        className='dark:!bg-white dark:!text-neutral-900'
                         />
                         <ModernButton 
                           type="submit" 
                           size="sm" 
                           variant='ghost'
-                          className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                          className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 dark:hover:!bg-neutral-100"
                           iconOnly
                           disabled={!emailValue.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)}
                         >
@@ -1899,14 +1901,14 @@ export const ChatboxPreview = ({
                 value={feedbackText}
                 onChange={(e) => setFeedbackText(e.target.value)}
                 placeholder="Tell us about your experience (optional)"
-                className="w-full mb-4 resize-none"
+                className="w-full mb-4 resize-none dark:bg-white dark:text-neutral-900"
                 rows={3}
               />
               
               {/* Submit Button */}
               <Button
                 onClick={handleFeedbackSubmit}
-                className="w-full bg-black hover:bg-gray-800 text-white rounded-lg py-3 text-sm font-medium"
+                className="w-full bg-black hover:bg-neutral-800 text-white rounded-lg py-3 text-sm font-medium"
                 disabled={feedbackRating === 0}
               >
                 Submit Feedback

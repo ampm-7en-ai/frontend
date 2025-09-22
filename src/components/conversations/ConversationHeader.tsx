@@ -122,7 +122,7 @@ const ConversationHeader = ({
     }
   };
 
-  const isResolved = conversation.status === 'Resolved';
+  const isResolved = conversation.status === 'resolved';
   const isHumanAgent = conversation.agentType === 'human';
   const shouldShowCreateTicketButton = !isHumanAgent && 
     conversation.channel !== "ticketing" && 
