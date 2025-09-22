@@ -7,6 +7,7 @@ export function useChatSessions() {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deletedSessionIds, setDeletedSessionIds] = useState<Set<string>>(new Set());
   const wsRef = useRef<ChatSessionsWebSocketService | null>(null);
   const { toast } = useToast();
   
@@ -208,36 +209,54 @@ export function useChatSessions() {
     }
   }, []);
   
-  // Filter functions with validation
+  // Filter functions with validation (also filter out deleted sessions)
   const filterSessionsByStatus = useCallback((statusFilter: string) => {
-    if (statusFilter === 'all') return sessions;
-    return sessions.filter(s => s && s.status === statusFilter);
-  }, [sessions]);
+    const filteredSessions = sessions.filter(s => s && !deletedSessionIds.has(s.id));
+    if (statusFilter === 'all') return filteredSessions;
+    return filteredSessions.filter(s => s.status === statusFilter);
+  }, [sessions, deletedSessionIds]);
   
   const filterSessionsByChannel = useCallback((channelFilter: string) => {
-    if (channelFilter === 'all') return sessions;
-    return sessions.filter(s => s && s.channel === channelFilter);
-  }, [sessions]);
+    const filteredSessions = sessions.filter(s => s && !deletedSessionIds.has(s.id));
+    if (channelFilter === 'all') return filteredSessions;
+    return filteredSessions.filter(s => s.channel === channelFilter);
+  }, [sessions, deletedSessionIds]);
   
   const filterSessionsByAgentType = useCallback((agentTypeFilter: string) => {
-    if (agentTypeFilter === 'all') return sessions;
-    return sessions.filter(s => s && s.agentType === agentTypeFilter);
-  }, [sessions]);
+    const filteredSessions = sessions.filter(s => s && !deletedSessionIds.has(s.id));
+    if (agentTypeFilter === 'all') return filteredSessions;
+    return filteredSessions.filter(s => s.agentType === agentTypeFilter);
+  }, [sessions, deletedSessionIds]);
   
   const filterSessionsBySearch = useCallback((query: string) => {
-    if (!query) return sessions;
+    const filteredSessions = sessions.filter(s => s && !deletedSessionIds.has(s.id));
+    if (!query) return filteredSessions;
     const lowerQuery = query.toLowerCase();
-    return sessions.filter(s => 
+    return filteredSessions.filter(s => 
       s && (
         s.customer?.toLowerCase().includes(lowerQuery) || 
         s.lastMessage?.toLowerCase().includes(lowerQuery) ||
         (s.email && s.email.toLowerCase().includes(lowerQuery))
       )
     );
-  }, [sessions]);
+  }, [sessions, deletedSessionIds]);
+
+  // Function to mark sessions as deleted
+  const markSessionsAsDeleted = useCallback((sessionIds: string[]) => {
+    setDeletedSessionIds(prev => {
+      const newSet = new Set(prev);
+      sessionIds.forEach(id => newSet.add(id));
+      return newSet;
+    });
+  }, []);
+
+  // Get filtered sessions (excluding deleted ones)
+  const getFilteredSessions = useCallback(() => {
+    return sessions.filter(s => s && !deletedSessionIds.has(s.id));
+  }, [sessions, deletedSessionIds]);
   
   return {
-    sessions,
+    sessions: getFilteredSessions(),
     isLoading,
     isConnected,
     error,
@@ -246,6 +265,7 @@ export function useChatSessions() {
     filterSessionsByStatus,
     filterSessionsByChannel,
     filterSessionsByAgentType,
-    filterSessionsBySearch
+    filterSessionsBySearch,
+    markSessionsAsDeleted
   };
 }

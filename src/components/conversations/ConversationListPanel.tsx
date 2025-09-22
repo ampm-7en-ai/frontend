@@ -58,7 +58,14 @@ const ConversationListPanel = ({
   // Add agent name filter state
   const [agentNameFilter, setAgentNameFilter] = useState<string[]>([]);
   
-  // Use our new WebSocket sessions hook
+  // Add delete functionality and mark deleted sessions
+  const { 
+    deleteConversation, 
+    bulkDeleteConversations, 
+    isBulkDeleting 
+  } = useConversations();
+  
+  // Get the markSessionsAsDeleted function from useChatSessions
   const { 
     sessions, 
     isLoading: sessionsLoading, 
@@ -68,11 +75,9 @@ const ConversationListPanel = ({
     filterSessionsByStatus,
     filterSessionsByChannel,
     filterSessionsByAgentType,
-    filterSessionsBySearch
+    filterSessionsBySearch,
+    markSessionsAsDeleted
   } = useChatSessions();
-
-  // Add delete functionality 
-  const { deleteConversation, bulkDeleteConversations, isBulkDeleting } = useConversations();
   
   // Add bulk selection state
   const [isBulkSelectMode, setIsBulkSelectMode] = useState(false);
@@ -212,20 +217,19 @@ const ConversationListPanel = ({
 
   const confirmBulkDelete = async () => {
     try {
-      await bulkDeleteConversations(selectedConversations);
+      // Store the session IDs before deletion
+      const sessionIdsToDelete = [...selectedConversations];
+      
+      await bulkDeleteConversations(sessionIdsToDelete);
+      
+      // Mark sessions as deleted in the WebSocket hook
+      markSessionsAsDeleted(sessionIdsToDelete);
+      
       setSelectedConversations([]);
       setIsBulkSelectMode(false);
       setShowBulkDeleteDialog(false);
-      toast({
-        title: "Conversations deleted",
-        description: `Successfully deleted ${selectedConversations.length} conversations.`,
-      });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete conversations. Please try again.",
-        variant: "destructive",
-      });
+      // Error toast is handled in the hook
     }
   };
 
@@ -449,7 +453,15 @@ const ConversationListPanel = ({
                 conversation={session}
                 isSelected={selectedConversation === session.id}
                 onClick={() => handleConversationClick(session.id)}
-                onDelete={deleteConversation}
+                onDelete={async (conversationId) => {
+                  try {
+                    await deleteConversation(conversationId);
+                    // Mark the session as deleted in the WebSocket hook
+                    markSessionsAsDeleted([conversationId]);
+                  } catch (error) {
+                    // Error is already handled in the hook
+                  }
+                }}
                 isBulkSelectMode={isBulkSelectMode}
                 isSelectedForBulk={selectedConversations.includes(session.id)}
                 onBulkSelect={handleBulkSelect}
