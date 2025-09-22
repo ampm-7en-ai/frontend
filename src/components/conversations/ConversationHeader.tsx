@@ -154,7 +154,6 @@ const ConversationHeader = ({
             <ModernButton
               variant="outline"
               size="sm"
-              icon={TicketPlus}
               onClick={() => setIsTicketModalOpen(true)}
             >
               Create Ticket
@@ -163,7 +162,6 @@ const ConversationHeader = ({
           <ModernButton
             variant={isResolved ? "secondary" : "primary"}
             size="sm"
-            icon={CheckCircle}
             onClick={handleResolveConversation}
             disabled={isResolving || isResolved}
           >

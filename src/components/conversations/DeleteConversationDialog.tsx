@@ -35,7 +35,6 @@ const DeleteConversationDialog = ({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
-            <Trash2 className="h-5 w-5 text-red-600" />
             Delete Conversation
           </AlertDialogTitle>
           <AlertDialogDescription>

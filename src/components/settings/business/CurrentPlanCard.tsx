@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { TopupModal } from './TopupModal';
 import { Plus } from 'lucide-react';
+import { Icon } from '@/components/icons';
 
 export const CurrentPlanCard = () => {
   const [topupModalOpen, setTopupModalOpen] = React.useState(false);
@@ -42,7 +43,9 @@ export const CurrentPlanCard = () => {
     <div className="bg-white/70 dark:bg-neutral-800 rounded-2xl p-6 backdrop-blur-sm mb-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          
+           <div className="bg-transparent rounded-xl flex items-center justify-start p-3 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700">
+            <Icon type='plain' name={`Star`} color='hsl(var(--primary))' className='h-5 w-5' />
+          </div>
           <div>
             <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{planName}</h3>
             <div className="flex items-center gap-3 mt-1">

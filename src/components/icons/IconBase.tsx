@@ -36,6 +36,11 @@ import Copy from './library/Copy';
 import CubeNode from './library/CubeNode';
 import Info from './library/Info';
 import Ratings from './library/Ratings';
+import Playground from './library/Playground';
+import Ticket from './library/Ticket';
+import Star from './library/Star';
+import ColumnChart from './library/ColumnChart';
+import Key from './library/Key';
 
 const IconBase = ({ type, className = '', iconType, color }) => {
 
@@ -116,6 +121,16 @@ const IconBase = ({ type, className = '', iconType, color }) => {
         return <Info type={type} className={baseClass} color={color} />;
       case 'Ratings':
         return <Ratings type={type} className={baseClass} color={color} />;
+      case 'Playground':
+        return <Playground type={type} className={baseClass} color={color} />;
+      case 'Ticket':
+        return <Ticket type={type} className={baseClass} color={color} />;
+      case 'Star':
+        return <Star type={type} className={baseClass} color={color} />;
+      case 'ColumnChart':
+        return <ColumnChart type={type} className={baseClass} color={color} />;
+      case 'Key':
+        return <Key type={type} className={baseClass} color={color} />;
       default:
         return null;
     }

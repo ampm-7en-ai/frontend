@@ -129,8 +129,8 @@ const ApiKeysSection = () => {
       <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="bg-transparent rounded-xl flex items-center justify-start">
-              <Icon type='plain' name={`Transaction`} color='hsl(var(--primary))' className='h-5 w-5' />
+            <div className="bg-transparent rounded-xl flex items-center justify-start bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
+              <Icon type='plain' name={`Key`} color='hsl(var(--primary))' className='h-5 w-5' />
             </div>
             <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">API Keys</h3>
           </div>
@@ -172,7 +172,7 @@ const ApiKeysSection = () => {
                     <TableRow key={apiKey.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/80 transition-colors dark:border-neutral-600">
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <KeyRound className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+                           <Icon type='plain' name={`Key`} color='hsl(var(--primary))' className='h-5 w-5' />
                           {apiKey.name || 'Unnamed API Key'}
                         </div>
                       </TableCell>
@@ -239,7 +239,7 @@ const ApiKeysSection = () => {
         ) : (
           <div className="text-center py-8">
             <div className="w-16 h-16 bg-neutral-100 dark:bg-neutral-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <KeyRound className="h-8 w-8 text-muted-foreground" />
+               <Icon type='plain' name={`Key`} color='hsl(var(--primary))' className='h-5 w-5' />
             </div>
             <p className="text-muted-foreground dark:text-muted-foreground mb-2">No API keys found</p>
             <p className="text-sm text-neutral-500 dark:text-neutral-500">Create your first API key to get started</p>

@@ -345,8 +345,8 @@ const TeamManagementSection = () => {
       {/* Inline Invite Form */}
       <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 mb-6 backdrop-blur-sm">
         <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100 flex items-center gap-2">
-          <div className="bg-transparent rounded-xl flex items-center justify-start">
-              <Icon type='plain' name={`Users`} color='hsl(var(--primary))' className='h-5 w-5 mr-1' />
+          <div className="bg-transparent rounded-xl flex items-center justify-start bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
+              <Icon type='plain' name={`Users`} color='hsl(var(--primary))' className='h-5 w-5' />
           </div>
           Invite Team Member
         </h3>
@@ -440,8 +440,8 @@ const TeamManagementSection = () => {
       {/* Current Owner - More Compact */}
       <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 mb-6 backdrop-blur-sm">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-transparent rounded-xl flex items-center justify-center">
-            <Icon type='plain' name={`Person`} color='hsl(var(--primary))' className='h-5 w-5 mr-1' />
+          <div className="w-10 h-10 bg-transparent rounded-xl flex items-center justify-center bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
+            <Icon type='plain' name={`Person`} color='hsl(var(--primary))' className='h-5 w-5' />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
