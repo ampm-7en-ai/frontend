@@ -220,10 +220,19 @@ const ConversationListPanel = ({
       // Store the session IDs before deletion
       const sessionIdsToDelete = [...selectedConversations];
       
+      // Check if the currently selected conversation is being deleted
+      const isSelectedConversationBeingDeleted = selectedConversation && 
+        sessionIdsToDelete.includes(selectedConversation);
+      
       await bulkDeleteConversations(sessionIdsToDelete);
       
       // Mark sessions as deleted in the WebSocket hook
       markSessionsAsDeleted(sessionIdsToDelete);
+      
+      // Clear the selected conversation if it was deleted
+      if (isSelectedConversationBeingDeleted) {
+        setSelectedConversation('');
+      }
       
       setSelectedConversations([]);
       setIsBulkSelectMode(false);
@@ -455,9 +464,17 @@ const ConversationListPanel = ({
                 onClick={() => handleConversationClick(session.id)}
                 onDelete={async (conversationId) => {
                   try {
+                    // Check if the conversation being deleted is currently selected
+                    const isSelectedConversationBeingDeleted = selectedConversation === conversationId;
+                    
                     await deleteConversation(conversationId);
                     // Mark the session as deleted in the WebSocket hook
                     markSessionsAsDeleted([conversationId]);
+                    
+                    // Clear the selected conversation if it was deleted
+                    if (isSelectedConversationBeingDeleted) {
+                      setSelectedConversation('');
+                    }
                   } catch (error) {
                     // Error is already handled in the hook
                   }
