@@ -28,10 +28,6 @@ export function useConversations() {
       // If the mutation fails, use the context returned from onMutate to roll back
       queryClient.setQueryData(['conversations'], context?.previousConversations);
     },
-    onSettled: () => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
-    },
   });
 
   // Bulk delete mutation
@@ -72,10 +68,6 @@ export function useConversations() {
     onError: (err, sessionIds, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       queryClient.setQueryData(['conversations'], context?.previousConversations);
-    },
-    onSettled: () => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
   });
   
