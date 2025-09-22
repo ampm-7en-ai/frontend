@@ -1,8 +1,19 @@
 import { useState } from 'react';
-import { useConversationsApi, Conversation } from './useConversationsApi';
+import { useConversationsApi, Conversation, deleteConversation } from './useConversationsApi';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function useConversations() {
   const { data = [], isLoading, error, refetch } = useConversationsApi();
+  const queryClient = useQueryClient();
+  
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: deleteConversation,
+    onSuccess: () => {
+      // Invalidate and refetch conversations list
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+  });
   
   // Helper function to normalize status for consistent handling
   const normalizeStatus = (status: string) => {
@@ -21,10 +32,16 @@ export function useConversations() {
     normalizedStatus: normalizeStatus(conversation.status)
   }));
 
+  const handleDeleteConversation = async (conversationId: string): Promise<void> => {
+    return deleteMutation.mutateAsync(conversationId);
+  };
+
   return {
     conversations,
     isLoading,
     error,
-    refetchConversations: refetch
+    refetchConversations: refetch,
+    deleteConversation: handleDeleteConversation,
+    isDeletingConversation: deleteMutation.isPending
   };
 }

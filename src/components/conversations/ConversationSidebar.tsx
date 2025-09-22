@@ -11,9 +11,10 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowRight, Bot, User, Info, Smile, Clock, Tag, CreditCard, AlertTriangle } from 'lucide-react';
+import { ArrowRight, Bot, User, Info, Smile, Clock, Tag, CreditCard, AlertTriangle, Trash2 } from 'lucide-react';
 import HandoffHistory from './HandoffHistory';
 import { useToast } from '@/hooks/use-toast';
+import DeleteConversationDialog from './DeleteConversationDialog';
 
 interface ConversationSidebarProps {
   open: boolean;
@@ -22,6 +23,7 @@ interface ConversationSidebarProps {
   selectedAgent: string | null;
   onHandoffClick: (handoff: any) => void;
   getSatisfactionIndicator: (satisfaction: string) => React.ReactNode;
+  onDelete?: (id: string) => Promise<void>;
 }
 
 const ConversationSidebar = ({
@@ -30,11 +32,14 @@ const ConversationSidebar = ({
   conversation,
   selectedAgent,
   onHandoffClick,
-  getSatisfactionIndicator
+  getSatisfactionIndicator,
+  onDelete
 }: ConversationSidebarProps) => {
   // Add state for handoff functionality
   const [handoffDestination, setHandoffDestination] = useState('');
   const [handoffReason, setHandoffReason] = useState('');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
 
   // Helper function to get sentiment score as a percentage
@@ -46,6 +51,30 @@ const ConversationSidebar = ({
       case 'satisfied': return 75;
       case 'delighted': return 95;
       default: return 50; // Default to neutral
+    }
+  };
+
+  // Handle delete functionality
+  const handleDelete = async (id: string) => {
+    if (!onDelete) return;
+    setIsDeleting(true);
+    try {
+      await onDelete(id);
+      setShowDeleteDialog(false);
+      onOpenChange(false); // Close sidebar after successful deletion
+      toast({
+        title: "Conversation deleted",
+        description: "The conversation has been permanently removed.",
+      });
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+      toast({
+        title: "Delete failed",
+        description: "There was an error deleting the conversation. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -253,8 +282,37 @@ const ConversationSidebar = ({
               )}
             </div>
           </div>
+          
+          {onDelete && conversation && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="text-sm font-medium mb-2 flex items-center text-red-600">
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Danger Zone
+                </h3>
+                <Button
+                  variant="outline"
+                  className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Conversation
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </SheetContent>
+      
+      <DeleteConversationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        conversationId={conversation?.id}
+        customerName={conversation?.customer}
+        onDelete={handleDelete}
+        isDeleting={isDeleting}
+      />
     </Sheet>
   );
 };

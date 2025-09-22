@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Clock, Users, MessageSquare, Phone, Mail, Slack, Instagram, Globe2, Globe } from 'lucide-react';
+import { Clock, Users, MessageSquare, Phone, Mail, Slack, Instagram, Globe2, Globe, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import DeleteConversationDialog from './DeleteConversationDialog';
 
 interface Conversation {
   id: string;
@@ -27,13 +29,36 @@ interface ConversationCardProps {
   conversation: Conversation;
   isSelected: boolean;
   onClick: () => void;
+  onDelete?: (id: string) => Promise<void>;
 }
 
 const ConversationCard = ({ 
   conversation, 
   isSelected, 
-  onClick
+  onClick,
+  onDelete
 }: ConversationCardProps) => {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleDelete = async (id: string) => {
+    if (!onDelete) return;
+    setIsDeleting(true);
+    try {
+      await onDelete(id);
+      setShowDeleteDialog(false);
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeleteDialog(true);
+  };
   // Channel logo mapping
   const channelLogos = {
     'whatsapp': 'https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg',
@@ -162,15 +187,18 @@ const ConversationCard = ({
 };
 
   return (
-    <Card 
-      className={cn(
-        "hover:!bg-gray-100/50 dark:hover:!bg-neutral-700/50 transition-all duration-200 cursor-pointer shadow-none rounded-xl !bg-transparent",
-        isSelected 
-          ? "!bg-gray-100/50 dark:!bg-neutral-700/50" 
-          : ""
-      )}
-      onClick={onClick}
-    >
+    <>
+      <Card 
+        className={cn(
+          "hover:!bg-gray-100/50 dark:hover:!bg-neutral-700/50 transition-all duration-200 cursor-pointer shadow-none rounded-xl !bg-transparent relative group",
+          isSelected 
+            ? "!bg-gray-100/50 dark:!bg-neutral-700/50" 
+            : ""
+        )}
+        onClick={onClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
       <CardContent className="p-4 pb-1">
         <div className="flex items-start gap-3">
           {getChannelIcon()}
@@ -188,13 +216,25 @@ const ConversationCard = ({
                   <span className="inline-block w-2 h-2 bg-orange-500 rounded-full shadow-sm"></span>
                 )}
               </div>
-              <div className="flex flex-col items-end">
-                <p className={cn(
-                  "text-xs whitespace-nowrap",
-                  conversation.isUnread ? "font-medium text-orange-600 dark:text-orange-400" : "text-neutral-400 dark:text-neutral-600"
-                )}>
-                  {reformatTimeAgo(conversation.time)}
-                </p>
+              <div className="flex items-center gap-2">
+                {onDelete && (isHovered || isSelected) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={handleDeleteClick}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+                <div className="flex flex-col items-end">
+                  <p className={cn(
+                    "text-xs whitespace-nowrap",
+                    conversation.isUnread ? "font-medium text-orange-600 dark:text-orange-400" : "text-neutral-400 dark:text-neutral-600"
+                  )}>
+                    {reformatTimeAgo(conversation.time)}
+                  </p>
+                </div>
               </div>
             </div>
             
@@ -219,6 +259,16 @@ const ConversationCard = ({
         </div>
       </CardContent>
     </Card>
+    
+    <DeleteConversationDialog
+      open={showDeleteDialog}
+      onOpenChange={setShowDeleteDialog}
+      conversationId={conversation.id}
+      customerName={conversation.customer || "Visitor"}
+      onDelete={handleDelete}
+      isDeleting={isDeleting}
+    />
+  </>
   );
 };
 

@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useConversationUtils } from '@/hooks/useConversationUtils';
 import { useChatSessions } from '@/hooks/useChatSessions';
+import { useConversations } from '@/hooks/useConversations';
 
 import ConversationListPanel from '@/components/conversations/ConversationListPanel';
 import ConversationListErrorBoundary from '@/components/conversations/ConversationListErrorBoundary';
@@ -17,6 +18,7 @@ const ConversationList = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { getStatusBadge, getSatisfactionIndicator } = useConversationUtils();
+  const { deleteConversation } = useConversations();
   
   // State for conversation filters and selection
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
@@ -260,6 +262,7 @@ const ConversationList = () => {
         selectedAgent={selectedAgent}
         onHandoffClick={handleHandoffClick}
         getSatisfactionIndicator={getSatisfactionIndicator}
+        onDelete={deleteConversation}
       />
       
       <style dangerouslySetInnerHTML={{ __html: `

@@ -291,6 +291,31 @@ async function fetchConversations(): Promise<Conversation[]> {
   }
 }
 
+// Delete conversation function
+async function deleteConversation(conversationId: string): Promise<void> {
+  const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
+  if (!token) {
+    throw new Error('Authentication token not found');
+  }
+
+  const deleteUrl = `${BASE_URL}chat/admin/conversations/${conversationId}/delete/`;
+
+  try {
+    const response = await fetch(deleteUrl, {
+      method: 'DELETE',
+      headers: getAuthHeaders(token),
+      mode: 'cors'
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Delete conversation error:', error);
+    throw error;
+  }
+}
+
 export function useConversationsApi() {
   return useQuery({
     queryKey: ['conversations'],
@@ -300,3 +325,5 @@ export function useConversationsApi() {
     retry: 1,
   });
 }
+
+export { deleteConversation };

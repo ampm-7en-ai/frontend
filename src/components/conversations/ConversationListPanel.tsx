@@ -7,6 +7,7 @@ import { Loader } from 'lucide-react';
 import { useChatSessions } from '@/hooks/useChatSessions';
 import { useToast } from "@/hooks/use-toast";
 import { Icon } from '../icons';
+import { useConversations } from '@/hooks/useConversations';
 
 interface ConversationListPanelProps {
   filterStatus: string;
@@ -68,6 +69,9 @@ const ConversationListPanel = ({
     filterSessionsByAgentType,
     filterSessionsBySearch
   } = useChatSessions();
+
+  // Add delete functionality 
+  const { deleteConversation } = useConversations();
 
   // Helper function to normalize status for case-insensitive comparison
   const normalizeStatus = (status: string) => {
@@ -390,6 +394,7 @@ const ConversationListPanel = ({
                 conversation={session}
                 isSelected={selectedConversation === session.id}
                 onClick={() => handleConversationClick(session.id)}
+                onDelete={deleteConversation}
               />
             </div>
           );
