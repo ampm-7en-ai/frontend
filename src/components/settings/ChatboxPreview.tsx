@@ -734,12 +734,77 @@ export const ChatboxPreview = ({
     }
   };
 
-  // Handle feedback close
+  // Handle feedback close (cancel)
   const handleFeedbackClose = () => {
+    console.log('Feedback cancelled, closing connection');
+    
+    // Close current connection when feedback is cancelled
+    if (chatServiceRef.current) {
+      chatServiceRef.current.disconnect();
+      chatServiceRef.current = null;
+    }
+    
+    // Reset UI state
+    setMessages([]);
+    processedMessageIds.current.clear();
     setShowFeedbackForm(false);
     setFeedbackRating(0);
     setFeedbackText('');
     setSelectedFeedbackTemplate('');
+    
+    // Start new connection after cancelling
+    setTimeout(() => {
+      if (agentId) {
+        console.log("Starting new ChatWebSocketService after feedback cancel");
+        
+        chatServiceRef.current = new ChatWebSocketService(agentId, "preview");
+        
+        chatServiceRef.current.on({
+          onMessage: (message) => {
+            console.log("New session - Received message:", message);
+            
+            if (message.type === 'system_message') {
+              setSystemMessage(message.content);
+              setShowTypingIndicator(true);
+              return;
+            }
+            
+            const messageId = generateUniqueMessageId(message);
+            
+            if (processedMessageIds.current.has(messageId)) {
+              return;
+            }
+            
+            processedMessageIds.current.add(messageId);
+            setShowTypingIndicator(false);
+            setSystemMessage('');
+            setMessages(prev => [...prev, { ...message, messageId }]);
+          },
+          onTypingStart: () => setShowTypingIndicator(true),
+          onTypingEnd: () => {
+            setShowTypingIndicator(false);
+            setSystemMessage('');
+          },
+          onError: (error) => {
+            console.error('New session - Chat error:', error);
+            setConnectionError(error);
+            setIsConnected(false);
+          },
+          onConnectionChange: (status) => {
+            console.log("New session - Connection status changed:", status);
+            setIsConnected(status);
+            if (status) {
+              setConnectionError(null);
+            }
+          },
+          ...(enableSessionStorage && onSessionIdReceived && {
+            onSessionIdReceived: onSessionIdReceived
+          })
+        });
+        
+        chatServiceRef.current.connect();
+      }
+    }, 1000);
   };
 
   // Handle feedback submission
@@ -753,101 +818,100 @@ export const ChatboxPreview = ({
       return;
     }
 
+    console.log('Feedback submitted, closing connection after sending');
+    
     try {
-      // Create new WebSocket connection for feedback submission
-      const tempService = new ChatWebSocketService(agentId, "preview");
-      tempService.connect();
-      
-      tempService.on({
-        onConnectionChange: (status) => {
-          if (status) {
-            // Send feedback message once connected
-            tempService.send({
-              type: 'feedback',
-              content: JSON.stringify({
-                rating: feedbackRating,
-                text: feedbackText
-              }),
-              message: '',
-              agentId: agentId || '',
-              sessionId: sessionId || '',
-              timestamp: Date.now()
-            });
-            
-            // Disconnect immediately after sending
-            setTimeout(() => {
-              tempService.disconnect();
-            }, 1000);
+      // Send feedback using existing connection
+      if (chatServiceRef.current && isConnected) {
+        chatServiceRef.current.send({
+          type: 'feedback',
+          content: JSON.stringify({
+            rating: feedbackRating,
+            text: feedbackText
+          }),
+          message: '',
+          agentId: agentId || '',
+          sessionId: sessionId || '',
+          timestamp: Date.now()
+        });
+        
+        console.log('Feedback sent, closing connection in 1 second');
+        
+        // Close connection after sending feedback
+        setTimeout(() => {
+          if (chatServiceRef.current) {
+            chatServiceRef.current.disconnect();
+            chatServiceRef.current = null;
           }
-        }
-      });
-      
-      // Clear messages locally and hide feedback form
-      setMessages([]);
-      processedMessageIds.current.clear();
-      setShowFeedbackForm(false);
-      setFeedbackRating(0);
-      setFeedbackText('');
-      setSelectedFeedbackTemplate('');
+          
+          // Clear messages locally and hide feedback form
+          setMessages([]);
+          processedMessageIds.current.clear();
+          setShowFeedbackForm(false);
+          setFeedbackRating(0);
+          setFeedbackText('');
+          setSelectedFeedbackTemplate('');
+          
+          // Start new connection after feedback
+          setTimeout(() => {
+            if (agentId) {
+              console.log("Starting new ChatWebSocketService after feedback submission");
+              
+              chatServiceRef.current = new ChatWebSocketService(agentId, "preview");
+              
+              chatServiceRef.current.on({
+                onMessage: (message) => {
+                  console.log("New session - Received message:", message);
+                  
+                  if (message.type === 'system_message') {
+                    setSystemMessage(message.content);
+                    setShowTypingIndicator(true);
+                    return;
+                  }
+                  
+                  const messageId = generateUniqueMessageId(message);
+                  
+                  if (processedMessageIds.current.has(messageId)) {
+                    return;
+                  }
+                  
+                  processedMessageIds.current.add(messageId);
+                  setShowTypingIndicator(false);
+                  setSystemMessage('');
+                  setMessages(prev => [...prev, { ...message, messageId }]);
+                },
+                onTypingStart: () => setShowTypingIndicator(true),
+                onTypingEnd: () => {
+                  setShowTypingIndicator(false);
+                  setSystemMessage('');
+                },
+                onError: (error) => {
+                  console.error('New session - Chat error:', error);
+                  setConnectionError(error);
+                  setIsConnected(false);
+                },
+                onConnectionChange: (status) => {
+                  console.log("New session - Connection status changed:", status);
+                  setIsConnected(status);
+                  if (status) {
+                    setConnectionError(null);
+                  }
+                },
+                ...(enableSessionStorage && onSessionIdReceived && {
+                  onSessionIdReceived: onSessionIdReceived
+                })
+              });
+              
+              chatServiceRef.current.connect();
+            }
+          }, 1000);
+        }, 1000);
+      }
       
       toast({
         title: "Feedback Sent",
         description: "Thank you for your feedback!",
       });
-      
-      // Start new chat connection after feedback
-      setTimeout(() => {
-        if (agentId) {
-          console.log("Starting new ChatWebSocketService after feedback");
-          
-          chatServiceRef.current = new ChatWebSocketService(agentId, "preview");
-          
-          chatServiceRef.current.on({
-            onMessage: (message) => {
-              console.log("New session - Received message:", message);
-              
-              if (message.type === 'system_message') {
-                setSystemMessage(message.content);
-                setShowTypingIndicator(true);
-                return;
-              }
-              
-              const messageId = generateUniqueMessageId(message);
-              
-              if (processedMessageIds.current.has(messageId)) {
-                return;
-              }
-              
-              processedMessageIds.current.add(messageId);
-              setShowTypingIndicator(false);
-              setSystemMessage('');
-              setMessages(prev => [...prev, { ...message, messageId }]);
-            },
-            onTypingStart: () => setShowTypingIndicator(true),
-            onTypingEnd: () => {
-              setShowTypingIndicator(false);
-              setSystemMessage('');
-            },
-            onError: (error) => {
-              console.error('New session - Chat error:', error);
-              setConnectionError(error);
-              setIsConnected(false);
-            },
-            onConnectionChange: (status) => {
-              console.log("New session - Connection status changed:", status);
-              setIsConnected(status);
-              if (status) {
-                setConnectionError(null);
-              }
-            },
-            ...(enableSessionStorage && onSessionIdReceived && {
-              onSessionIdReceived: onSessionIdReceived
-            })
-          });
-          
-          chatServiceRef.current.connect();
-        }
-      }, 2000);
       
     } catch (error) {
       console.error('Error submitting feedback:', error);
