@@ -634,6 +634,9 @@ export const ChatboxPreview = ({
             setIsInitializing(false);
             if (status) {
               setConnectionError(null);
+              // Start idle timeout tracking when connected after restart
+              console.log('Restart connection established, starting idle timeout tracking');
+              startIdleTimeout();
               // Clear restarting flag once connected
               setTimeout(() => {
                 restartingRef.current = false;
@@ -780,74 +783,21 @@ export const ChatboxPreview = ({
         
         console.log('Feedback sent, closing connection in 1 second');
         
-        // Close connection after sending feedback
+        // Close connection after sending feedback but keep messages
         setTimeout(() => {
           if (chatServiceRef.current) {
             chatServiceRef.current.disconnect();
             chatServiceRef.current = null;
           }
           
-          // Clear messages locally and hide feedback form
-          setMessages([]);
-          processedMessageIds.current.clear();
+          // Only hide feedback form, keep messages visible
           setShowFeedbackForm(false);
           setFeedbackRating(0);
           setFeedbackText('');
           setSelectedFeedbackTemplate('');
           
-          // Start new connection after feedback
-          setTimeout(() => {
-            if (agentId) {
-              console.log("Starting new ChatWebSocketService after feedback submission");
-              
-              chatServiceRef.current = new ChatWebSocketService(agentId, "preview");
-              
-              chatServiceRef.current.on({
-                onMessage: (message) => {
-                  console.log("New session - Received message:", message);
-                  
-                  if (message.type === 'system_message') {
-                    setSystemMessage(message.content);
-                    setShowTypingIndicator(true);
-                    return;
-                  }
-                  
-                  const messageId = generateUniqueMessageId(message);
-                  
-                  if (processedMessageIds.current.has(messageId)) {
-                    return;
-                  }
-                  
-                  processedMessageIds.current.add(messageId);
-                  setShowTypingIndicator(false);
-                  setSystemMessage('');
-                  setMessages(prev => [...prev, { ...message, messageId }]);
-                },
-                onTypingStart: () => setShowTypingIndicator(true),
-                onTypingEnd: () => {
-                  setShowTypingIndicator(false);
-                  setSystemMessage('');
-                },
-                onError: (error) => {
-                  console.error('New session - Chat error:', error);
-                  setConnectionError(error);
-                  setIsConnected(false);
-                },
-                onConnectionChange: (status) => {
-                  console.log("New session - Connection status changed:", status);
-                  setIsConnected(status);
-                  if (status) {
-                    setConnectionError(null);
-                  }
-                },
-                ...(enableSessionStorage && onSessionIdReceived && {
-                  onSessionIdReceived: onSessionIdReceived
-                })
-              });
-              
-              chatServiceRef.current.connect();
-            }
-          }, 1000);
+          // Don't create new connection - leave in idle state
+          console.log('Feedback processed, chat left in idle state');
         }, 1000);
       }
       
