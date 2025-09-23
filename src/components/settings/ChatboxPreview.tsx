@@ -105,6 +105,7 @@ export const ChatboxPreview = ({
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackText, setFeedbackText] = useState('');
+  const [selectedFeedbackTemplate, setSelectedFeedbackTemplate] = useState<string>('');
 
   // Idle time tracking state
   const [lastBotMessageTime, setLastBotMessageTime] = useState<Date | null>(null);
@@ -476,7 +477,21 @@ export const ChatboxPreview = ({
   };
 
   const handleYesNoClick = (response: 'Yes' | 'no_thanks') => {
-    sendMessage(response);
+    if (response === 'no_thanks') {
+      // Send cancel message with specific type and content
+      if (chatServiceRef.current && isConnected) {
+        chatServiceRef.current.send({
+          type: 'cancel',
+          content: 'no_thanks',
+          message: '',
+          agentId: agentId || '',
+          sessionId: sessionId || '',
+          timestamp: Date.now()
+        });
+      }
+    } else {
+      sendMessage(response);
+    }
     // Remove the yes/no message from the list to re-enable input
     setMessages(prev => prev.filter(msg => !(msg.type === 'ui' && msg.ui_type === 'email')));
   };
@@ -718,6 +733,7 @@ export const ChatboxPreview = ({
     setShowFeedbackForm(false);
     setFeedbackRating(0);
     setFeedbackText('');
+    setSelectedFeedbackTemplate('');
   };
 
   // Handle feedback submission
@@ -746,6 +762,7 @@ export const ChatboxPreview = ({
       setShowFeedbackForm(false);
       setFeedbackRating(0);
       setFeedbackText('');
+      setSelectedFeedbackTemplate('');
       
       toast({
         title: "Feedback Sent",
@@ -1204,14 +1221,54 @@ export const ChatboxPreview = ({
                 ))}
               </div>
               
-              {/* Feedback Text */}
-              <Textarea
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-                placeholder="Tell us about your experience (optional)"
-                className="w-full mb-4 resize-none"
-                rows={3}
-              />
+              {/* Feedback Templates */}
+              <div className="mb-4">
+                <div className="grid grid-cols-1 gap-2 mb-3">
+                  {[
+                    { id: 'helpful', text: 'Very helpful and resolved my issue quickly' },
+                    { id: 'accurate', text: 'Provided accurate information' },
+                    { id: 'friendly', text: 'Friendly and professional service' }
+                  ].map((template) => (
+                    <button
+                      key={template.id}
+                      onClick={() => {
+                        setSelectedFeedbackTemplate(template.id);
+                        setFeedbackText(template.text);
+                      }}
+                      className={`p-3 text-left rounded-lg border text-sm transition-colors ${
+                        selectedFeedbackTemplate === template.id
+                          ? 'bg-blue-50 border-blue-200 text-blue-900'
+                          : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {template.text}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => {
+                      setSelectedFeedbackTemplate('custom');
+                      setFeedbackText('');
+                    }}
+                    className={`p-3 text-left rounded-lg border text-sm transition-colors ${
+                      selectedFeedbackTemplate === 'custom'
+                        ? 'bg-blue-50 border-blue-200 text-blue-900'
+                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Custom feedback
+                  </button>
+                </div>
+                
+                {/* Custom textarea - always visible but disabled unless custom is selected */}
+                <Textarea
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  placeholder={selectedFeedbackTemplate === 'custom' ? "Tell us about your experience" : "Select a template above or choose custom to type your own feedback"}
+                  className="w-full resize-none"
+                  rows={3}
+                  disabled={selectedFeedbackTemplate !== 'custom' && selectedFeedbackTemplate !== ''}
+                />
+              </div>
               
               {/* Submit Button */}
               <Button
@@ -1896,14 +1953,54 @@ export const ChatboxPreview = ({
                 ))}
               </div>
               
-              {/* Feedback Text */}
-              <Textarea
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-                placeholder="Tell us about your experience (optional)"
-                className="w-full mb-4 resize-none dark:bg-white dark:text-neutral-900"
-                rows={3}
-              />
+              {/* Feedback Templates */}
+              <div className="mb-4">
+                <div className="grid grid-cols-1 gap-2 mb-3">
+                  {[
+                    { id: 'helpful', text: 'Very helpful and resolved my issue quickly' },
+                    { id: 'accurate', text: 'Provided accurate information' },
+                    { id: 'friendly', text: 'Friendly and professional service' }
+                  ].map((template) => (
+                    <button
+                      key={template.id}
+                      onClick={() => {
+                        setSelectedFeedbackTemplate(template.id);
+                        setFeedbackText(template.text);
+                      }}
+                      className={`p-3 text-left rounded-lg border text-sm transition-colors ${
+                        selectedFeedbackTemplate === template.id
+                          ? 'bg-blue-50 border-blue-200 text-blue-900'
+                          : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {template.text}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => {
+                      setSelectedFeedbackTemplate('custom');
+                      setFeedbackText('');
+                    }}
+                    className={`p-3 text-left rounded-lg border text-sm transition-colors ${
+                      selectedFeedbackTemplate === 'custom'
+                        ? 'bg-blue-50 border-blue-200 text-blue-900'
+                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Custom feedback
+                  </button>
+                </div>
+                
+                {/* Custom textarea - always visible but disabled unless custom is selected */}
+                <Textarea
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  placeholder={selectedFeedbackTemplate === 'custom' ? "Tell us about your experience" : "Select a template above or choose custom to type your own feedback"}
+                  className="w-full resize-none dark:bg-white dark:text-neutral-900"
+                  rows={3}
+                  disabled={selectedFeedbackTemplate !== 'custom' && selectedFeedbackTemplate !== ''}
+                />
+              </div>
               
               {/* Submit Button */}
               <Button
