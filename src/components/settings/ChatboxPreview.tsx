@@ -717,13 +717,12 @@ export const ChatboxPreview = ({
       
       setShowEndChatConfirmation(false);
       setShowFeedbackForm(true);
+      
+      // Reset timeout timers
       clearIdleTimers();
       
-      // Close current connection and start new one
-      if (chatServiceRef.current) {
-        chatServiceRef.current.disconnect();
-        chatServiceRef.current = null;
-      }
+      // Don't close connection here - keep it open for feedback
+      
     } catch (error) {
       console.error('Error ending chat:', error);
       toast({
@@ -734,77 +733,21 @@ export const ChatboxPreview = ({
     }
   };
 
-  // Handle feedback close (cancel)
-  const handleFeedbackClose = () => {
-    console.log('Feedback cancelled, closing connection');
+  // Handle feedback "No Thanks" button
+  const handleFeedbackNoThanks = () => {
+    console.log('Feedback declined with No Thanks');
     
-    // Close current connection when feedback is cancelled
+    // Close current connection 
     if (chatServiceRef.current) {
       chatServiceRef.current.disconnect();
       chatServiceRef.current = null;
     }
     
-    // Reset UI state
-    setMessages([]);
-    processedMessageIds.current.clear();
+    // Reset feedback form state but don't clear messages
     setShowFeedbackForm(false);
     setFeedbackRating(0);
     setFeedbackText('');
     setSelectedFeedbackTemplate('');
-    
-    // Start new connection after cancelling
-    setTimeout(() => {
-      if (agentId) {
-        console.log("Starting new ChatWebSocketService after feedback cancel");
-        
-        chatServiceRef.current = new ChatWebSocketService(agentId, "preview");
-        
-        chatServiceRef.current.on({
-          onMessage: (message) => {
-            console.log("New session - Received message:", message);
-            
-            if (message.type === 'system_message') {
-              setSystemMessage(message.content);
-              setShowTypingIndicator(true);
-              return;
-            }
-            
-            const messageId = generateUniqueMessageId(message);
-            
-            if (processedMessageIds.current.has(messageId)) {
-              return;
-            }
-            
-            processedMessageIds.current.add(messageId);
-            setShowTypingIndicator(false);
-            setSystemMessage('');
-            setMessages(prev => [...prev, { ...message, messageId }]);
-          },
-          onTypingStart: () => setShowTypingIndicator(true),
-          onTypingEnd: () => {
-            setShowTypingIndicator(false);
-            setSystemMessage('');
-          },
-          onError: (error) => {
-            console.error('New session - Chat error:', error);
-            setConnectionError(error);
-            setIsConnected(false);
-          },
-          onConnectionChange: (status) => {
-            console.log("New session - Connection status changed:", status);
-            setIsConnected(status);
-            if (status) {
-              setConnectionError(null);
-            }
-          },
-          ...(enableSessionStorage && onSessionIdReceived && {
-            onSessionIdReceived: onSessionIdReceived
-          })
-        });
-        
-        chatServiceRef.current.connect();
-      }
-    }, 1000);
   };
 
   // Handle feedback submission
@@ -1362,12 +1305,6 @@ export const ChatboxPreview = ({
         {showFeedbackForm && (
           <div className="px-4 py-3 bg-white border-t border-gray-100">
             <div className="text-center relative">
-              <button
-                onClick={handleFeedbackClose}
-                className="absolute right-0 top-0 p-1 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <X size={16} className="text-gray-500" />
-              </button>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">How was your experience?</h3>
               
               {/* Star Rating */}
@@ -1437,10 +1374,19 @@ export const ChatboxPreview = ({
               {/* Submit Button */}
               <Button
                 onClick={handleFeedbackSubmit}
-                className="w-full bg-black hover:bg-gray-800 text-white rounded-lg py-3 text-sm font-medium"
+                className="w-full bg-black hover:bg-gray-800 text-white rounded-lg py-3 text-sm font-medium mb-3"
                 disabled={feedbackRating === 0}
               >
                 Submit Feedback
+              </Button>
+              
+              {/* No Thanks Button */}
+              <Button
+                onClick={handleFeedbackNoThanks}
+                variant="outline"
+                className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-3 text-sm font-medium"
+              >
+                No Thanks
               </Button>
             </div>
           </div>
@@ -2094,12 +2040,6 @@ export const ChatboxPreview = ({
         {showFeedbackForm && (
           <div className="px-4 py-3 bg-white border-t border-gray-100">
             <div className="text-center relative">
-              <button
-                onClick={handleFeedbackClose}
-                className="absolute right-0 top-0 p-1 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <X size={16} className="text-gray-500" />
-              </button>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">How was your experience?</h3>
               
               {/* Star Rating */}
@@ -2179,6 +2119,15 @@ export const ChatboxPreview = ({
                   </div>
                 )}
               </div>
+              
+              {/* No Thanks Button */}
+              <Button
+                onClick={handleFeedbackNoThanks}
+                variant="outline"
+                className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-3 text-sm font-medium"
+              >
+                No Thanks
+              </Button>
             </div>
           </div>
         )}
