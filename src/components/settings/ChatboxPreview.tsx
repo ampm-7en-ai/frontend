@@ -148,12 +148,6 @@ export const ChatboxPreview = ({
 
   // Start idle timeout tracking - only if latest message is from bot
   const startIdleTimeout = (messageArray = messages) => {
-    // Guard: If timeout_question was already sent, don't interfere with final timeout
-    if (isTimeoutQuestionSentRef.current) {
-      console.log('⛔ Timeout question already sent, not starting new idle timeout');
-      return;
-    }
-    
     // Only start timeout if the latest message is from the bot
     if (!isLatestMessageFromBot(messageArray)) {
       console.log('Latest message is not from bot, not starting idle timeout');
@@ -169,7 +163,7 @@ export const ChatboxPreview = ({
       const wsConnected = chatServiceRef.current?.isConnected() || false;
       console.log('Timeout question timer triggered. WS Connected:', wsConnected, 'Already sent:', isTimeoutQuestionSentRef.current);
       
-      if (chatServiceRef.current && wsConnected && !isTimeoutQuestionSentRef.current) {
+      if (chatServiceRef.current && wsConnected) {
         console.log('Sending timeout_question after 1 minute of inactivity');
         isTimeoutQuestionSentRef.current = true;
         
@@ -182,71 +176,45 @@ export const ChatboxPreview = ({
             timestamp: Date.now()
           });
           console.log('timeout_question message sent successfully');
+          
+          // Show feedback form immediately after timeout_question
+          console.log('📋 Showing feedback form after timeout_question');
+          setShowFeedbackForm(true);
         } catch (error) {
           console.error('Error sending timeout_question:', error);
         }
-        
-        // Start second timeout - send timeout after another 1 minute
-        console.log('🟡 Starting final timeout timer for 1 minute from now');
-        finalTimeoutTimerRef.current = setTimeout(() => {
-          const wsConnected2 = chatServiceRef.current?.isConnected() || false;
-          console.log('🔥 Final timeout timer triggered! WS Connected:', wsConnected2, 'Timeout question sent:', isTimeoutQuestionSentRef.current);
-          
-          if (chatServiceRef.current && wsConnected2) {
-            console.log('📤 Sending timeout message after 1 minute of timeout_question');
-            
-            try {
-              chatServiceRef.current.send({
-                type: 'timeout',
-                message: '',
-                agentId: agentId || '',
-                sessionId: sessionId || '',
-                timestamp: Date.now()
-              });
-              console.log('✅ timeout message sent successfully');
-              
-              // Show feedback form after timeout
-              console.log('📋 Showing feedback form after timeout');
-              setShowFeedbackForm(true);
-            } catch (error) {
-              console.error('❌ Error sending timeout:', error);
-            }
-          } else {
-            console.log('❌ Cannot send final timeout - connection not available');
-          }
-        }, 1 * 60 * 1000); // Another 1 minute
       } else {
-        console.log('Cannot send timeout_question - connection not available or already sent');
+        console.log('Cannot send timeout_question - connection not available');
       }
     }, 1 * 60 * 1000); // 1 minute
   };
 
-  // Reset idle timeout when user types - but only start if latest message is from bot
+  // Reset idle timeout when user types - restart from latest bot message
   const resetIdleTimeout = () => {
     console.log('User activity detected, clearing timers and resetting timeout flag');
     
-    // Only clear the timeout question timer, not the final timeout timer
-    // If timeout_question was already sent, let the final timeout complete
+    // Clear all timers
     if (timeoutQuestionTimerRef.current) {
       clearTimeout(timeoutQuestionTimerRef.current);
       timeoutQuestionTimerRef.current = null;
     }
     
-    // Only clear final timeout timer if timeout_question hasn't been sent yet
-    if (!isTimeoutQuestionSentRef.current && finalTimeoutTimerRef.current) {
-      console.log('🛑 Clearing final timeout timer since timeout_question not sent yet');
+    if (finalTimeoutTimerRef.current) {
       clearTimeout(finalTimeoutTimerRef.current);
       finalTimeoutTimerRef.current = null;
-    } else if (isTimeoutQuestionSentRef.current) {
-      console.log('⏰ Keeping final timeout timer running since timeout_question was already sent');
     }
     
-    // Only restart timer if the latest message is from bot AND timeout_question hasn't been sent
-    if (!isTimeoutQuestionSentRef.current && isLatestMessageFromBot()) {
-      console.log('Latest message is from bot, restarting idle timeout');
+    // Reset timeout question flag if user is actively engaging
+    if (isTimeoutQuestionSentRef.current) {
+      console.log('🔄 User activity after timeout_question, resetting timeout flag');
+      isTimeoutQuestionSentRef.current = false;
+      setShowFeedbackForm(false); // Hide feedback form if shown
+    }
+    
+    // Always restart timer if latest message is from bot (user is active again)
+    if (isLatestMessageFromBot()) {
+      console.log('Latest message is from bot, restarting idle timeout after user activity');
       startIdleTimeout();
-    } else if (isTimeoutQuestionSentRef.current) {
-      console.log('⏰ Timeout question already sent, not restarting idle timeout');
     } else {
       console.log('Latest message is not from bot, not restarting idle timeout');
     }
@@ -738,19 +706,39 @@ export const ChatboxPreview = ({
 
   // Handle feedback "No Thanks" button
   const handleFeedbackNoThanks = () => {
-    console.log('Feedback declined with No Thanks');
+    console.log('Feedback declined with No Thanks, sending final timeout');
     
-    // Close current connection 
-    if (chatServiceRef.current) {
-      chatServiceRef.current.disconnect();
-      chatServiceRef.current = null;
+    // Send final timeout message first
+    if (chatServiceRef.current && isConnected) {
+      try {
+        chatServiceRef.current.send({
+          type: 'timeout',
+          message: '',
+          agentId: agentId || '',
+          sessionId: sessionId || '',
+          timestamp: Date.now()
+        });
+        console.log('Final timeout message sent after No Thanks');
+      } catch (error) {
+        console.error('Error sending final timeout after No Thanks:', error);
+      }
     }
     
-    // Reset feedback form state but don't clear messages
-    setShowFeedbackForm(false);
-    setFeedbackRating(0);
-    setFeedbackText('');
-    setSelectedFeedbackTemplate('');
+    // Close current connection after sending timeout
+    setTimeout(() => {
+      if (chatServiceRef.current) {
+        chatServiceRef.current.disconnect();
+        chatServiceRef.current = null;
+      }
+      
+      // Reset feedback form state but don't clear messages
+      setShowFeedbackForm(false);
+      setFeedbackRating(0);
+      setFeedbackText('');
+      setSelectedFeedbackTemplate('');
+      
+      console.log('Connection closed after No Thanks, chat in idle state');
+    }, 500);
   };
 
   // Handle feedback submission
@@ -764,11 +752,12 @@ export const ChatboxPreview = ({
       return;
     }
 
-    console.log('Feedback submitted, closing connection after sending');
+    console.log('Feedback submitted, sending feedback and final timeout');
     
     try {
       // Send feedback using existing connection
       if (chatServiceRef.current && isConnected) {
+        // Send feedback first
         chatServiceRef.current.send({
           type: 'feedback',
           content: JSON.stringify({
@@ -781,9 +770,23 @@ export const ChatboxPreview = ({
           timestamp: Date.now()
         });
         
+        // Then send final timeout message
+        setTimeout(() => {
+          if (chatServiceRef.current) {
+            chatServiceRef.current.send({
+              type: 'timeout',
+              message: '',
+              agentId: agentId || '',
+              sessionId: sessionId || '',
+              timestamp: Date.now()
+            });
+            console.log('Final timeout message sent after feedback');
+          }
+        }, 200);
+        
         console.log('Feedback sent, closing connection in 1 second');
         
-        // Close connection after sending feedback but keep messages
+        // Close connection after sending both feedback and timeout
         setTimeout(() => {
           if (chatServiceRef.current) {
             chatServiceRef.current.disconnect();
