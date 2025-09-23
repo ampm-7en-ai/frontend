@@ -41,6 +41,9 @@ import Ticket from './library/Ticket';
 import Star from './library/Star';
 import ColumnChart from './library/ColumnChart';
 import Key from './library/Key';
+import Loading from './library/Loading';
+import { Play } from 'lucide-react';
+import Rocket from './library/Rocket';
 
 const IconBase = ({ type, className = '', iconType, color }) => {
 
@@ -129,8 +132,12 @@ const IconBase = ({ type, className = '', iconType, color }) => {
         return <Star type={type} className={baseClass} color={color} />;
       case 'ColumnChart':
         return <ColumnChart type={type} className={baseClass} color={color} />;
-      case 'Key':
-        return <Key type={type} className={baseClass} color={color} />;
+      case 'Loading':
+        return <Loading type={type} className={baseClass} color={color} />;
+      case 'Play':
+        return <Play type={type} className={baseClass} color={color} />;
+      case 'Rocket':
+        return <Rocket type={type} className={baseClass} color={color} />;
       default:
         return null;
     }

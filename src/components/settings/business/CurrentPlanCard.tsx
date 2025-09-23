@@ -74,13 +74,7 @@ export const CurrentPlanCard = () => {
                 <CreditCard className="h-3 w-3 mr-1" />
                 View Payments
               </Link>
-              <button
-                onClick={() => setTopupModalOpen(true)}
-                className="inline-flex items-center text-sm text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 transition-colors"
-              >
-                <Plus className="h-3 w-3 mr-1" />
-                Top-up
-              </button>
+              
             </div>
           </div>
         </div>

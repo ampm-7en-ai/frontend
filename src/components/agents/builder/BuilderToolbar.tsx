@@ -237,28 +237,31 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
           <ModernButton
             variant="ghost"
             size="sm"
-            icon={Rocket}
+            className='gap-2'
             onClick={() => setShowDeployDialog(true)}
           >
+            <Icon type='plain' color='hsl(var(--primary))' name={`Rocket`} className='h-4 w-4' />
             Deploy
           </ModernButton>
           
           <ModernButton
             variant="ghost"
             size="sm"
-            icon={ExternalLink}
+            className='gap-2'
             onClick={() => navigate(`/agents/${agentData.id}/test`)}
           >
+             <Icon type='plain' color='hsl(var(--primary))' name={`Play`} className='h-4 w-4' />
             Playground
           </ModernButton>
           
           <ModernButton
             variant="ghost"
             size="sm"
-            icon={Brain}
+            className='gap-2'
             onClick={handleTrainKnowledge}
             disabled={agentData.knowledgeSources.length === 0 || isTraining}
           >
+             <Icon type='plain' color='hsl(var(--primary))' name={`Loading`} className='h-4 w-4' />
             {isTraining ? 'Training...' : 'Train Agent'}
           </ModernButton>
 
