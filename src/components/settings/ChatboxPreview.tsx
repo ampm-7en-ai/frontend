@@ -173,8 +173,30 @@ export const ChatboxPreview = ({
             
             // Start second timeout for feedback form
             const secondId = setTimeout(() => {
-              console.log('⏰ Second timeout reached, showing feedback form');
-              setShowFeedbackForm(true);
+              console.log('⏰ Second timeout reached, showing custom message and feedback form');
+              
+              // Add custom message first
+              const customMessage = {
+                content: "Seems like you are offline. Start new chat whenever you are back. i am ending this session. Nice to talk with you",
+                type: 'bot_response',
+                timestamp: new Date().toISOString(),
+                messageId: `custom-offline-${Date.now()}`
+              };
+              
+              setMessages(prev => [...prev, customMessage]);
+              
+              // Add feedback form as a bot message after a short delay
+              setTimeout(() => {
+                const feedbackMessage = {
+                  content: "",
+                  type: 'feedback_form',
+                  timestamp: new Date().toISOString(),
+                  messageId: `feedback-form-${Date.now()}`
+                };
+                
+                setMessages(prev => [...prev, feedbackMessage]);
+              }, 1000);
+              
             }, 60000); // 1 minute
             
             setTimeoutId(secondId);
@@ -964,13 +986,13 @@ export const ChatboxPreview = ({
                       
                       return (
                         <div key={message.messageId || index} className={isConsecutive ? 'mt-2' : 'mt-4'}>
-                          {message.type !== 'ui' && (
-                            <div 
-                              className={`flex gap-4 items-start ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
-                              style={{
-                                animation: 'messageSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
-                              }}
-                            >
+                          {message.type !== 'ui' && message.type !== 'feedback_form' && (
+                             <div 
+                               className={`flex gap-4 items-start ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
+                               style={{
+                                 animation: 'messageSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
+                               }}
+                             >
                               <div
                                 className={cn(
                                   "rounded-2xl p-4 max-w-[92%] relative transition-all duration-300",
@@ -1092,8 +1114,127 @@ export const ChatboxPreview = ({
                                 No Thanks
                               </ModernButton>
                             </div>
-                          )}
-                        </div>
+                           )}
+                           
+                           {/* Feedback Form as Bot Message */}
+                           {message.type === 'feedback_form' && (
+                             <div className="flex gap-4 items-start justify-start animate-fade-in">
+                               <div className="flex items-center justify-center overflow-hidden bg-white/20 backdrop-blur-sm rounded-full w-8 h-8 border border-white/30 flex-shrink-0">
+                                 {avatarSrc ? (
+                                   <Avatar className="w-8 h-8">
+                                     <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                                     <AvatarFallback className="text-white bg-transparent">
+                                       <User2 size={16} />
+                                     </AvatarFallback>
+                                   </Avatar>
+                                 ) : (
+                                   <MessageCircleReplyIcon size={16} className="text-white drop-shadow-sm" />
+                                 )}
+                               </div>
+                               
+                               <div 
+                                 className="rounded-2xl p-4 max-w-[92%] bg-white border border-gray-200 shadow-sm"
+                                 style={{
+                                   backgroundColor: `${primaryColor}05`,
+                                   borderColor: `${primaryColor}20`
+                                 }}
+                               >
+                                 <div className="text-center">
+                                   <h3 className="text-lg font-semibold text-gray-900 mb-3">How was your experience?</h3>
+                                   
+                                   {/* Star Rating */}
+                                   <div className="flex justify-center gap-2 mb-4">
+                                     {[1, 2, 3, 4, 5].map((star) => (
+                                       <button
+                                         key={star}
+                                         onClick={() => setFeedbackRating(star)}
+                                         className={`transition-colors ${
+                                           feedbackRating >= star ? 'text-yellow-400' : 'text-gray-300'
+                                         } hover:text-yellow-400`}
+                                       >
+                                         <Star size={20} fill={feedbackRating >= star ? 'currentColor' : 'none'} />
+                                       </button>
+                                     ))}
+                                   </div>
+                                   
+                                   {/* Feedback Templates */}
+                                   <div className="mb-4">
+                                     <div className="grid grid-cols-1 gap-2 mb-3">
+                                       {[
+                                         { id: 'helpful', text: 'Very helpful and resolved my issue quickly' },
+                                         { id: 'accurate', text: 'Provided accurate information' },
+                                         { id: 'friendly', text: 'Friendly and professional service' }
+                                       ].map((template) => (
+                                         <div key={template.id} className="flex gap-2">
+                                           <div
+                                             className={`flex-1 p-2 text-left rounded-lg border text-xs transition-colors ${
+                                               selectedFeedbackTemplate === template.id
+                                                 ? 'bg-blue-50 border-blue-200 text-blue-900'
+                                                 : 'bg-gray-50 border-gray-200 text-gray-700'
+                                             }`}
+                                           >
+                                             {template.text}
+                                           </div>
+                                           <Button
+                                             onClick={() => handleTemplateFeedbackSubmit(template.text)}
+                                             disabled={feedbackRating === 0}
+                                             className="px-3 py-1 text-xs rounded-lg"
+                                             style={{ backgroundColor: primaryColor }}
+                                           >
+                                             Send
+                                           </Button>
+                                         </div>
+                                       ))}
+                                       <button
+                                         onClick={() => {
+                                           setSelectedFeedbackTemplate('custom');
+                                           setFeedbackText('');
+                                         }}
+                                         className={`p-2 text-left rounded-lg border text-xs transition-colors ${
+                                           selectedFeedbackTemplate === 'custom'
+                                             ? 'bg-blue-50 border-blue-200 text-blue-900'
+                                             : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                                         }`}
+                                       >
+                                         Custom feedback
+                                       </button>
+                                     </div>
+                                     
+                                     {/* Custom textarea - only visible when custom is selected */}
+                                     {selectedFeedbackTemplate === 'custom' && (
+                                       <div className="space-y-3">
+                                         <Textarea
+                                           value={feedbackText}
+                                           onChange={(e) => setFeedbackText(e.target.value)}
+                                           placeholder="Tell us about your experience"
+                                           className="w-full resize-none text-xs"
+                                           rows={2}
+                                         />
+                                         <Button
+                                           onClick={handleFeedbackSubmit}
+                                           className="w-full text-xs rounded-lg py-2"
+                                           style={{ backgroundColor: primaryColor }}
+                                           disabled={feedbackRating === 0 || !feedbackText.trim()}
+                                         >
+                                           Submit Custom Feedback
+                                         </Button>
+                                       </div>
+                                     )}
+                                   </div>
+                                   
+                                   {/* No Thanks Button */}
+                                   <Button
+                                     onClick={handleFeedbackNoThanks}
+                                     variant="outline"
+                                     className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-2 text-xs"
+                                   >
+                                     No Thanks
+                                   </Button>
+                                 </div>
+                               </div>
+                             </div>
+                           )}
+                         </div>
                       );
                     })}
                     
@@ -1223,96 +1364,6 @@ export const ChatboxPreview = ({
           </div>
         )}
 
-        {/* Feedback Form */}
-        {showFeedbackForm && (
-          <div className="px-4 py-3 bg-white border-t border-gray-100">
-            <div className="text-center relative">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">How was your experience?</h3>
-              
-              {/* Star Rating */}
-              <div className="flex justify-center gap-2 mb-4">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => setFeedbackRating(star)}
-                    className={`transition-colors ${
-                      feedbackRating >= star ? 'text-yellow-400' : 'text-gray-300'
-                    } hover:text-yellow-400`}
-                  >
-                    <Star size={24} fill={feedbackRating >= star ? 'currentColor' : 'none'} />
-                  </button>
-                ))}
-              </div>
-              
-              {/* Feedback Templates */}
-              <div className="mb-4">
-                <div className="grid grid-cols-1 gap-2 mb-3">
-                  {[
-                    { id: 'helpful', text: 'Very helpful and resolved my issue quickly' },
-                    { id: 'accurate', text: 'Provided accurate information' },
-                    { id: 'friendly', text: 'Friendly and professional service' }
-                  ].map((template) => (
-                    <button
-                      key={template.id}
-                      onClick={() => {
-                        setSelectedFeedbackTemplate(template.id);
-                        setFeedbackText(template.text);
-                      }}
-                      className={`p-3 text-left rounded-lg border text-sm transition-colors ${
-                        selectedFeedbackTemplate === template.id
-                          ? 'bg-blue-50 border-blue-200 text-blue-900'
-                          : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      {template.text}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => {
-                      setSelectedFeedbackTemplate('custom');
-                      setFeedbackText('');
-                    }}
-                    className={`p-3 text-left rounded-lg border text-sm transition-colors ${
-                      selectedFeedbackTemplate === 'custom'
-                        ? 'bg-blue-50 border-blue-200 text-blue-900'
-                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    Custom feedback
-                  </button>
-                </div>
-                
-                {/* Custom textarea - always visible but disabled unless custom is selected */}
-                <Textarea
-                  value={feedbackText}
-                  onChange={(e) => setFeedbackText(e.target.value)}
-                  placeholder={selectedFeedbackTemplate === 'custom' ? "Tell us about your experience" : "Select a template above or choose custom to type your own feedback"}
-                  className="w-full resize-none"
-                  rows={3}
-                  disabled={selectedFeedbackTemplate !== 'custom' && selectedFeedbackTemplate !== ''}
-                />
-              </div>
-              
-              {/* Submit Button */}
-              <Button
-                onClick={handleFeedbackSubmit}
-                className="w-full bg-black hover:bg-gray-800 text-white rounded-lg py-3 text-sm font-medium mb-3"
-                disabled={feedbackRating === 0}
-              >
-                Submit Feedback
-              </Button>
-              
-              {/* No Thanks Button */}
-              <Button
-                onClick={handleFeedbackNoThanks}
-                variant="outline"
-                className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-3 text-sm font-medium"
-              >
-                No Thanks
-              </Button>
-            </div>
-          </div>
-        )}
                 
         {/* Terms and Conditions */}
         <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/80 backdrop-blur-sm">
@@ -1671,13 +1722,13 @@ export const ChatboxPreview = ({
               
               return (
                 <div key={message.messageId || index} className={`${isConsecutive ? '!mt-2' : 'mt-4'}`}>
-                  {message.type !== 'ui' && (
-                    <div 
-                      className={`flex gap-4 items-start ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-end'}`}
-                      style={{
-                        animation: 'messageSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
-                      }}
-                    >
+                   {message.type !== 'ui' && message.type !== 'feedback_form' && (
+                     <div 
+                       className={`flex gap-4 items-start ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-end'}`}
+                       style={{
+                         animation: 'messageSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
+                       }}
+                     >
                       <div
                         className={cn(
                           `rounded-[20px] p-4 max-w-[92%] relative transition-all duration-300 ${message.type === 'user' ? "!py-2 rounded-br-sm" : !isConsecutive ? "rounded-bl-sm" : "rounded-tl-sm"}`,
@@ -1824,8 +1875,74 @@ export const ChatboxPreview = ({
                         No Thanks
                       </ModernButton>
                     </div>
-                  )}
-                </div>
+                   )}
+                   
+                   {/* Feedback Form as Bot Message in Minimized View */}
+                   {message.type === 'feedback_form' && (
+                     <div className="flex gap-4 items-start justify-start animate-fade-in rounded-2xl bg-gray-100/50 p-4">
+                       <div className="flex items-center justify-center overflow-hidden bg-white/20 backdrop-blur-sm rounded-full w-6 h-6 border border-white/30 flex-shrink-0">
+                         {avatarSrc ? (
+                           <Avatar className="w-6 h-6">
+                             <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                             <AvatarFallback className="text-white bg-transparent">
+                               <User2 size={12} />
+                             </AvatarFallback>
+                           </Avatar>
+                         ) : (
+                           <MessageCircleReplyIcon size={12} className="text-white drop-shadow-sm" />
+                         )}
+                       </div>
+                       
+                       <div className="flex-1">
+                         <div className="text-center">
+                           <h3 className="text-sm font-semibold text-gray-900 mb-2">How was your experience?</h3>
+                           
+                           {/* Star Rating */}
+                           <div className="flex justify-center gap-1 mb-3">
+                             {[1, 2, 3, 4, 5].map((star) => (
+                               <button
+                                 key={star}
+                                 onClick={() => setFeedbackRating(star)}
+                                 className={`transition-colors ${
+                                   feedbackRating >= star ? 'text-yellow-400' : 'text-gray-300'
+                                 } hover:text-yellow-400`}
+                               >
+                                 <Star size={16} fill={feedbackRating >= star ? 'currentColor' : 'none'} />
+                               </button>
+                             ))}
+                           </div>
+                           
+                           {/* Feedback Templates - Simplified for small view */}
+                           <div className="mb-3 space-y-1">
+                             {[
+                               { id: 'helpful', text: 'Very helpful' },
+                               { id: 'accurate', text: 'Accurate info' },
+                               { id: 'friendly', text: 'Friendly service' }
+                             ].map((template) => (
+                               <button
+                                 key={template.id}
+                                 onClick={() => handleTemplateFeedbackSubmit(template.text)}
+                                 disabled={feedbackRating === 0}
+                                 className="w-full p-2 text-xs rounded bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                               >
+                                 {template.text}
+                               </button>
+                             ))}
+                           </div>
+                           
+                           {/* No Thanks Button */}
+                           <Button
+                             onClick={handleFeedbackNoThanks}
+                             variant="outline"
+                             className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-xs py-1"
+                           >
+                             No Thanks
+                           </Button>
+                         </div>
+                       </div>
+                     </div>
+                   )}
+                 </div>
               );
             })}
             
@@ -1958,101 +2075,6 @@ export const ChatboxPreview = ({
           </div>
         )}
 
-        {/* Feedback Form */}
-        {showFeedbackForm && (
-          <div className="px-4 py-3 bg-white border-t border-gray-100">
-            <div className="text-center relative">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">How was your experience?</h3>
-              
-              {/* Star Rating */}
-              <div className="flex justify-center gap-2 mb-4">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => setFeedbackRating(star)}
-                    className={`transition-colors ${
-                      feedbackRating >= star ? 'text-yellow-400' : 'text-gray-300'
-                    } hover:text-yellow-400`}
-                  >
-                    <Star size={24} fill={feedbackRating >= star ? 'currentColor' : 'none'} />
-                  </button>
-                ))}
-              </div>
-              
-              {/* Feedback Templates */}
-              <div className="mb-4">
-                <div className="grid grid-cols-1 gap-2 mb-3">
-                  {[
-                    { id: 'helpful', text: 'Very helpful and resolved my issue quickly' },
-                    { id: 'accurate', text: 'Provided accurate information' },
-                    { id: 'friendly', text: 'Friendly and professional service' }
-                  ].map((template) => (
-                    <div key={template.id} className="flex gap-2">
-                      <div
-                        className={`flex-1 p-3 text-left rounded-lg border text-sm transition-colors ${
-                          selectedFeedbackTemplate === template.id
-                            ? 'bg-blue-50 border-blue-200 text-blue-900'
-                            : 'bg-gray-50 border-gray-200 text-gray-700'
-                        }`}
-                      >
-                        {template.text}
-                      </div>
-                      <Button
-                        onClick={() => handleTemplateFeedbackSubmit(template.text)}
-                        disabled={feedbackRating === 0}
-                        className="px-4 py-2 bg-black hover:bg-neutral-800 text-white text-sm rounded-lg"
-                      >
-                        Send
-                      </Button>
-                    </div>
-                  ))}
-                  <button
-                    onClick={() => {
-                      setSelectedFeedbackTemplate('custom');
-                      setFeedbackText('');
-                    }}
-                    className={`p-3 text-left rounded-lg border text-sm transition-colors ${
-                      selectedFeedbackTemplate === 'custom'
-                        ? 'bg-blue-50 border-blue-200 text-blue-900'
-                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    Custom feedback
-                  </button>
-                </div>
-                
-                {/* Custom textarea - only visible when custom is selected */}
-                {selectedFeedbackTemplate === 'custom' && (
-                  <div className="space-y-3">
-                    <Textarea
-                      value={feedbackText}
-                      onChange={(e) => setFeedbackText(e.target.value)}
-                      placeholder="Tell us about your experience"
-                      className="w-full resize-none dark:bg-white dark:text-neutral-900"
-                      rows={3}
-                    />
-                    <Button
-                      onClick={handleFeedbackSubmit}
-                      className="w-full bg-black hover:bg-neutral-800 text-white rounded-lg py-3 text-sm font-medium"
-                      disabled={feedbackRating === 0 || !feedbackText.trim()}
-                    >
-                      Submit Custom Feedback
-                    </Button>
-                  </div>
-                )}
-              </div>
-              
-              {/* No Thanks Button */}
-              <Button
-                onClick={handleFeedbackNoThanks}
-                variant="outline"
-                className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-3 text-sm font-medium"
-              >
-                No Thanks
-              </Button>
-            </div>
-          </div>
-        )}
         
         {/* Terms and Conditions - Only show if not accepted */}
         {!termsAccepted && (
