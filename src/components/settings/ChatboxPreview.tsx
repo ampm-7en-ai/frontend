@@ -718,6 +718,12 @@ export const ChatboxPreview = ({
       setShowEndChatConfirmation(false);
       setShowFeedbackForm(true);
       clearIdleTimers();
+      
+      // Close current connection and start new one
+      if (chatServiceRef.current) {
+        chatServiceRef.current.disconnect();
+        chatServiceRef.current = null;
+      }
     } catch (error) {
       console.error('Error ending chat:', error);
       toast({
@@ -738,22 +744,42 @@ export const ChatboxPreview = ({
 
   // Handle feedback submission
   const handleFeedbackSubmit = () => {
-    if (!chatServiceRef.current || !isConnected) {
+    if (feedbackRating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please provide a star rating before submitting feedback.",
+        variant: "destructive",
+      });
       return;
     }
 
     try {
-      // Send feedback message to backend
-      chatServiceRef.current.send({
-        type: 'feedback',
-        content: JSON.stringify({
-          rating: feedbackRating,
-          text: feedbackText
-        }),
-        message: '',
-        agentId: agentId || '',
-        sessionId: sessionId || '',
-        timestamp: Date.now()
+      // Create new WebSocket connection for feedback submission
+      const tempService = new ChatWebSocketService(agentId, "preview");
+      tempService.connect();
+      
+      tempService.on({
+        onConnectionChange: (status) => {
+          if (status) {
+            // Send feedback message once connected
+            tempService.send({
+              type: 'feedback',
+              content: JSON.stringify({
+                rating: feedbackRating,
+                text: feedbackText
+              }),
+              message: '',
+              agentId: agentId || '',
+              sessionId: sessionId || '',
+              timestamp: Date.now()
+            });
+            
+            // Disconnect immediately after sending
+            setTimeout(() => {
+              tempService.disconnect();
+            }, 1000);
+          }
+        }
       });
       
       // Clear messages locally and hide feedback form
@@ -768,6 +794,61 @@ export const ChatboxPreview = ({
         title: "Feedback Sent",
         description: "Thank you for your feedback!",
       });
+      
+      // Start new chat connection after feedback
+      setTimeout(() => {
+        if (agentId) {
+          console.log("Starting new ChatWebSocketService after feedback");
+          
+          chatServiceRef.current = new ChatWebSocketService(agentId, "preview");
+          
+          chatServiceRef.current.on({
+            onMessage: (message) => {
+              console.log("New session - Received message:", message);
+              
+              if (message.type === 'system_message') {
+                setSystemMessage(message.content);
+                setShowTypingIndicator(true);
+                return;
+              }
+              
+              const messageId = generateUniqueMessageId(message);
+              
+              if (processedMessageIds.current.has(messageId)) {
+                return;
+              }
+              
+              processedMessageIds.current.add(messageId);
+              setShowTypingIndicator(false);
+              setSystemMessage('');
+              setMessages(prev => [...prev, { ...message, messageId }]);
+            },
+            onTypingStart: () => setShowTypingIndicator(true),
+            onTypingEnd: () => {
+              setShowTypingIndicator(false);
+              setSystemMessage('');
+            },
+            onError: (error) => {
+              console.error('New session - Chat error:', error);
+              setConnectionError(error);
+              setIsConnected(false);
+            },
+            onConnectionChange: (status) => {
+              console.log("New session - Connection status changed:", status);
+              setIsConnected(status);
+              if (status) {
+                setConnectionError(null);
+              }
+            },
+            ...(enableSessionStorage && onSessionIdReceived && {
+              onSessionIdReceived: onSessionIdReceived
+            })
+          });
+          
+          chatServiceRef.current.connect();
+        }
+      }, 2000);
+      
     } catch (error) {
       console.error('Error submitting feedback:', error);
       toast({
@@ -776,6 +857,25 @@ export const ChatboxPreview = ({
         variant: "destructive",
       });
     }
+  };
+
+  // Handle direct template feedback submission
+  const handleTemplateFeedbackSubmit = (templateText: string) => {
+    if (feedbackRating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please provide a star rating before submitting feedback.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setFeedbackText(templateText);
+    
+    // Submit directly without showing custom textarea
+    setTimeout(() => {
+      handleFeedbackSubmit();
+    }, 100);
   };
 
   // Enhanced floating button positioning - both chat and button always visible
@@ -1961,20 +2061,24 @@ export const ChatboxPreview = ({
                     { id: 'accurate', text: 'Provided accurate information' },
                     { id: 'friendly', text: 'Friendly and professional service' }
                   ].map((template) => (
-                    <button
-                      key={template.id}
-                      onClick={() => {
-                        setSelectedFeedbackTemplate(template.id);
-                        setFeedbackText(template.text);
-                      }}
-                      className={`p-3 text-left rounded-lg border text-sm transition-colors ${
-                        selectedFeedbackTemplate === template.id
-                          ? 'bg-blue-50 border-blue-200 text-blue-900'
-                          : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      {template.text}
-                    </button>
+                    <div key={template.id} className="flex gap-2">
+                      <div
+                        className={`flex-1 p-3 text-left rounded-lg border text-sm transition-colors ${
+                          selectedFeedbackTemplate === template.id
+                            ? 'bg-blue-50 border-blue-200 text-blue-900'
+                            : 'bg-gray-50 border-gray-200 text-gray-700'
+                        }`}
+                      >
+                        {template.text}
+                      </div>
+                      <Button
+                        onClick={() => handleTemplateFeedbackSubmit(template.text)}
+                        disabled={feedbackRating === 0}
+                        className="px-4 py-2 bg-black hover:bg-neutral-800 text-white text-sm rounded-lg"
+                      >
+                        Send
+                      </Button>
+                    </div>
                   ))}
                   <button
                     onClick={() => {
@@ -1991,25 +2095,26 @@ export const ChatboxPreview = ({
                   </button>
                 </div>
                 
-                {/* Custom textarea - always visible but disabled unless custom is selected */}
-                <Textarea
-                  value={feedbackText}
-                  onChange={(e) => setFeedbackText(e.target.value)}
-                  placeholder={selectedFeedbackTemplate === 'custom' ? "Tell us about your experience" : "Select a template above or choose custom to type your own feedback"}
-                  className="w-full resize-none dark:bg-white dark:text-neutral-900"
-                  rows={3}
-                  disabled={selectedFeedbackTemplate !== 'custom' && selectedFeedbackTemplate !== ''}
-                />
+                {/* Custom textarea - only visible when custom is selected */}
+                {selectedFeedbackTemplate === 'custom' && (
+                  <div className="space-y-3">
+                    <Textarea
+                      value={feedbackText}
+                      onChange={(e) => setFeedbackText(e.target.value)}
+                      placeholder="Tell us about your experience"
+                      className="w-full resize-none dark:bg-white dark:text-neutral-900"
+                      rows={3}
+                    />
+                    <Button
+                      onClick={handleFeedbackSubmit}
+                      className="w-full bg-black hover:bg-neutral-800 text-white rounded-lg py-3 text-sm font-medium"
+                      disabled={feedbackRating === 0 || !feedbackText.trim()}
+                    >
+                      Submit Custom Feedback
+                    </Button>
+                  </div>
+                )}
               </div>
-              
-              {/* Submit Button */}
-              <Button
-                onClick={handleFeedbackSubmit}
-                className="w-full bg-black hover:bg-neutral-800 text-white rounded-lg py-3 text-sm font-medium"
-                disabled={feedbackRating === 0}
-              >
-                Submit Feedback
-              </Button>
             </div>
           </div>
         )}
