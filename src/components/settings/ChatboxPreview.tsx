@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Bot, Send, User, WifiOff, AlertCircle, Minus, RotateCcw, MessageCircleReplyIcon, User2, MessageSquare, MoreHorizontal, MessageCircle, Star, X } from 'lucide-react';
+import { Bot, Send, User, WifiOff, AlertCircle, Minus, RotateCcw, MessageCircleReplyIcon, User2, MessageSquare, MoreHorizontal, MessageCircle, Star, X, Plus } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -188,7 +188,7 @@ export const ChatboxPreview = ({
             console.log('⏰ Second timeout reached, showing custom message and feedback form');
             const customMessage = {
               content:
-                'Seems like you are offline. Start new chat whenever you are back. i am ending this session. Nice to talk with you',
+                'Seems like you are offline. Start new chat whenever you are back. I am ending this session. Nice to talk with you.',
               type: 'bot_response',
               timestamp: new Date().toISOString(),
               messageId: `custom-offline-${Date.now()}`,
@@ -209,7 +209,7 @@ export const ChatboxPreview = ({
           console.log('⏰ Second timeout reached, showing custom message and feedback form');
           const customMessage = {
             content:
-              'Seems like you are offline. Start new chat whenever you are back. i am ending this session. Nice to talk with you',
+              'Seems like you are offline. Start new chat whenever you are back. I am ending this session. Nice to talk with you.',
             type: 'bot_response',
             timestamp: new Date().toISOString(),
             messageId: `custom-offline-${Date.now()}`,
@@ -1773,14 +1773,12 @@ export const ChatboxPreview = ({
                 onClick={handleRestart}
                 className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-100 dark:!text-neutral-900"
               >
-                <RotateCcw size={16} />
-                Restart chat
+                New Chat
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => setShowEndChatConfirmation(true)}
                 className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-red-600 dark:hover:!bg-neutral-100"
               >
-                <MessageCircle size={16} />
                 End chat
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -2246,12 +2244,12 @@ export const ChatboxPreview = ({
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}
                   placeholder="Tell us about your experience"
-                  className="w-full resize-none text-sm"
+                  className="w-full resize-none text-sm dark:bg-white dark:text-neutral-900"
                   rows={2}
                 />
                 <Button
                   onClick={handleFeedbackSubmit}
-                  className="w-full text-sm rounded-lg py-2"
+                  className="w-full text-sm rounded-lg py-2 dark:!bg-black"
                   style={{ backgroundColor: primaryColor }}
                   disabled={feedbackRating === 0 || !feedbackText.trim()}
                 >
@@ -2260,7 +2258,7 @@ export const ChatboxPreview = ({
                 <Button
                   onClick={handleFeedbackNoThanks}
                   variant="outline"
-                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-2 text-sm"
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-2 text-sm dark:bg-transparent hover:text-neutral-900"
                 >
                   No Thanks
                 </Button>
