@@ -107,11 +107,9 @@ export const ChatboxPreview = ({
   const [feedbackText, setFeedbackText] = useState('');
   const [selectedFeedbackTemplate, setSelectedFeedbackTemplate] = useState<string>('');
 
-  // Idle time tracking state
-  const [lastBotMessageTime, setLastBotMessageTime] = useState<Date | null>(null);
-  const timeoutQuestionTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const finalTimeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const isTimeoutQuestionSentRef = useRef(false);
+  // Timeout functionality
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [timeoutQuestionSent, setTimeoutQuestionSent] = useState(false);
 
   // Check if input should be disabled (when there's a pending UI state)
   const shouldDisableInput = messages.some(msg => 
@@ -123,102 +121,83 @@ export const ChatboxPreview = ({
     msg.type === 'ui' && msg.ui_type === 'email'
   );
 
-  // Clear all idle timers
-  const clearIdleTimers = () => {
-    if (timeoutQuestionTimerRef.current) {
-      clearTimeout(timeoutQuestionTimerRef.current);
-      timeoutQuestionTimerRef.current = null;
+  // Clear timeout
+  const clearTimeouts = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      setTimeoutId(null);
     }
-    if (finalTimeoutTimerRef.current) {
-      clearTimeout(finalTimeoutTimerRef.current);
-      finalTimeoutTimerRef.current = null;
-    }
-    // Don't reset the flag here - only reset when user sends a message
   };
 
-  // Check if the latest message is from the bot
-  const isLatestMessageFromBot = (messageArray = messages) => {
-    if (messageArray.length === 0) return false;
-    const latestMessage = messageArray[messageArray.length - 1];
-    console.log('Checking latest message:', latestMessage?.type, 'Content:', latestMessage?.content?.slice(0, 50));
-    const isFromBot = latestMessage.type === 'bot_response' || (latestMessage.type !== 'user' && latestMessage.type !== 'ui');
-    console.log('Is from bot:', isFromBot);
-    return isFromBot;
+  // Get the latest message
+  const getLatestMessage = () => {
+    if (messages.length === 0) return null;
+    return messages[messages.length - 1];
   };
 
-  // Start idle timeout tracking - only if latest message is from bot
-  const startIdleTimeout = (messageArray = messages) => {
-    // Only start timeout if the latest message is from the bot
-    if (!isLatestMessageFromBot(messageArray)) {
-      console.log('Latest message is not from bot, not starting idle timeout');
+  // Start/restart timeout based on latest message
+  const manageTimeout = () => {
+    const latestMessage = getLatestMessage();
+    
+    if (!latestMessage) return;
+    
+    console.log('Managing timeout for latest message:', latestMessage.type);
+    
+    clearTimeouts();
+    setShowFeedbackForm(false);
+    
+    // If latest message is from user, reset everything and don't start timer
+    if (latestMessage.type === 'user') {
+      console.log('🔄 Latest message is from user, resetting timeout state');
+      setTimeoutQuestionSent(false);
       return;
     }
-
-    clearIdleTimers();
     
-    console.log('Starting idle timeout tracking, latest message is from bot');
-    
-    // First timeout - send timeout_question after 1 minute
-    timeoutQuestionTimerRef.current = setTimeout(() => {
-      const wsConnected = chatServiceRef.current?.isConnected() || false;
-      console.log('Timeout question timer triggered. WS Connected:', wsConnected, 'Already sent:', isTimeoutQuestionSentRef.current);
+    // If latest message is from bot, start timer
+    if (latestMessage.type === 'bot_response') {
+      console.log('🤖 Latest message is from bot, starting timeout timer');
       
-      if (chatServiceRef.current && wsConnected) {
-        console.log('Sending timeout_question after 1 minute of inactivity');
-        isTimeoutQuestionSentRef.current = true;
-        
-        try {
-          chatServiceRef.current.send({
-            type: 'timeout_question',
-            message: '',
-            agentId: agentId || '',
-            sessionId: sessionId || '',
-            timestamp: Date.now()
-          });
-          console.log('timeout_question message sent successfully');
-          
-          // Show feedback form immediately after timeout_question
-          console.log('📋 Showing feedback form after timeout_question');
-          setShowFeedbackForm(true);
-        } catch (error) {
-          console.error('Error sending timeout_question:', error);
+      const id = setTimeout(() => {
+        if (!timeoutQuestionSent) {
+          // First timeout: send timeout_question
+          console.log('⏰ First timeout reached, sending timeout_question');
+          if (chatServiceRef.current && chatServiceRef.current.isConnected()) {
+            chatServiceRef.current.send({
+              type: 'timeout_question',
+              message: '',
+              agentId: agentId || '',
+              sessionId: sessionId || '',
+              timestamp: Date.now()
+            });
+            setTimeoutQuestionSent(true);
+            
+            // Start second timeout for feedback form
+            const secondId = setTimeout(() => {
+              console.log('⏰ Second timeout reached, showing feedback form');
+              setShowFeedbackForm(true);
+            }, 60000); // 1 minute
+            
+            setTimeoutId(secondId);
+          }
         }
-      } else {
-        console.log('Cannot send timeout_question - connection not available');
-      }
-    }, 1 * 60 * 1000); // 1 minute
+      }, 60000); // 1 minute
+      
+      setTimeoutId(id);
+    }
   };
 
-  // Reset idle timeout when user types - restart from latest bot message
-  const resetIdleTimeout = () => {
-    console.log('User activity detected, clearing timers and resetting timeout flag');
-    
-    // Clear all timers
-    if (timeoutQuestionTimerRef.current) {
-      clearTimeout(timeoutQuestionTimerRef.current);
-      timeoutQuestionTimerRef.current = null;
-    }
-    
-    if (finalTimeoutTimerRef.current) {
-      clearTimeout(finalTimeoutTimerRef.current);
-      finalTimeoutTimerRef.current = null;
-    }
-    
-    // Reset timeout question flag if user is actively engaging
-    if (isTimeoutQuestionSentRef.current) {
-      console.log('🔄 User activity after timeout_question, resetting timeout flag');
-      isTimeoutQuestionSentRef.current = false;
-      setShowFeedbackForm(false); // Hide feedback form if shown
-    }
-    
-    // Always restart timer if latest message is from bot (user is active again)
-    if (isLatestMessageFromBot()) {
-      console.log('Latest message is from bot, restarting idle timeout after user activity');
-      startIdleTimeout();
-    } else {
-      console.log('Latest message is not from bot, not restarting idle timeout');
-    }
+  // Reset timeout completely on user activity
+  const resetTimeoutOnUserActivity = () => {
+    console.log('🔄 User activity detected, resetting entire timeout flow');
+    clearTimeouts();
+    setShowFeedbackForm(false);
+    setTimeoutQuestionSent(false);
   };
+
+  // Effect to manage timeout based on messages
+  useEffect(() => {
+    manageTimeout();
+  }, [messages]);
 
   // Updated scroll effect to only scroll the message container, not the entire tab
   useEffect(() => {
@@ -296,28 +275,19 @@ export const ChatboxPreview = ({
         setSystemMessage('');
         
         // Track bot messages for idle timeout
-        if (message.type === 'bot_response' || (message.type !== 'user' && message.type !== 'ui')) {
-          const currentTime = new Date();
-          console.log('Bot message received, updating last bot message time:', currentTime);
-          setLastBotMessageTime(currentTime);
+        if (message.type === 'bot_response') {
+          console.log('Bot message received, will manage timeout after state update');
         }
         
           // Add message to state
           setMessages(prev => {
             const newMessages = [...prev, { ...message, messageId }];
             
-            // Start idle timeout after state update if this is a bot message
-            if (message.type === 'bot_response' || (message.type !== 'user' && message.type !== 'ui')) {
-              // Pass the updated messages array to check latest message correctly
+            // Start timeout management after state update if this is a bot message
+            if (message.type === 'bot_response') {
               setTimeout(() => {
-                console.log('Checking if should start idle timeout with newMessages array');
-                // Pass the newMessages array to avoid state timing issues
-                if (!isLatestMessageFromBot(newMessages)) {
-                  console.log('Latest message is not from bot using newMessages, not starting idle timeout');
-                  return;
-                }
-                console.log('Latest message is from bot using newMessages, starting idle timeout');
-                startIdleTimeout(newMessages);
+                console.log('Managing timeout after bot message');
+                manageTimeout();
               }, 0);
             }
             
@@ -352,10 +322,9 @@ export const ChatboxPreview = ({
         setIsInitializing(false);
         if (status) {
           setConnectionError(null);
-          // Start idle timeout tracking when connected
-          console.log('Connection established, starting idle timeout tracking');
-          setLastBotMessageTime(new Date());
-          startIdleTimeout();
+          // Start timeout management when connected
+          console.log('Connection established, starting timeout management');
+          manageTimeout();
           
           if (enableSessionStorage && sessionId && chatServiceRef.current) {
             console.log('Sending session initialization:', sessionId);
@@ -372,7 +341,7 @@ export const ChatboxPreview = ({
     
     return () => {
       console.log("Cleaning up ChatWebSocketService");
-      clearIdleTimers();
+      clearTimeouts();
       if (chatServiceRef.current) {
         chatServiceRef.current.disconnect();
         chatServiceRef.current = null;
@@ -401,8 +370,8 @@ export const ChatboxPreview = ({
     setMessages(prev => [...prev, newMessage]);
     setShowTypingIndicator(true);
     
-    // Reset idle timeout when user sends a message
-    resetIdleTimeout();
+    // Reset timeout when user sends a message
+    resetTimeoutOnUserActivity();
     
     try {
       chatServiceRef.current.sendMessage(messageContent);
@@ -440,8 +409,8 @@ export const ChatboxPreview = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(e.target.value);
-    // Reset idle timeout when user types
-    resetIdleTimeout();
+    // Reset timeout when user types
+    resetTimeoutOnUserActivity();
   };
 
   const handleYesNoClick = (response: 'Yes' | 'no_thanks') => {
@@ -532,9 +501,9 @@ export const ChatboxPreview = ({
     processedMessageIds.current.clear();
     messageSequenceRef.current = 0;
     
-    // Clear idle timers and reset flags
-    clearIdleTimers();
-    isTimeoutQuestionSentRef.current = false;
+    // Clear timeout timers and reset flags
+    clearTimeouts();
+    setTimeoutQuestionSent(false);
     
     // Properly disconnect and cleanup existing connection
     if (chatServiceRef.current) {
@@ -602,9 +571,9 @@ export const ChatboxPreview = ({
             setIsInitializing(false);
             if (status) {
               setConnectionError(null);
-              // Start idle timeout tracking when connected after restart
-              console.log('Restart connection established, starting idle timeout tracking');
-              startIdleTimeout();
+              // Start timeout management when connected after restart
+              console.log('Restart connection established, starting timeout management');
+              manageTimeout();
               // Clear restarting flag once connected
               setTimeout(() => {
                 restartingRef.current = false;
@@ -690,7 +659,7 @@ export const ChatboxPreview = ({
       setShowFeedbackForm(true);
       
       // Reset timeout timers
-      clearIdleTimers();
+      clearTimeouts();
       
       // Don't close connection here - keep it open for feedback
       
