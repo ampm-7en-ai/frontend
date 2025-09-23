@@ -45,7 +45,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
   const getCanvasContent = () => {
     if (!isPreviewActive) {
       return (
-        <div className="flex items-center justify-center h-full bg-neutral-100">
+        <div className="flex items-center justify-center h-full bg-neutral-100 dark:bg-neutral-950">
           <div className="text-center p-8 rounded-2xl bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm border border-white/30 dark:border-neutral-700/30 shadow-xl">
             
             <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Preview is disabled</p>
@@ -57,7 +57,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
 
     if (!currentAgentId) {
       return (
-        <div className="flex items-center justify-center h-full bg-neutral-100">
+        <div className="flex items-center justify-center h-full bg-neutral-100 dark:bg-neutral-950">
           <div className="text-center p-8 rounded-2xl bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm border border-white/30 dark:border-neutral-700/30 shadow-xl">
             <LoadingSpinner className='h-12'/>
             <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Loading agent...</p>
@@ -292,7 +292,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
       {/* Canvas container - proper positioning context */}
       <div className="relative w-full h-full bg-white dark:bg-neutral-900 flex flex-col">
         {/* Canvas content area */}
-        <div className="flex-1">
+        <div className="flex-1 bg-white dark:bg-neutral-900">
           {getCanvasContent()}
         </div>
         

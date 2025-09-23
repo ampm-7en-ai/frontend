@@ -95,7 +95,7 @@ const KnowledgeSourceCard = ({ source, onDelete }: {
                 href={source.url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-xs text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-300 font-semibold truncate"
+                className="text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-300 font-semibold truncate"
               >
                 {source.title || source.name || 'Untitled Source'}
                 </a>
@@ -183,16 +183,16 @@ export const BuilderSidebar = () => {
   };
 
   // Show error state if not in agent context
-  if (!agentData.id) {
+  if (!isLoading && !agentData.id) {
     return (
       <div className="w-full h-full bg-white dark:bg-neutral-900 flex items-center justify-center">
-        <div className="text-center py-12">
-          <Brain className="h-12 w-12 text-gray-500 dark:text-gray-400 mx-auto mb-4" />
+        <div className="text-center py-12 flex flex-col items-center">
+          <Icon name={`Magic`} className='h-8 w-8'/>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            No Agent Context
+            No Agent Found
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 max-w-sm mx-auto">
-            Builder sidebar requires an agent context. Please navigate to an agent builder page.
+            Seems like the agent you are looking for is not existed.
           </p>
         </div>
       </div>
@@ -240,7 +240,7 @@ export const BuilderSidebar = () => {
     title: source.name || source.title,
     type: source.type,
     status: source.trainingStatus,
-    url: source.metadata?.url || source.url
+    url: source.metadata?.webViewLink || source.url
   })) : [];
 
   return (

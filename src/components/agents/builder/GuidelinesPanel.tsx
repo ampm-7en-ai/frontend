@@ -604,7 +604,7 @@ export const GuidelinesPanel = () => {
             </div>
           </div>
         </div>
-        <div className="p-4">
+        <div className="p-4 pt-0">
           <Accordion type="multiple" defaultValue={["basic"]} className="space-y-4" onValueChange={handleAccordionChange}>
             {/* Basic Settings */}
             <AccordionItem value="basic" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-0 backdrop-blur-sm px-4 shadow-none">
@@ -673,7 +673,7 @@ export const GuidelinesPanel = () => {
                     </div>
                     
                     {modelsLoading ? (
-                      <div className="flex items-center gap-2 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
+                      <div className="flex items-center gap-2 p-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
                         <LoadingSpinner size="sm" />
                         <span className="text-sm text-neutral-500">Loading models...</span>
                       </div>
@@ -891,7 +891,7 @@ export const GuidelinesPanel = () => {
                   <div>
                     <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Agent Persona Type</Label>
                     { promptsLoading ? (
-                       <div className="flex items-center gap-2 p-2 mt-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
+                       <div className="flex items-center gap-2 p-3 py-2 mt-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
                         <LoadingSpinner size="sm" />
                         <span className="text-sm text-neutral-500">Loading models...</span>
                       </div>
@@ -901,7 +901,7 @@ export const GuidelinesPanel = () => {
                           value={agentData.agentType || "general_assistant" }
                           onValueChange={handleAgentTypeChange}
                           options={agentTypeOptions}
-                          placeholder="Select agent type"
+                          placeholder="Select type"
                           disabled={promptsLoading}
                         />
                       </div>
@@ -1007,7 +1007,7 @@ export const GuidelinesPanel = () => {
                         size="sm"
                         icon={Plus}
                         onClick={() => addGuideline('donts')}
-                        className="h-10 rounded-xl text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="h-10 rounded-xl"
                       >
                         Add Don't
                       </ModernButton>
@@ -1169,67 +1169,67 @@ export const GuidelinesPanel = () => {
                       </div>
                     </AccordionContent>
                   </AccordionItem>
-
-                  {/* chat settings */}
-                  <AccordionItem value="integrations" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-0 backdrop-blur-sm  px-4">
-                  <AccordionTrigger className="py-3 hover:no-underline">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 pl-1 rounded-xl bg-transparent">
-                        <Icon type='plain' color='hsl(var(--primary))' name={`Extension`} className='h-5 w-5' />
-                      </div>
-                      <span className="text-sm font-medium">Chatbot Integration</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-4 px-1">
-                    <div className="space-y-3">
-                      {channelOptions && channelOptions.length > 0 ? (
-                        <>
-                        {channelOptions.map((channel) => (
-                            <div key={channel.value} className="flex flex-row-reverse items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-600/30 backdrop-blur-sm transition-colors pl-0">
-                              <Checkbox
-                                id={`channel-${channel.value}`}
-                                checked={channel.checked}
-                                onCheckedChange={(checked: boolean) => updateAgentData({ 
-                                  is_slack_enabled: checked 
-                            })}
-                                className="rounded-[4px]"
-                              />
-                              <Label 
-                                htmlFor={`channel-${channel.value}`}
-                                className="text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer flex-1 flex items-center gap-3"
-                              >
-                                <div className="w-6 h-6 flex items-center justify-center rounded-lg bg-white/60 dark:bg-neutral-800/60 border border-gray-200/50 dark:border-neutral-700/50 backdrop-blur-sm">
-                                  {channel.logo ? (
-                                    <img 
-                                      src={channel.logo} 
-                                      alt={channel.label}
-                                      className="w-4 h-4 object-contain"
-                                      onError={(e) => {
-                                        e.currentTarget.style.display = 'none';
-                                      }}
-                                    />
-                                  ) : null}
-                                </div>
-                                {channel.label}
-                              </Label>
-                            </div>
-                          ))}
-                        </>
-                      ) : (
-                        <div className="text-center py-6 text-neutral-500 dark:text-neutral-400">
-                          <Settings2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                          <p className="text-sm font-semibold">No any apps are being added.</p>
-                          <p className="text-xs mt-1">Go to <Link to="/integrations" className="underline text-primary dark:text-white">Integrations</Link> page to connect apps.</p>
-                        </div>
-                      )}
-                      
-                      
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
                 </>
               )
             }
+
+            {/* chat settings */}
+              <AccordionItem value="integrations" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-0 backdrop-blur-sm  px-4">
+              <AccordionTrigger className="py-3 hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 pl-1 rounded-xl bg-transparent">
+                    <Icon type='plain' color='hsl(var(--primary))' name={`Extension`} className='h-5 w-5' />
+                  </div>
+                  <span className="text-sm font-medium">Chatbot Integration</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pb-4 px-1">
+                <div className="space-y-3">
+                  {channelOptions && channelOptions.length > 0 ? (
+                    <>
+                    {channelOptions.map((channel) => (
+                        <div key={channel.value} className="flex flex-row-reverse items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-600/30 backdrop-blur-sm transition-colors pl-0">
+                          <Checkbox
+                            id={`channel-${channel.value}`}
+                            checked={channel.checked}
+                            onCheckedChange={(checked: boolean) => updateAgentData({ 
+                              is_slack_enabled: checked 
+                        })}
+                            className="rounded-[4px]"
+                          />
+                          <Label 
+                            htmlFor={`channel-${channel.value}`}
+                            className="text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer flex-1 flex items-center gap-3"
+                          >
+                            <div className="w-6 h-6 flex items-center justify-center rounded-lg bg-white/60 dark:bg-neutral-800/60 border border-gray-200/50 dark:border-neutral-700/50 backdrop-blur-sm">
+                              {channel.logo ? (
+                                <img 
+                                  src={channel.logo} 
+                                  alt={channel.label}
+                                  className="w-4 h-4 object-contain"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              ) : null}
+                            </div>
+                            {channel.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <div className="text-center py-6 text-neutral-500 dark:text-neutral-400">
+                      <Settings2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm font-semibold">No any apps are being added.</p>
+                      <p className="text-xs mt-1">Go to <Link to="/integrations" className="underline text-primary dark:text-white">Integrations</Link> page to connect apps.</p>
+                    </div>
+                  )}
+                  
+                  
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
             {/* Suggestions */}
             <AccordionItem value="suggestions" className="border rounded-lg bg-white dark:bg-neutral-800/70 dark:border-0 backdrop-blur-sm  px-4">
@@ -1266,7 +1266,7 @@ export const GuidelinesPanel = () => {
                     size="sm"
                     icon={Plus}
                     onClick={addSuggestion}
-                    className="h-10 rounded-xl text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                    className="h-10 rounded-xl"
                   >
                     Add Suggestion
                   </ModernButton>

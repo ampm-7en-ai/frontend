@@ -1445,7 +1445,7 @@ export const ChatboxPreview = ({
         }}
       >
         {/* Modern gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white/40 to-transparent" />
         
         <div className="flex items-center gap-3 relative z-10">
           <div className="relative">
@@ -1852,7 +1852,7 @@ export const ChatboxPreview = ({
                   onClick={handleEndChat}
                   variant='primary'
                   size='sm'
-                  className="w-full bg-black hover:bg-gray-800 text-white rounded-lg py-3 text-sm font-medium"
+                  className="w-full dark:!bg-black dark:!text-white rounded-lg py-3 text-sm font-medium"
                 >
                   Yes, end chat
                 </ModernButton>
@@ -1860,7 +1860,7 @@ export const ChatboxPreview = ({
                   variant="outline"
                   onClick={() => setShowEndChatConfirmation(false)}
                   size='sm'
-                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-3 text-sm font-medium"
+                  className="w-full border border-gray-300 text-gray-700 dark:text-neutral-900 hover:bg-neutral-50 dark:hover:bg-transparent rounded-lg py-3 text-sm font-medium"
                 >
                   No
                 </ModernButton>

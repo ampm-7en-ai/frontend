@@ -138,10 +138,10 @@ export const ModernDropdown = ({
             "w-full",
             // Only show scrollbar when showSearch is true
             showSearch && "[&::-webkit-scrollbar]:w-2",
-            showSearch && "[&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:dark:bg-gray-800",
-            showSearch && "[&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:dark:bg-gray-600",
+            showSearch && "[&::-webkit-scrollbar-track]:bg-neutral-100 [&::-webkit-scrollbar-track]:dark:bg-neutral-800",
+            showSearch && "[&::-webkit-scrollbar-thumb]:bg-neutral-300 [&::-webkit-scrollbar-thumb]:dark:bg-neutral-600",
             showSearch && "[&::-webkit-scrollbar-thumb]:rounded-full",
-            showSearch && "[&::-webkit-scrollbar-thumb:hover]:bg-gray-400 [&::-webkit-scrollbar-thumb:hover]:dark:bg-gray-500"
+            showSearch && "[&::-webkit-scrollbar-thumb:hover]:bg-neutral-400 [&::-webkit-scrollbar-thumb:hover]:dark:bg-neutral-500"
           )}
           style={{ 
             maxHeight: showSearch ? maxHeight : "auto",

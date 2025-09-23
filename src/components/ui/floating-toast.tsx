@@ -14,10 +14,10 @@ export interface FloatingToastProps {
 }
 
 const variantStyles = {
-  default: "bg-slate-900 text-white border-slate-800",
-  success: "bg-slate-900 text-white border-slate-800",
-  error: "bg-slate-900 text-white border-slate-800", 
-  loading: "bg-slate-900 text-white border-slate-800"
+  default: "bg-neutral-900 text-white border-neutral-800",
+  success: "bg-neutral-900 text-white border-neutral-800",
+  error: "bg-neutral-900 text-white border-neutral-800", 
+  loading: "bg-neutral-900 text-white border-neutral-800"
 }
 
 const variantIcons = {
