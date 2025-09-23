@@ -158,10 +158,11 @@ export const ChatboxPreview = ({
       console.log('🤖 Latest message is from bot, starting timeout timer');
       
       const id = setTimeout(() => {
-        if (!timeoutQuestionSent) {
-          // First timeout: send timeout_question
-          console.log('⏰ First timeout reached, sending timeout_question');
-          if (chatServiceRef.current && chatServiceRef.current.isConnected()) {
+          if (!timeoutQuestionSent) {
+            // First timeout: send timeout_question
+            console.log('⏰ First timeout reached, sending timeout_question');
+            console.log('⏰ Setting timeoutQuestionSent to true');
+            if (chatServiceRef.current && chatServiceRef.current.isConnected()) {
             chatServiceRef.current.send({
               type: 'timeout_question',
               message: '',
@@ -171,9 +172,10 @@ export const ChatboxPreview = ({
             });
             setTimeoutQuestionSent(true);
             
-            // Start second timeout for feedback form
+            // Start second timeout for feedback form  
             const secondId = setTimeout(() => {
               console.log('⏰ Second timeout reached, showing custom message and feedback form');
+              console.log('⏰ Timeout question sent state:', timeoutQuestionSent);
               
               // Add custom message first
               const customMessage = {
@@ -183,6 +185,7 @@ export const ChatboxPreview = ({
                 messageId: `custom-offline-${Date.now()}`
               };
               
+              console.log('➕ Adding offline message:', customMessage);
               setMessages(prev => [...prev, customMessage]);
               
               // Add feedback form as a bot message after a short delay
@@ -194,6 +197,7 @@ export const ChatboxPreview = ({
                   messageId: `feedback-form-${Date.now()}`
                 };
                 
+                console.log('➕ Adding feedback form message:', feedbackMessage);
                 setMessages(prev => [...prev, feedbackMessage]);
               }, 1000);
               
@@ -211,6 +215,14 @@ export const ChatboxPreview = ({
   // Reset timeout completely on user activity
   const resetTimeoutOnUserActivity = () => {
     console.log('🔄 User activity detected, resetting entire timeout flow');
+    console.log('🔄 Current timeoutQuestionSent state:', timeoutQuestionSent);
+    
+    // If timeout_question was already sent, don't reset the second timeout
+    if (timeoutQuestionSent) {
+      console.log('⚠️ Timeout question already sent, keeping second timeout active');
+      return;
+    }
+    
     clearTimeouts();
     setShowFeedbackForm(false);
     setTimeoutQuestionSent(false);
