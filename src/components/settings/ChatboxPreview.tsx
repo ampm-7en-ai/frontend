@@ -837,12 +837,71 @@ export const ChatboxPreview = ({
       return;
     }
 
-    setFeedbackText(templateText);
+    console.log('Template feedback submitted with text:', templateText);
     
-    // Submit directly without showing custom textarea
-    setTimeout(() => {
-      handleFeedbackSubmit();
-    }, 100);
+    try {
+      // Send feedback using existing connection with the template text directly
+      if (chatServiceRef.current && isConnected) {
+        // Send feedback first
+        chatServiceRef.current.send({
+          type: 'feedback',
+          content: JSON.stringify({
+            rating: feedbackRating,
+            text: templateText
+          }),
+          message: '',
+          agentId: agentId || '',
+          sessionId: sessionId || '',
+          timestamp: Date.now()
+        });
+        
+        // Then send final timeout message
+        setTimeout(() => {
+          if (chatServiceRef.current) {
+            chatServiceRef.current.send({
+              type: 'timeout',
+              message: '',
+              agentId: agentId || '',
+              sessionId: sessionId || '',
+              timestamp: Date.now()
+            });
+            console.log('Final timeout message sent after template feedback');
+          }
+        }, 200);
+        
+        console.log('Template feedback sent, closing connection in 1 second');
+        
+        // Close connection after sending both feedback and timeout
+        setTimeout(() => {
+          if (chatServiceRef.current) {
+            chatServiceRef.current.disconnect();
+            chatServiceRef.current = null;
+          }
+          
+          // Only hide feedback form, keep messages visible
+          setShowFeedbackForm(false);
+          setFeedbackRating(0);
+          setFeedbackText('');
+          setSelectedFeedbackTemplate('');
+          
+          // Don't create new connection - leave in idle state
+          console.log('Template feedback processed, chat left in idle state');
+        }, 1000);
+      }
+      
+      toast({
+        title: "Feedback Sent",
+        description: "Thank you for your feedback!",
+      });
+      
+    } catch (error) {
+      console.error('Error submitting template feedback:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit feedback. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Enhanced floating button positioning - both chat and button always visible
