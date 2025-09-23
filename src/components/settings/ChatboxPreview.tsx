@@ -138,36 +138,41 @@ export const ChatboxPreview = ({
   // Start/restart timeout based on latest message
   const manageTimeout = () => {
     const latestMessage = getLatestMessage();
-    
     if (!latestMessage) return;
-    
+
     console.log('Managing timeout for latest message:', latestMessage.type);
-    
+
     // If feedback form is already visible, keep it open and skip timeout management
     if (showFeedbackForm) {
       console.log('📝 Feedback form visible, skipping timeout management');
       return;
     }
-    
-    clearTimeouts();
-    
-    // If latest message is from user, reset everything and don't start timer
+
+    // If latest message is from user, reset everything and don't start timer here
     if (latestMessage.type === 'user') {
       console.log('🔄 Latest message is from user, resetting timeout state');
+      clearTimeouts();
+      setShowFeedbackForm(false);
       setTimeoutQuestionSent(false);
       return;
     }
-    
-    // If latest message is from bot, start timer
+
+    // Only act on bot messages; do not restart timers if they're already running
     if (latestMessage.type === 'bot_response') {
-      console.log('🤖 Latest message is from bot, starting timeout timer');
-      
-      const id = setTimeout(() => {
-          if (!timeoutQuestionSent) {
-            // First timeout: send timeout_question
-            console.log('⏰ First timeout reached, sending timeout_question');
-            console.log('⏰ Setting timeoutQuestionSent to true');
-            if (chatServiceRef.current && chatServiceRef.current.isConnected()) {
+      console.log('🤖 Latest message is from bot, evaluating timers');
+
+      // If a timer is already running (first or second), don't restart
+      if (timeoutId) {
+        console.log('⏱️ A timeout is already active, continuing countdown');
+        return;
+      }
+
+      // Start the appropriate timer depending on phase
+      if (!timeoutQuestionSent) {
+        console.log('⏰ Starting first 1-minute timeout to trigger timeout_question');
+        const id = setTimeout(() => {
+          console.log('⏰ First timeout reached, sending timeout_question');
+          if (chatServiceRef.current && chatServiceRef.current.isConnected()) {
             chatServiceRef.current.send({
               type: 'timeout_question',
               message: '',
@@ -175,50 +180,53 @@ export const ChatboxPreview = ({
               sessionId: sessionId || '',
               timestamp: Date.now()
             });
-            setTimeoutQuestionSent(true);
-            
-            // Start second timeout for feedback form  
-            const secondId = setTimeout(() => {
-              console.log('⏰ Second timeout reached, showing custom message and feedback form');
-              console.log('⏰ Timeout question sent state:', timeoutQuestionSent);
-              
-              // Add custom message first
-              const customMessage = {
-                content: "Seems like you are offline. Start new chat whenever you are back. i am ending this session. Nice to talk with you",
-                type: 'bot_response',
-                timestamp: new Date().toISOString(),
-                messageId: `custom-offline-${Date.now()}`
-              };
-              
-              console.log('➕ Adding offline message:', customMessage);
-              setMessages(prev => [...prev, customMessage]);
-              
-              // Show standalone feedback UI instead of a chat message
-              setShowFeedbackForm(true);
-
-              
-            }, 60000); // 1 minute
-            
-            setTimeoutId(secondId);
           }
-        }
-      }, 60000); // 1 minute
-      
-      setTimeoutId(id);
+          setTimeoutQuestionSent(true);
+
+          // Start second timeout for feedback form
+          const secondId = setTimeout(() => {
+            console.log('⏰ Second timeout reached, showing custom message and feedback form');
+            const customMessage = {
+              content:
+                'Seems like you are offline. Start new chat whenever you are back. i am ending this session. Nice to talk with you',
+              type: 'bot_response',
+              timestamp: new Date().toISOString(),
+              messageId: `custom-offline-${Date.now()}`,
+            };
+            setMessages((prev) => [...prev, customMessage]);
+            setShowFeedbackForm(true);
+            setTimeoutId(null); // No active timers after showing feedback
+          }, 60000); // 1 minute
+
+          setTimeoutId(secondId);
+        }, 60000); // 1 minute
+
+        setTimeoutId(id);
+      } else {
+        // timeout_question already sent; if no timer running, start the second one
+        console.log('⏳ timeout_question already sent; starting second timeout');
+        const secondId = setTimeout(() => {
+          console.log('⏰ Second timeout reached, showing custom message and feedback form');
+          const customMessage = {
+            content:
+              'Seems like you are offline. Start new chat whenever you are back. i am ending this session. Nice to talk with you',
+            type: 'bot_response',
+            timestamp: new Date().toISOString(),
+            messageId: `custom-offline-${Date.now()}`,
+          };
+          setMessages((prev) => [...prev, customMessage]);
+          setShowFeedbackForm(true);
+          setTimeoutId(null);
+        }, 60000); // 1 minute
+
+        setTimeoutId(secondId);
+      }
     }
   };
 
-  // Reset timeout completely on user activity
+  // Reset timeout completely on user activity (typing or sending a message)
   const resetTimeoutOnUserActivity = () => {
     console.log('🔄 User activity detected, resetting entire timeout flow');
-    console.log('🔄 Current timeoutQuestionSent state:', timeoutQuestionSent);
-    
-    // If timeout_question was already sent, don't reset the second timeout
-    if (timeoutQuestionSent) {
-      console.log('⚠️ Timeout question already sent, keeping second timeout active');
-      return;
-    }
-    
     clearTimeouts();
     setShowFeedbackForm(false);
     setTimeoutQuestionSent(false);
