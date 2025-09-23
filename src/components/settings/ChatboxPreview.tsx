@@ -1497,14 +1497,14 @@ export const ChatboxPreview = ({
             >
               <DropdownMenuItem 
                 onClick={handleRestart}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-200 dark:!text-neutral-900"
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-100 dark:!text-neutral-900"
               >
                 <RotateCcw size={16} />
                 Restart chat
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => setShowEndChatConfirmation(true)}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-red-600 dark:hover:!bg-neutral-200"
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-red-600 dark:hover:!bg-neutral-100"
               >
                 <MessageCircle size={16} />
                 End chat

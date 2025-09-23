@@ -245,7 +245,7 @@ const AgentBuilderContent = () => {
         onAgentDataRefresh={refetchAgentData}
       />
       
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden bg-neutral-50 dark:bg-neutral-800">
         {/* Left Sidebar - Knowledge Base */}
         <div className={`${leftPanelCollapsed ? 'w-12' : 'w-80'} border-r border-neutral-200 dark:border-neutral-700 transition-all duration-300 relative`}>
           <Button
@@ -260,7 +260,7 @@ const AgentBuilderContent = () => {
         </div>
         
         {/* Center Canvas */}
-        <div className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-neutral-800 dark:to-neutral-700 relative">
+        <div className="flex-1 bg-neutral-50 dark:bg-neutral-800 relative">
           <InteractiveCanvas isTraining={isTraining} onAgentDataRefresh={refetchAgentData} />
         </div>
         

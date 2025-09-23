@@ -45,7 +45,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
   const getCanvasContent = () => {
     if (!isPreviewActive) {
       return (
-        <div className="flex items-center justify-center h-full">
+        <div className="flex items-center justify-center h-full bg-neutral-100">
           <div className="text-center p-8 rounded-2xl bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm border border-white/30 dark:border-neutral-700/30 shadow-xl">
             
             <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Preview is disabled</p>
@@ -57,7 +57,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
 
     if (!currentAgentId) {
       return (
-        <div className="flex items-center justify-center h-full">
+        <div className="flex items-center justify-center h-full bg-neutral-100">
           <div className="text-center p-8 rounded-2xl bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm border border-white/30 dark:border-neutral-700/30 shadow-xl">
             <LoadingSpinner className='h-12'/>
             <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Loading agent...</p>
@@ -158,9 +158,9 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
       return (
         <div className="h-full w-full relative overflow-hidden">
           {/* Canvas boundary container */}
-          <div className="absolute inset-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20 rounded-2xl shadow-2xl border border-blue-200/50 dark:border-gray-700/50">
-            <div className="p-6 h-full relative">
-              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-xl shadow-xl h-full border border-white/40 dark:border-gray-700/40 relative overflow-hidden">
+          <div className="absolute inset-0 bg-neutral-50 rounded-[0px]">
+            <div className="p-0 h-full relative bg-neutral-50">
+              <div className="bg-neutral-50 rounded-[0px] h-full border border-white/40 dark:border-gray-700/40 relative overflow-hidden">
                 {/* Live popup preview via iframe */}
                 {!isLoading && popupUrl ? (
                   <iframe
@@ -169,7 +169,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
                     height="100%"
                     frameBorder="0"
                     allow="microphone"
-                    className="w-full h-full rounded-xl"
+                    className="w-full h-full rounded-none"
                     title="Popup Assistant Preview"
                     key={`${currentAgentId}-${theme}-popup`}
                   />
@@ -199,23 +199,23 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
         : `${window.location.origin}/chat/preview/${currentAgentId}`;
       
       return (
-        <div className="h-full w-full relative overflow-hidden">
-          <div className="absolute inset-4 dark:bg-[hsla(0,0%,0%,0.95)] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
+        <div className="h-full w-full relative overflow-hidden bg-white">
+          <div className="absolute inset-4 bg-white dark:bg-[hsla(0,0%,0%,0.95)] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
             <div className="h-full w-full grid grid-cols-2 rounded-2xl overflow-hidden">
               {/* Left Column - Content Area */}
-              <div className="bg-white/90 dark:bg-gray-800/50 backdrop-blur-lg p-6 border-r border-gray-200/50 dark:border-gray-700/50">
+              <div className="bg-white/90 dark:bg-neutral-800/50 backdrop-blur-lg p-6 border-r border-neutral-200/50 dark:border-neutral-700/50">
                 <div className="space-y-6 opacity-60">
                   <div className="space-y-3">
-                    <div className="h-6 bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 dark:from-gray-600 dark:to-gray-500 rounded-lg w-3/4 animate-pulse"></div>
-                    <div className="h-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-1/2 animate-pulse"></div>
+                    <div className="h-6 bg-gradient-to-r from-neutral-200 via-neutral-200 to-neutral-200 dark:from-neutral-600 dark:to-neutral-500 rounded-lg w-3/4 animate-pulse"></div>
+                    <div className="h-4 bg-gradient-to-r from-neutral-100 to-neutral-200 dark:from-neutral-600 dark:to-neutral-500 rounded w-1/2 animate-pulse"></div>
                   </div>
-                  <div className="h-40 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 dark:from-gray-700 dark:to-gray-600 rounded-xl relative overflow-hidden shadow-inner">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-400/30 to-purple-400/30"></div>
+                  <div className="h-40 bg-gradient-to-br from-neutral-100 via-neutral-100 to-neutral-100 dark:from-neutral-700 dark:to-neutral-600 rounded-xl relative overflow-hidden shadow-inner">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-neutral-400/30 to-neutral-400/30"></div>
                   </div>
                   <div className="space-y-3">
-                    <div className="h-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-full animate-pulse"></div>
-                    <div className="h-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-5/6 animate-pulse"></div>
-                    <div className="h-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-500 rounded w-4/6 animate-pulse"></div>
+                    <div className="h-3 bg-gradient-to-r from-neutral-100 to-neutral-200 dark:from-neutral-600 dark:to-neutral-500 rounded w-full animate-pulse"></div>
+                    <div className="h-3 bg-gradient-to-r from-neutral-100 to-neutral-200 dark:from-neutral-600 dark:to-neutral-500 rounded w-5/6 animate-pulse"></div>
+                    <div className="h-3 bg-gradient-to-r from-neutral-100 to-neutral-200 dark:from-neutral-600 dark:to-neutral-500 rounded w-4/6 animate-pulse"></div>
                   </div>
                 </div>
                 
@@ -239,7 +239,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
               </div>
               
               {/* Right Column - Assistant Chat */}
-              <div className="bg-gray-50 dark:bg-gray-900 relative">
+              <div className="bg-neutral-50 dark:bg-neutral-900 relative">
                 {!isLoading && (
                   <iframe
                     src={assistantUrl}

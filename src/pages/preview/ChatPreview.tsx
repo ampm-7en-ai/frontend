@@ -181,7 +181,7 @@ const ChatPreview = () => {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className="flex h-screen items-center justify-center bg-neutral-100 dark:bg-neutral-800">
         <LoadingSpinner size="md" text="Loading chatbox..." />
       </div>
     );
@@ -189,7 +189,7 @@ const ChatPreview = () => {
 
   if (error || !config) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className="flex h-screen items-center justify-center bg-neutral-100 dark:bg-neutral-800">
         <div className="text-center max-w-md mx-auto p-6 bg-card rounded-lg">
           <h2 className="text-2xl font-bold text-destructive mb-2">Error</h2>
           <p className="text-muted-foreground">{error || 'Failed to load chatbot configuration'}</p>
@@ -199,7 +199,7 @@ const ChatPreview = () => {
   }
 
   return (
-    <div className="h-screen bg-background overflow-hidden">
+    <div className="h-screen bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
       <div className="w-full h-full p-0">
         <ChatboxPreview
           agentId={config.agentId}
