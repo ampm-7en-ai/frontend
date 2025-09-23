@@ -534,8 +534,8 @@ const SearchAssistant = () => {
   if (loading) {
     return (
       <div 
-        className="flex h-screen items-center justify-center text-white"
-        style={{ backgroundColor: bgColor, color: textColor }}
+        className="flex h-screen items-center justify-center text-white bg-neutral-50 dark:bg-neutral-800"
+        style={{ color: textColor }}
       >
         <div className="text-center">
           <LoadingSpinner size="lg" text="Loading assistant..." />
@@ -567,9 +567,6 @@ const SearchAssistant = () => {
         className="h-screen flex items-center justify-center p-4"
         style={{ 
           fontFamily: config.fontFamily || 'Inter',
-          background: isDarkTheme 
-            ? `linear-gradient(to right, #1A1F2C, #232838)` 
-            : `linear-gradient(to right, #FFFFFF, #F5F6F7)`,
           color: textColor,
           borderColor: borderColor
         }}
@@ -1019,7 +1016,7 @@ const SearchAssistant = () => {
       }
 
       {/* Main content - Scrollable */}
-      <main className="flex-1 overflow-hidden flex flex-col" style={{ backgroundColor: isDarkTheme ? '#1A1F2C' : '#FFFFFF' }}>
+      <main className="flex-1 overflow-hidden flex flex-col bg-white dark:bg-neutral-950">
         <ScrollArea 
           className="flex-grow"
           style={{ height: 'calc(100vh - 98px)' }} // Adjust based on header and input area heights
@@ -1220,12 +1217,9 @@ const SearchAssistant = () => {
       
       {/* Input section - Fixed */}
       <div 
-        className="border-t p-3 sticky bottom-0 z-10"
+        className="border-t p-3 sticky bottom-0 z-10 bg-neutral-50 dark:bg-neutral-800"
         style={{ 
           borderColor: borderColor,
-          background: isDarkTheme 
-            ? `linear-gradient(to right, #1A1F2C, #232838)` 
-            : `linear-gradient(to right, #FFFFFF, #F5F6F7)`
         }}
       >
         <div className="flex items-center gap-2">

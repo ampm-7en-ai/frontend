@@ -160,7 +160,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
           {/* Canvas boundary container */}
           <div className="absolute inset-0 bg-neutral-50 rounded-[0px]">
             <div className="p-0 h-full relative bg-neutral-50">
-              <div className="bg-neutral-50 rounded-[0px] h-full border border-white/40 dark:border-gray-700/40 relative overflow-hidden">
+              <div className="bg-neutral-50 dark:bg-neutral-900 rounded-[0px] h-full relative overflow-hidden">
                 {/* Live popup preview via iframe */}
                 {!isLoading && popupUrl ? (
                   <iframe
@@ -199,8 +199,8 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
         : `${window.location.origin}/chat/preview/${currentAgentId}`;
       
       return (
-        <div className="h-full w-full relative overflow-hidden bg-white">
-          <div className="absolute inset-4 bg-white dark:bg-[hsla(0,0%,0%,0.95)] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
+        <div className="h-full w-full relative overflow-hidden bg-white dark:bg-neutral-900">
+          <div className="absolute inset-4 bg-white dark:bg-[hsla(0,0%,0%,0.95)] rounded-2xl shadow-2xl border border-gray-200 dark:border-neutral-700">
             <div className="h-full w-full grid grid-cols-2 rounded-2xl overflow-hidden">
               {/* Left Column - Content Area */}
               <div className="bg-white/90 dark:bg-neutral-800/50 backdrop-blur-lg p-6 border-r border-neutral-200/50 dark:border-neutral-700/50">
