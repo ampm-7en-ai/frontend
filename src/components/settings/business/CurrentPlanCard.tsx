@@ -69,9 +69,8 @@ export const CurrentPlanCard = () => {
             <div className="flex items-center gap-4 mt-2">
               <Link 
                 to="/settings/business/payment-history" 
-                className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                className="inline-flex items-center text-sm text-neutral-900 hover:text-neutral-800 dark:text-neutral-50 dark:hover:text-neutral-300 transition-colors underline underline-offset-4"
               >
-                <CreditCard className="h-3 w-3 mr-1" />
                 View Payments
               </Link>
               

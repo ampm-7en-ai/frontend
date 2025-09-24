@@ -248,11 +248,11 @@ const MessageRevisionModal = ({
         <div className="space-y-6">
           {/* Question Section */}
           <div className="space-y-3">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
               Customer Question
             </label>
-            <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60">
-              <p className="text-slate-800 dark:text-slate-200 leading-relaxed">
+            <div className="p-4 rounded-xl bg-neutral-50/80 dark:bg-neutral-800/80 border border-neutral-200/60 dark:border-neutral-700/60">
+              <p className="text-neutral-800 dark:text-neutral-200 leading-relaxed">
                 {question}
               </p>
             </div>
@@ -260,7 +260,7 @@ const MessageRevisionModal = ({
 
           {/* Answer Section */}
           <div className="space-y-3">
-            <label htmlFor="revised-answer" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label htmlFor="revised-answer" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
               AI Answer
             </label>
 
@@ -268,11 +268,11 @@ const MessageRevisionModal = ({
               id="revised-answer"
               value={revisedAnswer}
               onChange={(e) => setRevisedAnswer(e.target.value)}
-              className="min-h-[200px] resize-none bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 rounded-xl focus:border-blue-500/50 dark:focus:border-blue-400/50 focus:ring-blue-500/40 dark:focus:ring-blue-400/40 transition-all duration-200"
+              className="min-h-[200px] resize-none bg-white/80 backdrop-blur-sm border-neutral-200/60 dark:border-neutral-700/60 rounded-xl transition-all duration-200"
               placeholder="Enter the revised answer..."
               disabled={isLoading}
             />
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {isImproved 
                 ? "Update the improved AI response to make it even better for the customer."
                 : "Edit the AI response to make it more accurate or helpful for the customer."

@@ -312,12 +312,12 @@ const ConversationDetailsPanel = ({
                   <div className="scale-95 origin-left">
                     <LineChart
                       width={350}
-                      height={300}
+                      height={180}
                       data={chartData}
                       margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
                       className="pb-4"
                     >
-                      <CartesianGrid strokeDasharray="3 3" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
                       <XAxis
                         dataKey="index"
                         label={{ value: "No. of Messages", position: "insideBottom", offset: -5 }}
