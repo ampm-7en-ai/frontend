@@ -320,28 +320,44 @@ export const ChatboxPreview = ({
           setShowTypingIndicator(true);
           return;
         }
+
+        // Normalize type to avoid 'message' vs 'user' mismatch
+        const normalizedType = message.type === 'message' ? 'user' : (message.type === 'assistant' ? 'bot_response' : message.type);
+        const messageForProcessing = { ...message, type: normalizedType };
+
+        // Skip immediate echo of user's own message from server
+        const latest = getLatestMessage();
+        if (
+          normalizedType === 'user' &&
+          latest &&
+          latest.type === 'user' &&
+          (latest.content || '').trim() === (messageForProcessing.content || '').trim()
+        ) {
+          console.log('🔁 Skipping echoed user message from server');
+          return;
+        }
         
-        // Generate unique message ID for enhanced deduplication
-        const messageId = generateUniqueMessageId(message);
+        // Generate unique message ID for enhanced deduplication (using normalized type)
+        const messageId = generateUniqueMessageId(messageForProcessing);
         
         // Enhanced deduplication check with detailed logging
         if (processedMessageIds.current.has(messageId)) {
           console.log("⚠️ Duplicate message detected, skipping:", {
             messageId,
-            content: message.content?.slice(0, 50),
-            type: message.type,
-            source: message.source,
-            sessionId: message.session_id
+            content: messageForProcessing.content?.slice(0, 50),
+            type: messageForProcessing.type,
+            source: messageForProcessing.source,
+            sessionId: messageForProcessing.session_id
           });
           return;
         }
         
         console.log("✅ Processing new message:", {
           messageId,
-          type: message.type,
-          source: message.source,
-          content: message.content?.slice(0, 50),
-          sessionId: message.session_id
+          type: messageForProcessing.type,
+          source: messageForProcessing.source,
+          content: messageForProcessing.content?.slice(0, 50),
+          sessionId: messageForProcessing.session_id
         });
         
         // Add to processed set
@@ -359,18 +375,18 @@ export const ChatboxPreview = ({
         setSystemMessage('');
         
         // Track different message sources
-        if (message.source === 'database') {
+        if (messageForProcessing.source === 'database') {
           console.log('📚 Database message loaded');
-        } else if (message.source === 'websocket') {
+        } else if (messageForProcessing.source === 'websocket') {
           console.log('🔄 Real-time message received');
         }
         
         // Add message to state
         setMessages(prev => {
-          const newMessages = [...prev, { ...message, messageId }];
+          const newMessages = [...prev, { ...messageForProcessing, messageId }];
           
           // Only manage timeout for real-time bot responses, not database messages
-          if (message.type === 'bot_response' && message.source === 'websocket') {
+          if (messageForProcessing.type === 'bot_response' && messageForProcessing.source === 'websocket') {
             setTimeout(() => {
               console.log('⏰ Managing timeout after real-time bot message');
               manageTimeout();

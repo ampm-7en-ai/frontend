@@ -80,6 +80,17 @@ export class ChatWebSocketService {
   
   private handleMessage(data: any) {
     console.log('📨 Raw WebSocket message received:', data);
+
+    // Helper to normalize message types between DB and realtime
+    const mapType = (type?: string, sender?: string) => {
+      const t = (type || '').toLowerCase();
+      const s = (sender || '').toLowerCase();
+      if (t === 'ui') return 'ui';
+      if (t === 'message' || t === 'user' || s === 'user') return 'user';
+      if (t === 'assistant' || t === 'bot' || t === 'bot_response' || s === 'agent' || s === 'assistant') return 'bot_response';
+      if (t === 'system' || t === 'system_message') return 'system_message';
+      return t || 'bot_response';
+    };
     
     // Check for session_id in ANY message type
     if (data.session_id && !this.sessionIdReceived && this.events.onSessionIdReceived) {
@@ -87,14 +98,16 @@ export class ChatWebSocketService {
       this.sessionIdReceived = true;
       this.events.onSessionIdReceived(data.session_id);
     }
+
+    const normalizedType = mapType(data.type, data.sender);
     
-    // Handle UI messages (like yes_no) that don't have content
-    if (data.type === 'ui' && data.ui_type) {
+    // Handle UI messages (like email prompt) that don't have content
+    if (normalizedType === 'ui' && data.ui_type) {
       const messageTimestamp = this.extractTimestamp(data);
-      const messageId = `${data.type}-${data.ui_type}-${messageTimestamp}`;
+      const messageId = `${normalizedType}-${data.ui_type}-${messageTimestamp}`;
       
       this.events.onMessage?.({
-        type: data.type,
+        type: 'ui',
         content: '',
         timestamp: messageTimestamp,
         model: '',
@@ -111,7 +124,6 @@ export class ChatWebSocketService {
     
     // Extract message content
     const messageContent = data.content || '';
-    const messageType = data.type || 'bot_response';
     const messageTimestamp = this.extractTimestamp(data);
     
     const messageModel = data.model || data.config?.response_model || data.response_model || '';
@@ -120,17 +132,17 @@ export class ChatWebSocketService {
                               data.config?.temperature !== undefined ? Number(data.config.temperature) : 0;
     
     // Skip if not a valid message (except for UI messages)
-    if (!messageContent && data.type !== 'ui') {
+    if (!messageContent && normalizedType !== 'ui') {
       console.log('⏭️ Skipping message without content');
       return;
     }
     
     // Generate message ID from existing data or create one
-    const messageId = data.messageId || data.id || `${messageContent.slice(0, 20)}-${messageTimestamp}`;
+    const messageId = data.messageId || data.id || `${(messageContent as string).slice(0, 20)}-${messageTimestamp}`;
     
     // Emit the message event (deduplication handled by component)
     this.events.onMessage?.({
-      type: messageType,
+      type: normalizedType,
       content: messageContent,
       timestamp: messageTimestamp,
       model: messageModel,
@@ -138,7 +150,7 @@ export class ChatWebSocketService {
       prompt: messagePrompt,
       source: data.source || 'websocket',
       session_id: data.session_id,
-      messageId: messageId
+      messageId
     });
   }
   
