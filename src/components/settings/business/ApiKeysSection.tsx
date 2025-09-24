@@ -169,7 +169,7 @@ const ApiKeysSection = () => {
                 </TableHeader>
                 <TableBody>
                   {apiKeys.map((apiKey) => (
-                    <TableRow key={apiKey.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/80 transition-colors dark:border-neutral-600">
+                    <TableRow key={apiKey.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-700/30 transition-colors dark:border-neutral-600">
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                            <Icon type='plain' name={`Key`} color='hsl(var(--primary))' className='h-5 w-5' />
@@ -190,13 +190,12 @@ const ApiKeysSection = () => {
                         <div className="flex justify-end gap-2">
                           
                           <ModernButton
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={() => setDeleteConfirmOpen(true)}
                             disabled={isLoading}
                             icon={Trash2}
-                            iconOnly
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-neutral-200 dark:hover:text-neutral-300 dark:hover:bg-red-900/20 h-10 w-10 p-0"
                           />
                         </div>
                       </TableCell>

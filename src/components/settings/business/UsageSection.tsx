@@ -49,12 +49,12 @@ const UsageSection = ({ usageMetrics }: UsageSectionProps) => {
         </div>
 
         <div className="space-y-4">
-          <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl p-6 border border-neutral-200/50 dark:border-neutral-600/50">
+          <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl p-6 border border-neutral-200/50 dark:border-none">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                    <CreditCard className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <div className="bg-transparent rounded-lg flex items-center justify-center">
+                    <Icon type='plain' name={`Bubbles`} color='hsl(var(--primary))' className='h-5 w-5 mr-0.5' />
                   </div>
                   <h4 className="font-semibold text-neutral-900 dark:text-neutral-100">Message Credits</h4>
                   <TooltipProvider>

@@ -559,15 +559,15 @@ const IntegrationsPage = () => {
               </ModernButton>
             </div>
             
-            <div className="bg-white dark:bg-neutral-800/70 rounded-2xl border-0 border-slate-200 dark:border-slate-700 shadow-sm">
-              <div className="border-b border-slate-200 dark:border-neutral-700 p-6">
+            <div className="bg-white dark:bg-neutral-800/70 rounded-2xl border-0 border-neutral-200 dark:border-neutral-700 shadow-sm">
+              <div className="border-b border-neutral-200 dark:border-neutral-700 p-6">
                 <div className="flex items-center gap-4">
                   {(() => {
                     const integration = integrationsList.find(i => i.id === selectedIntegration);
                     return (
                       <>
                         <div 
-                          className="bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 flex items-center justify-center shadow-sm"
+                          className="bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 flex items-center justify-center shadow-sm"
                           style={{
                             padding: '0',
                             height: 'auto',
@@ -583,10 +583,10 @@ const IntegrationsPage = () => {
                           />
                         </div>
                         <div className="flex-1">
-                          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-1">
+                          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-1">
                             {integration?.name}
                           </h1>
-                          <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                          <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
                             {integration?.description}
                           </p>
                         </div>
@@ -613,8 +613,8 @@ const IntegrationsPage = () => {
               {Object.entries(groupedIntegrations).map(([category, categoryIntegrations]) => (
                 <section key={category} className="space-y-6">
                   <div className="mb-6 pl-2">
-                    <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">{category}</h2>
-                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                    <h2 className="text-2xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">{category}</h2>
+                    <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
                       {category === 'Messaging' && 'Connect with popular messaging platforms to reach your customers where they are.'}
                       {category === 'Communication' && 'Integrate with communication tools to streamline team collaboration.'}
                       {category === 'Social Media' && 'Connect with social media platforms to automate customer interactions.'}
@@ -628,11 +628,11 @@ const IntegrationsPage = () => {
                   <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
                       {categoryIntegrations.map((integration) => (
-                        <Card key={integration.id} className=" dark:bg-neutral-800/50 rounded-xl border border-slate-200/50 dark:border-neutral-600/0 backdrop-blur-sm shadow-none hover:shadow-sm transition-shadow">
+                        <Card key={integration.id} className="dark:bg-neutral-800/50 rounded-xl border border-neutral-200/50 dark:border-none backdrop-blur-sm shadow-none hover:shadow-sm transition-shadow">
                           <CardContent className="p-4">
                             <div className="flex items-start gap-4">
                               <div 
-                                className="bg-slate-50 dark:bg-slate-700 flex items-center justify-center shadow-sm flex-shrink-0"
+                                className="bg-neutral-50 dark:bg-neutral-700 flex items-center justify-center shadow-sm flex-shrink-0"
                                 style={{
                                   padding: '0',
                                   height: 'auto',
@@ -650,7 +650,7 @@ const IntegrationsPage = () => {
                               
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between mb-0.5">
-                                  <h3 className="font-semibold text-base text-slate-900 dark:text-slate-100 truncate">
+                                  <h3 className="font-semibold text-base text-neutral-900 dark:text-neutral-100 truncate">
                                     {integration.name}
                                   </h3>
                                   <div className="flex flex-col gap-1 items-end ml-2 flex-shrink-0">

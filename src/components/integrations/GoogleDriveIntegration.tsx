@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useIntegrations } from '@/hooks/useIntegrations';
+import { Icon } from '../icons';
 
 const GoogleDriveIntegration = ({setAppConnection}) => {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -119,9 +120,9 @@ const GoogleDriveIntegration = ({setAppConnection}) => {
   return (
     <div className="flex flex-col items-center justify-center py-12 space-y-6">
       <div className="text-center space-y-4">
-        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mx-auto">
+        <div className="bg-transparent rounded-lg flex items-center justify-center mx-auto">
           {isConnected ? (
-            <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+            <Icon type='plain' name={`Extension`} color='hsl(var(--primary))' className='h-8 w-8' />
           ) : (
             <img 
               src={googleDriveIconUrl} 
@@ -132,10 +133,10 @@ const GoogleDriveIntegration = ({setAppConnection}) => {
         </div>
         
         <div>
-          <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+          <h3 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
             Google Drive Integration
           </h3>
-          <p className="text-slate-600 dark:text-slate-400 mt-2">
+          <p className="text-neutral-600 dark:text-neutral-400 mt-2">
             {isConnected 
               ? "Your Google Drive is connected and ready to use" 
               : "Connect your Google Drive to access and manage your files"

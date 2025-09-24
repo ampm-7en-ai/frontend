@@ -259,19 +259,19 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
         ) : (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-[8px] p-4 border border-neutral-200/50 dark:border-neutral-600/50">
+              <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-[8px] p-4 border border-neutral-200/50 dark:border-none">
                 <h4 className="font-medium text-neutral-900 dark:text-neutral-100 mb-2">Business Name</h4>
                 <p className="text-muted-foreground dark:text-muted-foreground">{profileForm.getValues().businessName || 'Not specified'}</p>
               </div>
-              <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-[8px] p-4 border border-neutral-200/50 dark:border-neutral-600/50">
+              <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-[8px] p-4 border border-neutral-200/50 dark:border-none">
                 <h4 className="font-medium text-neutral-900 dark:text-neutral-100 mb-2">Email</h4>
                 <p className="text-muted-foreground dark:text-muted-foreground">{profileForm.getValues().adminEmail || 'Not specified'}</p>
               </div>
-              <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-[8px] p-4 border border-neutral-200/50 dark:border-neutral-600/50">
+              <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-[8px] p-4 border border-neutral-200/50 dark:border-none">
                 <h4 className="font-medium text-neutral-900 dark:text-neutral-100 mb-2">Website</h4>
                 <p className="text-muted-foreground dark:text-muted-foreground">{profileForm.getValues().adminWebsite || 'Not specified'}</p>
               </div>
-              <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-[8px] p-4 border border-neutral-200/50 dark:border-neutral-600/50">
+              <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-[8px] p-4 border border-neutral-200/50 dark:border-none">
                 <h4 className="font-medium text-neutral-900 dark:text-neutral-100 mb-2">Phone</h4>
                 <p className="text-muted-foreground dark:text-muted-foreground">{profileForm.getValues().adminPhone || 'Not specified'}</p>
               </div>

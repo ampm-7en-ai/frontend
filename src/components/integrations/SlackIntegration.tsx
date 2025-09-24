@@ -345,7 +345,6 @@ const SlackIntegration = ({setAppConnection}: any) => {
       <ModernCard variant="glass">
         <ModernCardHeader>
           <ModernCardTitle className="flex items-center gap-3">
-            <Settings className="h-6 w-6 text-primary" />
             Slack App Configuration
           </ModernCardTitle>
           <ModernCardDescription>
@@ -448,7 +447,6 @@ const SlackIntegration = ({setAppConnection}: any) => {
       <ModernCard variant="glass">
         <ModernCardHeader>
           <ModernCardTitle className="flex items-center gap-3">
-            <Slack className="h-6 w-6 text-primary" />
             Workspace Connection
           </ModernCardTitle>
           <ModernCardDescription>
@@ -508,19 +506,19 @@ const SlackIntegration = ({setAppConnection}: any) => {
                   <h4 className="font-medium text-foreground mb-3">Integration Benefits</h4>
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex gap-2 items-center">
-                      <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                      <div className="h-1.5 w-1.5 rounded-full bg-[#f06425]"></div>
                       <span>Get customer queries directly in your Slack channels</span>
                     </li>
                     <li className="flex gap-2 items-center">
-                      <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                      <div className="h-1.5 w-1.5 rounded-full bg-[#f06425]"></div>
                       <span>Reply to messages without leaving Slack</span>
                     </li>
                     <li className="flex gap-2 items-center">
-                      <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                      <div className="h-1.5 w-1.5 rounded-full bg-[#f06425]"></div>
                       <span>Receive notifications for important events</span>
                     </li>
                     <li className="flex gap-2 items-center">
-                      <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                      <div className="h-1.5 w-1.5 rounded-full bg-[#f06425]"></div>
                       <span>Team collaboration on customer issues</span>
                     </li>
                   </ul>

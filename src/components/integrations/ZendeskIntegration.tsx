@@ -181,46 +181,46 @@ const ZendeskIntegration = ({setAppConnection}) => {
     <div className="space-y-8">
       {/* Current Configuration Cards */}
       {isConnected && zendeskStatus?.integration && (
-        <div className="bg-white dark:bg-neutral-800/70 rounded-lg border border-slate-200 dark:border-neutral-700 p-6">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6">Current Configuration</h3>
+        <div className="bg-white dark:bg-neutral-800/70 rounded-lg border border-neutral-200 dark:border-none p-6">
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-6">Current Configuration</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+            <div className="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4 border border-neutral-200 dark:border-neutral-600">
               <div className="flex items-center gap-3 mb-2">
-                <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                <h4 className="font-medium text-slate-900 dark:text-slate-100">Domain</h4>
+                <Building2 className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
+                <h4 className="font-medium text-neutral-900 dark:text-neutral-100">Domain</h4>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">
                 {zendeskStatus.integration.domain}
               </p>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+            <div className="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4 border border-neutral-200 dark:border-neutral-600">
               <div className="flex items-center gap-3 mb-2">
-                <Mail className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                <h4 className="font-medium text-slate-900 dark:text-slate-100">Email</h4>
+                <Mail className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
+                <h4 className="font-medium text-neutral-900 dark:text-neutral-100">Email</h4>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">
                 {zendeskStatus.integration.email}
               </p>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+            <div className="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4 border border-neutral-200 dark:border-neutral-600">
               <div className="flex items-center gap-3 mb-2">
-                <Key className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                <h4 className="font-medium text-slate-900 dark:text-slate-100">Webhook Secret</h4>
+                <Key className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
+                <h4 className="font-medium text-neutral-900 dark:text-neutral-100">Webhook Secret</h4>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400 font-mono break-all">
+              <p className="text-sm text-neutral-600 dark:text-neutral-400 font-mono break-all">
                 {zendeskStatus.integration.webhook_secret}
               </p>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+            <div className="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4 border border-neutral-200 dark:border-neutral-600">
               <div className="flex items-center gap-3 mb-2">
-                <Link className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                <h4 className="font-medium text-slate-900 dark:text-slate-100">Webhook URL</h4>
+                <Link className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
+                <h4 className="font-medium text-neutral-900 dark:text-neutral-100">Webhook URL</h4>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400 break-all">
+              <p className="text-sm text-neutral-600 dark:text-neutral-400 break-all">
                 {zendeskStatus.integration.webhook_url}
               </p>
             </div>
@@ -229,12 +229,11 @@ const ZendeskIntegration = ({setAppConnection}) => {
       )}
 
       {/* Connection Management */}
-      <div className="bg-white dark:bg-neutral-800/70 rounded-lg border border-slate-200 dark:border-neutral-700 p-6">
+      <div className="bg-white dark:bg-neutral-800/70 rounded-lg border border-neutral-200 dark:border-none p-6">
         <div className="flex items-center gap-3 mb-4">
-          <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Connection Management</h3>
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Connection Management</h3>
         </div>
-        <p className="text-slate-600 dark:text-slate-400 mb-6">
+        <p className="text-neutral-600 dark:text-neutral-400 mb-6">
           {isConnected 
             ? "Your Zendesk integration is active and ready to streamline your support workflow." 
             : "Connect your Zendesk account to enable automated ticket management and customer support features."
@@ -244,11 +243,11 @@ const ZendeskIntegration = ({setAppConnection}) => {
         {!isConnected && (
           <div className="space-y-4 mb-6">
             <div className="space-y-2">
-              <Label htmlFor="domain" className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              <Label htmlFor="domain" className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                 Zendesk Domain
               </Label>
               <div className="relative">
-                <Building2 className="absolute left-3 top-3 h-4 w-4 text-slate-500 dark:text-slate-400" />
+                <Building2 className="absolute left-3 top-3 h-4 w-4 text-neutral-500 dark:text-neutral-400" />
                 <ModernInput
                   id="domain"
                   type="text"
@@ -262,11 +261,11 @@ const ZendeskIntegration = ({setAppConnection}) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              <Label htmlFor="email" className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                 Email Address
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500 dark:text-slate-400" />
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-neutral-500 dark:text-neutral-400" />
                 <ModernInput
                   id="email"
                   type="email"
@@ -280,11 +279,11 @@ const ZendeskIntegration = ({setAppConnection}) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="apiKey" className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              <Label htmlFor="apiKey" className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                 API Key
               </Label>
               <div className="relative">
-                <Key className="absolute left-3 top-3 h-4 w-4 text-slate-500 dark:text-slate-400" />
+                <Key className="absolute left-3 top-3 h-4 w-4 text-neutral-500 dark:text-neutral-400" />
                 <ModernInput
                   id="apiKey"
                   type="password"
@@ -295,7 +294,7 @@ const ZendeskIntegration = ({setAppConnection}) => {
                   disabled={isConnecting}
                 />
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
                 Find your API key in Zendesk: Apps & Integrations → APIs → API tokens → Add API tokens 
               </p>
             </div>
@@ -335,9 +334,9 @@ const ZendeskIntegration = ({setAppConnection}) => {
       </div>
 
       {/* Features Overview */}
-      <div className="bg-white dark:bg-neutral-800/70 rounded-lg border border-slate-200 dark:border-neutral-700 p-6">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Zendesk Capabilities</h3>
-        <p className="text-slate-600 dark:text-slate-400 mb-6">
+      <div className="bg-white dark:bg-neutral-800/70 rounded-lg border border-neutral-200 dark:border-none p-6">
+        <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Zendesk Capabilities</h3>
+        <p className="text-neutral-600 dark:text-neutral-400 mb-6">
           Powerful features to enhance your customer support operations
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -349,9 +348,9 @@ const ZendeskIntegration = ({setAppConnection}) => {
             "Agent collaboration tools",
             "Comprehensive reporting and analytics"
           ].map((feature, index) => (
-            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-neutral-700/50 border border-slate-200 dark:border-neutral-600">
+            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-neutral-50 dark:bg-neutral-700/50 border border-neutral-200 dark:border-none">
               <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
-              <span className="text-sm text-slate-700 dark:text-slate-300">{feature}</span>
+              <span className="text-sm text-neutral-700 dark:text-neutral-300">{feature}</span>
             </div>
           ))}
         </div>

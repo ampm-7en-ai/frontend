@@ -84,20 +84,13 @@ const PaymentHistory = () => {
           <p className="text-muted-foreground dark:text-muted-foreground mt-2">View your subscription and payment details</p>
         </div>
 
-        <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl border border-slate-200/50 dark:border-neutral-700/50 backdrop-blur-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-200/50 dark:border-neutral-700/50">
-            <div className="flex items-center gap-3">
-              <div className="bg-transparent rounded-xl flex items-center justify-start">
-              <Icon type='plain' name={`Receipt`} color='hsl(var(--primary))' className='h-5 w-5' />
-            </div>
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Payment History</h2>
-            </div>
-          </div>
+        <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl border border-slate-200/50 dark:border-none backdrop-blur-sm overflow-hidden">
+          
           
           <div className="p-6">
             {isLoading ? (
-              <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-                <div className="container mx-auto py-12 flex justify-center items-center h-64">
+              <div className="bg-transparent">
+                <div className="container mx-auto py-12 flex justify-center items-center h-12">
                   <LoadingSpinner size="lg" text="Loading..." />
                 </div>
               </div>
@@ -118,7 +111,7 @@ const PaymentHistory = () => {
               <div className="overflow-hidden rounded-xl border border-slate-200/50 dark:border-neutral-700/50">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-slate-50/50 dark:bg-slate-800/50 hover:bg-slate-50/70 dark:hover:bg-slate-800/70">
+                    <TableRow className="hover:bg-neutral-50/50 dark:bg-neutral-800/70 transition-colors dark:border-neutral-600">
                       <TableHead className="font-semibold text-slate-900 dark:text-slate-100">Plan</TableHead>
                       <TableHead className="font-semibold text-slate-900 dark:text-slate-100">Price</TableHead>
                       <TableHead className="font-semibold text-slate-900 dark:text-slate-100">Started</TableHead>
@@ -132,7 +125,7 @@ const PaymentHistory = () => {
                     {paymentHistory.map((payment, index) => (
                       <TableRow 
                         key={index}
-                        className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors"
+                        className="group hover:bg-neutral-50/50 dark:hover:bg-neutral-700/30 dark:border-neutral-600 transition-colors"
                       >
                         <TableCell className="font-medium text-slate-900 dark:text-slate-100">{payment.plan_name !== null ? payment.plan_name : `Topup - ${payment.replies} replies`}</TableCell>
                         <TableCell className="text-slate-700 dark:text-slate-300">${payment?.price || payment?.amount}</TableCell>

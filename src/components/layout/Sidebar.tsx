@@ -216,12 +216,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         {!isCollapsed && (<></>
           // <div className="p-4">
           //   <div className="relative">
-          //     {/* <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+          //     {/* <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 dark:text-neutral-500 h-4 w-4" />
           //     <Input
           //       placeholder="Search Ctrl+K"
           //       value={searchQuery}
           //       onChange={(e) => setSearchQuery(e.target.value)}
-          //       className="pl-10 h-9 bg-gray-50 dark:bg-gray-800 border-0 focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-gray-200 dark:focus:ring-gray-600 text-sm dark:text-gray-200 dark:placeholder-gray-400"
+          //       className="pl-10 h-9 bg-neutral-50 dark:bg-neutral-800 border-0 focus:bg-white dark:focus:bg-neutral-700 focus:ring-1 focus:ring-neutral-200 dark:focus:ring-neutral-600 text-sm dark:text-neutral-200 dark:placeholder-neutral-400"
           //     /> */}
           //     <ModernButton
           //     variant="secondary"
@@ -239,7 +239,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                 <>
                   <button
                     className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors
-                    ${expandedItems.includes(item.id) ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'}`}
+                    ${expandedItems.includes(item.id) ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100' : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'}`}
                     onClick={() => !isCollapsed && toggleExpand(item.id)}
                   >
                     <div className="flex items-center">
@@ -263,7 +263,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                         <NavLink
                           key={child.label}
                           to={child.href}
-                          className="flex items-center px-3 py-2 text-sm rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-gray-100"
+                          className="flex items-center px-3 py-2 text-sm rounded-lg transition-colors text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100"
                         >
                           <span>{child.label}</span>
                         </NavLink>
@@ -276,7 +276,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                   <NavLink
                     to={item.href}
                     onClick={item.id === "help" ? () => handlehelp("https://docs.7en.ai/") : null}
-                    className="flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-gray-100"
+                    className="flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100"
                     style={{paddingLeft:isCollapsed && "11px"}}
                   >
                     <div className="flex items-center">
@@ -298,7 +298,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-5 w-5 transition-opacity dark:text-gray-400 dark:hover:bg-neutral-900 dark:hover:text-gray-300 rounded-[4px]"
+                        className="h-5 w-5 transition-opacity dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-neutral-300 rounded-[4px]"
                         disabled={isCreatingAgent && item.id === 'agents'}
                         onClick={(e) => {
                           e.preventDefault();
@@ -334,19 +334,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center space-x-3 cursor-pointer rounded-lg p-2 transition-colors">
                     <Avatar className="h-8 w-8 bg-neutral-300 dark:bg-neutral-600 p-[1px]">
-                      <AvatarFallback className="text-gray-500 text-sm font-medium bg-neutral-100 dark:bg-neutral-800">
+                      <AvatarFallback className="text-neutral-500 text-sm font-medium bg-neutral-100 dark:bg-neutral-800">
                         {user?.name?.charAt(0).toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 z-50">
-                  <div className="flex-1 min-w-0 border-b border-gray-50 dark:border-gray-700 pb-4 mb-1">
-                    <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
+                <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 z-50">
+                  <div className="flex-1 min-w-0 border-b border-neutral-50 dark:border-neutral-700 pb-4 mb-1">
+                    <p className="text-xs font-medium text-neutral-900 dark:text-neutral-100 truncate">
                       {user?.name || 'User'}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
                       {user?.email || 'user@example.com'}
                     </p>
                   </div>
@@ -354,13 +354,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     userRole === 'USER' && (
                       <>
                         <DropdownMenuItem 
-                        className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:!bg-neutral-700"
+                        className="flex items-center gap-2 cursor-pointer dark:text-neutral-200 dark:hover:!bg-neutral-700"
                         onClick={() => navigate('/settings')}>
                           <Icon type='plain' name={`Person`} color='hsl(var(--primary))'className="h-4 w-4" /> 
                           Profile
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                        className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:!bg-neutral-700"
+                        className="flex items-center gap-2 cursor-pointer dark:text-neutral-200 dark:hover:!bg-neutral-700"
                         onClick={() => navigate('/settings/business/payment-history')}>
                           <Icon type='plain' name={`Receipt`} color='hsl(var(--primary))'className="h-4 w-4" /> 
                           Billing
@@ -371,7 +371,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                   
                   <DropdownMenuSeparator className="dark:bg-neutral-700" />
                   <DropdownMenuItem 
-                    className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:!bg-neutral-700"
+                    className="flex items-center gap-2 cursor-pointer dark:text-neutral-200 dark:hover:!bg-neutral-700"
                     onClick={(e) => {
                       e.preventDefault();
                       console.log('Theme toggle clicked, current theme:', theme);
@@ -390,7 +390,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                       </>
                     )}
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="dark:bg-gray-700" />
+                  <DropdownMenuSeparator className="dark:bg-neutral-700" />
                   <DropdownMenuItem 
                     className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:!bg-neutral-700"
                     onClick={logout}
@@ -416,33 +416,33 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                   <DropdownMenuTrigger asChild>
                     <div className="flex items-center space-x-3 cursor-pointer rounded-lg p-2 transition-colors">
                       <Avatar className="h-8 w-8 bg-neutral-300 dark:bg-neutral-600 p-[1px]">
-                        <AvatarFallback className="text-gray-500 text-sm font-medium bg-neutral-100 dark:bg-neutral-800">
+                        <AvatarFallback className="text-neutral-500 text-sm font-medium bg-neutral-100 dark:bg-neutral-800">
                           {user?.name?.charAt(0).toUpperCase() || 'U'}
                         </AvatarFallback>
                       </Avatar>
                     </div>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 z-50">
-                  <div className="flex-1 min-w-0 border-b border-gray-50 dark:border-gray-700 pb-4 mb-1">
-                    <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
+                  <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 z-50">
+                  <div className="flex-1 min-w-0 border-b border-neutral-50 dark:border-neutral-700 pb-4 mb-1">
+                    <p className="text-xs font-medium text-neutral-900 dark:text-neutral-100 truncate">
                       {user?.name || 'User'}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
                       {user?.email || 'user@example.com'}
                     </p>
                   </div>
-                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:!bg-neutral-700">
+                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-neutral-200 dark:hover:!bg-neutral-700">
                     
                     <Icon type='plain' name={`Person`} color='hsl(var(--primary))'className="h-4 w-4" /> 
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:!bg-neutral-700">
+                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-neutral-200 dark:hover:!bg-neutral-700">
                     <Icon type='plain' name={`Receipt`} color='hsl(var(--primary))'className="h-4 w-4" /> 
                     Billing
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="dark:bg-neutral-700" />
                   <DropdownMenuItem 
-                    className="flex items-center gap-2 cursor-pointer dark:text-gray-200 dark:hover:!bg-neutral-700"
+                    className="flex items-center gap-2 cursor-pointer dark:text-neutral-200 dark:hover:!bg-neutral-700"
                     onClick={(e) => {
                       e.preventDefault();
                       console.log('Theme toggle clicked, current theme:', theme);
@@ -461,7 +461,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                       </>
                     )}
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="dark:bg-gray-700" />
+                  <DropdownMenuSeparator className="dark:bg-neutral-700" />
                   <DropdownMenuItem 
                     className="flex items-center gap-2 cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:!bg-neutral-700"
                     onClick={logout}

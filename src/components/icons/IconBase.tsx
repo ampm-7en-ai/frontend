@@ -136,6 +136,8 @@ const IconBase = ({ type, className = '', iconType, color }) => {
         return <Loading type={type} className={baseClass} color={color} />;
       case 'Play':
         return <Play type={type} className={baseClass} color={color} />;
+      case 'Key':
+        return <Key type={type} className={baseClass} color={color} />;
       case 'Rocket':
         return <Rocket type={type} className={baseClass} color={color} />;
       default:

@@ -204,13 +204,13 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
         ) : (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-neutral-200/50 dark:border-neutral-600/50">
+              <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-neutral-200/50 dark:border-none">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Response Model</h4>
                 <p className="text-muted-foreground dark:text-muted-foreground">
                   {modelOptionsForDropdown.find(option => option.value === globalSettingsForm.getValues().defaultModel)?.label || globalSettingsForm.getValues().defaultModel}
                 </p>
               </div>
-              <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-neutral-200/50 dark:border-neutral-600/50">
+              <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-neutral-200/50 dark:border-none">
                 <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Default Temperature</h4>
                 <p className="text-muted-foreground dark:text-muted-foreground">{globalSettingsForm.getValues().defaultTemperature}</p>
               </div>

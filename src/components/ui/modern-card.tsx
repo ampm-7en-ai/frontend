@@ -10,7 +10,7 @@ const ModernCard = React.forwardRef<
 >(({ className, variant = 'default', ...props }, ref) => {
   const variants = {
     default: "bg-gray-50 dark:bg-neutral-800/70 dark:border-neutral-600 border border-border dark:border-neutral-600",
-    glass: "bg-card/50 dark:bg-neutral-800/70 backdrop-blur-sm border border-border/50 dark:border-neutral-600",
+    glass: "bg-card/50 dark:bg-neutral-800/70 border border-border/50 dark:border-none",
     elevated: "bg-card border border-border shadow-lg"
   }
   

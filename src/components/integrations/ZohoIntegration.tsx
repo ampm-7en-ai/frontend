@@ -463,9 +463,9 @@ const ZohoIntegration = ({setAppConnection}) => {
     <div className="space-y-8">
       {/* Current Configuration Cards */}
       {isConnected && zohoStatus && (
-        <div className="bg-white dark:bg-neutral-800 rounded-lg border border-slate-200 dark:border-neutral-700 p-6">
+        <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-none p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Current Configuration</h3>
+            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Current Configuration</h3>
             <ModernButton
               variant="outline"
               size="sm"
@@ -476,37 +476,34 @@ const ZohoIntegration = ({setAppConnection}) => {
             </ModernButton>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-slate-50 dark:bg-neutral-700/50 rounded-lg p-4 border border-slate-200 dark:border-neutral-600">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4 border border-neutral-200 dark:border-none">
               <div className="flex items-center gap-3 mb-2">
-                <Building2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                <h4 className="font-medium text-slate-900 dark:text-slate-100">Organization</h4>
+                <h4 className="font-medium text-neutral-900 dark:text-neutral-100">Organization</h4>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">
                 {getOrganizationName(zohoStatus.org_id)}
               </p>
             </div>
 
-            <div className="bg-slate-50 dark:bg-neutral-700/50 rounded-lg p-4 border border-slate-200 dark:border-neutral-600">
+            <div className="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4 border border-neutral-200 dark:border-none">
               <div className="flex items-center gap-3 mb-2">
-                <Settings className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                <h4 className="font-medium text-slate-900 dark:text-slate-100">Department</h4>
+                <h4 className="font-medium text-neutral-900 dark:text-neutral-100">Department</h4>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">
                 {getDisplayValue(zohoStatus.department_name)}
               </p>
             </div>
 
-            <div className="bg-slate-50 dark:bg-neutral-700/50 rounded-lg p-4 border border-slate-200 dark:border-neutral-600">
+            <div className="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4 border border-neutral-200 dark:border-none">
               <div className="flex items-center gap-3 mb-2">
-                <User className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                <h4 className="font-medium text-slate-900 dark:text-slate-100">Primary Contact</h4>
+                <h4 className="font-medium text-neutral-900 dark:text-neutral-100">Primary Contact</h4>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">
                 {getDisplayValue(zohoStatus.contact_name)}
               </p>
               {zohoStatus.contact_email && (
-                <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-1">
                   {zohoStatus.contact_email}
                 </p>
               )}
@@ -515,7 +512,7 @@ const ZohoIntegration = ({setAppConnection}) => {
 
           {/* Edit Configuration Form */}
           {isEditingConfig && (
-            <div className="border-t border-slate-200 dark:border-neutral-700 pt-6">
+            <div className="border-t border-neutral-200 dark:border-none pt-6">
               <div className="space-y-6">
                 {/* Authentication Error Alert */}
                 {errors.isAuthError && (
@@ -544,11 +541,11 @@ const ZohoIntegration = ({setAppConnection}) => {
                 )}
 
                 <div>
-                  <Label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">Organization</Label>
+                  <Label className="text-sm font-medium mb-2 block text-neutral-700 dark:text-neutral-300">Organization</Label>
                   {loadingStates.organizations ? (
-                    <div className="flex items-center gap-2 p-3 border border-slate-200 dark:border-neutral-700 rounded-xl bg-slate-50 dark:bg-neutral-800/50">
+                    <div className="flex items-center gap-2 p-3 border border-neutral-200 dark:border-none rounded-xl bg-neutral-50 dark:bg-neutral-800/50">
                       <LoadingSpinner size="sm" />
-                      <span className="text-sm text-slate-600 dark:text-slate-400">Loading organizations...</span>
+                      <span className="text-sm text-neutral-600 dark:text-neutral-400">Loading organizations...</span>
                     </div>
                   ) : errors.organizations ? (
                     <div className="space-y-2">
@@ -584,11 +581,11 @@ const ZohoIntegration = ({setAppConnection}) => {
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">Department</Label>
+                  <Label className="text-sm font-medium mb-2 block text-neutral-700 dark:text-neutral-300">Department</Label>
                   {loadingStates.departments ? (
-                    <div className="flex items-center gap-2 p-3 border border-slate-200 dark:border-neutral-700 rounded-xl bg-slate-50 dark:bg-neutral-800/50">
+                    <div className="flex items-center gap-2 p-3 border border-neutral-200 dark:border-none rounded-xl bg-neutral-50 dark:bg-neutral-800/50">
                       <LoadingSpinner size="sm" />
-                      <span className="text-sm text-slate-600 dark:text-slate-400">Loading departments...</span>
+                      <span className="text-sm text-neutral-600 dark:text-neutral-400">Loading departments...</span>
                     </div>
                   ) : errors.departments ? (
                     <div className="space-y-2">
@@ -621,18 +618,18 @@ const ZohoIntegration = ({setAppConnection}) => {
                       disabled={errors.isAuthError}
                     />
                   ) : (
-                    <div className="p-3 border border-slate-200 dark:border-neutral-700 rounded-xl bg-slate-50 dark:bg-neutral-800/50 text-sm text-slate-500 dark:text-slate-400">
+                    <div className="p-3 border border-neutral-200 dark:border-none rounded-xl bg-neutral-50 dark:bg-neutral-800/50 text-sm text-neutral-500 dark:text-neutral-400">
                       Please select an organization first
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">Primary Contact</Label>
+                  <Label className="text-sm font-medium mb-2 block text-neutral-700 dark:text-neutral-300">Primary Contact</Label>
                   {loadingStates.contacts ? (
-                    <div className="flex items-center gap-2 p-3 border border-slate-200 dark:border-neutral-700 rounded-xl bg-slate-50 dark:bg-neutral-800/50">
+                    <div className="flex items-center gap-2 p-3 border border-neutral-200 dark:border-none rounded-xl bg-neutral-50 dark:bg-neutral-800/50">
                       <LoadingSpinner size="sm" />
-                      <span className="text-sm text-slate-600 dark:text-slate-400">Loading contacts...</span>
+                      <span className="text-sm text-neutral-600 dark:text-neutral-400">Loading contacts...</span>
                     </div>
                   ) : errors.contacts ? (
                     <div className="space-y-2">
@@ -665,7 +662,7 @@ const ZohoIntegration = ({setAppConnection}) => {
                       disabled={errors.isAuthError}
                     />
                   ) : (
-                    <div className="p-3 border border-slate-200 dark:border-neutral-700 rounded-xl bg-slate-50 dark:bg-neutral-800/50 text-sm text-slate-500 dark:text-slate-400">
+                    <div className="p-3 border border-neutral-200 dark:border-none rounded-xl bg-neutral-50 dark:bg-neutral-800/50 text-sm text-neutral-500 dark:text-neutral-400">
                       Please select an organization first
                     </div>
                   )}
@@ -691,12 +688,11 @@ const ZohoIntegration = ({setAppConnection}) => {
       )}
 
       {/* Connection Management */}
-      <div className="bg-white dark:bg-neutral-800 rounded-lg border border-slate-200 dark:border-neutral-700 p-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-none p-6">
         <div className="flex items-center gap-3 mb-4">
-          <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Connection Management</h3>
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Connection Management</h3>
         </div>
-        <p className="text-slate-600 dark:text-slate-400 mb-6">
+        <p className="text-neutral-600 dark:text-neutral-400 mb-6">
           {isConnected 
             ? "Your Zoho Desk integration is active and ready to streamline your support workflow." 
             : "Connect your Zoho Desk account to enable automated ticket management and customer support features."
@@ -734,9 +730,9 @@ const ZohoIntegration = ({setAppConnection}) => {
       </div>
 
       {/* Features Overview */}
-      <div className="bg-white dark:bg-neutral-800 rounded-lg border border-slate-200 dark:border-neutral-700 p-6">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Zoho Desk Capabilities</h3>
-        <p className="text-slate-600 dark:text-slate-400 mb-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-none p-6">
+        <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Zoho Desk Capabilities</h3>
+        <p className="text-neutral-600 dark:text-neutral-400 mb-6">
           Powerful features to enhance your customer support operations
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -748,9 +744,9 @@ const ZohoIntegration = ({setAppConnection}) => {
             "Team collaboration and notes",
             "Advanced reporting and analytics"
           ].map((feature, index) => (
-            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-neutral-700/50 border border-slate-200 dark:border-neutral-600">
+            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-neutral-50 dark:bg-neutral-700/50 border border-neutral-200 dark:border-none">
               <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
-              <span className="text-sm text-slate-700 dark:text-slate-300">{feature}</span>
+              <span className="text-sm text-neutral-700 dark:text-neutral-300">{feature}</span>
             </div>
           ))}
         </div>
