@@ -13,7 +13,7 @@ export class WebSocketService {
   private listeners: Map<string, Function[]> = new Map();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 3; // Reduced to prevent resource exhaustion
-  private processedMessages: Set<string> = new Set();
+  // Removed processedMessages - deduplication handled by component
   private url: string;
   private authHeaders: Record<string, string> = {};
   private isConnecting = false;
@@ -55,32 +55,15 @@ export class WebSocketService {
           const data = JSON.parse(event.data);
           console.log('WebSocket parsed message:', data);
           
-          // Generate a message ID for deduplication
-          const messageId = data.id || 
-                           `${data.type}-${JSON.stringify(data.data || {})}-${new Date().getTime()}`;
+          // Add source identifier for debugging
+          const messageWithSource = { ...data, source: 'websocket' };
           
-          // Skip duplicate processing within a short time window
-          if (this.processedMessages.has(messageId)) {
-            console.log('Skipping duplicate WebSocket message:', messageId);
-            return;
-          }
-          
-          // Add to processed messages
-          this.processedMessages.add(messageId);
-          
-          // Clean up old entries periodically
-          if (this.processedMessages.size > 50) { // Reduced size
-            this.processedMessages = new Set(
-              Array.from(this.processedMessages).slice(-25)
-            );
-          }
-          
-          if (data.type) {
-            // Emit the specific event type
-            this.emit(data.type, data);
+          if (messageWithSource.type) {
+            // Emit the specific event type with source info
+            this.emit(messageWithSource.type, messageWithSource);
             
             // Also emit a generic 'message' event for all messages
-            this.emit('message', data);
+            this.emit('message', messageWithSource);
           }
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);

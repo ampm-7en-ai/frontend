@@ -24,6 +24,8 @@ interface Message {
   timestamp: string;
   ui_type?: string;
   messageId?: string;
+  source?: string;
+  session_id?: string;
 }
 
 interface ChatboxPreviewProps {
@@ -85,6 +87,7 @@ export const ChatboxPreview = ({
   const [systemMessage, setSystemMessage] = useState<string>('');
   const [isInitializing, setIsInitializing] = useState(true);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [isLoadingSessionMessages, setIsLoadingSessionMessages] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
@@ -137,10 +140,20 @@ export const ChatboxPreview = ({
 
   // Start/restart timeout based on latest message
   const manageTimeout = () => {
+    // Skip timeout management if we're loading session messages
+    if (isLoadingSessionMessages) {
+      console.log('📚 Skipping timeout management - session messages loading');
+      return;
+    }
+
     const latestMessage = getLatestMessage();
     if (!latestMessage) return;
 
-    console.log('Managing timeout for latest message:', latestMessage.type);
+    console.log('⏰ Managing timeout for latest message:', {
+      type: latestMessage.type,
+      content: latestMessage.content?.slice(0, 30),
+      messageId: latestMessage.messageId
+    });
 
     // If feedback form is already visible, keep it open and skip timeout management
     if (showFeedbackForm) {
@@ -256,13 +269,25 @@ export const ChatboxPreview = ({
 
   // Improved message ID generation for better deduplication
   const generateUniqueMessageId = (message: any): string => {
-    // Use existing messageId if available
-    if (message.messageId) return message.messageId;
+    // Use existing messageId if available (from database)
+    if (message.messageId) {
+      console.log('🆔 Using existing messageId:', message.messageId, 'Source:', message.source);
+      return message.messageId;
+    }
     
-    // Create a more robust ID based on content + type + sequence
+    // For database messages, create a stable ID based on content and timestamp
+    if (message.source === 'database' || message.session_id) {
+      const stableId = `db-${message.session_id || sessionId}-${message.content?.slice(0, 20) || message.type}-${message.timestamp}`;
+      console.log('🗄️ Generated database messageId:', stableId);
+      return stableId;
+    }
+    
+    // For real-time messages, create a sequence-based ID
     messageSequenceRef.current += 1;
-    const contentHash = message.content.slice(0, 30).replace(/\s+/g, '-');
-    return `${message.type}-${contentHash}-${messageSequenceRef.current}-${Date.now()}`;
+    const contentHash = (message.content || '').slice(0, 20).replace(/\s+/g, '-');
+    const realtimeId = `rt-${message.type}-${contentHash}-${messageSequenceRef.current}-${Date.now()}`;
+    console.log('🔄 Generated real-time messageId:', realtimeId, 'Source:', message.source);
+    return realtimeId;
   };
 
   useEffect(() => {
@@ -281,11 +306,11 @@ export const ChatboxPreview = ({
     
     chatServiceRef.current.on({
       onMessage: (message) => {
-        console.log("Received message:", message);
+        console.log("📥 Received message:", message, "Source:", message.source);
         
         // Skip if we're in the middle of restarting
         if (restartingRef.current) {
-          console.log("Skipping message during restart");
+          console.log("⏭️ Skipping message during restart");
           return;
         }
         
@@ -296,41 +321,64 @@ export const ChatboxPreview = ({
           return;
         }
         
-        // Generate unique message ID for better deduplication
+        // Generate unique message ID for enhanced deduplication
         const messageId = generateUniqueMessageId(message);
         
-        // Enhanced deduplication check
+        // Enhanced deduplication check with detailed logging
         if (processedMessageIds.current.has(messageId)) {
-          console.log("Duplicate message detected, skipping:", messageId);
+          console.log("⚠️ Duplicate message detected, skipping:", {
+            messageId,
+            content: message.content?.slice(0, 50),
+            type: message.type,
+            source: message.source,
+            sessionId: message.session_id
+          });
           return;
         }
         
+        console.log("✅ Processing new message:", {
+          messageId,
+          type: message.type,
+          source: message.source,
+          content: message.content?.slice(0, 50),
+          sessionId: message.session_id
+        });
+        
         // Add to processed set
         processedMessageIds.current.add(messageId);
+        
+        // Limit processed IDs size to prevent memory leaks
+        if (processedMessageIds.current.size > 200) {
+          const idsArray = Array.from(processedMessageIds.current);
+          processedMessageIds.current = new Set(idsArray.slice(-100));
+          console.log("🧹 Cleaned up processed message IDs");
+        }
         
         // Clear typing indicator and system message
         setShowTypingIndicator(false);
         setSystemMessage('');
         
-        // Track bot messages for idle timeout
-        if (message.type === 'bot_response') {
-          console.log('Bot message received, will manage timeout after state update');
+        // Track different message sources
+        if (message.source === 'database') {
+          console.log('📚 Database message loaded');
+        } else if (message.source === 'websocket') {
+          console.log('🔄 Real-time message received');
         }
         
-          // Add message to state
-          setMessages(prev => {
-            const newMessages = [...prev, { ...message, messageId }];
-            
-            // Start timeout management after state update if this is a bot message
-            if (message.type === 'bot_response') {
-              setTimeout(() => {
-                console.log('Managing timeout after bot message');
-                manageTimeout();
-              }, 0);
-            }
-            
-            return newMessages;
-          });
+        // Add message to state
+        setMessages(prev => {
+          const newMessages = [...prev, { ...message, messageId }];
+          
+          // Only manage timeout for real-time bot responses, not database messages
+          if (message.type === 'bot_response' && message.source === 'websocket') {
+            setTimeout(() => {
+              console.log('⏰ Managing timeout after real-time bot message');
+              manageTimeout();
+            }, 0);
+          }
+          
+          return newMessages;
+        });
       },
       onTypingStart: () => {
         console.log("Typing indicator started");
@@ -355,18 +403,31 @@ export const ChatboxPreview = ({
         setIsInitializing(false);
       },
       onConnectionChange: (status) => {
-        console.log("Connection status changed:", status);
+        console.log("🔗 Connection status changed:", status);
         setIsConnected(status);
         setIsInitializing(false);
         if (status) {
           setConnectionError(null);
-          // Start timeout management when connected
-          console.log('Connection established, starting timeout management');
-          manageTimeout();
           
+          // Handle session initialization if session storage is enabled
           if (enableSessionStorage && sessionId && chatServiceRef.current) {
-            console.log('Sending session initialization:', sessionId);
+            console.log('📨 Sending session initialization:', sessionId);
+            setIsLoadingSessionMessages(true);
+            
+            // Send session init and track when database messages start/end loading
             chatServiceRef.current.sendSessionInit(sessionId);
+            
+            // Set a reasonable timeout for session loading
+            setTimeout(() => {
+              console.log('📚 Session message loading timeout reached');
+              setIsLoadingSessionMessages(false);
+              // Start timeout management after session loading
+              manageTimeout();
+            }, 3000); // 3 seconds timeout for session loading
+          } else {
+            // Start timeout management immediately if no session to load
+            console.log('⏰ Connection established, starting timeout management (no session)');
+            manageTimeout();
           }
         }
       },

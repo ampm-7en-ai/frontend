@@ -10,6 +10,9 @@ interface ChatMessage {
   prompt: string;
   temperature: number;
   ui_type?: string;
+  source?: string;
+  session_id?: string;
+  messageId?: string;
 }
 
 interface ChatWebSocketEvents {
@@ -24,8 +27,7 @@ interface ChatWebSocketEvents {
 export class ChatWebSocketService {
   protected ws: WebSocketService;
   private events: ChatWebSocketEvents = {};
-  private processedMessageIds: Set<string> = new Set();
-  private sessionIdReceived: boolean = false; 
+  private sessionIdReceived: boolean = false;
   
   constructor(agentId: string, url: string) {
     this.ws = new WebSocketService(url === "playground" ? 
@@ -91,13 +93,6 @@ export class ChatWebSocketService {
       const messageTimestamp = this.extractTimestamp(data);
       const messageId = `${data.type}-${data.ui_type}-${messageTimestamp}`;
       
-      if (this.processedMessageIds.has(messageId)) {
-        console.log('⏭️ Skipping duplicate UI message:', messageId);
-        return;
-      }
-      
-      this.processedMessageIds.add(messageId);
-      
       this.events.onMessage?.({
         type: data.type,
         content: '',
@@ -105,7 +100,10 @@ export class ChatWebSocketService {
         model: '',
         temperature: 0,
         prompt: '',
-        ui_type: data.ui_type
+        ui_type: data.ui_type,
+        source: data.source || 'websocket',
+        session_id: data.session_id,
+        messageId: data.messageId || data.id || messageId
       });
       
       return;
@@ -127,31 +125,20 @@ export class ChatWebSocketService {
       return;
     }
     
-    // Generate consistent ID for deduplication
-    const messageId = `${messageContent}-${messageTimestamp}`;
+    // Generate message ID from existing data or create one
+    const messageId = data.messageId || data.id || `${messageContent.slice(0, 20)}-${messageTimestamp}`;
     
-    if (this.processedMessageIds.has(messageId)) {
-      console.log('⏭️ Skipping duplicate message:', messageId);
-      return;
-    }
-    
-    this.processedMessageIds.add(messageId);
-    
-    // Limit set size to prevent memory issues
-    if (this.processedMessageIds.size > 100) {
-      this.processedMessageIds = new Set(
-        Array.from(this.processedMessageIds).slice(-50)
-      );
-    }
-    
-    // Emit the message event
+    // Emit the message event (deduplication handled by component)
     this.events.onMessage?.({
       type: messageType,
       content: messageContent,
       timestamp: messageTimestamp,
       model: messageModel,
       temperature: messageTemperature,
-      prompt: messagePrompt
+      prompt: messagePrompt,
+      source: data.source || 'websocket',
+      session_id: data.session_id,
+      messageId: messageId
     });
   }
   
