@@ -189,7 +189,7 @@
     
     .chat-popup {
       width: 384px;
-      height: 700px;
+      height: 85vh;
       background: #ffffff;
       border-radius: 20px 20px 20px 20px;
       box-shadow: 10px 20px 30px rgba(0,0,0,0.3) !important;

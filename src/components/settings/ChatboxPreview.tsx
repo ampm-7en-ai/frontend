@@ -1809,7 +1809,6 @@ export const ChatboxPreview = ({
           ) : !isConnected ? (
             <div className="flex items-center gap-2 bg-orange-500/20 px-3 py-1.5 rounded-full border border-orange-300/30 backdrop-blur-sm">
               <WifiOff size={14} className="text-white/90" />
-              <span className="text-xs text-white/90 font-medium">Disconnected</span>
             </div>
           ) : null}
         </div>
@@ -1863,7 +1862,7 @@ export const ChatboxPreview = ({
                      >
                       <div
                         className={cn(
-                          `rounded-[20px] p-4 max-w-[92%] relative transition-all duration-300 ${message.type === 'user' ? "!py-2 rounded-br-sm" : !isConsecutive ? "rounded-bl-sm" : "rounded-tl-sm"}`,
+                          `rounded-[20px] p-4 max-w-[92%] relative transition-all duration-300 ${(message.type === 'user' || message.type === 'message') ? "!py-2 rounded-br-sm" : !isConsecutive ? "rounded-bl-sm" : "rounded-tl-sm"}`,
                           styling.containerClass,
                           styling.textClass
                         )}
@@ -2258,7 +2257,7 @@ export const ChatboxPreview = ({
                 <Button
                   onClick={handleFeedbackNoThanks}
                   variant="outline"
-                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-2 text-sm dark:bg-transparent hover:text-neutral-900"
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-2 text-sm bg-transparent hover:text-neutral-900"
                 >
                   No Thanks
                 </Button>

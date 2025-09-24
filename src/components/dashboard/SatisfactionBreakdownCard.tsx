@@ -5,16 +5,10 @@ import { Heart } from 'lucide-react';
 import { Icon } from '../icons';
 
 interface SatisfactionBreakdownCardProps {
-  positive?: number;
-  neutral?: number;
-  negative?: number;
+  data?: Array<number>;
 }
 
-const SatisfactionBreakdownCard: React.FC<SatisfactionBreakdownCardProps> = ({
-  positive = 85,
-  neutral = 12,
-  negative = 3
-}) => {
+const SatisfactionBreakdownCard: React.FC<SatisfactionBreakdownCardProps> = ({data}) => {
   return (
     <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-lg shadow-none">
       <CardHeader className="pb-3">
@@ -43,7 +37,7 @@ const SatisfactionBreakdownCard: React.FC<SatisfactionBreakdownCardProps> = ({
             </div>
             <div className="text-center">
               <div className="text-xs text-muted-foreground">Positive</div>
-              <div className="text-lg font-semibold text-foreground">{positive}%</div>
+              <div className="text-lg font-semibold text-foreground">{data[0]}%</div>
             </div>
           </div>
 
@@ -60,7 +54,7 @@ const SatisfactionBreakdownCard: React.FC<SatisfactionBreakdownCardProps> = ({
             </div>
             <div className="text-center">
               <div className="text-xs text-muted-foreground">Neutral</div>
-              <div className="text-lg font-semibold text-foreground">{neutral}%</div>
+              <div className="text-lg font-semibold text-foreground">{data[1]}%</div>
             </div>
           </div>
 
@@ -80,7 +74,7 @@ const SatisfactionBreakdownCard: React.FC<SatisfactionBreakdownCardProps> = ({
             </div>
             <div className="text-center">
               <div className="text-xs text-muted-foreground">Negative</div>
-              <div className="text-lg font-semibold text-foreground">{negative}%</div>
+              <div className="text-lg font-semibold text-foreground">{data[2]}%</div>
             </div>
           </div>
         </div>

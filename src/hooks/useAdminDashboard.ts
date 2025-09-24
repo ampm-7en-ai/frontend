@@ -55,6 +55,17 @@ export interface WeeklyPerformanceItem {
   conversions?: number;
 }
 
+export interface PastSixMonthsItem {
+  month: string;
+  replies: number;
+}
+
+export interface HumanXAiItem {
+  month: string;
+  ai: number;
+  human: number;
+}
+
 export interface AdminDashboardData {
   my_agents: number;
   conversations: number;
@@ -64,13 +75,17 @@ export interface AdminDashboardData {
   agent_performance_comparison: AgentPerformanceComparison[];
   usage_history: UsageHistoryItem[];
   satisfaction_trends: SatisfactionTrendItem[];
+  credit_used: number;
+  total_credits: number;
   chart_data: {
     agent_distribution: ChartDataItem[];
-    satisfaction_breakdown: ChartDataItem[];
+    satisfaction_breakdown: number[];
     daily_performance: PerformanceDataItem[];
     weekly_performance: PerformanceDataItem[];
     monthly_performance: PerformanceDataItem[];
     yearly_performance: PerformanceDataItem[];
+    past_6_months: PastSixMonthsItem[];
+    human_x_ai_: HumanXAiItem[];
   };
 }
 

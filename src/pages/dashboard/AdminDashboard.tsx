@@ -102,15 +102,15 @@ const AdminDashboard = () => {
         </div>
         {/* New Analytics Cards Row 1 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <RepliesCreditCard used={1000} total={2000} />
-          <MonthlyRepliesCard />
-          <SatisfactionBreakdownCard />
+          <RepliesCreditCard used={data?.credit_used || 0} total={data?.total_credits || 0} />
+          <MonthlyRepliesCard data={data?.chart_data?.past_6_months || []} />
+          <SatisfactionBreakdownCard data={data?.chart_data?.satisfaction_breakdown || []} />
         </div>
         
         {/* New Analytics Cards Row 2 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <ConversationPerformanceCard agentPerformanceComparison={data.agent_performance_comparison} />
-          <HandoverAnalyticsCard />
+          <HandoverAnalyticsCard data={data?.chart_data?.human_x_ai_ || []} />
         </div>
         
         

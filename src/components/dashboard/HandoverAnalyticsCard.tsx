@@ -35,6 +35,7 @@ const HandoverAnalyticsCard: React.FC<HandoverAnalyticsCardProps> = ({ data }) =
   ];
 
   const chartData = data || defaultData;
+  console.log(chartData);
   const maxValue = Math.max(...chartData.map(d => d.ai + d.human));
 
   return (
@@ -56,51 +57,18 @@ const HandoverAnalyticsCard: React.FC<HandoverAnalyticsCardProps> = ({ data }) =
                     <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.05} />
                   </linearGradient>
                   <linearGradient id="humanGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.05} />
+                    <stop offset="5%" stopColor="#f06425" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#f06425" stopOpacity={0.05} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
-                <XAxis 
-                  dataKey="month" 
-                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis 
-                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                  axisLine={false}
-                  tickLine={false}
-                />
+                <XAxis dataKey="month" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
                 <RechartsTooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                    color: 'hsl(var(--foreground))'
-                  }}
+                  contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)', color: 'hsl(var(--foreground))' }}
                 />
-                <Area
-                  type="monotone"
-                  stackId="1"
-                  dataKey="ai"
-                  stroke="hsl(var(--primary))"
-                  fill="none"
-                  strokeWidth={2}
-                  fillOpacity={1}
-                  name="AI Replies"
-                />
-                <Area
-                  type="monotone"
-                  stackId="1"
-                  dataKey="human"
-                  stroke="#f06425"
-                  fill="none"
-                  strokeWidth={2}
-                  fillOpacity={1}
-                  name="Human Handovers"
-                />
+                <Area type="monotone" dataKey="ai" stroke="hsl(var(--primary))" fill="url(#aiGradient)" strokeWidth={2} name="AI Replies" />
+                <Area type="monotone" dataKey="human" stroke="#f06425" fill="url(#humanGradient)" strokeWidth={2} name="Human Handovers" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
