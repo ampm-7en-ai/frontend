@@ -375,9 +375,15 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
       const matchesSearch = urlData.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           urlData.title.toLowerCase().includes(searchQuery.toLowerCase());
       
-      // Exclude pattern filter
-      const matchesExclude = excludePattern.trim() === '' || 
-                           !urlData.url.toLowerCase().includes(excludePattern.toLowerCase().replace('*', ''));
+      // Exclude pattern filter - support multiple comma-separated patterns
+      let matchesExclude = true;
+      if (excludePattern.trim() !== '') {
+        const patterns = excludePattern.split(',').map(p => p.trim().toLowerCase());
+        matchesExclude = !patterns.some(pattern => {
+          const cleanPattern = pattern.replace(/\*/g, '');
+          return urlData.url.toLowerCase().includes(cleanPattern);
+        });
+      }
       
       return matchesSearch && matchesExclude;
     });
@@ -586,9 +592,22 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
     const maxPages = Math.ceil(filtered.length / gDrivePageSize);
     if (gDrivePage < maxPages - 1) {
       setGDrivePage(prev => prev + 1);
+      // Scroll to Google Drive section
+      setTimeout(() => {
+        const gDriveElement = document.getElementById('google-drive-files-section');
+        if (gDriveElement) {
+          gDriveElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
     } else if (pageData.nextToken) {
       // Fetch more data from server
       fetchGoogleDriveData(pageData.nextToken);
+      setTimeout(() => {
+        const gDriveElement = document.getElementById('google-drive-files-section');
+        if (gDriveElement) {
+          gDriveElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 500); // Wait for new data to load
     }
   };
 
@@ -1165,10 +1184,10 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                         />
                       </div>
                       <Input
-                        placeholder="Exclude pattern (e.g., /blog/*)"
+                        placeholder="Exclude patterns (e.g., /blog/*, /contact/*)"
                         value={excludePattern}
                         onChange={(e) => setExcludePattern(e.target.value)}
-                        className="w-48 h-8 text-xs bg-white/80 dark:bg-neutral-800/80 border-neutral-200/60 dark:border-neutral-600/60"
+                        className="w-56 h-8 text-xs bg-white/80 dark:bg-neutral-800/80 border-neutral-200/60 dark:border-neutral-600/60"
                       />
                     </div>
                     
@@ -1355,12 +1374,15 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                     </div>
 
                     {selectedProvider === 'googleDrive' && (allGoogleDriveFiles.length > 0 || isLoadingGoogleDriveFiles) && (
-                      <div className="space-y-3">
+                      <div className="space-y-3" id="google-drive-files-section">
                         <div className="flex items-center justify-between">
                           <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                             Google Drive Files ({selectedFiles.length} selected)
                           </Label>
                           <div className="flex items-center gap-2">
+                            <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                              Page {gDrivePage + 1} of {Math.ceil(getFilteredGoogleDriveFiles().length / gDrivePageSize) || 1}
+                            </span>
                             <div className="flex items-center gap-1">
                               <ModernButton
                                 variant="outline"
@@ -1375,7 +1397,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                                 variant="outline"
                                 size="sm"
                                 onClick={handleGDriveNextPage}
-                                disabled={isLoadingGoogleDriveFiles}
+                                disabled={isLoadingGoogleDriveFiles || (gDrivePage >= Math.ceil(getFilteredGoogleDriveFiles().length / gDrivePageSize) - 1 && !pageData.nextToken)}
                                 type="button"
                               >
                                 <ChevronRight className="h-4 w-4" />
