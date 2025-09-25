@@ -17,6 +17,7 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Icon } from '@/components/icons';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface AgentCreationWizardProps {
   open: boolean;
@@ -271,7 +272,7 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
       return (
         <div className="flex items-center justify-center py-20">
           <div className="text-center space-y-4">
-            <Loader2 className="w-10 h-10 mx-auto animate-spin text-primary" />
+            <LoadingSpinner size="md" />
             <div>
               <h3 className="text-lg font-medium text-foreground mb-1">
                 Creating your agent...

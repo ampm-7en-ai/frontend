@@ -24,6 +24,7 @@ import { useIntegrations } from '@/hooks/useIntegrations';
 import { fetchGoogleDriveFiles } from '@/utils/api-config';
 import SourceTypeSelector from '@/components/agents/knowledge/SourceTypeSelector';
 import { GoogleDriveFile } from '@/types/googleDrive';
+import { Icon } from '@/components/icons';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 
@@ -758,17 +759,17 @@ const KnowledgeUpload = () => {
   };
 
   const getFileIcon = (mimeType: string) => {
-    if (mimeType.includes('spreadsheet')) {
-      return <Table className="h-4 w-4 text-green-600 dark:text-green-400" />;
-    } else if (mimeType.includes('document')) {
-      return <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
-    } else if (mimeType.includes('pdf')) {
-      return <FileText className="h-4 w-4 text-red-600 dark:text-red-400" />;
-    } else if (mimeType.includes('folder')) {
-      return <FileText className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />;
-    }
-    return <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />;
-  };
+      if (mimeType.includes('spreadsheet')) {
+        return <Icon type='plain' name={`SheetFile`} color='hsl(var(--primary))' className='h-5 w-5' />;
+      } else if (mimeType.includes('document')) {
+        return <Icon type='plain' name={`TextFile`} color='hsl(var(--primary))' className='h-5 w-5' />;
+      } else if (mimeType.includes('pdf')) {
+        return <Icon type='plain' name={`PdfFile`} color='hsl(var(--primary))' className='h-5 w-5' />;
+      } else if (mimeType.includes('folder')) {
+        return <Icon type='plain' name={`Folder`} color='hsl(var(--primary))' className='h-5 w-5' />;
+      }
+      return <Icon type='plain' name={`TextFile`} color='hsl(var(--primary))' className='h-5 w-5' />;
+    };
 
   const toggleFileSelection = (fileName: string) => {
     setSelectedFiles(prev => {

@@ -44,6 +44,7 @@ import Key from './library/Key';
 import Loading from './library/Loading';
 import { Play } from 'lucide-react';
 import Rocket from './library/Rocket';
+import PdfFile from './library/PdfFile';
 
 const IconBase = ({ type, className = '', iconType, color }) => {
 
@@ -140,6 +141,8 @@ const IconBase = ({ type, className = '', iconType, color }) => {
         return <Key type={type} className={baseClass} color={color} />;
       case 'Rocket':
         return <Rocket type={type} className={baseClass} color={color} />;
+      case 'PdfFile':
+        return <PdfFile type={type} className={baseClass} color={color} />;
       default:
         return null;
     }

@@ -11,6 +11,7 @@ import { BASE_URL, addGoogleDriveFileToAgent } from '@/utils/api-config';
 import { GoogleDriveFile } from '@/types/googleDrive';
 import { FileText, Globe, Table, AlignLeft, ExternalLink, CheckCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Icon } from '@/components/icons';
 
 // Define the source types locally since they're not exported from the types file
 export type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
@@ -384,15 +385,15 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     
     console.log('📥 API Response received:', apiResponse);
     
-    if (apiResponse && apiResponse.data) {
+    if (apiResponse) {
       const newSource: KnowledgeSource = {
-        id: apiResponse.data.id,
-        title: apiResponse.data.title,
-        type: apiResponse.data.type,
-        status: apiResponse.data.status,
-        urls: apiResponse.data.urls || [],
-        file: apiResponse.data.file,
-        metadata: apiResponse.data.metadata
+        id: apiResponse?.data?.id || apiResponse.id,
+        title: apiResponse?.data?.title || apiResponse.title,
+        type: apiResponse?.data?.type || apiResponse.type,
+        status: apiResponse?.data?.status || apiResponse.status,
+        urls: apiResponse?.data?.urls || [],
+        file: apiResponse?.data?.file || apiResponse.google_drive_file_id,
+        metadata: apiResponse?.data?.metadata || apiResponse.metadata
       };
 
       console.log('✅ New source created with ID:', newSource.id);
@@ -525,7 +526,18 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     setFiles(droppedFiles);
   };
 
-  const getFileIcon = () => <div>📄</div>;
+  const getFileIcon = (mimeType: string) => {
+      if (mimeType.includes('spreadsheet')) {
+        return <Icon type='plain' name={`SheetFile`} color='hsl(var(--primary))' className='h-5 w-5' />;
+      } else if (mimeType.includes('document')) {
+        return <Icon type='plain' name={`TextFile`} color='hsl(var(--primary))' className='h-5 w-5' />;
+      } else if (mimeType.includes('pdf')) {
+        return <Icon type='plain' name={`PdfFile`} color='hsl(var(--primary))' className='h-5 w-5' />;
+      } else if (mimeType.includes('folder')) {
+        return <Icon type='plain' name={`Folder`} color='hsl(var(--primary))' className='h-5 w-5' />;
+      }
+      return <Icon type='plain' name={`TextFile`} color='hsl(var(--primary))' className='h-5 w-5' />;
+    };
   
   const toggleFileSelection = (fileName: string) => {
     setSelectedFiles(prev => 

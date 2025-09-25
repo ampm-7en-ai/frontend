@@ -170,7 +170,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
       icon: <FileText className="h-4 w-4" />,
       title: "Documents",
       description: "PDF, DOCX, TXT files",
-      acceptedTypes: ".pdf,.docx,.txt"
+      acceptedTypes: ".pdf, .docx, .txt, .md, text/markdown, application/json"
     },
     csv: {
       icon: <Table className="h-4 w-4" />,
@@ -445,7 +445,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                 
                 <h3 className="font-medium text-neutral-900 dark:text-neutral-100 mb-2">Drop your files here</h3>
                 <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">
-                  {sourceType === 'document' ? 'PDF, DOCX, TXT up to 10MB each' : 'CSV, XLSX, XLS up to 10MB each'}
+                  {sourceType === 'document' ? 'Up to 10MB each' : 'CSV, XLSX, XLS up to 10MB each'}
                 </p>
                 <ModernButton 
                   variant="outline" 
@@ -653,7 +653,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                                   onCheckedChange={() => toggleFileSelection(file.name)}
                                   className='rounded-[4px]'
                                 />
-                                <div className="w-8 h-8 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg flex items-center justify-center transition-colors duration-200">
+                                <div className="w-8 h-8 bg-neutral-50 dark:bg-neutral-700 rounded-lg flex items-center justify-center transition-colors duration-200">
                                   {getFileIcon(file.mimeType)}
                                 </div>
                                 <div className="flex-1 min-w-0">

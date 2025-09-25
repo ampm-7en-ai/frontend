@@ -11,6 +11,7 @@ import SourceTypeSelector from './SourceTypeSelector';
 import { ModernModal } from '@/components/ui/modern-modal';
 import { Table, FileText } from 'lucide-react';
 import { GoogleDriveFile, GoogleDriveFilesResponse } from '@/types/googleDrive';
+import { Icon } from '@/components/icons';
 
 type SourceType = 'url' | 'document' | 'csv' | 'plainText' | 'thirdParty';
 type ThirdPartyProvider = 'googleDrive' | 'slack' | 'notion' | 'dropbox' | 'github';
@@ -522,15 +523,17 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
   };
 
   const getFileIcon = (mimeType: string) => {
-    if (mimeType.includes('spreadsheet')) {
-      return <Table className="h-4 w-4 text-green-600 dark:text-green-400" />;
-    } else if (mimeType.includes('document')) {
-      return <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
-    } else if (mimeType.includes('pdf')) {
-      return <FileText className="h-4 w-4 text-red-600 dark:text-red-400" />;
-    }
-    return <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />;
-  };
+      if (mimeType.includes('spreadsheet')) {
+        return <Icon type='plain' name={`SheetFile`} color='hsl(var(--primary))' className='h-5 w-5' />;
+      } else if (mimeType.includes('document')) {
+        return <Icon type='plain' name={`TextFile`} color='hsl(var(--primary))' className='h-5 w-5' />;
+      } else if (mimeType.includes('pdf')) {
+        return <Icon type='plain' name={`PdfFile`} color='hsl(var(--primary))' className='h-5 w-5' />;
+      } else if (mimeType.includes('folder')) {
+        return <Icon type='plain' name={`Folder`} color='hsl(var(--primary))' className='h-5 w-5' />;
+      }
+      return <Icon type='plain' name={`TextFile`} color='hsl(var(--primary))' className='h-5 w-5' />;
+    };
 
   const toggleFileSelection = (fileName: string) => {
     setSelectedFiles(prev => {

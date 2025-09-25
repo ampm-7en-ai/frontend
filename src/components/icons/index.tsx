@@ -48,6 +48,7 @@ const Icon = ({ name, type = 'gradient', className = '', color = '#737373' }) =>
      'Rocket',
      'Loading',
      'Play',
+     'PdfFile',
      'Cart'].includes(name)) return null;
   return (
   <>
