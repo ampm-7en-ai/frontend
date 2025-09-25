@@ -123,6 +123,7 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
     setKnowledgeData(knowledge);
 
     setCurrentStep('complete');
+    setTimeout(renderCurrentStep,100)
    
   };
 
@@ -188,7 +189,7 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
 
 
   const renderStepsSidebar = () => (
-    <div className="w-80 bg-white dark:bg-background/20 backdrop-blur-md border-r border-border/40 p-6">
+    <div className="w-80 bg-white dark:bg-neutral-900/50 backdrop-blur-md border-r border-border/40 p-6">
       <div className="space-y-6">
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-2">Create Agent</h2>
@@ -412,7 +413,7 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
       open={open}
       onOpenChange={handleClose}
       size="6xl"
-      className="p-0 overflow-hidden"
+      className="p-0 overflow-hidden shadow-none"
     >
       <div className="flex min-h-[600px]">
         {renderStepsSidebar()}

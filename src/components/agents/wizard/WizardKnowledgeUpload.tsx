@@ -3,7 +3,7 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { useAuth } from '@/context/AuthContext';
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import { CheckCircle } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Icon } from '@/components/icons';
 import KnowledgeUploadEngine from '@/components/knowledge/KnowledgeUploadEngine';
 
@@ -95,16 +95,20 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
 
   return (
     <div className="space-y-8">
-      <div className="text-center space-y-4">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Add Knowledge Sources</h2>
-        <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-          Upload documents, websites, or connect integrations to give your agent knowledge to work with. 
-          You can add multiple sources and train your agent when ready.
+      <div className="space-y-4">
+        <div>
+        <h3 className="text-xl font-semibold text-foreground mb-2">
+          Add Knowledge Sources
+        </h3>
+        <p className="text-neutral-600 dark:text-muted-foreground">
+          Upload documents, websites, or connect integrations to give your agent knowledge.
         </p>
+      </div>
       </div>
 
       {/* Knowledge Upload Engine */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+      <ScrollArea className='h-[55vh]'>
+      <div className="bg-white dark:bg-neutral-900/50 rounded-2xl border border-neutral-200 dark:border-none p-6">
         <KnowledgeUploadEngine
           mode="wizard"
           agentId={agentId || undefined}
@@ -116,9 +120,9 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           showTitle={false}
         />
       </div>
-
+      </ScrollArea>
       {/* Added Sources Display */}
-      {addedSources.length > 0 && (
+      {/* {addedSources.length > 0 && (
         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -151,7 +155,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
             </div>
           </ScrollArea>
         </div>
-      )}
+      )} */}
 
       {/* Action Buttons */}
       <div className="flex justify-center gap-4 pt-4">
