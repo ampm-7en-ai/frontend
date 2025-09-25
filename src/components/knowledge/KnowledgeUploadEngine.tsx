@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
-import { Globe, FileText, Table, AlignLeft, ExternalLink, Upload, X, Search, RefreshCw, Plus, Loader2, ChevronLeft } from 'lucide-react';
+import { Globe, FileText, Table, AlignLeft, ExternalLink, Upload, X, Search, RefreshCw, Plus, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useFloatingToast } from '@/context/FloatingToastContext';
@@ -181,8 +181,8 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
     document: {
       icon: <FileText className="h-4 w-4" />,
       title: "Documents",
-      description: "PDF, DOCX, TXT files",
-      acceptedTypes: ".pdf, .docx, .txt, .md, text/markdown, application/json"
+      description: "PDF, DOCX, TXT, MD, JSON, XLS, XLSX, CSV files",
+      acceptedTypes: ".pdf,.docx,.txt,.md,.markdown,.json,.xls,.xlsx,.csv"
     },
     csv: {
       icon: <Table className="h-4 w-4" />,
@@ -465,10 +465,10 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
   };
 
   // Third party integrations
-  const fetchGoogleDriveData = async (token = '') => {
+  const fetchGoogleDriveData = async (pageToken = '') => {
     setIsLoadingGoogleDriveFiles(true);
     try {
-      const response = await fetchGoogleDriveFiles(token);
+      const response = await fetchGoogleDriveFiles(pageToken);
       setGoogleDriveFiles(response.files || []);
       
       setPageData({
@@ -1239,15 +1239,39 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                           <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                             Google Drive Files ({selectedFiles.length} selected)
                           </Label>
-                          <ModernButton
-                            variant="outline"
-                            size="sm"
-                            onClick={() => fetchGoogleDriveData()}
-                            disabled={isLoadingGoogleDriveFiles}
-                            type="button"
-                          >
-                            <RefreshCw className={`h-4 w-4 ${isLoadingGoogleDriveFiles ? 'animate-spin' : ''}`} />
-                          </ModernButton>
+                          <div className="flex items-center gap-2">
+                            {(pageData.prevToken || pageData.nextToken) && (
+                              <div className="flex items-center gap-1">
+                                <ModernButton
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => fetchGoogleDriveData(pageData.prevToken)}
+                                  disabled={isLoadingGoogleDriveFiles || !pageData.prevToken}
+                                  type="button"
+                                >
+                                  <ChevronLeft className="h-4 w-4" />
+                                </ModernButton>
+                                <ModernButton
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => fetchGoogleDriveData(pageData.nextToken)}
+                                  disabled={isLoadingGoogleDriveFiles || !pageData.nextToken}
+                                  type="button"
+                                >
+                                  <ChevronRight className="h-4 w-4" />
+                                </ModernButton>
+                              </div>
+                            )}
+                            <ModernButton
+                              variant="outline"
+                              size="sm"
+                              onClick={() => fetchGoogleDriveData()}
+                              disabled={isLoadingGoogleDriveFiles}
+                              type="button"
+                            >
+                              <RefreshCw className={`h-4 w-4 ${isLoadingGoogleDriveFiles ? 'animate-spin' : ''}`} />
+                            </ModernButton>
+                          </div>
                         </div>
                         
                         <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl max-h-[300px] overflow-y-auto">
