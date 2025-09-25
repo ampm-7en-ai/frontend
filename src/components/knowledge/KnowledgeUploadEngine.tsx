@@ -408,6 +408,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
     e?.stopPropagation();
     const fileInput = document.getElementById('file-upload-engine') as HTMLInputElement;
     if (fileInput) {
+      fileInput.value = ''; // Reset input to allow re-selecting same files
       fileInput.click();
     }
   };
@@ -1117,7 +1118,14 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
                         {sourceConfigs[sourceType].description}
                       </p>
-                      <ModernButton type="button" variant="outline" onClick={handleFileUploadClick}>
+                      <ModernButton 
+                        type="button" 
+                        variant="outline" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFileUploadClick(e);
+                        }}
+                      >
                         Choose Files
                       </ModernButton>
                     </div>
@@ -1132,31 +1140,33 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                     <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                       Selected Files ({files.length})
                     </Label>
-                    <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl divide-y divide-neutral-100 dark:divide-neutral-700">
-                      {files.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-700 rounded-lg flex items-center justify-center">
-                              <FileText className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
+                    <ScrollArea className="max-h-[300px]">
+                      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl divide-y divide-neutral-100 dark:divide-neutral-700">
+                        {files.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-700 rounded-lg flex items-center justify-center">
+                                <FileText className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">{file.name}</p>
+                                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">{file.name}</p>
-                              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                                {(file.size / 1024 / 1024).toFixed(2)} MB
-                              </p>
-                            </div>
+                            <ModernButton
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeFile(index)}
+                              type="button"
+                            >
+                              <X className="h-4 w-4" />
+                            </ModernButton>
                           </div>
-                          <ModernButton
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeFile(index)}
-                            type="button"
-                          >
-                            <X className="h-4 w-4" />
-                          </ModernButton>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
                   </div>
                 )}
 
