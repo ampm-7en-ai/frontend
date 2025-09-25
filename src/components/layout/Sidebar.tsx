@@ -263,7 +263,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                         <NavLink
                           key={child.label}
                           to={child.href}
-                          className="flex items-center px-3 py-2 text-sm rounded-lg transition-colors text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100"
+                          className={({ isActive }) =>
+                            `flex items-center px-3 py-2 text-sm rounded-lg transition-colors ${
+                              isActive
+                                ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 font-bold'
+                                : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
+                            }`
+                          }
                         >
                           <span>{child.label}</span>
                         </NavLink>
@@ -276,7 +282,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                   <NavLink
                     to={item.href}
                     onClick={item.id === "help" ? () => handlehelp("https://docs.7en.ai/") : null}
-                    className="flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100"
+                    className={({ isActive }) =>
+                      `flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full ${
+                        isActive
+                          ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 font-bold'
+                          : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
+                      }`
+                    }
                     style={{paddingLeft:isCollapsed && "11px"}}
                   >
                     <div className="flex items-center">

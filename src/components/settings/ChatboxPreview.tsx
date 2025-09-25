@@ -156,9 +156,11 @@ export const ChatboxPreview = ({
       messageId: latestMessage.messageId
     });
 
-    // If feedback form is already visible, keep it open and skip timeout management
+    // If feedback form is already visible, clear timeouts and skip timeout management
     if (showFeedbackForm) {
-      console.log('📝 Feedback form visible, skipping timeout management');
+      console.log('📝 Feedback form visible, clearing timeouts and skipping timeout management');
+      clearTimeouts();
+      setTimeoutQuestionSent(false);
       return;
     }
 
@@ -798,8 +800,9 @@ export const ChatboxPreview = ({
       setShowEndChatConfirmation(false);
       setShowFeedbackForm(true);
       
-      // Reset timeout timers
+      // Clear timeout timers and stop timeout management completely
       clearTimeouts();
+      setTimeoutQuestionSent(false);
       
       // Don't close connection here - keep it open for feedback
       
