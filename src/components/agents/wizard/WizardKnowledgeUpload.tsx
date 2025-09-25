@@ -7,7 +7,7 @@ import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useIntegrations } from '@/hooks/useIntegrations';
 import { useAuth } from '@/context/AuthContext';
 import { useFloatingToast } from '@/context/FloatingToastContext';
-import { BASE_URL } from '@/utils/api-config';
+import { BASE_URL, addGoogleDriveFileToAgent } from '@/utils/api-config';
 import { GoogleDriveFile } from '@/types/googleDrive';
 import { FileText, Globe, Table, AlignLeft, ExternalLink, CheckCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -278,66 +278,83 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     try {
       let response;
       
-      switch (sourceType) {
-        case 'document':
-        case 'csv':
-          if (files.length > 0) {
-            const formData = new FormData();
-            formData.append('agent_id', agentId);
-            formData.append('title', sourceName);
-            formData.append('file', files[0]);
+      // Handle Google Drive files with special endpoint
+      if (sourceType === 'thirdParty' && selectedProvider === 'googleDrive') {
+        const promises = selectedFiles.map(fileName => {
+          const file = googleDriveFiles.find(f => f.name === fileName);
+          if (file) {
+            return addGoogleDriveFileToAgent(agentId, file.id, fileName);
+          }
+          return null;
+        }).filter(Boolean);
+
+        const results = await Promise.all(promises);
+        response = results[0];
+      } else {
+        // Handle other source types
+        switch (sourceType) {
+          case 'document':
+          case 'csv':
+            if (files.length > 0) {
+              const formData = new FormData();
+              formData.append('agent_id', agentId);
+              formData.append('title', sourceName);
+              formData.append('file', files[0]);
+
+              response = await fetch(`${BASE_URL}knowledgesource/`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${user.accessToken}`,
+                },
+                body: formData
+              });
+
+              if (!response.ok) {
+                throw new Error('Failed to upload file');
+              }
+
+              return await response.json();
+            }
+            break;
+            
+          case 'url':
+          case 'plainText':
+          case 'thirdParty':
+            const payload: any = {
+              agent_id: parseInt(agentId),
+              title: sourceName
+            };
+
+            if (sourceType === 'url') {
+              if ((importAllPages && scrapedUrls.length > 0) || (addUrlsManually && manualUrls.length > 0)) {
+                payload.urls = getAllUrls();
+              } else {
+                payload.urls = [url];
+              }
+            } else if (sourceType === 'plainText') {
+              payload.plain_text = plainText;
+            } else if (sourceType === 'thirdParty') {
+              payload.selected_files = selectedFiles;
+            }
 
             response = await fetch(`${BASE_URL}knowledgesource/`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${user.accessToken}`,
+                'Content-Type': 'application/json',
               },
-              body: formData
+              body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
-              throw new Error('Failed to upload file');
+              throw new Error('Failed to create knowledge source');
             }
 
             return await response.json();
-          }
-          break;
-          
-        case 'url':
-        case 'plainText':
-        case 'thirdParty':
-          const payload: any = {
-            agent_id: parseInt(agentId),
-            title: sourceName
-          };
-
-          if (sourceType === 'url') {
-            if ((importAllPages && scrapedUrls.length > 0) || (addUrlsManually && manualUrls.length > 0)) {
-              payload.urls = getAllUrls();
-            } else {
-              payload.urls = [url];
-            }
-          } else if (sourceType === 'plainText') {
-            payload.plain_text = plainText;
-          } else if (sourceType === 'thirdParty') {
-            payload.selected_files = selectedFiles;
-          }
-
-          response = await fetch(`${BASE_URL}knowledgesource/`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${user.accessToken}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload)
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to create knowledge source');
-          }
-
-          return await response.json();
+        }
       }
+      
+      return response;
     } catch (error) {
       console.error('Error creating knowledge source:', error);
       showToast({
@@ -349,7 +366,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
     } finally {
       setIsUploading(false);
     }
-    return null;
   };
 
   const handleAddKnowledge = async () => {
