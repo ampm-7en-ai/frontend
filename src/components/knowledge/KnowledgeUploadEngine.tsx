@@ -112,11 +112,15 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [isConnecting, setIsConnecting] = useState(false);
   const [googleDriveFiles, setGoogleDriveFiles] = useState<GoogleDriveFile[]>([]);
+  const [allGoogleDriveFiles, setAllGoogleDriveFiles] = useState<GoogleDriveFile[]>([]); // Cache all files
   const [isLoadingGoogleDriveFiles, setIsLoadingGoogleDriveFiles] = useState(false);
+  const [gDriveSearchQuery, setGDriveSearchQuery] = useState('');
+  const [gDriveFileTypeFilter, setGDriveFileTypeFilter] = useState('all');
   
   // URL scraping state
   const [isScrapingUrls, setIsScrapingUrls] = useState(false);
   const [scrapedUrls, setScrapedUrls] = useState<ScrapedUrl[]>([]);
+  const [excludePattern, setExcludePattern] = useState('');
   
   // UI state
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
@@ -124,6 +128,8 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [pageData, setPageData] = useState({nextToken: '', prevToken: ''});
+  const [gDrivePage, setGDrivePage] = useState(0);
+  const [gDrivePageSize] = useState(20);
 
   // Integration management
   const { getIntegrationsByType } = useIntegrations();
@@ -355,6 +361,28 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
     );
   };
 
+  const selectAllUrls = () => {
+    setScrapedUrls(prev => prev.map(url => ({ ...url, selected: true })));
+  };
+
+  const deselectAllUrls = () => {
+    setScrapedUrls(prev => prev.map(url => ({ ...url, selected: false })));
+  };
+
+  const getFilteredUrls = () => {
+    return scrapedUrls.filter(urlData => {
+      // Text search filter
+      const matchesSearch = urlData.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          urlData.title.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Exclude pattern filter
+      const matchesExclude = excludePattern.trim() === '' || 
+                           !urlData.url.toLowerCase().includes(excludePattern.toLowerCase().replace('*', ''));
+      
+      return matchesSearch && matchesExclude;
+    });
+  };
+
   // Manual URL management
   const addNewUrlInput = () => {
     setManualUrls(prev => [...prev, '']);
@@ -468,12 +496,22 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
     }
   };
 
-  // Third party integrations
+  // Third party integrations with client-side filtering
   const fetchGoogleDriveData = async (pageToken = '') => {
     setIsLoadingGoogleDriveFiles(true);
     try {
       const response = await fetchGoogleDriveFiles(pageToken);
-      setGoogleDriveFiles(response.files || []);
+      const newFiles = response.files || [];
+      
+      // Cache all files for client-side filtering/pagination
+      if (pageToken === '') {
+        // First page, reset cache
+        setAllGoogleDriveFiles(newFiles);
+        setGDrivePage(0);
+      } else {
+        // Append to cache for next pages
+        setAllGoogleDriveFiles(prev => [...prev, ...newFiles]);
+      }
       
       setPageData({
         nextToken: response.nextPageToken || "",
@@ -482,7 +520,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
 
       // Auto-select some files for wizard mode
       if (mode === 'wizard') {
-        const autoSelectedFiles = response.files
+        const autoSelectedFiles = newFiles
           ?.filter((file: GoogleDriveFile) => 
             file.mimeType !== 'application/vnd.google-apps.folder' &&
             (file.mimeType.includes('document') ||
@@ -498,6 +536,8 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
           setValidationErrors(prev => ({ ...prev, thirdParty: undefined }));
         }
       }
+
+      updateDisplayedGoogleDriveFiles();
     } catch (error) {
       console.error('Error fetching Google Drive files:', error);
       showToast({
@@ -509,6 +549,55 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
       setIsLoadingGoogleDriveFiles(false);
     }
   };
+
+  const getFilteredGoogleDriveFiles = () => {
+    return allGoogleDriveFiles.filter(file => {
+      // Text search filter
+      const matchesSearch = gDriveSearchQuery.trim() === '' ||
+                          file.name.toLowerCase().includes(gDriveSearchQuery.toLowerCase());
+      
+      // File type filter
+      const matchesFileType = gDriveFileTypeFilter === 'all' ||
+        (gDriveFileTypeFilter === 'pdf' && file.mimeType.includes('pdf')) ||
+        (gDriveFileTypeFilter === 'json' && file.mimeType.includes('json')) ||
+        (gDriveFileTypeFilter === 'md' && file.name.toLowerCase().endsWith('.md')) ||
+        (gDriveFileTypeFilter === 'docx' && file.mimeType.includes('document')) ||
+        (gDriveFileTypeFilter === 'xls' && file.mimeType.includes('spreadsheet'));
+      
+      return matchesSearch && matchesFileType && file.mimeType !== 'application/vnd.google-apps.folder';
+    });
+  };
+
+  const updateDisplayedGoogleDriveFiles = () => {
+    const filtered = getFilteredGoogleDriveFiles();
+    const startIndex = gDrivePage * gDrivePageSize;
+    const endIndex = startIndex + gDrivePageSize;
+    setGoogleDriveFiles(filtered.slice(startIndex, endIndex));
+  };
+
+  const handleGDrivePreviousPage = () => {
+    if (gDrivePage > 0) {
+      setGDrivePage(prev => prev - 1);
+    }
+  };
+
+  const handleGDriveNextPage = () => {
+    const filtered = getFilteredGoogleDriveFiles();
+    const maxPages = Math.ceil(filtered.length / gDrivePageSize);
+    if (gDrivePage < maxPages - 1) {
+      setGDrivePage(prev => prev + 1);
+    } else if (pageData.nextToken) {
+      // Fetch more data from server
+      fetchGoogleDriveData(pageData.nextToken);
+    }
+  };
+
+  // Update displayed files when filters or page change
+  React.useEffect(() => {
+    if (allGoogleDriveFiles.length > 0) {
+      updateDisplayedGoogleDriveFiles();
+    }
+  }, [gDriveSearchQuery, gDriveFileTypeFilter, gDrivePage, allGoogleDriveFiles]);
 
   const handleQuickConnect = (provider: ThirdPartyProvider) => {
     setSelectedProvider(provider);
@@ -1044,42 +1133,68 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                         Found URLs ({scrapedUrls.filter(u => u.selected).length} selected)
                       </Label>
                       <div className="flex items-center gap-2">
-                        <div className="relative">
-                          <Search className="absolute left-3 top-[16px] transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                          <Input
-                            placeholder="Search URLs..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10 w-64 h-8 text-xs bg-white/80 dark:bg-neutral-800/80 border-neutral-200/60 dark:border-neutral-600/60"
-                          />
-                        </div>
+                        <ModernButton
+                          variant="outline"
+                          size="sm"
+                          onClick={selectAllUrls}
+                          type="button"
+                          className="text-xs h-7 px-2"
+                        >
+                          Select All
+                        </ModernButton>
+                        <ModernButton
+                          variant="outline"
+                          size="sm"
+                          onClick={deselectAllUrls}
+                          type="button"
+                          className="text-xs h-7 px-2"
+                        >
+                          Deselect All
+                        </ModernButton>
                       </div>
                     </div>
                     
-                    <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl max-h-[300px] overflow-y-auto">
-                      {scrapedUrls.filter(urlData => 
-                        urlData.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        urlData.title.toLowerCase().includes(searchQuery.toLowerCase())
-                      ).map((urlData, index) => (
-                        <div key={urlData.url} className={`flex items-center justify-between p-3 ${index > 0 ? 'border-t border-neutral-100 dark:border-neutral-700' : ''}`}>
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <Checkbox
-                              id={`url-${index}`}
-                              checked={urlData.selected}
-                              onCheckedChange={() => toggleUrlSelection(urlData.url)}
-                              className='rounded-[4px]'
-                            />
-                            <div className="w-8 h-8 bg-transparent rounded-lg flex items-center justify-center">
-                              <Icon name='Layer' type='plain' color='hsl(var(--primary))' className="h-5 w-5" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">{urlData.title}</p>
-                              <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">{urlData.url}</p>
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-[16px] transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                        <Input
+                          placeholder="Search URLs..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-10 h-8 text-xs bg-white/80 dark:bg-neutral-800/80 border-neutral-200/60 dark:border-neutral-600/60"
+                        />
+                      </div>
+                      <Input
+                        placeholder="Exclude pattern (e.g., /blog/*)"
+                        value={excludePattern}
+                        onChange={(e) => setExcludePattern(e.target.value)}
+                        className="w-48 h-8 text-xs bg-white/80 dark:bg-neutral-800/80 border-neutral-200/60 dark:border-neutral-600/60"
+                      />
+                    </div>
+                    
+                    <ScrollArea className="h-[240px]">
+                      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl">
+                        {getFilteredUrls().map((urlData, index) => (
+                          <div key={urlData.url} className={`flex items-center justify-between p-3 ${index > 0 ? 'border-t border-neutral-100 dark:border-neutral-700' : ''}`}>
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <Checkbox
+                                id={`url-${index}`}
+                                checked={urlData.selected}
+                                onCheckedChange={() => toggleUrlSelection(urlData.url)}
+                                className='rounded-[4px]'
+                              />
+                              <div className="w-8 h-8 bg-transparent rounded-lg flex items-center justify-center">
+                                <Icon name='Layer' type='plain' color='hsl(var(--primary))' className="h-5 w-5" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">{urlData.title}</p>
+                                <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">{urlData.url}</p>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
                   </div>
                 )}
               </div>
@@ -1133,6 +1248,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                     <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                       Selected Files ({files.length})
                     </Label>
+                    <ScrollArea className="h-[240px]">
                       <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl divide-y divide-neutral-100 dark:divide-neutral-700">
                         {files.map((file, index) => (
                           <div key={index} className="flex items-center justify-between p-4">
@@ -1158,6 +1274,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                           </div>
                         ))}
                       </div>
+                    </ScrollArea>
                   </div>
                 )}
 
@@ -1237,35 +1354,33 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                       </div>
                     </div>
 
-                    {selectedProvider === 'googleDrive' && googleDriveFiles.length > 0 && (
+                    {selectedProvider === 'googleDrive' && (allGoogleDriveFiles.length > 0 || isLoadingGoogleDriveFiles) && (
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                             Google Drive Files ({selectedFiles.length} selected)
                           </Label>
                           <div className="flex items-center gap-2">
-                            {(pageData.prevToken || pageData.nextToken) && (
-                              <div className="flex items-center gap-1">
-                                <ModernButton
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => fetchGoogleDriveData(pageData.prevToken)}
-                                  disabled={isLoadingGoogleDriveFiles || !pageData.prevToken}
-                                  type="button"
-                                >
-                                  <ChevronLeft className="h-4 w-4" />
-                                </ModernButton>
-                                <ModernButton
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => fetchGoogleDriveData(pageData.nextToken)}
-                                  disabled={isLoadingGoogleDriveFiles || !pageData.nextToken}
-                                  type="button"
-                                >
-                                  <ChevronRight className="h-4 w-4" />
-                                </ModernButton>
-                              </div>
-                            )}
+                            <div className="flex items-center gap-1">
+                              <ModernButton
+                                variant="outline"
+                                size="sm"
+                                onClick={handleGDrivePreviousPage}
+                                disabled={isLoadingGoogleDriveFiles || gDrivePage === 0}
+                                type="button"
+                              >
+                                <ChevronLeft className="h-4 w-4" />
+                              </ModernButton>
+                              <ModernButton
+                                variant="outline"
+                                size="sm"
+                                onClick={handleGDriveNextPage}
+                                disabled={isLoadingGoogleDriveFiles}
+                                type="button"
+                              >
+                                <ChevronRight className="h-4 w-4" />
+                              </ModernButton>
+                            </div>
                             <ModernButton
                               variant="outline"
                               size="sm"
@@ -1278,27 +1393,65 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                           </div>
                         </div>
                         
-                        <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl max-h-[300px] overflow-y-auto">
-                          {googleDriveFiles.map((file, index) => (
-                            <div key={file.id} className={`flex items-center justify-between p-3 ${index > 0 ? 'border-t border-neutral-100 dark:border-neutral-700' : ''}`}>
-                              <div className="flex items-center gap-3 flex-1 min-w-0">
-                                <Checkbox
-                                  id={`gdrive-${index}`}
-                                  checked={selectedFiles.includes(file.name)}
-                                  onCheckedChange={() => toggleFileSelection(file.name)}
-                                  className='rounded-[4px]'
-                                />
-                                <div className="w-8 h-8 bg-transparent rounded-lg flex items-center justify-center">
-                                  {getFileIcon(file.mimeType)}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">{file.name}</p>
-                                  <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">{file.mimeType}</p>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+                        <div className="flex items-center gap-2">
+                          <div className="relative flex-1">
+                            <Search className="absolute left-3 top-[16px] transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                            <Input
+                              placeholder="Search files..."
+                              value={gDriveSearchQuery}
+                              onChange={(e) => {
+                                setGDriveSearchQuery(e.target.value);
+                                setGDrivePage(0);
+                              }}
+                              className="pl-10 h-8 text-xs"
+                            />
+                          </div>
+                          <select
+                            value={gDriveFileTypeFilter}
+                            onChange={(e) => {
+                              setGDriveFileTypeFilter(e.target.value);
+                              setGDrivePage(0);
+                            }}
+                            className="h-8 px-2 text-xs bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md"
+                          >
+                            <option value="all">All Types</option>
+                            <option value="pdf">PDF</option>
+                            <option value="docx">DOCX</option>
+                            <option value="xls">XLS/XLSX</option>
+                            <option value="json">JSON</option>
+                            <option value="md">Markdown</option>
+                          </select>
                         </div>
+                        
+                        <ScrollArea className="h-[240px]">
+                          <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl">
+                            {isLoadingGoogleDriveFiles ? (
+                              <div className="p-8 text-center">
+                                <LoadingSpinner />
+                              </div>
+                            ) : (
+                              googleDriveFiles.map((file, index) => (
+                                <div key={file.id} className={`flex items-center justify-between p-3 ${index > 0 ? 'border-t border-neutral-100 dark:border-neutral-700' : ''}`}>
+                                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                                    <Checkbox
+                                      id={`gdrive-${index}`}
+                                      checked={selectedFiles.includes(file.name)}
+                                      onCheckedChange={() => toggleFileSelection(file.name)}
+                                      className='rounded-[4px]'
+                                    />
+                                    <div className="w-8 h-8 bg-transparent rounded-lg flex items-center justify-center">
+                                      {getFileIcon(file.mimeType)}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">{file.name}</p>
+                                      <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">{file.mimeType}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </ScrollArea>
                       </div>
                     )}
 
