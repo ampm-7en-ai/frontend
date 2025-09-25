@@ -389,6 +389,41 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
     });
   };
 
+  // Auto-deselect filtered URLs
+  useEffect(() => {
+    if (scrapedUrls.length === 0) return;
+    
+    const updatedUrls = scrapedUrls.map(urlData => {
+      // Check if URL passes all filters
+      const matchesSearch = urlData.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          urlData.title.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      let matchesExclude = true;
+      if (excludePattern.trim() !== '') {
+        const patterns = excludePattern.split(',').map(p => p.trim().toLowerCase());
+        matchesExclude = !patterns.some(pattern => {
+          const cleanPattern = pattern.replace(/\*/g, '');
+          return urlData.url.toLowerCase().includes(cleanPattern);
+        });
+      }
+      
+      const shouldBeVisible = matchesSearch && matchesExclude;
+      
+      // If URL doesn't pass filters, deselect it. If it passes filters and was previously deselected by filtering, keep current selection
+      if (!shouldBeVisible) {
+        return { ...urlData, selected: false };
+      }
+      
+      return urlData;
+    });
+    
+    // Only update if there are actual changes
+    const hasChanges = updatedUrls.some((url, index) => url.selected !== scrapedUrls[index].selected);
+    if (hasChanges) {
+      setScrapedUrls(updatedUrls);
+    }
+  }, [searchQuery, excludePattern, scrapedUrls]);
+
   // Manual URL management
   const addNewUrlInput = () => {
     setManualUrls(prev => [...prev, '']);
