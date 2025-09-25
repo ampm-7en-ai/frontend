@@ -187,11 +187,11 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
 
 
   const renderStepsSidebar = () => (
-    <div className="w-80 bg-background/50 dark:bg-background/20 backdrop-blur-md border-r border-border/40 p-6">
+    <div className="w-80 bg-white dark:bg-background/20 backdrop-blur-md border-r border-border/40 p-6">
       <div className="space-y-6">
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-2">Create Agent</h2>
-          <p className="text-sm text-muted-foreground">Follow these steps to set up your AI agent</p>
+          <p className="text-sm text-neutral-600 dark:text-muted-foreground">Follow these steps to set up your AI agent</p>
         </div>
         
         <div className="space-y-4">
@@ -203,7 +203,7 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
                   ? 'bg-[#f06425] text-primary-foreground border-[#f06425]'
                   : index === currentStepIndex
                   ? 'bg-[#f06425] text-primary-foreground border-[#f06425]'
-                  : 'bg-background text-muted-foreground border-border'
+                  : 'dark:bg-background text-muted-foreground border-border'
               )}>
                 {index < currentStepIndex ? (
                   step.number
@@ -219,11 +219,11 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
                   "text-sm font-medium mb-1",
                   index <= currentStepIndex 
                     ? "text-foreground" 
-                    : "text-muted-foreground"
+                    : "text-neutral-400 dark:text-muted-foreground"
                 )}>
                   {step.title}
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-neutral-400 dark:text-muted-foreground">
                   {step.description}
                 </div>
               </div>
@@ -320,7 +320,8 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
                 <ModernButton 
                   onClick={handleCreateAgent}
                   disabled={!selectedType || isCreatingAgent}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  variant='primary'
+                  className=""
                 >
                   {isCreatingAgent ? (
                     <>

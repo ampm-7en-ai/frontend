@@ -546,7 +546,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                         <ModernButton
                           key={id}
                           variant="outline"
-                          className={`h-14 justify-start gap-3 ${provider.color} dark:bg-neutral-700 hover:bg-opacity-80 transition-colors duration-200`}
+                          className={`h-14 justify-start gap-3 ${provider.color} bg-white dark:bg-neutral-700 hover:bg-opacity-80 transition-colors duration-200`}
                           onClick={() => handleQuickConnect(id as ThirdPartyProvider)}
                           type="button"
                         >
@@ -587,7 +587,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
               <>
                 <div className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl border border-neutral-200 dark:border-neutral-700 transition-colors duration-200">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${thirdPartyProviders[selectedProvider].color}`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-white dark:bg-neutral-700 ${thirdPartyProviders[selectedProvider].color}`}>
                       {thirdPartyProviders[selectedProvider].icon}
                     </div>
                     <div>
@@ -651,6 +651,7 @@ const SourceTypeSelector: React.FC<SourceTypeSelectorProps> = ({
                                   id={`file-${file.id}`}
                                   checked={selectedFiles.includes(file.name)}
                                   onCheckedChange={() => toggleFileSelection(file.name)}
+                                  className='rounded-[4px]'
                                 />
                                 <div className="w-8 h-8 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg flex items-center justify-center transition-colors duration-200">
                                   {getFileIcon(file.mimeType)}

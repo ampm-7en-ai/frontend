@@ -116,7 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   };
 
   const commonItems: SidebarItem[] = [
-    { id: 'dashboard', label: 'Dashboard', href: '/', icon: "Home", permission: 'dashboard' },
+    { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: "Home", permission: 'dashboard' },
   ];
 
   const adminItems: SidebarItem[] = [
@@ -265,8 +265,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                           to={child.href}
                           className={({ isActive }) =>
                             `flex items-center px-3 py-2 text-sm rounded-lg transition-colors ${
-                              isActive
-                                ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 font-bold'
+                              isActive && item.id !== 'help'
+                                ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100'
                                 : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
                             }`
                           }
@@ -284,8 +284,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     onClick={item.id === "help" ? () => handlehelp("https://docs.7en.ai/") : null}
                     className={({ isActive }) =>
                       `flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors w-full ${
-                        isActive
-                          ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 font-bold'
+                        isActive && item.id !== 'help'
+                          ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100'
                           : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100'
                       }`
                     }

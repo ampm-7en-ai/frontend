@@ -548,7 +548,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         <h2 className="text-2xl font-semibold text-foreground mb-2">
           Add Knowledge Source
         </h2>
-        <p className="text-muted-foreground">
+        <p className="text-neutral-600 dark:text-muted-foreground">
           Give your agent some initial knowledge to work with
         </p>
       </div>
@@ -562,7 +562,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           placeholder="Enter a descriptive name for this knowledge source"
           value={sourceName}
           onChange={(e) => setSourceName(e.target.value)}
-          className="bg-background border-border"
+          className=""
         />
       </div>
       
@@ -662,7 +662,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
           <ModernButton 
             variant="outline" 
             onClick={onSkip}
-            className="bg-background text-foreground border-border hover:bg-muted"
+            className=""
           >
             Skip for Now
           </ModernButton>
@@ -681,7 +681,8 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         <ModernButton 
           onClick={handleAddKnowledge}
           disabled={!canProceed() || isUploading}
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
+          variant='primary'
+          className=""
         >
           {isUploading ? 'Adding...' : 'Add Knowledge'}
         </ModernButton>

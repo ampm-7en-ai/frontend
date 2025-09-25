@@ -877,14 +877,14 @@ const KnowledgeUpload = () => {
                       <Button
                         variant="outline"
                         disabled={isLoadingAgents}
-                        className="w-full justify-start h-auto p-3 bg-white/80 dark:bg-neutral-800/80 border-slate-200/60 dark:border-neutral-600/60 backdrop-blur-sm rounded-xl hover:border-slate-300/80 dark:hover:border-slate-500/80 transition-all duration-200"
+                        className="w-full justify-start h-auto p-3 bg-white/80 hover:bg-neutral-50 dark:bg-neutral-800/80 border-neutral-200/60 dark:border-neutral-600/60 backdrop-blur-sm rounded-xl hover:border-neutral-300/80 dark:hover:border-neutral-500/80 transition-all duration-200"
                       >
                         {renderAgentTrigger()}
                       </Button>
                     }
                     className="w-full"
                   />
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
                     Select the agent that will use this knowledge source
                   </p>
                 </div>

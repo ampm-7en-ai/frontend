@@ -49,7 +49,7 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
         <h3 className="text-xl font-semibold text-foreground mb-2">
           Choose Your Agent Type
         </h3>
-        <p className="text-muted-foreground">
+        <p className="text-neutral-600 dark:text-muted-foreground">
           Select the type that best fits your needs
         </p>
       </div>
@@ -61,7 +61,7 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
             className={cn(
               'cursor-pointer transition-all duration-200 relative shadow-none border-2',
               selectedType === type.id
-                ? 'border-[#f06425] bg-[#f06425]/5 ring-2 ring-[#f06425]/20'
+                ? 'border-[#f06425] ring-2 ring-[#f06425]/20'
                 : 'border-muted hover:border-[#f06425]/30 hover:shadow-lg'
             )}
             onClick={() => onTypeSelect(type.id)}
@@ -85,7 +85,7 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
                       {type.title}
                     </h4>
                   </div>
-                  <p className="text-neutral-200 dark:text-neutral-500 text-xs">
+                  <p className="text-neutral-400 dark:text-neutral-500 text-xs">
                     {type.description}
                   </p>
                 </div>
@@ -98,7 +98,7 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
                   </h5>
                   <ul className="space-y-2">
                     {type.features.map((feature, index) => (
-                      <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <li key={index} className="flex items-center gap-2 text-sm text-neutral-600 dark:text-muted-foreground">
                         <div className={cn(
                           "w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors",
                           selectedType === type.id ? "bg-foreground" : "bg-muted-foreground/40"
@@ -114,7 +114,7 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
                     <span className="text-xs font-medium text-foreground">
                       Best for:
                     </span>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-neutral-600 dark:text-muted-foreground mt-1">
                       {type.bestFor}
                     </p>
                   </div>
