@@ -94,6 +94,7 @@ export const ChatboxPreview = ({
   const processedMessageIds = useRef<Set<string>>(new Set());
   const restartingRef = useRef(false);
   const messageSequenceRef = useRef<number>(0);
+  const outboxRef = useRef<Array<{ content: string; ts: number }>>([]);
   const [emailValue, setEmailValue] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -381,8 +382,25 @@ export const ChatboxPreview = ({
           console.log('🔄 Real-time message received');
         }
         
-        // Add message to state
+        // Add message to state with outbox-aware deduplication
         setMessages(prev => {
+          if (messageForProcessing.type === 'user') {
+            const trimmed = (messageForProcessing.content || '').trim();
+            const cutoff = Date.now() - 60000;
+            const match = outboxRef.current.find(o => o.content === trimmed && o.ts >= cutoff);
+            if (match) {
+              // Replace the latest matching local user message instead of appending a duplicate
+              for (let i = prev.length - 1; i >= 0; i--) {
+                const m = prev[i];
+                if (m.type === 'user' && (m.content || '').trim() === trimmed) {
+                  const updated = [...prev];
+                  updated[i] = { ...m, messageId, timestamp: messageForProcessing.timestamp, source: messageForProcessing.source || 'websocket' };
+                  return updated;
+                }
+              }
+            }
+          }
+
           const newMessages = [...prev, { ...messageForProcessing, messageId }];
           
           // Only manage timeout for real-time bot responses, not database messages
@@ -484,6 +502,13 @@ export const ChatboxPreview = ({
     
     setMessages(prev => [...prev, newMessage]);
     setShowTypingIndicator(true);
+
+    // Track in outbox for dedup of echoes/history
+    const trimmed = (messageContent || '').trim();
+    outboxRef.current.push({ content: trimmed, ts: Date.now() });
+    // Prune entries older than 60s
+    const cutoff = Date.now() - 60000;
+    outboxRef.current = outboxRef.current.filter((item) => item.ts >= cutoff);
     
     // Reset timeout when user sends a message
     resetTimeoutOnUserActivity();

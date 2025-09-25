@@ -235,7 +235,7 @@ export function useChatMessagesWebSocket({
     
     try {
       wsRef.current.send({
-        type: 'message',
+        type: 'user',
         content,
         timestamp: new Date().toISOString()
       });

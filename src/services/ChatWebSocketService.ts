@@ -55,7 +55,7 @@ export class ChatWebSocketService {
   
   sendMessage(content: string) {
     this.ws.send({
-      type: 'message',
+      type: 'user',
       content,
       timestamp: new Date().toISOString()
     });
