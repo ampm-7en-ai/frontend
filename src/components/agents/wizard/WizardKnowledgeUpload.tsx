@@ -289,7 +289,8 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
         }).filter(Boolean);
 
         const results = await Promise.all(promises);
-        response = results[0];
+        // Return the first result directly since addGoogleDriveFileToAgent already returns the proper structure
+        return results[0];
       } else {
         // Handle other source types
         switch (sourceType) {
