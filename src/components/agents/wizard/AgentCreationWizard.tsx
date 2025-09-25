@@ -121,10 +121,7 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
     if (!createdAgentId) return;
 
     setKnowledgeData(knowledge);
-
     setCurrentStep('complete');
-    setTimeout(renderCurrentStep,100)
-   
   };
 
   const handleKnowledgeSkip = () => {

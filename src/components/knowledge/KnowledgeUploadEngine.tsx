@@ -796,10 +796,9 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
     }
 
     if (!validateForm()) {
-   
       showToast({
-        title: "Validation Error",
-        description: validationErrors.documentName,
+        title: "Validation Error", 
+        description: validationErrors.documentName || "Source name is required",
         variant: "error"
       });
       return;

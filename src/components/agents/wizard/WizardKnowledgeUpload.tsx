@@ -159,16 +159,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
 
       {/* Action Buttons */}
       <div className="flex justify-center gap-4 pt-4">
-        
-        {addedSources.length > 0 && (
-          <ModernButton 
-            onClick={handleTrainAgent}
-            disabled={isTraining || !agentId}
-            className="bg-neutral-900 dark:bg-white text-white dark:text-neutral-900"
-          >
-            {isTraining ? 'Starting Training...' : 'Train Agent'}
-          </ModernButton>
-        )}
+        {/* Train button removed from step 2 - will be shown in step 3 instead */}
       </div>
     </div>
   );
