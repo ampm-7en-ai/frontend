@@ -406,7 +406,10 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
   const handleFileUploadClick = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
-    document.getElementById('file-upload-engine')?.click();
+    const fileInput = document.getElementById('file-upload-engine') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
   };
 
   // Drag and drop
