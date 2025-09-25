@@ -371,48 +371,23 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
 
   const getFilteredUrls = () => {
     return scrapedUrls.filter(urlData => {
-      // Text search filter only - exclude patterns no longer filter, they control selection
+      // Text search filter
       const matchesSearch = urlData.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           urlData.title.toLowerCase().includes(searchQuery.toLowerCase());
       
-      return matchesSearch;
-    });
-  };
-
-  // Check if URL matches exclude patterns
-  const isUrlExcluded = (url: string) => {
-    if (excludePattern.trim() === '') return false;
-    const patterns = excludePattern.split(',').map(p => p.trim().toLowerCase());
-    return patterns.some(pattern => {
-      const cleanPattern = pattern.replace(/\*/g, '');
-      return url.toLowerCase().includes(cleanPattern);
-    });
-  };
-
-  // Auto-manage selection based on exclude patterns
-  useEffect(() => {
-    if (scrapedUrls.length === 0) return;
-    
-    const updatedUrls = scrapedUrls.map(urlData => {
-      const shouldBeExcluded = isUrlExcluded(urlData.url);
-      
-      if (excludePattern.trim() === '') {
-        // If no exclude pattern, auto-select all
-        return { ...urlData, selected: true };
-      } else if (shouldBeExcluded) {
-        // Deselect if it matches exclude pattern
-        return { ...urlData, selected: false };
+      // Exclude pattern filter - support multiple comma-separated patterns
+      let matchesExclude = true;
+      if (excludePattern.trim() !== '') {
+        const patterns = excludePattern.split(',').map(p => p.trim().toLowerCase());
+        matchesExclude = !patterns.some(pattern => {
+          const cleanPattern = pattern.replace(/\*/g, '');
+          return urlData.url.toLowerCase().includes(cleanPattern);
+        });
       }
       
-      return urlData;
+      return matchesSearch && matchesExclude;
     });
-    
-    // Only update if there are actual changes
-    const hasChanges = updatedUrls.some((url, index) => url.selected !== scrapedUrls[index].selected);
-    if (hasChanges) {
-      setScrapedUrls(updatedUrls);
-    }
-  }, [excludePattern]);
+  };
 
   // Manual URL management
   const addNewUrlInput = () => {
