@@ -145,8 +145,8 @@ const ConversationDetailsPanel = ({
     return (
       <div className="h-full bg-white/80 dark:bg-[hsla(0,0%,0%,0.95)] backdrop-blur-sm p-3 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
-            <MessageSquare className="h-4 w-4 text-gray-400 dark:text-neutral-500" />
+          <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-transparent flex items-center justify-center">
+             <Icon name="Playground" type='plain' color='hsl(var(--muted))' />
           </div>
           {/* <h3 className="text-xs font-medium text-foreground dark:text-neutral-100 mb-1">No conversation selected</h3>
           <p className="text-[10px] text-gray-500 dark:text-neutral-400">Select a conversation to view details</p> */}

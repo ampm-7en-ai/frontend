@@ -151,7 +151,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
       icon: <img src="https://img.logo.dev/notion.so?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="Notion" className="h-4 w-4" />,
       name: "Notion",
       description: "Import pages and databases from Notion",
-      color: "bg-gray-50 text-gray-800 border-gray-200 dark:bg-gray-900/50 dark:text-gray-300 dark:border-gray-700",
+      color: "bg-neutral-50 text-neutral-800 border-neutral-200 dark:bg-neutral-900/50 dark:text-neutral-300 dark:border-neutral-700",
       id: "notion"
     },
     dropbox: {
@@ -165,7 +165,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
       icon: <img src="https://img.logo.dev/github.com?token=pk_PBSGl-BqSUiMKphvlyXrGA&retina=true" alt="GitHub" className="h-4 w-4" />,
       name: "GitHub",
       description: "Import repositories and documentation from GitHub",
-      color: "bg-gray-50 text-gray-800 border-gray-200 dark:bg-gray-900/50 dark:text-gray-300 dark:border-gray-700",
+      color: "bg-neutral-50 text-neutral-800 border-neutral-200 dark:bg-neutral-900/50 dark:text-neutral-300 dark:border-neutral-700",
       id: "github"
     }
   };
@@ -404,8 +404,8 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
   };
 
   const handleFileUploadClick = (e?: React.MouseEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
+    //e?.preventDefault();
+    //e?.stopPropagation();
     const fileInput = document.getElementById('file-upload-engine') as HTMLInputElement;
     if (fileInput) {
       fileInput.value = ''; // Reset input to allow re-selecting same files
@@ -652,9 +652,10 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
     }
 
     if (!validateForm()) {
+   
       showToast({
         title: "Validation Error",
-        description: "Please fix the errors and try again.",
+        description: validationErrors.documentName,
         variant: "error"
       });
       return;
@@ -886,7 +887,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
         {/* Agent Selection (only if showAgentSelector is true) */}
         {showAgentSelector && (
           <div className="space-y-3">
-            <Label htmlFor="agent-select" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            <Label htmlFor="agent-select" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
               Select Agent *
             </Label>
             <ModernDropdown
@@ -909,7 +910,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
 
         {/* Source Name */}
         <div className="space-y-3">
-          <Label htmlFor="document-name" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+          <Label htmlFor="document-name" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
             Source Name *
           </Label>
           <Input 
@@ -933,8 +934,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
 
         {/* Source Type Navigation */}
         <div className="space-y-6">
-          <div className="space-y-3">
-            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Source Type</Label>
+          <div className="space-y-3 scale-90 origin-left">
             <ModernTabNavigation
               tabs={sourceNavItems.map(item => ({ id: item.id, label: item.label }))}
               activeTab={sourceType}
@@ -1045,7 +1045,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                       </Label>
                       <div className="flex items-center gap-2">
                         <div className="relative">
-                          <Search className="absolute left-3 top-[8px] transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                          <Search className="absolute left-3 top-[16px] transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                           <Input
                             placeholder="Search URLs..."
                             value={searchQuery}
@@ -1108,16 +1108,9 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                     />
                   
                   <div className="text-center space-y-4">
-                    <div className="w-16 h-16 mx-auto bg-neutral-100 dark:bg-neutral-800 rounded-2xl flex items-center justify-center">
-                      <Upload className="h-8 w-8 text-neutral-500 dark:text-neutral-400" />
-                    </div>
+                    
                     <div>
-                      <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
-                        {isDragOver ? 'Drop your files here' : `Upload ${sourceConfigs[sourceType].title}`}
-                      </h3>
-                      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-                        {sourceConfigs[sourceType].description}
-                      </p>
+                      
                       <ModernButton 
                         type="button" 
                         variant="outline" 
@@ -1140,7 +1133,6 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                     <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                       Selected Files ({files.length})
                     </Label>
-                    <ScrollArea className="max-h-[300px]">
                       <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl divide-y divide-neutral-100 dark:divide-neutral-700">
                         {files.map((file, index) => (
                           <div key={index} className="flex items-center justify-between p-4">
@@ -1166,7 +1158,6 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                           </div>
                         ))}
                       </div>
-                    </ScrollArea>
                   </div>
                 )}
 
@@ -1229,7 +1220,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                             key={id}
                             className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                               selectedProvider === id
-                                ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/20'
+                                ? 'border-orange-500 bg-orange-50/50 dark:bg-orange-950/20'
                                 : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600'
                             }`}
                             onClick={() => handleQuickConnect(id as ThirdPartyProvider)}

@@ -1,14 +1,15 @@
 
 import React from 'react';
 import { MessageSquare } from 'lucide-react';
+import { Icon } from '../icons';
 
 const ConversationEmptyState = () => {
   return (
     <div className="flex items-center justify-center h-full text-muted-foreground dark:bg-[hsla(0,0%,0%,0.95)]">
-      <div className="text-center">
-        <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-20" />
-        <h3 className="text-lg font-medium">No conversation selected</h3>
-        <p>Select a conversation from the list to view messages</p>
+      <div className="text-center flex flex-col items-center">
+        <Icon name={`Bubbles`} type='plain' color='hsl(var(--primary))' className="h-8 w-8" />
+        <h3 className="text-sm font-medium mt-2 text-foreground">No conversation selected</h3>
+        <p className='text-xs'>Select a conversation from the list to view messages</p>
       </div>
     </div>
   );

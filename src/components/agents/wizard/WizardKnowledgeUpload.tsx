@@ -155,13 +155,6 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
 
       {/* Action Buttons */}
       <div className="flex justify-center gap-4 pt-4">
-        <ModernButton 
-          variant="outline" 
-          onClick={onSkip}
-          disabled={isTraining}
-        >
-          {addedSources.length > 0 ? 'Skip Training' : 'Skip Knowledge Upload'}
-        </ModernButton>
         
         {addedSources.length > 0 && (
           <ModernButton 

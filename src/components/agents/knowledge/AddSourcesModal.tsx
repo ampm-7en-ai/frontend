@@ -30,8 +30,9 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
       title="Add Knowledge Sources"
       description="Import content from various sources to enhance your agent's knowledge base. Choose from websites, documents, or third-party integrations."
       size="4xl"
-      fixedFooter={false}
+      fixedFooter={true}
     >
+      <div className='bg-white/80 dark:bg-neutral-900/70 p-4 px-6 backdrop-blur-sm border-0 rounded-2xl shadow-xl shadow-slate-200/20 dark:shadow-slate-800/20 transition-colors duration-200'>
       <KnowledgeUploadEngine
         mode="modal"
         agentId={agentId}
@@ -41,6 +42,7 @@ const AddSourcesModal: React.FC<AddSourcesModalProps> = ({
         showBackButton={false}
         showTitle={false}
       />
+      </div>
     </ModernModal>
   );
 };
