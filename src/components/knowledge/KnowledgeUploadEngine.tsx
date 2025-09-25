@@ -371,23 +371,48 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
 
   const getFilteredUrls = () => {
     return scrapedUrls.filter(urlData => {
-      // Text search filter
+      // Text search filter only - exclude patterns no longer filter, they control selection
       const matchesSearch = urlData.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           urlData.title.toLowerCase().includes(searchQuery.toLowerCase());
       
-      // Exclude pattern filter - support multiple comma-separated patterns
-      let matchesExclude = true;
-      if (excludePattern.trim() !== '') {
-        const patterns = excludePattern.split(',').map(p => p.trim().toLowerCase());
-        matchesExclude = !patterns.some(pattern => {
-          const cleanPattern = pattern.replace(/\*/g, '');
-          return urlData.url.toLowerCase().includes(cleanPattern);
-        });
-      }
-      
-      return matchesSearch && matchesExclude;
+      return matchesSearch;
     });
   };
+
+  // Check if URL matches exclude patterns
+  const isUrlExcluded = (url: string) => {
+    if (excludePattern.trim() === '') return false;
+    const patterns = excludePattern.split(',').map(p => p.trim().toLowerCase());
+    return patterns.some(pattern => {
+      const cleanPattern = pattern.replace(/\*/g, '');
+      return url.toLowerCase().includes(cleanPattern);
+    });
+  };
+
+  // Auto-manage selection based on exclude patterns
+  useEffect(() => {
+    if (scrapedUrls.length === 0) return;
+    
+    const updatedUrls = scrapedUrls.map(urlData => {
+      const shouldBeExcluded = isUrlExcluded(urlData.url);
+      
+      if (excludePattern.trim() === '') {
+        // If no exclude pattern, auto-select all
+        return { ...urlData, selected: true };
+      } else if (shouldBeExcluded) {
+        // Deselect if it matches exclude pattern
+        return { ...urlData, selected: false };
+      }
+      
+      return urlData;
+    });
+    
+    // Only update if there are actual changes
+    const hasChanges = updatedUrls.some((url, index) => url.selected !== scrapedUrls[index].selected);
+    if (hasChanges) {
+      setScrapedUrls(updatedUrls);
+    }
+  }, [excludePattern]);
 
   // Manual URL management
   const addNewUrlInput = () => {
@@ -1428,21 +1453,21 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                               className="pl-10 h-8 text-xs"
                             />
                           </div>
-                          <select
+                          <ModernDropdown
                             value={gDriveFileTypeFilter}
-                            onChange={(e) => {
-                              setGDriveFileTypeFilter(e.target.value);
+                            onValueChange={(value) => {
+                              setGDriveFileTypeFilter(value);
                               setGDrivePage(0);
                             }}
-                            className="h-8 px-2 text-xs bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md"
-                          >
-                            <option value="all">All Types</option>
-                            <option value="pdf">PDF</option>
-                            <option value="docx">DOCX</option>
-                            <option value="xls">XLS/XLSX</option>
-                            <option value="json">JSON</option>
-                            <option value="md">Markdown</option>
-                          </select>
+                            options={[
+                              { value: 'all', label: 'All Types' },
+                              { value: 'pdf', label: 'PDF' },
+                              { value: 'docx', label: 'DOCX' },
+                              { value: 'xls', label: 'XLS/XLSX' },
+                              { value: 'json', label: 'JSON' },
+                              { value: 'md', label: 'Markdown' }
+                            ]}
+                          />
                         </div>
                         
                         <ScrollArea className="h-[240px]">
