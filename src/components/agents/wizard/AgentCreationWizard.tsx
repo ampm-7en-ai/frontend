@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle2, ArrowRight, Loader2, Sparkles, Circle, AlertTriangle, FileText, Globe, Table, AlignLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AgentTypeSelector, { AgentType } from './AgentTypeSelector';
-import WizardKnowledgeUpload, { WizardSourceType } from './WizardKnowledgeUpload';
+import WizardKnowledgeUpload from './WizardKnowledgeUpload';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -27,7 +27,7 @@ interface AgentCreationWizardProps {
 type WizardStep = 'type' | 'knowledge' | 'complete';
 
 interface KnowledgeData {
-  type: WizardSourceType;
+  type: string;
   content: any;
   name: string;
 }

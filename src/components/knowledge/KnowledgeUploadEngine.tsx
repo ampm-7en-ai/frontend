@@ -429,7 +429,8 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
 
     const droppedFiles = Array.from(e.dataTransfer.files);
     if (droppedFiles.length > 0) {
-      const acceptedTypes = sourceConfigs[sourceType].acceptedTypes;
+      const config = sourceConfigs[sourceType];
+      const acceptedTypes = 'acceptedTypes' in config ? config.acceptedTypes : undefined;
       if (acceptedTypes) {
         const allowedExtensions = acceptedTypes.split(',').map(ext => ext.trim());
         const validFiles = droppedFiles.filter(file => {
@@ -931,10 +932,10 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
           <div className="space-y-3">
             <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Source Type</Label>
             <ModernTabNavigation
-              items={sourceNavItems}
-              activeItem={sourceType}
-              onItemChange={(id) => setSourceType(id as SourceType)}
-              variant="pills"
+              tabs={sourceNavItems.map(item => ({ id: item.id, label: item.label }))}
+              activeTab={sourceType}
+              onTabChange={(id) => setSourceType(id as SourceType)}
+              className="bg-neutral-100 dark:bg-neutral-800"
             />
           </div>
 
@@ -1093,14 +1094,14 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                   onDrop={handleDrop}
                   onClick={handleFileUploadClick}
                 >
-                  <input
-                    id="file-upload-engine"
-                    type="file"
-                    multiple
-                    accept={sourceConfigs[sourceType].acceptedTypes}
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
+                    <input
+                      id="file-upload-engine"
+                      type="file"
+                      multiple
+                      accept={'acceptedTypes' in sourceConfigs[sourceType] ? sourceConfigs[sourceType].acceptedTypes : undefined}
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
                   
                   <div className="text-center space-y-4">
                     <div className="w-16 h-16 mx-auto bg-neutral-100 dark:bg-neutral-800 rounded-2xl flex items-center justify-center">

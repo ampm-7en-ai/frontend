@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import ModernButton from '@/components/dashboard/ModernButton';
-import { AgentTrainingService } from '@/services/AgentTrainingService';
 import { useAuth } from '@/context/AuthContext';
 import { useFloatingToast } from '@/context/FloatingToastContext';
 import { CheckCircle } from 'lucide-react';
@@ -72,8 +71,8 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
 
     setIsTraining(true);
     try {
-      const trainingService = new AgentTrainingService();
-      await trainingService.startTraining(agentId, knowledgeSourceIds);
+      const { AgentTrainingService } = await import('@/services/AgentTrainingService');
+      await AgentTrainingService.trainAgent(agentId, knowledgeSourceIds, 'Agent', []);
       
       showToast({
         title: "Training Started",
