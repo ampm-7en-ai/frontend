@@ -214,12 +214,11 @@ export const ModelComparisonGrid = ({
                       <p className="text-xs text-neutral-400 uppercase dark:text-neutral-500">AI Assistant</p>
                       <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
                         {typeof latestAiMessage.content === 'string' && (
-                            <StyledMarkdown
-                              key={`markdown-${cell.id}-${theme}`}
-                              content={latestAiMessage.content}
-                              primaryColor={theme === 'dark' ? '#60a5fa' : '#2563eb'}
-                              isDarkTheme={theme === 'dark'}
-                              className="playground"
+                             <StyledMarkdown
+                               key={`markdown-${cell.id}-${theme}`}
+                               content={latestAiMessage.content}
+                               primaryColor={theme === 'dark' ? '#60a5fa' : '#2563eb'}
+                               className="playground"
                               />
                          )} 
                         

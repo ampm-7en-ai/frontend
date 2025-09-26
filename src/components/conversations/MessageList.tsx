@@ -219,11 +219,10 @@ const MessageList = ({
               >
                 <div className="prose-sm max-w-none break-words text-neutral-800 dark:text-neutral-200">
                   {typeof message.content === 'string' && (
-                    <StyledMarkdown
-                      content={message.content}
-                      primaryColor="#f06425"
-                      isDarkTheme={theme === 'dark'}
-                    />
+                     <StyledMarkdown
+                       content={message.content}
+                       primaryColor="#f06425"
+                     />
                   )}
                 </div>
                 <div className="text-xs mt-2 text-neutral-500 dark:text-neutral-400">

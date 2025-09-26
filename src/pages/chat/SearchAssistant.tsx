@@ -664,11 +664,10 @@ const SearchAssistant = () => {
 
                             <div className="flex-1 pl-[10px] pt-[5px] w-full">
                               <p className='text-xs font-semibold mb-1'>{config.chatbotName}</p>
-                              <StyledMarkdown
-                                content={message.content}
-                                primaryColor={isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor}
-                                isDarkTheme={isDarkTheme}
-                              />
+                               <StyledMarkdown
+                                 content={message.content}
+                                 primaryColor={isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor}
+                               />
                             </div>
                           </div>
                           </div>
@@ -1071,11 +1070,10 @@ const SearchAssistant = () => {
 
                         <div className="flex-1 pl-[10px] pt-[5px]">
                           <p className='text-xs font-semibold mb-1'>{config.chatbotName}</p>
-                          <StyledMarkdown
-                            content={message.content}
-                            primaryColor={isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor}
-                            isDarkTheme={isDarkTheme}
-                          />
+                           <StyledMarkdown
+                             content={message.content}
+                             primaryColor={isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor}
+                           />
                         </div>
                       </div>
                     );

@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -7,16 +7,45 @@ import remarkGfm from "remark-gfm";
 interface StyledMarkdownProps {
   content: string;
   primaryColor: string;
-  isDarkTheme: boolean;
   className?: string;
 }
 
 export const StyledMarkdown: React.FC<StyledMarkdownProps> = memo(({
   content,
   primaryColor,
-  isDarkTheme,
   className = ""
 }) => {
+  const [isDarkTheme, setIsDarkTheme] = useState(() => {
+    const theme = localStorage.getItem('app-theme');
+    return theme === 'dark';
+  });
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const theme = localStorage.getItem('app-theme');
+      setIsDarkTheme(theme === 'dark');
+    };
+
+    // Listen for storage changes
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for manual theme changes within the same tab
+    const observer = new MutationObserver(() => {
+      const theme = localStorage.getItem('app-theme');
+      setIsDarkTheme(theme === 'dark');
+    });
+    
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      observer.disconnect();
+    };
+  }, []);
+
   const codeBackgroundColor = isDarkTheme ? '#2d2d2d' : '#f6f6f6';
   const codeTextColor = isDarkTheme ? '#e0e0e0' : '#333333';
   const inlineCodeBg = isDarkTheme ? '#3a3a3a' : '#f0f0f0';
@@ -281,7 +310,6 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = memo(({
     return (
       prevProps.content === nextProps.content &&
       prevProps.primaryColor === nextProps.primaryColor &&
-      prevProps.isDarkTheme === nextProps.isDarkTheme &&
       prevProps.className === nextProps.className
     );
   }
