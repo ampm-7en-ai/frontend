@@ -46,6 +46,24 @@ const MessageContainer = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const { theme, toggleTheme } = useAppTheme();
+
+  const [currentTheme, setCurrentTheme] = useState('dark');
+  
+    // Use system theme preference as initial value
+    useEffect(() => {
+  
+      // const themeCurrent = window.localStorage.getItem('app-theme') === 'dark' ? 'dark' : 'light';
+      // setCurrentTheme(themeCurrent);
+      // setTheme(themeCurrent);
+        // const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        // setCurrentTheme(prefersDark ? 'dark' : 'light');
+        // setTheme(prefersDark ? 'dark' : 'light');
+        // console.log("pipipi",prefersDark);
+        console.log("final",theme);
+      
+     // setCurrentTheme(theme ? 'dark' : 'light');
+     // setTheme(theme ? 'dark' : 'light');
+    }, [theme,currentTheme]);
   // Use conversation ID as key to force WebSocket hook to reinitialize when conversation changes
   const conversationId = conversation?.id || null;
   

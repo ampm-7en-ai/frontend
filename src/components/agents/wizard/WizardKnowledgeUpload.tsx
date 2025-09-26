@@ -51,6 +51,7 @@ const WizardKnowledgeUpload = ({ agentId, onKnowledgeAdd, onSkip, onTrainAgent }
 
     setAddedSources(prev => [...prev, ...transformedSources]);
     setKnowledgeSourceIds(prev => [...prev, ...transformedSources.map(s => s.id)]);
+    onKnowledgeAdd(transformedSources);
     
     showToast({
       title: "Knowledge Source Added",

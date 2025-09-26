@@ -2440,7 +2440,7 @@ export const ChatboxPreview = ({
             </button>
           </form>
           <div className="text-center mt-3 text-xs text-gray-400 font-medium">
-            powered by 7en.ai
+            Powered by 7en.ai
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Bot, RefreshCw, User, Info, Copy, RotateCcw, ThumbsUp, ThumbsDown, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -38,7 +38,8 @@ const MessageList = ({
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
   const [feedback, setFeedback] = useState<'helpful' | 'unhelpful' | null>(null);
   const { showToast } = useFloatingToast();
-  const { theme } = useAppTheme();
+  const { theme, setTheme } = useAppTheme();
+
 
   const handleCopy = () => {
     if (typeof message.content === 'string') {

@@ -15,6 +15,7 @@ import { BASE_URL } from '@/utils/api-config';
 import { StyledMarkdown } from '@/components/ui/styled-markdown';
 import { adjustColorForDarkTheme } from '@/utils/adjustColorForDarkTheme';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { Icon } from '@/components/icons';
 
 interface ChatbotConfig {
   agentId: string;
@@ -634,14 +635,15 @@ const SearchAssistant = () => {
                     {chatHistory.map((message, index) => {
                       if (message.type === 'user') {
                         return (
-                          <div key={message.id} className="flex items-start gap-2">
-                            <Avatar className="h-8 w-8 mt-1">
-                              <AvatarFallback className="bg-gray-200 dark:bg-gray-800">
-                                <User className="h-4 w-4" />
+                          <div key={message.id} className="flex items-start justify-end gap-2">
+                            {/* <Avatar className="rounded-lg h-8 w-8 mt-1">
+                              <AvatarFallback className="bg-transparent">
+                                <Icon type='plain' name={`Person`} color='hsl(var(--primary))' className='h-4 w-4' />
                               </AvatarFallback>
-                            </Avatar>
-                            <div className="pl-[10px] pt-[8px]">
-                              <p className="text-sm font-semibold" style={{ color: isDarkTheme ? '#fff' : '#333333' }}>
+                            </Avatar> */}
+                            <div className="rounded-[20px] p-4 max-w-[82%] relative transition-all duration-300 !py-3 rounded-br-sm bg-neutral-200/60 dark:bg-neutral-700"
+                            >
+                              <p className="text-sm" style={{ color: isDarkTheme ? '#fff' : '#333333' }}>
                                 {message.content}
                               </p>
                             </div>
@@ -649,21 +651,19 @@ const SearchAssistant = () => {
                         );
                       } else if (message.type === 'bot_response') {
                         return (
+                          <div className={`flex w-full gap-4 items-start justify-end`}>
                           <div key={message.id} className="flex items-start gap-2">
-                            <Avatar className="h-8 w-8 mt-1" style={{
-                              backgroundColor: adjustColorForDarkTheme(primaryColor)
-                            }}>
+                            <Avatar className="rounded-lg h-8 w-8 mt-1">
                               {config.avatarUrl ? (
                                 <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
                               ) : null}
-                              <AvatarFallback style={{
-                                backgroundColor: adjustColorForDarkTheme(primaryColor)
-                              }}>
-                                <Bot className="h-4 w-4 text-white" />
+                              <AvatarFallback className='bg-transparent'>
+                                <Icon type='plain' name={`Magic`} color='hsl(var(--primary))' className='h-4 w-4' />
                               </AvatarFallback>
                             </Avatar>
 
                             <div className="flex-1 pl-[10px] pt-[5px] w-full">
+                              <p className='text-xs font-semibold mb-1'>{config.chatbotName}</p>
                               <StyledMarkdown
                                 content={message.content}
                                 primaryColor={isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor}
@@ -671,25 +671,24 @@ const SearchAssistant = () => {
                               />
                             </div>
                           </div>
+                          </div>
                         );
                       } else if (message.type === 'ui' && message.ui_type === 'email') {
                         return (
                           <div key={message.id} className="flex items-start gap-2">
-                            <Avatar className="h-8 w-8 mt-1" style={{
+                            <Avatar className="rounded-lg h-8 w-8 mt-1" style={{
                               backgroundColor: adjustColorForDarkTheme(primaryColor)
                             }}>
                               {config.avatarUrl ? (
                                 <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
                               ) : null}
-                              <AvatarFallback style={{
-                                backgroundColor: adjustColorForDarkTheme(primaryColor)
-                              }}>
-                                <Bot className="h-4 w-4 text-white" />
+                              <AvatarFallback className='bg-transparent'>
+                                <Icon type='plain' name={`Magic`} color='hsl(var(--primary))' className='h-5 w-5' />
                               </AvatarFallback>
                             </Avatar>
 
                             <div className="flex-1 pl-[10px] pt-[5px]">
-                              <div className="flex flex-col gap-3 justify-center animate-fade-in rounded-2xl bg-gray-100/50 dark:bg-gray-800/90 p-4">
+                              <div className="flex flex-col gap-3 justify-center animate-fade-in rounded-2xl bg-neutral-100/50 dark:bg-neutral-800/90 p-4">
                                 <form onSubmit={handleEmailSubmit} className="relative">
                                   <Input
                                     variant="modern"
@@ -746,16 +745,14 @@ const SearchAssistant = () => {
                     {/* Enhanced thinking/loading indicator with better animations */}
                     {isProcessing && (
                       <div className="flex items-start gap-2 animate-fade-in" style={{ color: textColor }}>
-                        <Avatar className="h-8 w-8 mt-1" style={{
+                        <Avatar className="rounded-lg h-8 w-8 mt-1" style={{
                           backgroundColor: primaryColor
                         }}>
                           {config.avatarUrl ? (
                             <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
                           ) : null}
-                          <AvatarFallback style={{
-                            backgroundColor: primaryColor
-                          }}>
-                            <Bot className="h-4 w-4 text-white" />
+                          <AvatarFallback className='bg-transparent'>
+                            <Icon type='plain' name={`Magic`} color='hsl(var(--primary))' className='h-5 w-5' />
                           </AvatarFallback>
                         </Avatar>
 
@@ -986,16 +983,14 @@ const SearchAssistant = () => {
             }}
           >
             <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8" style={{
+              <Avatar className="rounded-lg h-8 w-8" style={{
                 backgroundColor: isDarkTheme ? adjustColorForDarkTheme(primaryColor) : primaryColor
               }}>
                 {config.avatarUrl ? (
                   <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
                 ) : null}
-                <AvatarFallback style={{
-                  backgroundColor: isDarkTheme ? adjustColorForDarkTheme(primaryColor) : primaryColor
-                }}>
-                  <Bot className="h-4 w-4 text-white" />
+                <AvatarFallback className='bg-transparent'>
+                  <Icon type='plain' name={`Magic`} color='hsl(var(--primary))' className='h-5 w-5' />
                 </AvatarFallback>
               </Avatar>
               <span className="ml-2 font-medium text-sm">{config.chatbotName || 'AI Assistant'}</span>
@@ -1016,7 +1011,7 @@ const SearchAssistant = () => {
       }
 
       {/* Main content - Scrollable */}
-      <main className="flex-1 overflow-hidden flex flex-col bg-white dark:bg-neutral-950">
+      <main className="flex-1 overflow-hidden flex flex-col bg-white dark:bg-neutral-800">
         <ScrollArea 
           className="flex-grow"
           style={{ height: 'calc(100vh - 98px)' }} // Adjust based on header and input area heights
@@ -1049,14 +1044,14 @@ const SearchAssistant = () => {
                 {chatHistory.map((message, index) => {
                   if (message.type === 'user') {
                     return (
-                      <div key={message.id} className="flex items-start gap-2">
-                        <Avatar className="h-8 w-8 mt-1">
-                          <AvatarFallback className="bg-gray-200 dark:bg-gray-800">
-                            <User className="h-4 w-4" />
+                      <div key={message.id} className="flex items-start justify-end gap-2">
+                        {/* <Avatar className="rounded-lg h-8 w-8 mt-1">
+                          <AvatarFallback className="bg-transparent">
+                            <Icon type='plain' name={`Person`} color='hsl(var(--primary))' className='h-4 w-4' />
                           </AvatarFallback>
-                        </Avatar>
-                        <div className="pl-[10px] pt-[8px]">
-                          <p className="text-sm font-semibold" style={{ color: isDarkTheme ? '#fff' : '#333333' }}>
+                        </Avatar> */}
+                        <div className="rounded-[20px] p-4 max-w-[82%] relative transition-all duration-300 !py-3 rounded-br-sm bg-neutral-200/60 dark:bg-neutral-700">
+                          <p className="text-sm" style={{ color: isDarkTheme ? '#fff' : '#333333' }}>
                             {message.content}
                           </p>
                         </div>
@@ -1065,20 +1060,17 @@ const SearchAssistant = () => {
                   } else if (message.type === 'bot_response') {
                     return (
                       <div key={message.id} className="flex items-start gap-2">
-                        <Avatar className="h-8 w-8 mt-1" style={{
-                          backgroundColor: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor
-                        }}>
+                        <Avatar className="rounded-lg h-8 w-8 mt-1 bg-transparent">
                           {config.avatarUrl ? (
                             <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
                           ) : null}
-                          <AvatarFallback style={{
-                            backgroundColor: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor
-                          }}>
-                            <Bot className="h-4 w-4 text-white" />
+                          <AvatarFallback className='bg-transparent'>
+                            <Icon type='plain' name={`Magic`} color='hsl(var(--primary))' className='h-5 w-5' />
                           </AvatarFallback>
                         </Avatar>
 
                         <div className="flex-1 pl-[10px] pt-[5px]">
+                          <p className='text-xs font-semibold mb-1'>{config.chatbotName}</p>
                           <StyledMarkdown
                             content={message.content}
                             primaryColor={isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor}
@@ -1090,21 +1082,17 @@ const SearchAssistant = () => {
                   } else if (message.type === 'ui' && message.ui_type === 'email') {
                     return (
                       <div key={message.id} className="flex items-start gap-2">
-                        <Avatar className="h-8 w-8 mt-1" style={{
-                          backgroundColor: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor
-                        }}>
+                        <Avatar className="rounded-lg h-8 w-8 mt-1 bg-transparent">
                           {config.avatarUrl ? (
                             <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
                           ) : null}
-                          <AvatarFallback style={{
-                            backgroundColor: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor
-                          }}>
-                            <Bot className="h-4 w-4 text-white" />
+                          <AvatarFallback className='bg-transparent'>
+                            <Icon type='plain' name={`Magic`} color='hsl(var(--primary))' className='h-5 w-5' />
                           </AvatarFallback>
                         </Avatar>
 
                         <div className="flex-1 pl-[10px] pt-[5px]">
-                          <div className="flex flex-col gap-3 justify-center animate-fade-in rounded-2xl bg-gray-100/50 dark:bg-gray-800/90 p-4">
+                          <div className="flex flex-col gap-3 justify-center animate-fade-in rounded-2xl bg-neutral-100/50 dark:bg-neutral-800/90 p-4">
                             <form onSubmit={handleEmailSubmit} className="relative">
                               <Input
                                 variant="modern"
@@ -1161,16 +1149,12 @@ const SearchAssistant = () => {
                 {/* Show loading indicator after the last message when waiting for a response */}
                 {isProcessing && (
                   <div className="flex items-start gap-2">
-                    <Avatar className="h-8 w-8 mt-1" style={{
-                      backgroundColor: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor
-                    }}>
+                    <Avatar className="rounded-lg h-8 w-8 mt-1 bg-transparent">
                       {config.avatarUrl ? (
                         <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
                       ) : null}
-                      <AvatarFallback style={{
-                        backgroundColor: isDarkTheme ?  adjustColorForDarkTheme(primaryColor) : primaryColor
-                      }}>
-                        <Bot className="h-4 w-4 text-white" />
+                      <AvatarFallback className='bg-transparent'>
+                        <Icon type='plain' name={`Magic`} color='hsl(var(--primary))' className='h-5 w-5' />
                       </AvatarFallback>
                     </Avatar>
 
@@ -1217,7 +1201,7 @@ const SearchAssistant = () => {
       
       {/* Input section - Fixed */}
       <div 
-        className="border-t p-3 sticky bottom-0 z-10 bg-neutral-50 dark:bg-neutral-800"
+        className="border-t p-3 sticky bottom-0 z-10 bg-neutral-50 dark:bg-neutral-700"
         style={{ 
           borderColor: borderColor,
         }}
