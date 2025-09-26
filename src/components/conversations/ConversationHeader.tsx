@@ -46,7 +46,7 @@ const ConversationHeader = ({
     
     if (isDefault) {
       return (
-        <Badge className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 text-xs">
+        <Badge className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800" style={{fontSize: "14px"}}>
           {channel?.charAt(0).toUpperCase() + channel?.slice(1)}
         </Badge>
       );

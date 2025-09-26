@@ -61,7 +61,7 @@ export const ModernModal = ({
         fixedFooter={fixedFooter}
       >
         {/* Custom Close Button */}
-        <DialogClose className="absolute right-6 top-6 rounded-full p-2 bg-slate-100/80 dark:bg-neutral-700/80 backdrop-blur-sm opacity-70 ring-offset-background transition-all hover:opacity-100 hover:bg-slate-200/80 dark:hover:bg-neutral-700/90 focus:outline-none z-50">
+        <DialogClose className="absolute right-6 top-6 rounded-full p-2 bg-neutral-100/80 dark:bg-neutral-700/80 backdrop-blur-sm opacity-70 ring-offset-background transition-all hover:opacity-100 hover:bg-neutral-200/80 dark:hover:bg-neutral-700/90 focus:outline-none z-50">
           <X className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
           <span className="sr-only">Close</span>
         </DialogClose>
@@ -109,7 +109,7 @@ export const ModernModal = ({
         {footer && (
           <DialogFooter className={cn(
             'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-2 space-y-reverse sm:space-y-0 pt-6 mt-6',
-            fixedFooter && 'border-t border-border px-6 py-4 -mx-6 -mb-6 rounded-b-2xl pb-[29px] pr-[29px]',
+            fixedFooter && 'px-6 py-0 -mx-6 -mb-6 rounded-b-2xl pb-[29px] pr-[29px]',
             type === 'alert' && 'pt-0 mt-0'
           )}>
             {footer}

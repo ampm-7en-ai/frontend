@@ -294,8 +294,9 @@ export const StyledMarkdown: React.FC<StyledMarkdownProps> = memo(({
           }
           .assistant-content > p { 
             margin: 0;
-            line-height: 22px; 
-            font-size: 0.875rem !important;        
+            line-height: 26px !important; 
+            font-size: 0.875rem !important; 
+            color: ${isDarkTheme ? '#a5a5a5' : '#444'};       
           }
           .assistant-li > p {
             padding-top: 1px ;

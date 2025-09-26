@@ -252,8 +252,9 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, agent }: AgentActi
                 e.stopPropagation();
                 handleDelete();
               }}
+              variant='primary'
               disabled={deleting}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-500"
+              className="!bg-red-600 hover:!bg-red-700 focus:ring-red-600 !text-white"
             >
               {deleting ? 'Deleting...' : 'Delete Agent'}
             </ModernButton>

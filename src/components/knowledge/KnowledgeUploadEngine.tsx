@@ -1124,7 +1124,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                     className='rounded-[4px]'
                   />
                   <Label htmlFor="import-all" className="text-sm font-medium cursor-pointer text-neutral-700 dark:text-neutral-300 flex items-center gap-2">
-                    Import all linked pages from this domain
+                    Import all linked pages
                     {isScrapingUrls && <Loader2 className="h-4 w-4 animate-spin" />}
                   </Label>
                   <Checkbox 
@@ -1134,7 +1134,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                     className='rounded-[4px]'
                   />
                   <Label htmlFor="add-manually" className="text-sm font-medium cursor-pointer text-neutral-700 dark:text-neutral-300">
-                    Input all linked pages manually
+                    Manual input links
                   </Label>
                 </div>
 
@@ -1359,7 +1359,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                   <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.plainText}</p>
                 )}
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  Enter the text content you want to add to your knowledge base. This can be articles, documentation, or any other text-based information.
+                  This can be articles, documentation, or any other text-based information in any formats like markdown, json or simple text format.
                 </p>
               </div>
             )}

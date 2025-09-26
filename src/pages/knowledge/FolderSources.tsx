@@ -258,7 +258,7 @@ const FolderSources = () => {
             setSelectedUrlsSource(source);
             setUrlsViewerOpen(true);
           }}
-        className="text-xs text-blue-600 dark:text-blue-400">
+        className="text-xs text-black dark:text-white cursor-pointer">
           {urls.length} URL{urls.length !== 1 ? 's' : ''}
         </span>
         
@@ -322,13 +322,13 @@ const FolderSources = () => {
         {/* Search and Filter */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
+            <Search className="absolute left-3 top-1/2 transform -tranneutral-y-1/2 text-muted-foreground h-4 w-4 z-10" />
             <input
               type="text"
               placeholder="Search sources..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white/80 dark:bg-neutral-800/80 border-slate-200 dark:border-neutral-700 rounded-xl h-10 flex w-full px-4 py-3 text-sm transition-all duration-200 border ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-blue-400/50 focus-visible:border-transparent hover:border-slate-300/80 dark:hover:border-slate-500/80 pl-10"
+              className="bg-white/80 dark:bg-neutral-800/80 border-neutral-200 dark:border-neutral-700 rounded-xl h-10 flex w-full px-4 py-3 text-sm transition-all duration-200 border ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-blue-400/50 focus-visible:border-transparent hover:border-neutral-300/80 dark:hover:border-neutral-500/80 pl-10"
             />
           </div>
           <div className="w-full sm:w-48">
@@ -415,7 +415,7 @@ const FolderSources = () => {
                         size="sm"
                         icon={Eye}
                         iconOnly={true}
-                        className="h-10 w-10 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg hover:text-blue-600"
+                        className="h-10 w-10 hover:bg-blue-100 dark:hover:bg-neutral-900/20 rounded-lg hover:text-neutral-600"
                         onClick={(e) => window.open(source.metadata.webViewLink, '_blank', 'noopener,noreferrer')
                         }
                       />
@@ -426,7 +426,7 @@ const FolderSources = () => {
                         size="sm"
                         icon={Eye}
                         iconOnly={true}
-                        className="h-10 w-10 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg hover:text-blue-600"
+                        className="h-10 w-10 hover:bg-neutral-100 dark:hover:bg-neutral-900/20 rounded-lg hover:text-neutral-600"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleViewPlainText(source);
@@ -439,7 +439,7 @@ const FolderSources = () => {
                         size="sm"
                         icon={Download}
                         iconOnly={true}
-                        className="h-10 w-10 hover:bg-slate-100 dark:hover:bg-neutral-600 rounded-lg"
+                        className="h-10 w-10 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded-lg"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDownload(source);
@@ -489,9 +489,9 @@ const FolderSources = () => {
               Cancel
             </ModernButton>
             <ModernButton 
-              variant="gradient" 
+              variant="primary" 
               onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="!bg-red-600 hover:!bg-red-700 focus:ring-red-600 !text-white"
             >
               Delete
             </ModernButton>

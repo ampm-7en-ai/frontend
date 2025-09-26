@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Filter, X, Trash2 } from 'lucide-react';
+import { Filter, X, Trash2, ArrowLeft } from 'lucide-react';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import ConversationFiltersDrawer from './ConversationFiltersDrawer';
 import ModernButton from '../dashboard/ModernButton';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Icon } from '../icons';
+import { Input } from '../ui/input';
 
 interface ConversationFiltersProps {
   filterResolved: string;
@@ -104,56 +105,7 @@ const ConversationFiltersModern = ({
   return (
     <div className="bg-white dark:bg-[hsla(0,0%,0%,0.95)] dark:border-neutral-700 py-[14px]">
       <div className="px-4 space-y-3">
-        {/* Search and select toggle row */}
-        <div className="flex items-center gap-2">
-          {!isBulkSelectMode ? (
-            <>
-              <Checkbox 
-                checked={isBulkSelectMode}
-                onCheckedChange={onBulkSelectModeChange}
-                className="rounded-[4px]"
-              />
-              <input
-                type="text"
-                placeholder="Search by conversation name or content..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 px-3 py-2 text-sm border border-gray-200 dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              />
-            </>
-          ) : (
-            <div className="flex items-center gap-2 w-full">
-              <ModernButton
-                onClick={() => onBulkSelectModeChange(false)}
-                size="sm"
-                variant="ghost"
-                className="text-xs"
-              >
-                Cancel
-              </ModernButton>
-              <ModernButton
-                onClick={onSelectAll}
-                size="sm"
-                variant="ghost"
-                className="text-xs"
-              >
-                Select All
-              </ModernButton>
-              {selectedConversations.length > 0 && (
-                <ModernButton
-                  onClick={onBulkDelete}
-                  disabled={isBulkDeleting}
-                  size="sm"
-                  variant='ghost'
-                  className="text-xs"
-                >
-                  <Icon name={`Bin`} type='plain' color='hsl(var(--primary))' className='h-3 w-3 mr-1' />
-                  {isBulkDeleting ? 'Deleting...' : `Delete (${selectedConversations.length})`}
-                </ModernButton>
-              )}
-            </div>
-          )}
-        </div>
+        
         
         {/* Status tabs and filters row */}
         <div className="flex items-center justify-between gap-4">
@@ -197,6 +149,59 @@ const ConversationFiltersModern = ({
               }
             />
           </div>
+        </div>
+        {/* Search and select toggle row */}
+        <div className="flex items-center gap-2 h-8">
+          {!isBulkSelectMode ? (
+            <>
+              <Checkbox 
+                checked={isBulkSelectMode}
+                onCheckedChange={onBulkSelectModeChange}
+                className="rounded-[4px]"
+              />
+              <Input
+                type="text"
+                variant='modern'
+                size='sm'
+                placeholder="Search by conversation name or content..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 h-8"
+              />
+            </>
+          ) : (
+            <div className="flex items-center gap-2 w-full">
+              <ModernButton
+                onClick={() => onBulkSelectModeChange(false)}
+                size="sm"
+                variant="ghost"
+                className="text-xs"
+                iconOnly
+              >
+                <ArrowLeft className='h-4 w-4' />
+              </ModernButton>
+              <ModernButton
+                onClick={onSelectAll}
+                size="sm"
+                variant="ghost"
+                className="text-xs"
+              >
+                {selectedConversations.length > 0 ? "Deselect All" : "Select All"}
+              </ModernButton>
+              {selectedConversations.length > 0 && (
+                <ModernButton
+                  onClick={onBulkDelete}
+                  disabled={isBulkDeleting}
+                  size="sm"
+                  variant='ghost'
+                  className="text-xs"
+                >
+                  <Icon name={`Bin`} type='plain' color='hsl(var(--primary))' className='h-3 w-3 mr-1' />
+                  {isBulkDeleting ? 'Deleting...' : `Delete (${selectedConversations.length})`}
+                </ModernButton>
+              )}
+            </div>
+          )}
         </div>
       </div>
       {hasActiveFilters && (

@@ -658,7 +658,7 @@ const SearchAssistant = () => {
                                 <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
                               ) : null}
                               <AvatarFallback className='bg-transparent'>
-                                <Icon type='plain' name={`Magic`} color='hsl(var(--primary))' className='h-4 w-4' />
+                                <Icon type='plain' name={`Magic`} color='hsl(var(--primary))' className='h-5 w-5' />
                               </AvatarFallback>
                             </Avatar>
 
@@ -744,9 +744,7 @@ const SearchAssistant = () => {
                     {/* Enhanced thinking/loading indicator with better animations */}
                     {isProcessing && (
                       <div className="flex items-start gap-2 animate-fade-in" style={{ color: textColor }}>
-                        <Avatar className="rounded-lg h-8 w-8 mt-1" style={{
-                          backgroundColor: primaryColor
-                        }}>
+                        <Avatar className="rounded-lg h-8 w-8 mt-1">
                           {config.avatarUrl ? (
                             <AvatarImage src={config.avatarUrl} alt={config.chatbotName} className="object-cover" />
                           ) : null}

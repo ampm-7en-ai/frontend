@@ -18,6 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Icon } from '@/components/icons';
+import { ModernModal } from '@/components/ui/modern-modal';
 
 interface Role {
   id: number;
@@ -59,7 +60,10 @@ const TeamManagementSection = () => {
   const [showTeamManagement, setShowTeamManagement] = useState(true);
   const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
   const [loadingRoles, setLoadingRoles] = useState(false);
-
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [memberId, setMemberId] = useState(null);
+  const [isDeleting,setIsDeleting] = useState(false);
   const inviteForm = useForm<InviteFormValues>({
     resolver: zodResolver(inviteFormSchema),
     defaultValues: {
@@ -163,6 +167,7 @@ const TeamManagementSection = () => {
   };
 
   const cancelInvite = async (inviteId: string) => {
+    setIsDeleting(true);
     try {
       const token = getToken();
       if (!token) {
@@ -194,10 +199,14 @@ const TeamManagementSection = () => {
         description: error instanceof Error ? error.message : "An error occurred while cancelling the invitation.",
         variant: "destructive",
       });
+    } finally {
+      setIsDeleting(false);
+      setDeleteConfirmOpen(false);
     }
   };
 
   const removeActiveMember = async (memberId: string) => {
+    setIsDeleting(true);
     try {
       const token = getToken();
       if (!token) {
@@ -230,6 +239,9 @@ const TeamManagementSection = () => {
         description: error instanceof Error ? error.message : "An error occurred while removing the team member.",
         variant: "destructive",
       });
+    } finally {
+      setIsDeleting(false);
+      setDeleteConfirmOpen(false);
     }
   };
 
@@ -333,6 +345,13 @@ const TeamManagementSection = () => {
     return null;
   }
 
+  //handle remove invitation or user
+  const handleRemove = (delType: string,item: string) => {
+    
+    setSelectedItem(delType);
+    setDeleteConfirmOpen(true);
+    setMemberId(item);
+  }
   return (
     <section className="p-8">
       <div className="mb-8 pl-2">
@@ -503,7 +522,7 @@ const TeamManagementSection = () => {
                       <ModernButton
                         variant="outline"
                         size="sm"
-                        onClick={() => member.status === 'pending' ? cancelInvite(member.id) : removeActiveMember(member.id)}
+                        onClick={() => member.status === 'pending' ? handleRemove("cancel",member.id) : handleRemove("remove",member.id)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:!text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 h-10 w-10 p-0"
                       >
                         <Icon type='plain' name={`Bin`} color='hsl(var(--primary))' className='h-5 w-5' />
@@ -527,7 +546,35 @@ const TeamManagementSection = () => {
             </div>
           )}
       </div>
-
+    {/* Delete Confirmation Modal */}
+          <ModernModal
+            open={deleteConfirmOpen}
+            onOpenChange={setDeleteConfirmOpen}
+            title={selectedItem === 'cancel' ? "Cancel Invitation" : "Remove Member"}
+            description={`Are you sure you want to delete invitation"? This action cannot be undone.`}
+            size="md"
+            type='alert'
+            footer={
+              <div className="flex gap-3">
+                <ModernButton variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+                  Cancel
+                </ModernButton>
+                <ModernButton 
+                  variant="primary" 
+                  onClick={() => selectedItem === 'cancel' ? cancelInvite(memberId) : removeActiveMember(memberId) }
+                  className="!bg-red-600 hover:!bg-red-700 focus:ring-red-600 !text-white"
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </ModernButton>
+              </div>
+            }
+          >
+            <div className="py-4">
+              <p className="text-muted-foreground dark:text-muted-foreground">
+                This will permanently remove the knowledge source from your agent.
+              </p>
+            </div>
+          </ModernModal>
       
     </section>
   );
