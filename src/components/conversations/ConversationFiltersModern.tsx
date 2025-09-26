@@ -22,6 +22,8 @@ interface ConversationFiltersProps {
   onSelectAll: () => void;
   onBulkDelete: () => void;
   isBulkDeleting: boolean;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
 }
 
 const ConversationFiltersModern = ({
@@ -39,7 +41,9 @@ const ConversationFiltersModern = ({
   selectedConversations,
   onSelectAll,
   onBulkDelete,
-  isBulkDeleting
+  isBulkDeleting,
+  searchQuery,
+  setSearchQuery
 }: ConversationFiltersProps) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -99,96 +103,102 @@ const ConversationFiltersModern = ({
 
   return (
     <div className="bg-white dark:bg-[hsla(0,0%,0%,0.95)] dark:border-neutral-700 py-[14px]">
-      <div className="flex items-center justify-between gap-4 px-4">
-        <ModernTabNavigation
-          tabs={statusTabs}
-          activeTab={filterResolved}
-          onTabChange={onFilterResolvedChange}
-          className="text-xs rounded-xl"
-        />
-        
+      <div className="px-4 space-y-3">
+        {/* Search and select toggle row */}
         <div className="flex items-center gap-2">
-          
+          {!isBulkSelectMode ? (
+            <>
+              <Checkbox 
+                checked={isBulkSelectMode}
+                onCheckedChange={onBulkSelectModeChange}
+                className="rounded-[4px]"
+              />
+              <input
+                type="text"
+                placeholder="Search by conversation name or content..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 px-3 py-2 text-sm border border-gray-200 dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              />
+            </>
+          ) : (
+            <div className="flex items-center gap-2 w-full">
+              <ModernButton
+                onClick={() => onBulkSelectModeChange(false)}
+                size="sm"
+                variant="ghost"
+                className="text-xs"
+              >
+                Cancel
+              </ModernButton>
+              <ModernButton
+                onClick={onSelectAll}
+                size="sm"
+                variant="ghost"
+                className="text-xs"
+              >
+                Select All
+              </ModernButton>
+              {selectedConversations.length > 0 && (
+                <ModernButton
+                  onClick={onBulkDelete}
+                  disabled={isBulkDeleting}
+                  size="sm"
+                  variant='ghost'
+                  className="text-xs"
+                >
+                  <Icon name={`Bin`} type='plain' color='hsl(var(--primary))' className='h-3 w-3 mr-1' />
+                  {isBulkDeleting ? 'Deleting...' : `Delete (${selectedConversations.length})`}
+                </ModernButton>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* Status tabs and filters row */}
+        <div className="flex items-center justify-between gap-4">
+          <ModernTabNavigation
+            tabs={statusTabs}
+            activeTab={filterResolved}
+            onTabChange={onFilterResolvedChange}
+            className="text-xs rounded-xl"
+          />
           
           <div className="flex items-center gap-2">
-            <Checkbox 
-              checked={isBulkSelectMode}
-              onCheckedChange={onBulkSelectModeChange}
-              className="rounded-[4px]"
+            <ConversationFiltersDrawer
+              open={dropdownOpen}
+              onOpenChange={setDropdownOpen}
+              channelFilter={channelFilter}
+              setChannelFilter={setChannelFilter}
+              agentTypeFilter={agentTypeFilter}
+              setAgentTypeFilter={setAgentTypeFilter}
+              agentNameFilter={agentNameFilter}
+              setAgentNameFilter={setAgentNameFilter}
+              availableAgents={availableAgents}
+              trigger={
+                <ModernButton
+                  type="button"
+                  size='sm'
+                  iconOnly
+                  variant='ghost'
+                  className={`relative inline-flex items-center justify-center rounded-xl text-xs font-medium transition-all duration-200 ${
+                    hasActiveFilters 
+                      ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-neutral-900/30 border border-orange-200 dark:border-orange-800' 
+                      : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800'
+                  }`}
+                >
+                  <Filter className="w-4 h-4" />
+                  {hasActiveFilters && (
+                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[9px] rounded-full h-4 w-4 flex items-center justify-center font-medium">
+                      {getActiveFiltersCount()}
+                    </span>
+                  )}
+                </ModernButton>
+              }
             />
-            <span 
-              className="text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer select-none"
-              onClick={() => onBulkSelectModeChange(!isBulkSelectMode)}
-            >
-              Select
-            </span>
-            
           </div>
-
-          <ConversationFiltersDrawer
-            open={dropdownOpen}
-            onOpenChange={setDropdownOpen}
-            channelFilter={channelFilter}
-            setChannelFilter={setChannelFilter}
-            agentTypeFilter={agentTypeFilter}
-            setAgentTypeFilter={setAgentTypeFilter}
-            agentNameFilter={agentNameFilter}
-            setAgentNameFilter={setAgentNameFilter}
-            availableAgents={availableAgents}
-            trigger={
-              <ModernButton
-                type="button"
-                size='sm'
-                iconOnly
-                variant='ghost'
-                className={`relative inline-flex items-center justify-center rounded-xl text-xs font-medium transition-all duration-200 ${
-                  hasActiveFilters 
-                    ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-neutral-900/30 border border-orange-200 dark:border-orange-800' 
-                    : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800'
-                }`}
-              >
-                <Filter className="w-4 h-4" />
-                {hasActiveFilters && (
-                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[9px] rounded-full h-4 w-4 flex items-center justify-center font-medium">
-                    {getActiveFiltersCount()}
-                  </span>
-                )}
-              </ModernButton>
-            }
-          />
         </div>
       </div>
-      {/* Bulk actions */}
-      
-        {isBulkSelectMode && (
-          <div className="px-4 mt-4 pt-4 border-t border-gray-200 dark:border-neutral-700">
-          <div className='flex items-center justify-end gap-2'>
-          <ModernButton
-            onClick={onSelectAll}
-            size="sm"
-            variant="ghost"
-            className="text-xs"
-          >
-            Select All
-          </ModernButton>
-          {isBulkSelectMode && selectedConversations.length > 0 && (
-            <ModernButton
-              onClick={onBulkDelete}
-              disabled={isBulkDeleting}
-              size="sm"
-              variant='ghost'
-              className="text-xs"
-            >
-              <Icon name={`Bin`} type='plain' color='hsl(var(--primary))' className='h-3 w-3 mr-1' />
-              {isBulkDeleting ? 'Deleting...' : `Delete (${selectedConversations.length})`}
-            </ModernButton>
-          )}
-
-          
-          </div>
-      </div>
-          
-        )}
       {hasActiveFilters && (
         <div className="px-4 mt-4 pt-4 border-t border-gray-200 dark:border-neutral-700">
           <div className="flex items-center justify-between mb-3">

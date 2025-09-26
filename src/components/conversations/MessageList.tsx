@@ -38,7 +38,7 @@ const MessageList = ({
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
   const [feedback, setFeedback] = useState<'helpful' | 'unhelpful' | null>(null);
   const { showToast } = useFloatingToast();
-  const { theme, setTheme } = useAppTheme();
+  const { theme } = useAppTheme();
 
 
   const handleCopy = () => {
@@ -220,9 +220,8 @@ const MessageList = ({
                 <div className="prose-sm max-w-none break-words text-neutral-800 dark:text-neutral-200">
                   {typeof message.content === 'string' && (
                     <StyledMarkdown
-                      key={`markdown-${message.id}-${theme}`}
                       content={message.content}
-                      primaryColor={theme === 'dark' ? '#f06425' : '#f06425'}
+                      primaryColor="#f06425"
                       isDarkTheme={theme === 'dark'}
                     />
                   )}

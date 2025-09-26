@@ -4,6 +4,7 @@ import ConversationFiltersModern from './ConversationFiltersModern';
 import DeleteConversationDialog from './DeleteConversationDialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { Loader } from 'lucide-react';
 import type { ChatSessionData } from '@/services/ChatSessionsWebSocketService';
 import { useToast } from "@/hooks/use-toast";
@@ -101,7 +102,8 @@ const ConversationListPanel = ({
       s && (
         s.customer?.toLowerCase().includes(lowerQuery) || 
         s.lastMessage?.toLowerCase().includes(lowerQuery) ||
-        (s.email && s.email.toLowerCase().includes(lowerQuery))
+        (s.email && s.email.toLowerCase().includes(lowerQuery)) ||
+        s.id?.toLowerCase().includes(lowerQuery) // Add conversation name/ID search
       )
     );
   };
@@ -548,6 +550,8 @@ const ConversationListPanel = ({
           onSelectAll={handleSelectAll}
           onBulkDelete={handleBulkDelete}
           isBulkDeleting={isBulkDeleting}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
         />
       </div>
       
