@@ -12,7 +12,8 @@ interface RepliesCreditCardProps {
 }
 
 const RepliesCreditCard: React.FC<RepliesCreditCardProps> = ({ used, total }) => {
-  const percentage = (used / total) * 100;
+
+  const percentage = ((total-used) / total) * 100;
   const circumference = 2 * Math.PI * 45; // radius = 45
   const strokeDasharray = circumference;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
@@ -28,7 +29,7 @@ const RepliesCreditCard: React.FC<RepliesCreditCardProps> = ({ used, total }) =>
       <CardContent className="space-y-6">
         <div>
           <p className="text-sm text-muted-foreground mb-4">
-            Replies used: <span className="text-[#F06425] font-semibold">{used}</span> on {total}
+            Remaining: <span className="text-[#F06425] font-semibold">{used}</span>/{total}
           </p>
           
           <div className="flex justify-center mb-6 mt-10">
@@ -66,7 +67,7 @@ const RepliesCreditCard: React.FC<RepliesCreditCardProps> = ({ used, total }) =>
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[#F06425]">{Math.round(percentage)}%</div>
+                  <div className="text-2xl font-bold text-[#F06425]">{total-used}</div>
                   <div className="text-xs text-muted-foreground">used</div>
                 </div>
               </div>

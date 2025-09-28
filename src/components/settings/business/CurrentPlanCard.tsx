@@ -41,13 +41,27 @@ export const CurrentPlanCard = () => {
   
   return (
     <div className="bg-white/70 dark:bg-neutral-800 rounded-2xl p-6 backdrop-blur-sm mb-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-           <div className="bg-transparent rounded-xl flex items-center justify-start p-3 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700">
-            <Icon type='plain' name={`Star`} color='hsl(var(--primary))' className='h-5 w-5' />
-          </div>
-          <div>
+      <div className="flex flex-col">
+        
+          <div className='flex justify-between items-center'>
+            <div className='flex items-center gap-4'>
+            <div className="bg-transparent rounded-xl flex items-center justify-start p-3 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700">
+              <Icon type='plain' name={`Star`} color='hsl(var(--primary))' className='h-5 w-5' />
+            </div>
             <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{planName}</h3>
+
+            </div>
+            <ModernButton 
+            variant="primary"
+            size='sm'
+            onClick={openPricingModal}
+            className='h-8'
+            icon={ArrowUp}
+          >
+            {isPaidPlan ? 'Change' : 'Upgrade'}
+          </ModernButton>
+          </div>
+          <div className='pt-4'>
             <div className="flex items-center gap-3 mt-1">
               <span className="text-muted-foreground dark:text-muted-foreground">${planPrice}/month</span>
               {(remainingDays !== null &&  remainingDays >= 0) ? (
@@ -76,14 +90,8 @@ export const CurrentPlanCard = () => {
               
             </div>
           </div>
-        </div>
-        <ModernButton 
-          variant="gradient"
-          onClick={openPricingModal}
-          icon={ArrowUp}
-        >
-          {isPaidPlan ? 'Change' : 'Upgrade'}
-        </ModernButton>
+          
+        
       </div>
       
       <TopupModal 

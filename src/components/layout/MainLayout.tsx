@@ -41,7 +41,7 @@ export function MainLayout({ pageTitle, breadcrumbs, children }: MainLayoutProps
   return (
     <div className="flex h-screen bg-light-gray/50 overflow-hidden w-full">
       <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
-      <div className="flex-1 flex flex-col overflow-hidden relative bg-neutral-50 dark:bg-[hsla(0,0%,0%,0.95)]">
+      <div className="flex-1 flex flex-col overflow-hidden relative bg-neutral-100 dark:bg-[hsla(0,0%,0%,0.95)]">
         {/* Floating Notifications */}
         {/* <div className="absolute top-4 right-4 z-50">
           <DropdownMenu>

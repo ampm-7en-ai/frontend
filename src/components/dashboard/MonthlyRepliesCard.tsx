@@ -75,10 +75,10 @@ const MonthlyRepliesCard: React.FC<MonthlyRepliesCardProps> = ({ data }) => {
                               y="10" 
                               width="16" 
                               height="100" 
-                              rx="8" 
-                              ry="8" 
+                              rx="4" 
+                              ry="4" 
                               fill="none" 
-                              stroke="hsl(var(--muted))" 
+                              stroke="none" 
                               strokeWidth="2"
                             />
                             
@@ -89,9 +89,9 @@ const MonthlyRepliesCard: React.FC<MonthlyRepliesCardProps> = ({ data }) => {
                               y={110 - (fillPercentage * 0.98)} 
                               width="12" 
                               height={fillPercentage * 0.98}
-                              rx="6" 
-                              ry="6" 
-                              fill={`url(#liquidGradient-${index})`}
+                              rx="4" 
+                              ry="4" 
+                              fill={`hsl(var(--primary))`}
                               className="animate-fade-in transition-all duration-700 ease-out" 
                             />
                             

@@ -51,7 +51,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 dark:bg-[hsla(0,0%,0%,0.95)] p-8">
+    <div className="min-h-screen bg-neutral-100/50 dark:bg-[hsla(0,0%,0%,0.95)] p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header with Navigation */}
         <div className="flex items-center justify-between">

@@ -332,11 +332,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
           ))}
         </nav>
           {/* background logo element */}
-        <div className="absolute right-[-50px] left-auto bottom-0 w-[600px] top-1/2 opacity-5 overflow-hidden">
+        {/* <div className="absolute right-[-50px] left-auto bottom-0 w-[600px] top-1/2 opacity-5 overflow-hidden">
           {!isCollapsed ? 
               theme === 'light' ? (<img src='/logo-icon-new.svg' className="w-full" alt="Logo" />) : (<img src='/logo-white-icon-new.svg' className="w-full" alt="Logo" />)
             : <></>}
-        </div>
+        </div> */}
         
         {/* User Profile Section */}
         <div className="p-4">
