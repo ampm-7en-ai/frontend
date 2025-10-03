@@ -32,28 +32,25 @@ jobs:
       run: npm run lint
       continue-on-error: true
     
-    - name: Run tests
-      run: npm run test:run
-    
-    - name: Generate coverage report
+    - name: Run tests with coverage
       run: npm run test:coverage
     
     - name: Upload coverage to Codecov
+      if: always()
       uses: codecov/codecov-action@v4
       with:
-        file: ./coverage/coverage-final.json
+        files: ./coverage/lcov.info
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
     
-    - name: Archive test results
+    - name: Archive coverage results
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-results-${{ matrix.node-version }}
-        path: |
-          coverage/
-          test-results/
+        name: coverage-${{ matrix.node-version }}
+        path: coverage/
+        if-no-files-found: ignore
     
     - name: Comment coverage on PR
       if: github.event_name == 'pull_request'
@@ -65,6 +62,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    if: success() || failure()
     needs: test
     
     steps:
