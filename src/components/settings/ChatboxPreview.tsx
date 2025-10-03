@@ -106,6 +106,7 @@ export const ChatboxPreview = ({
 
   // End chat confirmation and feedback states
   const [showEndChatConfirmation, setShowEndChatConfirmation] = useState(false);
+  const [showDeleteChatConfirmation, setShowDeleteChatConfirmation] = useState(false);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackText, setFeedbackText] = useState('');
@@ -853,6 +854,59 @@ export const ChatboxPreview = ({
     }, 500);
   };
 
+  // Handle Delete chat
+  const handleDeleteChat = () => {
+    if (messages.length === 0) {
+      toast({
+        title: "Oh oh!",
+        description: "Seems like you havenot started any conversations yet.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      if (chatServiceRef.current && isConnected) {
+        
+        chatServiceRef.current.send({
+          type: 'timeout',
+          message: '',
+          agentId: agentId || '',
+          sessionId: sessionId || '',
+          timestamp: Date.now()
+        });
+        
+        //start new connection
+        setShowDeleteChatConfirmation(false);
+
+        toast({
+          title: "Chat deleted",
+          description: "Chat history is deleted successfully.",
+          variant: "success",
+        });
+        handleRestart();
+
+
+        // setTimeout(() => {
+        //   if (chatServiceRef.current) {
+        //     chatServiceRef.current.disconnect();
+        //     chatServiceRef.current = null;
+        //   }
+          
+        //   // Only hide feedback form, keep messages visible
+          
+        //   setMessages([]);
+
+        //   // Clear timeout timers and reset flags
+        //   clearTimeouts();
+        //   setTimeoutQuestionSent(false);
+        //   // Don't create new connection - leave in idle state
+        //   console.log('Feedback processed, chat left in idle state');
+        // }, 1000);
+      }
+    } catch (error) {
+      console.error("error",error);
+    }
+  }
   // Handle feedback submission
   const handleFeedbackSubmit = () => {
     if (feedbackRating === 0) {
@@ -1544,6 +1598,34 @@ export const ChatboxPreview = ({
           </div>
         )}
 
+        {/* Delete Chat Confirmation */}
+        {showDeleteChatConfirmation && (
+          <div className="px-4 py-3 bg-white border-t border-gray-100">
+            <div className="text-center">
+              <div className="mb-3 p-3 rounded-full bg-gray-100 mx-auto w-fit">
+                <MessageCircle className="h-6 w-6 text-gray-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete chat</h3>
+              <p className="text-sm text-gray-600 mb-4">Do you want to delete chat history?</p>
+              <div className="flex flex-col gap-2">
+                <Button
+                  onClick={handleEndChat}
+                  className="w-full !bg-red-600 hover:!bg-red-700 focus:ring-red-600 !text-white py-3 text-sm font-medium"
+                >
+                  Yes, delete chat
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteChatConfirmation(false)}
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg py-3 text-sm font-medium"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Feedback Panel */}
         {showFeedbackForm && (
           <div className="px-4 py-3 bg-white border-t border-gray-100">
@@ -1882,9 +1964,15 @@ export const ChatboxPreview = ({
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => setShowEndChatConfirmation(true)}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-red-600 dark:hover:!bg-neutral-100"
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-100"
               >
                 End chat
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setShowDeleteChatConfirmation(true)}
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-red-600 dark:hover:!bg-neutral-100"
+              >
+                Delete chat
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -2301,6 +2389,37 @@ export const ChatboxPreview = ({
                 <ModernButton
                   variant="outline"
                   onClick={() => setShowEndChatConfirmation(false)}
+                  size='sm'
+                  className="w-full border border-gray-300 text-gray-700 dark:text-neutral-900 hover:bg-neutral-50 dark:hover:bg-transparent rounded-lg py-3 text-sm font-medium"
+                >
+                  No
+                </ModernButton>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Chat Confirmation */}
+        {showDeleteChatConfirmation && (
+          <div className="px-4 py-3 bg-white border-t border-gray-100">
+            <div className="text-center">
+               <div className="mb-3 p-3 rounded-full bg-transparent mx-auto w-fit">
+                <Icon name={`Bin`} type='plain' color='#000000' />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete chat</h3>
+              <p className="text-sm text-gray-600 mb-4">Do you want to delete chat history?</p>
+              <div className="flex flex-col gap-2">
+                <ModernButton
+                  onClick={handleDeleteChat}
+                  variant='primary'
+                  size='sm'
+                  className="w-full !bg-red-600 hover:!bg-red-700 focus:ring-red-600 !text-white rounded-lg py-3 text-sm font-medium"
+                >
+                  Yes, delete chat
+                </ModernButton>
+                <ModernButton
+                  variant="outline"
+                  onClick={() => setShowDeleteChatConfirmation(false)}
                   size='sm'
                   className="w-full border border-gray-300 text-gray-700 dark:text-neutral-900 hover:bg-neutral-50 dark:hover:bg-transparent rounded-lg py-3 text-sm font-medium"
                 >
