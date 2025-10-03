@@ -49,7 +49,7 @@ interface AgentFormData {
   };
   knowledgeSources: KnowledgeSource[];
   status?: string; // 🔥 Add status field to preserve agent status from server
-  ticketing_providers: String[];
+  ticketing_providers: string[];
   default_ticketing_provider: string;
   is_slack_enabled: boolean;
 }
@@ -134,7 +134,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
   console.log('BuilderProvider - Current agent data:', state.agentData);
 
   // Helper function to format knowledge sources - Updated to include status field
-  const formatKnowledgeSources = (knowledgeSources: any[]): KnowledgeSource[] => {
+  const formatKnowledgeSources = (knowledgeSources): KnowledgeSource[] => {
     if (!knowledgeSources || !Array.isArray(knowledgeSources)) return [];
     
     return knowledgeSources
