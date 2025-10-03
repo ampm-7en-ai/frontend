@@ -10,9 +10,9 @@ describe('useAppTheme', () => {
     document.documentElement.className = '';
   });
 
-  it('should initialize with light theme by default', () => {
+  it('should initialize with dark theme by default', () => {
     const { result } = renderHook(() => useAppTheme());
-    expect(result.current.theme).toBe('light');
+    expect(result.current.theme).toBe('dark');
   });
 
   it('should initialize with saved theme from localStorage', () => {
@@ -21,18 +21,7 @@ describe('useAppTheme', () => {
     expect(result.current.theme).toBe('dark');
   });
 
-  it('should toggle theme from light to dark', () => {
-    const { result } = renderHook(() => useAppTheme());
-    
-    act(() => {
-      result.current.toggleTheme();
-    });
-    
-    expect(result.current.theme).toBe('dark');
-  });
-
   it('should toggle theme from dark to light', () => {
-    localStorage.setItem('app-theme', 'dark');
     const { result } = renderHook(() => useAppTheme());
     
     act(() => {
@@ -40,6 +29,17 @@ describe('useAppTheme', () => {
     });
     
     expect(result.current.theme).toBe('light');
+  });
+
+  it('should toggle theme from light to dark', () => {
+    localStorage.setItem('app-theme', 'light');
+    const { result } = renderHook(() => useAppTheme());
+    
+    act(() => {
+      result.current.toggleTheme();
+    });
+    
+    expect(result.current.theme).toBe('dark');
   });
 
   it('should persist theme to localStorage when toggling', () => {
@@ -49,7 +49,7 @@ describe('useAppTheme', () => {
       result.current.toggleTheme();
     });
     
-    expect(localStorage.getItem('app-theme')).toBe('dark');
+    expect(localStorage.getItem('app-theme')).toBe('light');
   });
 
   it('should set theme correctly', () => {
