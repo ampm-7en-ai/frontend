@@ -12,11 +12,22 @@ interface RepliesCreditCardProps {
 }
 
 const RepliesCreditCard: React.FC<RepliesCreditCardProps> = ({ used, total }) => {
-
-  const percentage = ((total-used) / total) * 100;
+  // 'used' prop is actually remaining credits
+  const remaining = used;
+  const excess = Math.max(0, remaining - total);
+  const hasExcess = excess > 0;
+  
+  // Base circle: show actual remaining up to total capacity
+  const baseRemaining = Math.min(remaining, total);
+  const basePercentage = (baseRemaining / total) * 100;
+  
+  // Excess circle: show extra credits beyond total
+  const excessPercentage = hasExcess ? (excess / total) * 100 : 0;
+  
   const circumference = 2 * Math.PI * 45; // radius = 45
   const strokeDasharray = circumference;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  const baseStrokeDashoffset = circumference - (basePercentage / 100) * circumference;
+  const excessStrokeDashoffset = circumference - (excessPercentage / 100) * circumference;
 
   return (
     <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-lg">
@@ -29,7 +40,12 @@ const RepliesCreditCard: React.FC<RepliesCreditCardProps> = ({ used, total }) =>
       <CardContent className="space-y-6">
         <div>
           <p className="text-sm text-muted-foreground mb-4">
-            Remaining: <span className="text-[#F06425] font-semibold">{used}</span>/{total}
+            Remaining: <span className="text-[#F06425] font-semibold">{remaining}</span>/{total}
+            {hasExcess && (
+              <span className="ml-2 text-xs text-green-600 dark:text-green-400 font-medium">
+                (+{excess} bonus)
+              </span>
+            )}
           </p>
           
           <div className="flex justify-center mb-6 mt-10">
@@ -41,6 +57,11 @@ const RepliesCreditCard: React.FC<RepliesCreditCardProps> = ({ used, total }) =>
                     <stop offset="50%" stopColor="#F06425" stopOpacity="0.7"/>
                     <stop offset="100%" stopColor="#F06425" stopOpacity="1"/>
                   </linearGradient>
+                  <linearGradient id={`circular-bar-excess`} x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.9"/>
+                    <stop offset="50%" stopColor="#059669" stopOpacity="0.8"/>
+                    <stop offset="100%" stopColor="#10b981" stopOpacity="1"/>
+                  </linearGradient>
                 </defs>
                 {/* Background circle */}
                 <circle
@@ -51,7 +72,7 @@ const RepliesCreditCard: React.FC<RepliesCreditCardProps> = ({ used, total }) =>
                   strokeWidth="8"
                   fill="transparent"
                 />
-                {/* Progress circle */}
+                {/* Base progress circle (remaining up to total) */}
                 <circle
                   cx="50"
                   cy="50"
@@ -60,15 +81,35 @@ const RepliesCreditCard: React.FC<RepliesCreditCardProps> = ({ used, total }) =>
                   strokeWidth="8"
                   fill="transparent"
                   strokeDasharray={strokeDasharray}
-                  strokeDashoffset={strokeDashoffset}
+                  strokeDashoffset={baseStrokeDashoffset}
                   strokeLinecap="round"
                   className="transition-all duration-500 ease-in-out"
                 />
+                {/* Excess progress circle (bonus credits) */}
+                {hasExcess && (
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    stroke={`url(#circular-bar-excess)`}
+                    strokeWidth="8"
+                    fill="transparent"
+                    strokeDasharray={strokeDasharray}
+                    strokeDashoffset={excessStrokeDashoffset}
+                    strokeLinecap="round"
+                    className="transition-all duration-500 ease-in-out"
+                  />
+                )}
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[#F06425]">{total-used}</div>
-                  <div className="text-xs text-muted-foreground">used</div>
+                  <div className="text-2xl font-bold text-[#F06425]">{remaining}</div>
+                  <div className="text-xs text-muted-foreground">remaining</div>
+                  {hasExcess && (
+                    <div className="text-[10px] text-green-600 dark:text-green-400 font-medium mt-0.5">
+                      +{excess} extra
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
