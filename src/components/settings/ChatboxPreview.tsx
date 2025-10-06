@@ -107,6 +107,8 @@ export const ChatboxPreview = ({
   // End chat confirmation and feedback states
   const [showEndChatConfirmation, setShowEndChatConfirmation] = useState(false);
   const [showDeleteChatConfirmation, setShowDeleteChatConfirmation] = useState(false);
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [exportEmail, setExportEmail] = useState('');
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackText, setFeedbackText] = useState('');
@@ -817,6 +819,47 @@ export const ChatboxPreview = ({
     }
   };
 
+  //handle export chat
+  const handleExportChat =  () => {
+    if (!exportEmail.trim()) {
+        toast({
+          title: "Email Required",
+          description: "Please enter your email address",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(exportEmail.trim())) {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address",
+          variant: "destructive",
+        });
+        return;
+      }
+
+
+    if (chatServiceRef.current && isConnected) {
+      try {
+        chatServiceRef.current.send({
+          type: 'export',
+          content: exportEmail,
+          agentId: agentId || '',
+          source: 'website',
+          timestamp: Date.now()
+        });
+        console.log('Final timeout message sent after No Thanks');
+      } catch (error) {
+        console.error('Error sending final timeout after No Thanks:', error);
+      } finally {
+        setShowEmailConfirmation(false);
+      }
+    }
+  }
+
   // Handle feedback "No Thanks" button
   const handleFeedbackNoThanks = () => {
     console.log('Feedback declined with No Thanks, sending final timeout');
@@ -868,7 +911,7 @@ export const ChatboxPreview = ({
       if (chatServiceRef.current && isConnected) {
         
         chatServiceRef.current.send({
-          type: 'timeout',
+          type: 'delete',
           message: '',
           agentId: agentId || '',
           sessionId: sessionId || '',
@@ -1969,6 +2012,12 @@ export const ChatboxPreview = ({
                 End chat
               </DropdownMenuItem>
               <DropdownMenuItem 
+                onClick={() => setShowEmailConfirmation(true)}
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-100"
+              >
+                Export chat
+              </DropdownMenuItem>
+              <DropdownMenuItem 
                 onClick={() => setShowDeleteChatConfirmation(true)}
                 className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-red-600 dark:hover:!bg-neutral-100"
               >
@@ -2398,6 +2447,48 @@ export const ChatboxPreview = ({
             </div>
           </div>
         )}
+
+        {/* Email input for export */}
+
+        {
+          showEmailConfirmation && (
+            <div className="px-4 py-3 bg-white border-t border-gray-100">
+              <div className="text-center">
+                <div className="mb-3 p-3 rounded-full bg-transparent mx-auto w-fit">
+                  <Icon name={`CubeNode`} type='plain' color='#000000' />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Export chat</h3>
+                <p className="text-sm text-gray-600 mb-4">We will send conversation history to your email address.</p>
+                <div className="flex flex-col gap-2">
+                  <Input
+                  variant='modern'
+                  type='email'
+                  placeholder='Enter your email address'
+                  value={exportEmail}
+                  onChange={(e) => setExportEmail(e.target.value)}
+                  ></Input>
+                  <ModernButton
+                    onClick={handleExportChat}
+                    variant='primary'
+                    size='sm'
+                    className="w-full rounded-lg py-3 text-sm font-medium"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    Send
+                  </ModernButton>
+                  <ModernButton
+                    variant="outline"
+                    onClick={() => setShowEmailConfirmation(false)}
+                    size='sm'
+                    className="w-full border border-gray-300 text-gray-700 dark:text-neutral-900 hover:bg-neutral-50 dark:hover:bg-transparent rounded-lg py-3 text-sm font-medium"
+                  >
+                    Cancel
+                  </ModernButton>
+                </div>
+              </div>
+            </div>
+          )
+        }
 
         {/* Delete Chat Confirmation */}
         {showDeleteChatConfirmation && (

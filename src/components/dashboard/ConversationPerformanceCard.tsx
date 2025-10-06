@@ -138,6 +138,7 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
               radius={[0, 0, 0, 0]}
               name="Closed"
               activeBar={false}
+              barSize={12}
             />
             <Bar 
               dataKey="open" 
@@ -146,6 +147,7 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
               radius={[0, 4, 4, 0]}
               name="Open"
               activeBar={false}
+              barSize={12}
             />
           </BarChart>
         </ResponsiveContainer>

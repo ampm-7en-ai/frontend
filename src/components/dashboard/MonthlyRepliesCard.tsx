@@ -91,7 +91,7 @@ const MonthlyRepliesCard: React.FC<MonthlyRepliesCardProps> = ({ data }) => {
                               height={fillPercentage * 0.98}
                               rx="4" 
                               ry="4" 
-                              fill={`hsl(var(--primary))`}
+                              fill={`hsl(var(--chart-6))`}
                               className="animate-fade-in transition-all duration-700 ease-out" 
                             />
                             
@@ -103,7 +103,16 @@ const MonthlyRepliesCard: React.FC<MonthlyRepliesCardProps> = ({ data }) => {
                         </span>
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent>
+                    <TooltipContent style={{
+                     
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                    color: 'hsl(var(--foreground))',
+                    fontSize: '12px'
+              
+                    }}>
                       <div className="text-xs space-y-1">
                         <p className="font-medium">{item.month} Replies</p>
                         <p className="text-lg font-bold text-[#f06425]">{item.replies.toLocaleString()}</p>

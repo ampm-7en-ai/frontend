@@ -10,6 +10,7 @@ export interface BusinessSettings {
     email: string | null;
     phone_number: string | null;
     website: string | null;
+    privacy_url: string;
   };
   global_agent_settings: {
     response_model: string;

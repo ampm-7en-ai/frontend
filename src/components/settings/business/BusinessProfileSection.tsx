@@ -24,6 +24,7 @@ const profileFormSchema = z.object({
       message: "Phone number must be at least 8 digits.",
     }),
   adminWebsite: z.string().optional().nullable(),
+  privacyUrl: z.string(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -35,6 +36,7 @@ interface BusinessProfileSectionProps {
     adminPhone: string;
     adminWebsite: string;
     isAllowed: boolean;
+    privacyUrl: string;
   };
 }
 
@@ -93,6 +95,7 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
           business_name: data.businessName,
           phone_number: data.adminPhone,
           website: data.adminWebsite,
+          privacy_url: data.privacyUrl
         },
       };
       const res = await updateSettings(payload);
@@ -108,6 +111,7 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
           adminEmail: res.data.business_details.email || "",
           adminPhone: res.data.business_details.phone_number || "",
           adminWebsite: res.data.business_details.website || "",
+          privacyUrl: res.data.business_details.privacy_url || "",
         });
       }
 
@@ -195,6 +199,23 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Website</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="https://" 
+                        {...field} 
+                        variant="modern"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={profileForm.control}
+                name="privacyUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Privacy url</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="https://" 
