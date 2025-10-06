@@ -7,6 +7,7 @@ import ApiKeysSection from '@/components/settings/business/ApiKeysSection';
 import BusinessProfileSection from '@/components/settings/business/BusinessProfileSection';
 import TeamManagementSection from '@/components/settings/business/TeamManagementSection';
 import GlobalAgentSettingsSection from '@/components/settings/business/GlobalAgentSettingsSection';
+import GdprSettingsSection from '@/components/settings/business/GdprSettingsSection';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { PricingModal } from '@/components/settings/PricingModal';
 import { CurrentPlanCard } from '@/components/settings/business/CurrentPlanCard';
@@ -103,6 +104,13 @@ const BusinessSettings = () => {
               response_model: "default_model",
               token_length: 512,
               temperature: 0.7
+            }}/>
+          </div>
+
+          {/* GDPR Settings Section */}
+          <div className="rounded-2xl overflow-hidden">
+            <GdprSettingsSection initialSettings={settingsData?.gdpr_settings || {
+              data_retention_days: null
             }}/>
           </div>
         </div>

@@ -29,6 +29,9 @@ export interface BusinessSettings {
     can_manage_payment: boolean;
     can_manage_business_details?: boolean;
   };
+  gdpr_settings: {
+    data_retention_days: number | null;
+  };
 }
 
 async function fetchSettings(): Promise<BusinessSettings> {
