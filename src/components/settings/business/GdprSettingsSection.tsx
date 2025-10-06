@@ -11,7 +11,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Icon } from '@/components/icons';
-import { getApiUrl } from '@/utils/api-config';
+import { getApiUrl, updateSettings } from '@/utils/api-config';
 
 interface GdprSettingsSectionProps {
   initialSettings?: {
@@ -48,8 +48,15 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
     setIsSaving(true);
     try {
       // TODO: API call to save GDPR settings
-      // For now, just simulate success
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const payload = {
+        gdpr_settings: {
+          data_retention_days: retentionDays
+        }
+      };
+
+      const res = await updateSettings(payload);
+      const finalRes = res.json();
+      
       
       toast({
         title: "Success",
@@ -126,7 +133,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="bg-transparent rounded-xl flex items-center justify-start bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
-              <Icon type='plain' name='Shield' color='hsl(var(--primary))' className='h-5 w-5' />
+              <Icon type='plain' name='Layer' color='hsl(var(--primary))' className='h-5 w-5' />
             </div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Data & Privacy</h3>
           </div>
@@ -190,12 +197,9 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
               />
             </div>
 
-            <div className="flex gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4">
               <ModernButton onClick={handleSave} disabled={isSaving} variant="primary" icon={Save}>
                 {isSaving ? 'Saving...' : 'Save Settings'}
-              </ModernButton>
-              <ModernButton variant="outline" onClick={() => setIsEditing(false)}>
-                Cancel
               </ModernButton>
             </div>
           </div>
@@ -227,13 +231,16 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
             )}
 
             {/* Data Export */}
+            
             <div className="pt-4 border-t border-neutral-200 dark:border-neutral-700">
-              <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Data Export</h4>
-              <p className="text-sm text-muted-foreground mb-4">
-                Export all your business data in compliance with GDPR regulations
-              </p>
-              <div className="flex flex-col gap-3">
-                <ModernButton 
+              <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-neutral-700">
+              <div className="space-y-0.5">
+                <Label className="text-slate-900 dark:text-slate-100">Data Export</Label>
+                <p className="text-sm text-muted-foreground">
+                 Export all your business data in compliance with GDPR regulations
+                </p>
+              </div>
+              <ModernButton 
                   onClick={handleExportData} 
                   disabled={isExporting} 
                   variant="outline"
@@ -241,7 +248,10 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                 >
                   {isExporting ? 'Processing Export...' : 'Export Data'}
                 </ModernButton>
-                
+            </div>
+              
+              <div className="mt-4">
+ 
                 {exportData && (
                   <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
                     <p className="text-sm font-medium text-green-900 dark:text-green-100 mb-3">
@@ -262,6 +272,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                     </div>
                   </div>
                 )}
+
               </div>
             </div>
           </div>
