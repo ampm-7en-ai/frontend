@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Download, Save, Shield, Pen } from 'lucide-react';
+import { Download, Save, Shield, Pen, Trash } from 'lucide-react';
 import { useAuditLogs } from '@/hooks/useAuditLogs';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -50,17 +50,18 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
       // TODO: API call to save GDPR settings
       const payload = {
         gdpr_settings: {
-          data_retention_days: retentionDays
+          data_retention_days: +retentionDays
         }
       };
 
       const res = await updateSettings(payload);
-      const finalRes = res.json();
+      
       
       
       toast({
         title: "Success",
         description: "GDPR settings updated successfully",
+        variant: "success"
       });
       setIsEditing(false);
     } catch (error) {
@@ -234,21 +235,22 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
             
             <div className="pt-4 border-t border-neutral-200 dark:border-neutral-700">
               <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-neutral-700">
-              <div className="space-y-0.5">
-                <Label className="text-slate-900 dark:text-slate-100">Data Export</Label>
-                <p className="text-sm text-muted-foreground">
-                 Export all your business data in compliance with GDPR regulations
-                </p>
+                <div className="space-y-0.5">
+                  <Label className="text-slate-900 dark:text-slate-100">Data Export</Label>
+                  <p className="text-sm text-muted-foreground">
+                  Export all your business data in compliance with GDPR regulations
+                  </p>
+                </div>
+                <ModernButton 
+                    onClick={handleExportData} 
+                    disabled={isExporting} 
+                    variant="outline"
+                    icon={Download}
+                  >
+                    {isExporting ? 'Processing Export...' : 'Export Data'}
+                  </ModernButton>
+                
               </div>
-              <ModernButton 
-                  onClick={handleExportData} 
-                  disabled={isExporting} 
-                  variant="outline"
-                  icon={Download}
-                >
-                  {isExporting ? 'Processing Export...' : 'Export Data'}
-                </ModernButton>
-            </div>
               
               <div className="mt-4">
  
@@ -273,6 +275,44 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                   </div>
                 )}
 
+              </div>
+              {/* delete data */}
+              <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-neutral-700 mt-4">
+                <div className="space-y-0.5">
+                  <Label className="text-red-900 dark:text-red-100">Delete All Conversations</Label>
+                  <p className="text-sm text-muted-foreground">
+                  Delete all of your conversation data
+                  </p>
+                </div>
+                <ModernButton 
+                    onClick={handleExportData} 
+                    disabled={isExporting} 
+                    variant="outline"
+                    icon={Trash}
+                    className='text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-neutral-200 dark:hover:text-neutral-300 dark:hover:bg-red-900/20'
+                  >
+                    {isExporting ? 'Deleting...' : 'Delete'}
+                  </ModernButton>
+                
+              </div>
+              {/* delete account */}
+              <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-neutral-700 mt-4">
+                <div className="space-y-0.5">
+                  <Label className="text-red-900 dark:text-red-100">Delete account</Label>
+                  <p className="text-sm text-muted-foreground">
+                  Delete your business account
+                  </p>
+                </div>
+                <ModernButton 
+                    onClick={handleExportData} 
+                    disabled={isExporting} 
+                    variant="outline"
+                    icon={Trash}
+                    className='text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-neutral-200 dark:hover:text-neutral-300 dark:hover:bg-red-900/20'
+                  >
+                    {isExporting ? 'Deleting...' : 'Delete'}
+                  </ModernButton>
+                
               </div>
             </div>
           </div>
