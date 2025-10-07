@@ -367,6 +367,25 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                   </ModernButton>
                 
               </div>
+              {/* delete account */}
+              <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-neutral-700 mt-4">
+                <div className="space-y-0.5">
+                  <Label className="text-red-900 dark:text-red-100">Delete Account</Label>
+                  <p className="text-sm text-muted-foreground">
+                  Delete your account
+                  </p>
+                </div>
+                <ModernButton 
+                    onClick={() => null} 
+                    disabled={isDeleting} 
+                    variant="outline"
+                    icon={Trash}
+                    className='text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-neutral-200 dark:hover:text-neutral-300 dark:hover:bg-red-900/20'
+                  >
+                    {isDeleting ? 'Deleting...' : 'Delete'}
+                  </ModernButton>
+                
+              </div>
             </div>
           </div>
         )}
