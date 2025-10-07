@@ -5,13 +5,20 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Download, Save, Shield, Pen, Trash } from 'lucide-react';
+import { Download, Save, Shield, Pen, Trash, FileJson, FileSpreadsheet } from 'lucide-react';
 import { useAuditLogs } from '@/hooks/useAuditLogs';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Icon } from '@/components/icons';
 import { getApiUrl, updateSettings } from '@/utils/api-config';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useConversations } from '@/hooks/useConversations';
 
 interface GdprSettingsSectionProps {
   initialSettings?: {
@@ -29,7 +36,10 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
   const [isMessageVisible, setIsMessageVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [exportData, setExportData] = useState<{ url: string; file_name: string; format: string } | null>(null);
+  
+  const { bulkDeleteConversations } = useConversations();
 
   const { 
     logs, 
@@ -75,14 +85,14 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
     }
   };
 
-  const handleExportData = async () => {
+  const handleExportData = async (format: 'json' | 'csv') => {
     setIsExporting(true);
     setExportData(null);
     try {
       const user = localStorage.getItem('user');
       const accessToken = user ? JSON.parse(user).accessToken : null;
       
-      const response = await fetch(getApiUrl('chat/admin/conversations/export/?format=json'), {
+      const response = await fetch(getApiUrl(`chat/admin/conversations/export/?format=${format}`), {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -100,7 +110,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
         setExportData(result.data);
         toast({
           title: "Export Ready",
-          description: "Your data export file is ready to download.",
+          description: `Your ${format.toUpperCase()} export file is ready to download.`,
         });
       }
     } catch (error) {
@@ -112,6 +122,44 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
       setExportData(null);
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleDeleteAllConversations = async () => {
+    if (!confirm('Are you sure you want to delete all conversations? This action cannot be undone.')) {
+      return;
+    }
+    
+    setIsDeleting(true);
+    try {
+      const user = localStorage.getItem('user');
+      const accessToken = user ? JSON.parse(user).accessToken : null;
+      
+      const response = await fetch(getApiUrl('chat/admin/conversations/bulk-delete/'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ session_ids: 'all' }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Delete failed');
+      }
+
+      toast({
+        title: "Success",
+        description: "All conversations have been deleted successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete conversations",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -241,15 +289,39 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                   Export all your business data in compliance with GDPR regulations
                   </p>
                 </div>
-                <ModernButton 
-                    onClick={handleExportData} 
-                    disabled={isExporting} 
-                    variant="outline"
-                    icon={Download}
-                  >
-                    {isExporting ? 'Processing Export...' : 'Export Data'}
-                  </ModernButton>
-                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <ModernButton 
+                      disabled={isExporting} 
+                      variant="outline"
+                      icon={Download}
+                    >
+                      {isExporting ? 'Processing Export...' : 'Export Data'}
+                    </ModernButton>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700">
+                    <DropdownMenuItem 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleExportData('json');
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <FileJson className="mr-2 h-4 w-4" />
+                      Export as JSON
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleExportData('csv');
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <FileSpreadsheet className="mr-2 h-4 w-4" />
+                      Export as CSV
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               
               <div className="mt-4">
@@ -285,32 +357,13 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                   </p>
                 </div>
                 <ModernButton 
-                    onClick={handleExportData} 
-                    disabled={isExporting} 
+                    onClick={handleDeleteAllConversations} 
+                    disabled={isDeleting} 
                     variant="outline"
                     icon={Trash}
                     className='text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-neutral-200 dark:hover:text-neutral-300 dark:hover:bg-red-900/20'
                   >
-                    {isExporting ? 'Deleting...' : 'Delete'}
-                  </ModernButton>
-                
-              </div>
-              {/* delete account */}
-              <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-neutral-700 mt-4">
-                <div className="space-y-0.5">
-                  <Label className="text-red-900 dark:text-red-100">Delete account</Label>
-                  <p className="text-sm text-muted-foreground">
-                  Delete your business account
-                  </p>
-                </div>
-                <ModernButton 
-                    onClick={handleExportData} 
-                    disabled={isExporting} 
-                    variant="outline"
-                    icon={Trash}
-                    className='text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-neutral-200 dark:hover:text-neutral-300 dark:hover:bg-red-900/20'
-                  >
-                    {isExporting ? 'Deleting...' : 'Delete'}
+                    {isDeleting ? 'Deleting...' : 'Delete'}
                   </ModernButton>
                 
               </div>
