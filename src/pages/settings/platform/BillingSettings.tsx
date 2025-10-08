@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -348,28 +348,26 @@ const BillingSettings = () => {
       description="Manage subscription plans and platform billing configurations"
     >
       <Tabs defaultValue="plans">
-        <TabsList className="grid w-full grid-cols-4 mb-8 rounded-xl">
-          <TabsTrigger value="plans" className="rounded-lg">Subscription Plans</TabsTrigger>
-          <TabsTrigger value="invoices" className="rounded-lg">Invoices</TabsTrigger>
-          <TabsTrigger value="topup" className="rounded-lg">Topup</TabsTrigger>
-          <TabsTrigger value="settings" className="rounded-lg">Settings</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 mb-8 bg-muted/50 p-1 rounded-xl">
+          <TabsTrigger value="plans" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800">Subscription Plans</TabsTrigger>
+          <TabsTrigger value="invoices" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800">Invoices</TabsTrigger>
+          <TabsTrigger value="topup" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800">Topup</TabsTrigger>
+          <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800">Settings</TabsTrigger>
         </TabsList>
         
         <TabsContent value="plans">
-          <Card className="!p-6">
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle className="pl-0">Subscription Plans</CardTitle>
-                  <CardDescription>Manage plans and pricing packages</CardDescription>
-                </div>
-                <ModernButton onClick={handleCreatePlan} variant="primary">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create New Plan
-                </ModernButton>
+          <Card className="p-6 bg-white dark:bg-neutral-800/50">
+            <CardHeader className="flex flex-row items-center justify-between p-0 pb-6">
+              <div>
+                <CardTitle className="text-2xl">Subscription Plans</CardTitle>
+                <CardDescription className="text-base mt-2">Manage plans and pricing packages</CardDescription>
               </div>
+              <ModernButton onClick={handleCreatePlan} variant="primary">
+                <Plus className="mr-2 h-4 w-4" />
+                Create New Plan
+              </ModernButton>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <div className="space-y-6">
                 {isLoadingSubscriptionPlans ? (
                   <div className="text-center py-8">Loading subscription plans...</div>
@@ -433,8 +431,8 @@ const BillingSettings = () => {
         </TabsContent>
         
         <TabsContent value="invoices">
-          <Card className="p-6">
-            <CardHeader>
+          <Card className="p-6 bg-white dark:bg-neutral-800/50">
+            <CardHeader className="p-0 pb-6">
               <div className="flex justify-between items-center">
                 <div>
                   <CardTitle className="pl-0">Invoice Management</CardTitle>
@@ -452,7 +450,7 @@ const BillingSettings = () => {
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0 pt-6">
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
                   <div className="relative flex-1">
@@ -596,34 +594,38 @@ const BillingSettings = () => {
         </TabsContent>
         
         <TabsContent value="topup">
-          <div className="space-y-6">
+          <Card className="p-6 bg-white dark:bg-neutral-800/50">
+            <CardHeader className="p-0 pb-6">
+              <CardTitle className="text-2xl">Topup Configuration</CardTitle>
+              <CardDescription className="text-base mt-2">Manage topup packages and ranges</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 p-0">
             <Tabs defaultValue="packages" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="packages">Packages</TabsTrigger>
-                <TabsTrigger value="ranges">Ranges</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1 rounded-xl">
+                <TabsTrigger value="packages" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800">Packages</TabsTrigger>
+                <TabsTrigger value="ranges" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800">Ranges</TabsTrigger>
               </TabsList>
               
               <TabsContent value="packages">
-                <Card className="p-6">
-                  <CardHeader>
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <CardTitle className="pl-0">Topup Packages</CardTitle>
-                        <CardDescription>Manage fixed topup packages</CardDescription>
-                      </div>
-                      <ModernButton 
-                        onClick={() => {
-                          setEditingPackage(null);
-                          setPackageDialogOpen(true);
-                        }}
-                        variant="primary"
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create Package
-                      </ModernButton>
+                <Card className="p-6 mt-6 bg-neutral-50/50 dark:bg-neutral-900/20">
+                  <CardHeader className="flex flex-row items-center justify-between p-0 pb-4">
+                    <div>
+                      <CardTitle className="text-lg">Topup Packages</CardTitle>
+                      <CardDescription>Manage fixed topup packages</CardDescription>
                     </div>
+                    <ModernButton 
+                      onClick={() => {
+                        setEditingPackage(null);
+                        setPackageDialogOpen(true);
+                      }}
+                      variant="primary"
+                      size="sm"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create Package
+                    </ModernButton>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-0 pt-4">
                     {isLoadingPackages ? (
                       <div className="text-center py-8">Loading packages...</div>
                     ) : topupPackages && topupPackages.length > 0 ? (
@@ -682,26 +684,25 @@ const BillingSettings = () => {
               </TabsContent>
               
               <TabsContent value="ranges">
-                <Card className="p-6">
-                  <CardHeader>
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <CardTitle className="pl-0">Topup Ranges</CardTitle>
-                        <CardDescription>Manage flexible topup pricing ranges</CardDescription>
-                      </div>
-                      <ModernButton 
-                        onClick={() => {
-                          setEditingRange(null);
-                          setRangeDialogOpen(true);
-                        }}
-                        variant="primary"
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create Range
-                      </ModernButton>
+                <Card className="p-6 mt-6 bg-neutral-50/50 dark:bg-neutral-900/20">
+                  <CardHeader className="flex flex-row items-center justify-between p-0 pb-4">
+                    <div>
+                      <CardTitle className="text-lg">Topup Ranges</CardTitle>
+                      <CardDescription>Manage flexible topup pricing ranges</CardDescription>
                     </div>
+                    <ModernButton 
+                      onClick={() => {
+                        setEditingRange(null);
+                        setRangeDialogOpen(true);
+                      }}
+                      variant="primary"
+                      size="sm"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create Range
+                    </ModernButton>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-0 pt-4">
                     {isLoadingRanges ? (
                       <div className="text-center py-8">Loading ranges...</div>
                     ) : topupRanges && topupRanges.length > 0 ? (
@@ -759,16 +760,19 @@ const BillingSettings = () => {
                 </Card>
               </TabsContent>
             </Tabs>
-          </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="settings">
-          <Card className="p-6 dark:text-gray-200">
-            <CardHeader>
-              <CardTitle className="pl-0">Billing Configuration</CardTitle>
-              <CardDescription>Manage global billing settings and defaults</CardDescription>
+          <Card className="p-6 bg-white dark:bg-neutral-800/50">
+            <CardHeader className="flex flex-row items-center justify-between p-0 pb-6">
+              <div>
+                <CardTitle className="text-2xl">Billing Configuration</CardTitle>
+                <CardDescription className="text-base mt-2">Configure platform billing and invoicing settings</CardDescription>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-8 p-0 pt-6">
               {isLoadingConfig ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
