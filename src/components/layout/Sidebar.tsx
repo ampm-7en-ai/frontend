@@ -161,7 +161,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     },
     { 
       id: 'platform',
-      label: 'Platform Settings', 
+      label: 'Platform', 
       href: '/settings', 
       icon: "Cog",
       permission: 'dashboard', 
@@ -247,9 +247,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                           <item.icon className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} flex-shrink-0`} />
                         ) : (
                           item.icon
-                        )}
-                      {!isCollapsed && <span>{item.label}</span>} */}
-                      <Icon name={item.icon} type='gradient' className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} ${theme === 'dark' ? 'dark' : ''}`} />
+                        )}*/}
+                      
+                      <Icon name={item.icon} type='plain' color='hsl(var(--primary))' className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'} ${theme === 'dark' ? 'dark' : ''}`} />
+                      {!isCollapsed && <span>{item.label}</span>}
                     </div>
                     {!isCollapsed && (
                       expandedItems.includes(item.id) ? 

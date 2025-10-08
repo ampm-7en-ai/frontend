@@ -9,6 +9,8 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from "@/hooks/use-toast";
 import { SuperAdminLLMProvider } from '@/hooks/useLLMProviders';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface EditProviderDialogProps {
   isOpen: boolean;
@@ -140,18 +142,14 @@ const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: Ed
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="provider_name">Provider Name *</Label>
-            <Select value={formData.provider_name} onValueChange={handleProviderChange}>
-              <SelectTrigger variant="modern">
-                <SelectValue placeholder="Select provider" />
-              </SelectTrigger>
-              <SelectContent variant="modern">
-                {providerOptions.map((provider) => (
-                  <SelectItem key={provider.name} value={provider.name} variant="modern">
-                    {provider.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+             <ModernDropdown
+                value={formData.provider_name}
+                onValueChange={handleProviderChange}
+                options={providerOptions.map(u => ({value: u.name, label: u.name}))}
+                placeholder="Select Providers"
+                className="w-full text-xs rounded-xl border-neutral-200 dark:border-neutral-700"
+              />
+            
           </div>
 
           <div className="space-y-2">
@@ -167,22 +165,14 @@ const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: Ed
 
           <div className="space-y-2">
             <Label htmlFor="default_model">Default Model *</Label>
-            <Select 
-              value={formData.default_model} 
-              onValueChange={(value) => setFormData(prev => ({ ...prev, default_model: value }))}
-              disabled={!selectedProvider}
-            >
-              <SelectTrigger variant="modern">
-                <SelectValue placeholder="Select model" />
-              </SelectTrigger>
-              <SelectContent variant="modern">
-                {selectedProvider?.models.map((model) => (
-                  <SelectItem key={model} value={model} variant="modern">
-                    {model}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+             <ModernDropdown
+                value={formData.default_model}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, default_model: value }))}
+                options={selectedProvider?.models.map(u => ({value: u, label: u}))}
+                placeholder="Select Models"
+                className="w-full text-xs rounded-xl border-neutral-200 dark:border-neutral-700"
+              />
+            
           </div>
 
           <div className="flex items-center space-x-2">
@@ -195,10 +185,10 @@ const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: Ed
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <ModernButton type="button" variant="outline" onClick={onClose}>
               Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading} className="flex items-center gap-2">
+            </ModernButton>
+            <ModernButton type="submit" disabled={isLoading} className="flex items-center gap-2">
               {isLoading ? (
                 <>
                   <LoadingSpinner size="sm" className="!mb-0" />
@@ -207,7 +197,7 @@ const EditProviderDialog = ({ isOpen, onClose, provider, onProviderUpdated }: Ed
               ) : (
                 'Update Provider'
               )}
-            </Button>
+            </ModernButton>
           </div>
         </form>
       </DialogContent>

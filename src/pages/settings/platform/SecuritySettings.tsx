@@ -90,7 +90,7 @@ const SecuritySettings = () => {
       >
         <div className="space-y-8">
           {/* Role Management Section */}
-          <ModernCard variant="glass" className="p-8 dark:bg-slate-800/50 rounded-2xl">
+          <ModernCard variant="glass" className="p-0 bg-white dark:bg-neutral-800/50 rounded-2xl">
             <ModernCardHeader className="pb-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -102,7 +102,8 @@ const SecuritySettings = () => {
                 <ModernButton 
                   variant="primary" 
                   onClick={handleOpenCreateDialog}
-                  className="px-6 py-3"
+                  className=""
+                  size='sm'
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add New Role
@@ -116,10 +117,10 @@ const SecuritySettings = () => {
                   <span className="ml-3 text-muted-foreground">Loading roles...</span>
                 </div>
               ) : (
-                <div className="bg-white/50 dark:bg-slate-800/50 rounded-xl border border-border/20 overflow-hidden">
+                <div className="bg-white/50 dark:bg-neutral-800/50 rounded-xl border border-border/20 overflow-hidden">
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-border/20">
+                      <TableRow className="hover:bg-neutral-50/50 dark:bg-neutral-800/70 transition-colors dark:border-neutral-600">
                         <TableHead className="py-4 px-6 font-semibold">Role Name</TableHead>
                         <TableHead className="py-4 px-6 font-semibold">Description</TableHead>
                         <TableHead className="py-4 px-6 font-semibold">Permissions</TableHead>
@@ -136,13 +137,13 @@ const SecuritySettings = () => {
                         </TableRow>
                       ) : (
                         roles.map((role) => (
-                          <TableRow key={role.id} className="border-border/10 hover:bg-muted/30">
+                          <TableRow key={role.id} className="group hover:bg-neutral-50/50 dark:hover:bg-neutral-700/30 dark:border-neutral-600 transition-colors">
                             <TableCell className="py-4 px-6 font-medium">{role.name}</TableCell>
                             <TableCell className="py-4 px-6">{role.description}</TableCell>
                             <TableCell className="py-4 px-6">
                               <div className="flex flex-wrap gap-2 max-w-md">
                                 {role.permissions.map((permission) => (
-                                  <Badge key={permission.id} variant="outline" className="text-xs">
+                                  <Badge key={permission.id} variant="waiting" className="text-xs">
                                     {permission.name.replace(/_/g, ' ')}
                                   </Badge>
                                 ))}

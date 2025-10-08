@@ -173,7 +173,7 @@ const LLMProvidersSettings = () => {
       description="Configure integrations with language model providers"
     >
       {/* Providers Section */}
-      <Card className="p-6 dark:text-gray-200">
+      <Card className="p-6 dark:text-neutral-200 bg-white dark:bg-neutral-800/50">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="pl-0">Provider Configuration</CardTitle>
@@ -221,9 +221,9 @@ const LLMProvidersSettings = () => {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="space-y-4 bg-gray-50/70 dark:bg-slate-950/60 p-6 rounded-2xl">
+                    <div className="space-y-4 bg-neutral-50/70 dark:bg-neutral-950/60 p-6 rounded-2xl">
                       {/* Provider Details */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-neutral-200/50 dark:bg-neutral-800 rounded-lg">
                         <div>
                           <Label className="text-sm font-medium text-muted-foreground">API Key</Label>
                           <div className="text-sm font-mono">
@@ -266,12 +266,12 @@ const LLMProvidersSettings = () => {
                                                (typeof provider.default_model === 'string' && provider.default_model === modelObj.name);
                               
                               return (
-                                <div key={modelObj.id || modelObj.name} className="flex items-center justify-between p-3 border rounded-2xl pl-6 dark:hover:bg-slate-900/20">
+                                <div key={modelObj.id || modelObj.name} className="flex items-center justify-between p-3 border rounded-2xl pl-6 dark:hover:bg-neutral-900/20">
                                   <div className="flex items-center space-x-3">
                                     <div>
                                       <div className="font-medium">
                                         {modelObj.display_name}<br/>
-                                        <span className='text-[10px] dark:text-gray-200/50'>{modelObj.name}</span>
+                                        <span className='text-[10px] dark:text-neutral-200/50'>{modelObj.name}</span>
                                       </div>
                                       {isDefault && (
                                         <Badge variant="outline" className="text-xs mt-1">Default</Badge>
@@ -343,7 +343,7 @@ const LLMProvidersSettings = () => {
       </Card>
       
       {/* Agent System Prompts Section */}
-      <Card className="mt-8 p-6">
+      <Card className="mt-8 p-6 bg-white dark:bg-neutral-800/50">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="pl-0">Agent System Prompts</CardTitle>
@@ -390,7 +390,7 @@ const LLMProvidersSettings = () => {
                   onValueChange={setSelectedAgentType}
                   options={availableAgentTypes.map(u => ({value: u, label: u}))}
                   placeholder="Select Members"
-                  className="w-full text-xs rounded-xl border-slate-200 dark:border-slate-700"
+                  className="w-full text-xs rounded-xl border-neutral-200 dark:border-neutral-700"
                 />
               </div>
               

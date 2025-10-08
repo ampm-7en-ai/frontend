@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface AddAgentPromptDialogProps {
   isOpen: boolean;
@@ -55,10 +56,10 @@ const AddAgentPromptDialog = ({ isOpen, onClose, onPromptAdded }: AddAgentPrompt
       fixedFooter
       footer={
         <div className="flex justify-end space-x-2">
-          <Button type="button" variant="outline" onClick={onClose}>
+          <ModernButton type="button" variant="outline" onClick={onClose}>
             Cancel
-          </Button>
-          <Button 
+          </ModernButton>
+          <ModernButton 
             type="submit" 
             onClick={handleSubmit}
             disabled={isLoading || !formData.agent_type || !formData.system_prompt}
@@ -72,7 +73,7 @@ const AddAgentPromptDialog = ({ isOpen, onClose, onPromptAdded }: AddAgentPrompt
             ) : (
               'Create Prompt'
             )}
-          </Button>
+          </ModernButton>
         </div>
       }
     >

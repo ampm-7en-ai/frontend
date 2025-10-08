@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface AddModelDialogProps {
   isOpen: boolean;
@@ -72,10 +73,10 @@ const AddModelDialog = ({ isOpen, onClose, onModelAdded, providerId, providerNam
           </div>
           
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
+            <ModernButton type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
               Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading || !modelName.trim()}>
+            </ModernButton>
+            <ModernButton type="submit" disabled={isLoading || !modelName.trim()}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -84,7 +85,7 @@ const AddModelDialog = ({ isOpen, onClose, onModelAdded, providerId, providerNam
               ) : (
                 'Add Model'
               )}
-            </Button>
+            </ModernButton>
           </DialogFooter>
         </form>
       </DialogContent>

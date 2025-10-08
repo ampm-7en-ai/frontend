@@ -72,7 +72,7 @@ const GeneralSettings = () => {
       title="General Settings"
       description="Configure platform-wide settings and defaults"
     >
-      <ModernCard variant="glass" className="p-8 dark:bg-slate-800/50 rounded-2xl">
+      <ModernCard variant="glass" className="p-8 bg-white dark:bg-neutral-800/50 rounded-2xl">
         <ModernCardHeader className="pb-6">
           <ModernCardTitle className="text-2xl">Platform Information</ModernCardTitle>
           <ModernCardDescription className="text-base">
@@ -105,7 +105,7 @@ const GeneralSettings = () => {
                     id="description" 
                     value={formData.platform_description}
                     onChange={(e) => handleInputChange('platform_description', e.target.value)}
-                    className="min-h-[100px] bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl resize-none"
+                    className="min-h-[100px] bg-white/80 dark:bg-neutral-800/80 border-neutral-200 dark:border-neutral-600 rounded-xl resize-none"
                   />
                 </div>
                 
@@ -122,7 +122,7 @@ const GeneralSettings = () => {
                 </div>
               </div>
               
-              <div className="flex items-center justify-between pt-8 border-t border-border/20">
+              <div className="flex items-center justify-between pt-8 border-0">
                 <div className="flex items-center space-x-3">
                   <Switch 
                     id="enableMaintenance" 

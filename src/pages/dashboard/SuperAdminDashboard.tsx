@@ -5,7 +5,6 @@ import ModernButton from '@/components/dashboard/ModernButton';
 import { Badge } from '@/components/ui/badge';
 import { 
   Building, 
-  Users, 
   Bot, 
   MessageSquare, 
   ChevronRight, 
@@ -15,6 +14,7 @@ import {
   BarChart3,
   Heart
 } from 'lucide-react';
+
 import { Link } from 'react-router-dom';
 import {
   LineChart,
@@ -33,6 +33,11 @@ import {
 import { ModernStatCard } from '@/components/ui/modern-stat-card';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import Magic from '@/components/icons/library/Magic';
+import Bubbles from '@/components/icons/library/Bubbles';
+import Users from '@/components/icons/library/Users';
+import ColumnChart from '@/components/icons/library/ColumnChart';
+import { Icon } from '@/components/icons';
 
 const SuperAdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('Today');
@@ -88,25 +93,25 @@ const SuperAdminDashboard = () => {
     {
       title: 'Total Businesses',
       value: 24,
-      icon: Building,
+      icon: Users,
       gradient: 'bg-gradient-to-br from-blue-500 to-blue-600'
     },
     {
       title: 'Active Agents',
       value: 187,
-      icon: Bot,
+      icon: Magic,
       gradient: 'bg-gradient-to-br from-green-500 to-green-600'
     },
     {
       title: 'Total Conversations',
       value: 14392,
-      icon: MessageSquare,
+      icon: Bubbles,
       gradient: 'bg-gradient-to-br from-purple-500 to-purple-600'
     },
     {
       title: 'Monthly Revenue',
       value: 47500,
-      icon: CreditCard,
+      icon: ColumnChart,
       gradient: 'bg-gradient-to-br from-orange-500 to-orange-600'
     }
   ];
@@ -158,21 +163,20 @@ const SuperAdminDashboard = () => {
               tickLine={false}
             />
             <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'hsl(var(--background))',
+               contentStyle={{ 
+                backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
                 color: 'hsl(var(--foreground))',
-                fontSize: '12px'
+                fontSize: 12
               }}
             />
-            <Legend />
             <Line 
               yAxisId="right"
               type="monotone" 
               dataKey="users" 
-              stroke="#00C49F" 
+              stroke="#f6b26b" 
               strokeWidth={2} 
               dot={false}
               name="Users"
@@ -181,7 +185,7 @@ const SuperAdminDashboard = () => {
               yAxisId="left"
               type="monotone" 
               dataKey="businesses" 
-              stroke="#0088FE" 
+              stroke="hsl(var(--primary))" 
               strokeWidth={2} 
               dot={false}
               name="Businesses"
@@ -215,12 +219,12 @@ const SuperAdminDashboard = () => {
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'hsl(var(--background))',
+                backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
                 color: 'hsl(var(--foreground))',
-                fontSize: '12px'
+                fontSize: 12
               }}
             />
             <Area 
@@ -261,7 +265,7 @@ const SuperAdminDashboard = () => {
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'hsl(var(--background))',
+                backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
@@ -269,12 +273,11 @@ const SuperAdminDashboard = () => {
                 fontSize: '12px'
               }}
             />
-            <Legend />
             <Line
               type="monotone"
               dataKey="active"
               name="Active"
-              stroke="#10b981"
+              stroke="#9fc5e8"
               strokeWidth={2}
               dot={false}
             />
@@ -282,7 +285,7 @@ const SuperAdminDashboard = () => {
               type="monotone"
               dataKey="inactive"
               name="Inactive"
-              stroke="#9ca3af"
+              stroke="#b4a7d6"
               strokeWidth={2}
               dot={false}
             />
@@ -290,7 +293,7 @@ const SuperAdminDashboard = () => {
               type="monotone"
               dataKey="new"
               name="New"
-              stroke="#3b82f6"
+              stroke="#93c47d"
               strokeWidth={2}
               dot={false}
             />
@@ -303,8 +306,8 @@ const SuperAdminDashboard = () => {
           <AreaChart data={businessTeamMembersData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
             <defs>
               <linearGradient id="teamGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                <stop offset="5%" stopColor={businessTeamMetric === 'active' ? '#9fc5e8' : businessTeamMetric === 'inactive' ? '#b4a7d6' : '#93c47d'} stopOpacity={0.3}/>
+                <stop offset="95%" stopColor={businessTeamMetric === 'active' ? '#9fc5e8' : businessTeamMetric === 'inactive' ? '#b4a7d6' : '#93c47d'} stopOpacity={0}/>
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
@@ -323,7 +326,7 @@ const SuperAdminDashboard = () => {
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'hsl(var(--background))',
+                backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
@@ -334,7 +337,7 @@ const SuperAdminDashboard = () => {
             <Area 
               type="monotone" 
               dataKey={businessTeamMetric}
-              stroke="#3b82f6"
+              stroke={businessTeamMetric === 'active' ? '#9fc5e8' : businessTeamMetric === 'inactive' ? '#b4a7d6' : '#93c47d'}
               fillOpacity={1} 
               fill="url(#teamGradient)"
               strokeWidth={2}
@@ -348,7 +351,7 @@ const SuperAdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-neutral-100/50 dark:bg-[hsla(0,0%,0%,0.95)]">
       <div className="container max-w-7xl mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -374,7 +377,7 @@ const SuperAdminDashboard = () => {
               />
               {/* Quick action overlays */}
               {stat.title === 'Total Businesses' && (
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors rounded-3xl flex items-end justify-end p-4 opacity-0 group-hover:opacity-100">
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors rounded-2xl flex items-end justify-end p-4 opacity-0 group-hover:opacity-100">
                   <ModernButton variant="ghost" size="sm" asChild className="text-xs">
                     <Link to="/businesses" className="flex items-center">
                       View all <ChevronRight className="ml-1 h-3 w-3" />
@@ -383,7 +386,7 @@ const SuperAdminDashboard = () => {
                 </div>
               )}
               {stat.title === 'Monthly Revenue' && (
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors rounded-3xl flex items-end justify-end p-4 opacity-0 group-hover:opacity-100">
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors rounded-2xl flex items-end justify-end p-4 opacity-0 group-hover:opacity-100">
                   <ModernButton variant="ghost" size="sm" asChild className="text-xs">
                     <Link to="/settings/platform/billing" className="flex items-center">
                       View billing <ChevronRight className="ml-1 h-3 w-3" />
@@ -396,10 +399,10 @@ const SuperAdminDashboard = () => {
         </div>
 
         {/* Platform Growth - Full Width with Admin Style Controls */}
-        <Card className="bg-transparent border-0 rounded-3xl shadow-none overflow-hidden h-full pl-0 dark:bg-transparent">
+        <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-2xl shadow-none overflow-hidden h-full pl-0">
           <CardHeader className="pb-4 pl-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 pl-2">
+              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 pl-4">
                 Platform Growth
               </CardTitle>
               <div className="flex items-center gap-3">
@@ -429,17 +432,13 @@ const SuperAdminDashboard = () => {
         {/* Analytics Charts - Admin Style */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Conversation Volume - Admin Style with Bar Chart Icon */}
-          <Card className="bg-white dark:bg-gray-800/50 border-0 rounded-3xl overflow-hidden h-full">
+          <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-2xl overflow-hidden h-full">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center pl-4">
-                    Conversation Volume
-                  </CardTitle>
-                </div>
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600">
-                  <BarChart3 className="h-4 w-4 text-white" />
-                </div>
+                <CardTitle className="w-full text-lg font-semibold text-foreground flex items-center justify-between flex-row-reverse gap-2 pl-0">
+                  <Icon type='plain' name='Bubbles' className='h-5 w-5 text-muted-foreground' color='hsl(var(--foreground))' />
+                  Conversation Volume
+                </CardTitle>
               </div>
             </CardHeader>
             <CardContent className="flex-1">
@@ -467,19 +466,19 @@ const SuperAdminDashboard = () => {
                       tickLine={false}
                     />
                     <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '12px',
-                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                        color: 'hsl(var(--foreground))',
-                        fontSize: '12px'
-                      }}
+                     contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                      color: 'hsl(var(--foreground))',
+                      fontSize: '12px'
+                    }}
                     />
                     <Area 
                       type="monotone" 
                       dataKey="conversations" 
-                      stroke="#8884d8" 
+                      stroke="#b4a7d6" 
                       fill="url(#conversationGradient)" 
                       fillOpacity={1} 
                       strokeWidth={2}
@@ -491,17 +490,13 @@ const SuperAdminDashboard = () => {
           </Card>
           
           {/* Revenue Trends - Admin Style with Heart Icon */}
-          <Card className="bg-white dark:bg-gray-800/50 border-0 rounded-3xl overflow-hidden h-full">
+          <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-2xl overflow-hidden h-full">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center pl-4">
-                    Revenue Trends
-                  </CardTitle>
-                </div>
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-green-500 to-green-600">
-                  <TrendingUp className="h-4 w-4 text-white" />
-                </div>
+                <CardTitle className="w-full text-lg font-semibold text-foreground flex items-center justify-between flex-row-reverse gap-2 pl-0">
+                  <Icon type='plain' name='Chart' className='h-5 w-5 text-muted-foreground' color='hsl(var(--foreground))' />
+                  Revenue Trends
+                </CardTitle>
               </div>
             </CardHeader>
             <CardContent className="flex-1">
@@ -526,18 +521,18 @@ const SuperAdminDashboard = () => {
                     <Tooltip 
                       formatter={(value) => [`$${value.toLocaleString()}`, 'Revenue']}
                       contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '12px',
-                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                        color: 'hsl(var(--foreground))',
-                        fontSize: '12px'
-                      }}
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                      color: 'hsl(var(--foreground))',
+                      fontSize: '12px'
+                    }}
                     />
                     <Line 
                       type="monotone" 
                       dataKey="revenue" 
-                      stroke="#22c55e" 
+                      stroke="#93c47d"
                       strokeWidth={2}
                       dot={false}
                       name="Revenue"
@@ -550,7 +545,7 @@ const SuperAdminDashboard = () => {
         </div>
 
         {/* Business Team Members Chart - Admin Style with Controls */}
-        <Card className="!bg-transparent border-0 rounded-3xl shadow-none overflow-hidden h-full pl-0">
+        <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-2xl shadow-none overflow-hidden h-full pl-0">
           <CardHeader className="pb-4 pl-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 pl-2">

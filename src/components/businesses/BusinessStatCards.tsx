@@ -44,31 +44,26 @@ const BusinessStatCards: React.FC<BusinessStatCardsProps> = ({ businesses = [] }
     {
       title: 'Free Plan',
       value: stats.free,
-      icon: Building,
       gradient: 'bg-gradient-to-br from-gray-500 to-gray-600'
     },
     {
       title: 'Standard Plan',
       value: stats.standard,
-      icon: CreditCard,
       gradient: 'bg-gradient-to-br from-blue-500 to-blue-600'
     },
     {
       title: 'Enterprise Plan',
       value: stats.enterprise,
-      icon: Users,
       gradient: 'bg-gradient-to-br from-purple-500 to-purple-600'
     },
     {
       title: 'Active',
       value: stats.active,
-      icon: Check,
       gradient: 'bg-gradient-to-br from-green-500 to-green-600'
     },
     {
       title: 'Inactive',
       value: stats.inactive,
-      icon: Clock,
       gradient: 'bg-gradient-to-br from-orange-500 to-orange-600'
     }
   ];
@@ -80,7 +75,7 @@ const BusinessStatCards: React.FC<BusinessStatCardsProps> = ({ businesses = [] }
           key={index}
           title={stat.title}
           value={stat.value}
-          icon={stat.icon}
+          icon={null}
           gradient={stat.gradient}
         />
       ))}

@@ -41,6 +41,7 @@ import {
   Legend
 } from 'recharts';
 import { useBusinessDetail } from '@/hooks/useBusinesses';
+import { Icon } from '@/components/icons';
 
 const BusinessDetail = () => {
   const { businessId } = useParams();
@@ -66,7 +67,7 @@ const BusinessDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
         <div className="container max-w-7xl mx-auto p-6 space-y-8">
           {/* Header Skeleton */}
           <div className="flex items-center gap-4">
@@ -80,7 +81,7 @@ const BusinessDetail = () => {
           {/* Main Content Skeleton */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
-              <Card className="rounded-3xl">
+              <Card className="rounded-2xl">
                 <CardHeader>
                   <Skeleton className="h-6 w-48" />
                 </CardHeader>
@@ -93,7 +94,7 @@ const BusinessDetail = () => {
             </div>
             
             <div className="space-y-6">
-              <Card className="rounded-3xl">
+              <Card className="rounded-2xl">
                 <CardHeader>
                   <Skeleton className="h-6 w-32" />
                 </CardHeader>
@@ -111,9 +112,9 @@ const BusinessDetail = () => {
 
   if (isError || !businessData) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
         <div className="container max-w-7xl mx-auto p-6 space-y-8">
-          <Card className="rounded-3xl">
+          <Card className="rounded-2xl">
             <CardContent className="p-6">
               <div className="text-center py-10">
                 <div className="text-destructive mb-2">
@@ -158,7 +159,7 @@ const BusinessDetail = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-neutral-100/50 dark:bg-[hsla(0,0%,0%,0.95)]">
       <div className="container max-w-7xl mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -170,7 +171,7 @@ const BusinessDetail = () => {
               </Link>
             </ModernButton>
             <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 capitalize">
+              <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100 capitalize">
                 {business.name || 'Business Name'}
               </h2>
             </div>
@@ -193,9 +194,9 @@ const BusinessDetail = () => {
           <div className="lg:col-span-2 space-y-8 overflow-y-auto">
             {/* Business Overview */}
             <div ref={overviewRef}>
-              <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+              <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                  <CardTitle className="text-lg pl-0 font-semibold text-neutral-900 dark:text-neutral-100">
                     Business Overview
                   </CardTitle>
                 </CardHeader>
@@ -203,36 +204,36 @@ const BusinessDetail = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-                          <Globe className="h-5 w-5 text-white" />
+                        <div className="bg-transparent rounded-xl flex items-center justify-start bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 p-3">
+                          <Globe className="h-5 w-5 text-foreground" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Domain</p>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                          <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Domain</p>
+                          <p className="text-sm text-neutral-600 dark:text-neutral-400">
                             {business.domain || 'No domain set'}
                           </p>
                         </div>
                       </div>
                       
                       <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600">
-                          <Users className="h-5 w-5 text-white" />
+                        <div className="bg-transparent rounded-xl flex items-center justify-start bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 p-3">
+                          <Users className="h-5 w-5 text-foreground" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Admins</p>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                          <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Admins</p>
+                          <p className="text-sm text-neutral-600 dark:text-neutral-400">
                             {business.admins} administrator{business.admins !== 1 ? 's' : ''}
                           </p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
-                          <Bot className="h-5 w-5 text-white" />
+                        <div className="bg-transparent rounded-xl flex items-center justify-start bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 p-3">
+                          <Bot className="h-5 w-5 text-foreground" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Agents</p>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                          <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Agents</p>
+                          <p className="text-sm text-neutral-600 dark:text-neutral-400">
                             {business.agents} active agent{business.agents !== 1 ? 's' : ''}
                           </p>
                         </div>
@@ -241,12 +242,12 @@ const BusinessDetail = () => {
 
                     <div className="space-y-4">
                       <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600">
-                          <Calendar className="h-5 w-5 text-white" />
+                        <div className="bg-transparent rounded-xl flex items-center justify-start bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 p-3">
+                          <Calendar className="h-5 w-5 text-foreground" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Created</p>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                          <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Created</p>
+                          <p className="text-sm text-neutral-600 dark:text-neutral-400">
                             {new Date(business.created).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'long',
@@ -257,11 +258,11 @@ const BusinessDetail = () => {
                       </div>
 
                       <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600">
-                          <CreditCard className="h-5 w-5 text-white" />
+                        <div className="bg-transparent rounded-xl flex items-center justify-start bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 p-3">
+                          <CreditCard className="h-5 w-5 text-foreground" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Current Plan</p>
+                          <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Current Plan</p>
                           <Badge 
                             variant={
                               business.plan?.toLowerCase() === 'premium' ? 'default' : 
@@ -276,11 +277,11 @@ const BusinessDetail = () => {
                       </div>
 
                       <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600">
-                          <Activity className="h-5 w-5 text-white" />
+                        <div className="bg-transparent rounded-xl flex items-center justify-start bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 p-3">
+                          <Activity className="h-5 w-5 text-foreground" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Status</p>
+                          <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Status</p>
                           <Badge 
                             variant={
                               business.status?.toLowerCase() === 'active' ? 'success' : 
@@ -301,10 +302,10 @@ const BusinessDetail = () => {
 
             {/* Agents Section */}
             <div ref={agentsRef}>
-              <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+              <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-2xl">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                    <CardTitle className="text-lg pl-0 font-semibold text-neutral-900 dark:text-neutral-100">
                       Team & Agents
                     </CardTitle>
                     <ModernTabNavigation
@@ -319,14 +320,14 @@ const BusinessDetail = () => {
                   {activeAgentTab === 'human' ? (
                     <div className="space-y-4">
                       {businessData.administrators.map((admin) => (
-                        <div key={admin.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
+                        <div key={admin.id} className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800/30 rounded-2xl">
                           <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600">
                               <User className="h-4 w-4 text-white" />
                             </div>
                             <div>
-                              <p className="font-medium text-slate-900 dark:text-slate-100">{admin.name}</p>
-                              <p className="text-sm text-slate-600 dark:text-slate-400">{admin.email}</p>
+                              <p className="font-medium text-neutral-900 dark:text-neutral-100">{admin.name}</p>
+                              <p className="text-sm text-neutral-600 dark:text-neutral-400">{admin.email}</p>
                             </div>
                           </div>
                           <Badge variant="outline" className="capitalize">
@@ -338,14 +339,14 @@ const BusinessDetail = () => {
                   ) : (
                     <div className="space-y-4">
                       {businessData.agents.map((agent) => (
-                        <div key={agent.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
+                        <div key={agent.id} className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800/30 rounded-2xl">
                           <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600">
                               <Bot className="h-4 w-4 text-white" />
                             </div>
                             <div>
-                              <p className="font-medium text-slate-900 dark:text-slate-100">{agent.name}</p>
-                              <p className="text-sm text-slate-600 dark:text-slate-400">{agent.agentType}</p>
+                              <p className="font-medium text-neutral-900 dark:text-neutral-100">{agent.name}</p>
+                              <p className="text-sm text-neutral-600 dark:text-neutral-400">{agent.agentType}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -355,7 +356,7 @@ const BusinessDetail = () => {
                             >
                               {agent.status}
                             </Badge>
-                            <span className="text-sm text-slate-600 dark:text-slate-400">
+                            <span className="text-sm text-neutral-600 dark:text-neutral-400">
                               {agent.conversations} chats
                             </span>
                           </div>
@@ -369,9 +370,9 @@ const BusinessDetail = () => {
 
             {/* Analytics Section */}
             <div ref={analyticsRef}>
-              <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+              <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                  <CardTitle className="text-lg pl-0 font-semibold text-neutral-900 dark:text-neutral-100">
                     Analytics Overview
                   </CardTitle>
                   <CardDescription>
@@ -380,23 +381,23 @@ const BusinessDetail = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
-                      <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                    <div className="text-center p-4 bg-neutral-50 dark:bg-neutral-800 rounded-2xl">
+                      <div className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
                         {businessData.account_statistics.conversations}
                       </div>
-                      <div className="text-sm text-slate-500 dark:text-slate-400">Conversations</div>
+                      <div className="text-sm text-neutral-500 dark:text-neutral-400">Conversations</div>
                     </div>
-                    <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
-                      <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                    <div className="text-center p-4 bg-neutral-50 dark:bg-neutral-800 rounded-2xl">
+                      <div className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
                         {business.admins + business.agents}
                       </div>
-                      <div className="text-sm text-slate-500 dark:text-slate-400">Active Users</div>
+                      <div className="text-sm text-neutral-500 dark:text-neutral-400">Active Users</div>
                     </div>
-                    <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
-                      <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                    <div className="text-center p-4 bg-neutral-50 dark:bg-neutral-800 rounded-2xl">
+                      <div className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
                         {businessData.account_statistics.documents}
                       </div>
-                      <div className="text-sm text-slate-500 dark:text-slate-400">Knowledge Sources</div>
+                      <div className="text-sm text-neutral-500 dark:text-neutral-400">Knowledge Sources</div>
                     </div>
                   </div>
                 </CardContent>
@@ -405,9 +406,9 @@ const BusinessDetail = () => {
 
             {/* Conversations Volume Chart */}
             <div ref={conversationsRef}>
-              <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+              <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                  <CardTitle className="text-lg pl-0 font-semibold text-neutral-900 dark:text-neutral-100">
                     Conversations Volume
                   </CardTitle>
                   <CardDescription>
@@ -428,19 +429,19 @@ const BusinessDetail = () => {
                         <XAxis 
                           dataKey="week" 
                           tick={{ fontSize: 12, fill: 'currentColor' }}
-                          className="text-slate-600 dark:text-slate-400"
+                          className="text-neutral-600 dark:text-neutral-400"
                           axisLine={false}
                           tickLine={false}
                         />
                         <YAxis 
                           tick={{ fontSize: 12, fill: 'currentColor' }}
-                          className="text-slate-600 dark:text-slate-400"
+                          className="text-neutral-600 dark:text-neutral-400"
                           axisLine={false}
                           tickLine={false}
                         />
                         <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--background))',
+                           contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))',
                             border: '1px solid hsl(var(--border))',
                             borderRadius: '12px',
                             boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
@@ -465,9 +466,9 @@ const BusinessDetail = () => {
 
             {/* Payment History */}
             <div ref={paymentRef}>
-              <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+              <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                  <CardTitle className="text-lg pl-0 font-semibold text-neutral-900 dark:text-neutral-100">
                     Payment History
                   </CardTitle>
                   <CardDescription>
@@ -476,32 +477,32 @@ const BusinessDetail = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/30 rounded-lg">
+                    <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-green-600">
-                          <Receipt className="h-4 w-4 text-white" />
+                        <div className="bg-transparent rounded-xl flex items-center justify-start bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 p-3">
+                          <Icon name={`Star`} color='hsl(var(--primary))' type='plain' />
                         </div>
                         <div>
-                          <p className="font-medium text-slate-900 dark:text-slate-100">
+                          <p className="font-medium text-neutral-900 dark:text-neutral-100">
                             {business.plan === 'None' || !business.plan ? 'Free Plan' : `${business.plan} Plan`}
                           </p>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">Current subscription</p>
+                          <p className="text-sm text-neutral-600 dark:text-neutral-400">Current subscription</p>
                         </div>
                       </div>
                       <Badge variant="default">Active</Badge>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/30 rounded-lg">
-                      <span className="text-slate-600 dark:text-slate-400">Next billing</span>
-                      <span className="text-slate-900 dark:text-slate-100">
+                    <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+                      <span className="text-neutral-600 dark:text-neutral-400">Next billing</span>
+                      <span className="text-neutral-900 dark:text-neutral-100">
                         {businessData.subscription.next_billing_date ? 
                           new Date(businessData.subscription.next_billing_date).toLocaleDateString() : 
                           'N/A'
                         }
                       </span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/30 rounded-lg">
-                      <span className="text-slate-600 dark:text-slate-400">Billing cycle</span>
-                      <span className="text-slate-900 dark:text-slate-100 capitalize">
+                    <div className="flex justify-between items-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+                      <span className="text-neutral-600 dark:text-neutral-400">Billing cycle</span>
+                      <span className="text-neutral-900 dark:text-neutral-100 capitalize">
                         {businessData.subscription.billing_cycle || 'Monthly'}
                       </span>
                     </div>
@@ -514,44 +515,44 @@ const BusinessDetail = () => {
           {/* Right Column - Sticky Sidebar */}
           <div className="lg:sticky lg:top-6 lg:h-fit space-y-6">
             {/* Quick Links */}
-            <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+            <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                <CardTitle className="text-lg pl-0 font-semibold text-neutral-900 dark:text-neutral-100">
                   Quick Links
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <button
                   onClick={() => scrollToSection(overviewRef)}
-                  className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/30 rounded-lg transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/30 rounded-lg transition-colors"
                 >
                   <BarChart3 className="h-4 w-4 inline mr-2" />
                   Business Overview
                 </button>
                 <button
                   onClick={() => scrollToSection(agentsRef)}
-                  className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/30 rounded-lg transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/30 rounded-lg transition-colors"
                 >
                   <Users className="h-4 w-4 inline mr-2" />
                   Team & Agents
                 </button>
                 <button
                   onClick={() => scrollToSection(analyticsRef)}
-                  className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/30 rounded-lg transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/30 rounded-lg transition-colors"
                 >
                   <Activity className="h-4 w-4 inline mr-2" />
                   Analytics
                 </button>
                 <button
                   onClick={() => scrollToSection(conversationsRef)}
-                  className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/30 rounded-lg transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/30 rounded-lg transition-colors"
                 >
                   <MessageSquare className="h-4 w-4 inline mr-2" />
                   Conversations
                 </button>
                 <button
                   onClick={() => scrollToSection(paymentRef)}
-                  className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/30 rounded-lg transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/30 rounded-lg transition-colors"
                 >
                   <CreditCard className="h-4 w-4 inline mr-2" />
                   Payment History
@@ -560,28 +561,28 @@ const BusinessDetail = () => {
             </Card>
 
             {/* Contact Information */}
-            <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+            <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                <CardTitle className="text-lg pl-0 font-semibold text-neutral-900 dark:text-neutral-100">
                   Contact Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <Mail className="h-4 w-4 text-slate-500" />
+                  <Mail className="h-4 w-4 text-neutral-500" />
                   <div>
-                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Email</p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Email</p>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400">
                       {business.email || `contact@${business.domain || 'business.com'}`}
                     </p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <Phone className="h-4 w-4 text-slate-500" />
+                  <Phone className="h-4 w-4 text-neutral-500" />
                   <div>
-                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Phone</p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Phone</p>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400">
                       {business.phone || '+1 (555) 123-4567'}
                     </p>
                   </div>
@@ -590,25 +591,25 @@ const BusinessDetail = () => {
             </Card>
 
             {/* Activity Summary */}
-            <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
+            <Card className="bg-white dark:bg-neutral-800/60 border-0 rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                <CardTitle className="text-lg pl-0 font-semibold text-neutral-900 dark:text-neutral-100">
                   Recent Activity
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 text-sm">
-                  <div className="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800/30 rounded-lg">
-                    <span className="text-slate-600 dark:text-slate-400">Last login</span>
-                    <span className="text-slate-900 dark:text-slate-100">2 hours ago</span>
+                  <div className="flex justify-between items-center p-2 bg-neutral-50 dark:bg-neutral-800/30 rounded-lg">
+                    <span className="text-neutral-600 dark:text-neutral-400">Last login</span>
+                    <span className="text-neutral-900 dark:text-neutral-100">2 hours ago</span>
                   </div>
-                  <div className="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800/30 rounded-lg">
-                    <span className="text-slate-600 dark:text-slate-400">Agents updated</span>
-                    <span className="text-slate-900 dark:text-slate-100">1 day ago</span>
+                  <div className="flex justify-between items-center p-2 bg-neutral-50 dark:bg-neutral-800/30 rounded-lg">
+                    <span className="text-neutral-600 dark:text-neutral-400">Agents updated</span>
+                    <span className="text-neutral-900 dark:text-neutral-100">1 day ago</span>
                   </div>
-                  <div className="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800/30 rounded-lg">
-                    <span className="text-slate-600 dark:text-slate-400">Plan changed</span>
-                    <span className="text-slate-900 dark:text-slate-100">1 week ago</span>
+                  <div className="flex justify-between items-center p-2 bg-neutral-50 dark:bg-neutral-800/30 rounded-lg">
+                    <span className="text-neutral-600 dark:text-neutral-400">Plan changed</span>
+                    <span className="text-neutral-900 dark:text-neutral-100">1 week ago</span>
                   </div>
                 </div>
               </CardContent>

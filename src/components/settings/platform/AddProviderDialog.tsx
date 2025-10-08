@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS, getAuthHeaders, getApiUrl } from '@/utils/api-config';
 import { useAuth } from '@/context/AuthContext';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import ModernButton from '@/components/dashboard/ModernButton';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
 interface AddProviderDialogProps {
   isOpen: boolean;
@@ -147,18 +149,15 @@ const AddProviderDialog = ({ isOpen, onClose, onProviderAdded }: AddProviderDial
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="provider_name">Provider Name *</Label>
-            <Select value={formData.provider_name} onValueChange={handleProviderChange}>
-              <SelectTrigger variant="modern">
-                <SelectValue placeholder="Select provider" />
-              </SelectTrigger>
-              <SelectContent variant="modern">
-                {providerOptions.map((provider) => (
-                  <SelectItem key={provider.name} value={provider.name} variant="modern">
-                    {provider.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+            <ModernDropdown
+              value={formData.provider_name}
+              onValueChange={handleProviderChange}
+              options={providerOptions.map(u => ({value: u.name, label: u.name}))}
+              placeholder="Select Providers"
+              className="w-full text-xs rounded-xl border-neutral-200 dark:border-neutral-700"
+            />
+           
           </div>
 
           <div className="space-y-2">
@@ -184,10 +183,10 @@ const AddProviderDialog = ({ isOpen, onClose, onProviderAdded }: AddProviderDial
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <ModernButton type="button" variant="outline" onClick={onClose}>
               Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading} className="flex items-center gap-2">
+            </ModernButton>
+            <ModernButton type="submit" disabled={isLoading} className="flex items-center gap-2">
               {isLoading ? (
                 <>
                   <LoadingSpinner size="sm" className="!mb-0" />
@@ -196,7 +195,7 @@ const AddProviderDialog = ({ isOpen, onClose, onProviderAdded }: AddProviderDial
               ) : (
                 'Create Provider'
               )}
-            </Button>
+            </ModernButton>
           </div>
         </form>
       </DialogContent>

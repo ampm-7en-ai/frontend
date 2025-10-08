@@ -10,6 +10,7 @@ import { useBusinesses } from '@/hooks/useBusinesses';
 import BusinessStatCards from '@/components/businesses/BusinessStatCards';
 import { ModernInput } from '@/components/ui/modern-input';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import { Icon } from '@/components/icons';
 
 const BusinessList = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,7 +68,7 @@ const BusinessList = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-neutral-100/50 dark:bg-[hsla(0,0%,0%,0.95)]">
       <div className="container max-w-7xl mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -85,8 +86,8 @@ const BusinessList = () => {
         <BusinessStatCards businesses={businesses} />
 
         {/* Modern Search and Filter Controls */}
-        <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
-          <CardHeader>
+        <Card className="bg-transparent dark:bg-transparent border-0 rounded-3xl">
+          <CardHeader className='p-0'>
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
@@ -118,18 +119,18 @@ const BusinessList = () => {
         </Card>
 
         {/* Business List */}
-        <Card className="bg-white dark:bg-slate-800/50 border-0 rounded-3xl">
-          <CardHeader>
+        <Card className="bg-transparent dark:bg-transparent border-0 rounded-3xl !pl-0">
+          <CardHeader className='px-0 pt-0'>
             <div className="flex justify-between items-center">
-              <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
-                All Businesses
+              <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100 pl-0">
+                
               </CardTitle>
               <CardDescription>
                 {isLoading ? 'Loading...' : `${filteredBusinesses.length} businesses total`}
               </CardDescription>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className='px-0'>
             {isLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3, 4, 5].map((n) => (
@@ -173,11 +174,11 @@ const BusinessList = () => {
                       to={`/businesses/${business.id}`}
                       className="block"
                     >
-                      <Card className="p-5 bg-slate-50 dark:bg-slate-800/30 border-0 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all duration-200 cursor-pointer group shadow-none">
+                      <Card className="bg-white/70 dark:bg-neutral-800/70 rounded-xl p-4 dark:border-slate-600/50 cursor-pointer hover:bg-white dark:hover:bg-neutral-800 transition-colors duration-200 animate-fade-in">
                         <div className="flex items-center gap-4">
                           {/* Business Icon */}
-                          <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex-shrink-0">
-                            <Building className="h-4 w-4 text-white" />
+                          <div className="w-7 h-7 rounded-lg flex items-center justify-center">
+                            <Icon type='plain' name={`Team`} color='hsl(var(--primary))' className="h-5 w-5 text-white" />
                           </div>
 
                           {/* Business Info */}

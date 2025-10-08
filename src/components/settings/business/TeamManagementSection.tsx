@@ -457,8 +457,8 @@ const TeamManagementSection = () => {
       </div>
 
       {/* Current Owner - More Compact */}
-      <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 mb-6 backdrop-blur-sm">
-        <div className="flex items-center gap-3 mb-8">
+      <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 pb-2 mb-6 backdrop-blur-sm">
+        <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-transparent rounded-xl flex items-center justify-center bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
             <Icon type='plain' name={`Person`} color='hsl(var(--primary))' className='h-5 w-5' />
           </div>
