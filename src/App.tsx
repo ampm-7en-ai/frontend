@@ -34,6 +34,7 @@ import { TrainingStatusProvider } from './context/TrainingStatusContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { FloatingToastProvider } from './context/FloatingToastContext';
 import SecuritySettings from './pages/settings/platform/SecuritySettings';
+import RoleEditor from './pages/settings/platform/RoleEditor';
 import LLMProvidersSettings from './pages/settings/platform/LLMProvidersSettings';
 import ComplianceSettings from './pages/settings/platform/ComplianceSettings';
 import CustomizationSettings from './pages/settings/platform/CustomizationSettings';
@@ -177,6 +178,22 @@ const ProtectedRoutes = () => {
           } 
         />
         <Route 
+          path="/settings/platform/security/role" 
+          element={
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
+              <RoleEditor />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings/platform/security/role/:roleId" 
+          element={
+            <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
+              <RoleEditor />
+            </ProtectedRoute>
+          } 
+        />
+        <Route
           path="/settings/platform/llm-providers" 
           element={
             <ProtectedRoute allowedRoles={['SUPERADMIN']} userRole={user?.role} fallbackPath="/settings">
