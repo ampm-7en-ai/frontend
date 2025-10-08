@@ -356,18 +356,29 @@ const BillingSettings = () => {
         </TabsList>
         
         <TabsContent value="plans">
-          <Card className="p-6 bg-white dark:bg-neutral-800/50">
-            <CardHeader className="flex flex-row items-center justify-between p-0 pb-6">
-              <div>
-                <CardTitle className="text-2xl">Subscription Plans</CardTitle>
-                <CardDescription className="text-base mt-2">Manage plans and pricing packages</CardDescription>
+          <section className="p-8 bg-white dark:bg-neutral-800/50 rounded-2xl">
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl flex items-center justify-center bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
+                    <svg className="h-5 w-5" style={{color: 'hsl(var(--primary))'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Subscription Plans</h2>
+                    <p className="text-muted-foreground dark:text-muted-foreground mt-1">
+                      Manage plans and pricing packages
+                    </p>
+                  </div>
+                </div>
+                <ModernButton onClick={handleCreatePlan} variant="primary">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create New Plan
+                </ModernButton>
               </div>
-              <ModernButton onClick={handleCreatePlan} variant="primary">
-                <Plus className="mr-2 h-4 w-4" />
-                Create New Plan
-              </ModernButton>
-            </CardHeader>
-            <CardContent className="p-0">
+            </div>
+            <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
               <div className="space-y-6">
                 {isLoadingSubscriptionPlans ? (
                   <div className="text-center py-8">Loading subscription plans...</div>
@@ -426,17 +437,26 @@ const BillingSettings = () => {
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </section>
         </TabsContent>
         
         <TabsContent value="invoices">
-          <Card className="p-6 bg-white dark:bg-neutral-800/50">
-            <CardHeader className="p-0 pb-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle className="pl-0">Invoice Management</CardTitle>
-                  <CardDescription>View and manage all platform invoices</CardDescription>
+          <section className="p-8 bg-white dark:bg-neutral-800/50 rounded-2xl">
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl flex items-center justify-center bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
+                    <svg className="h-5 w-5" style={{color: 'hsl(var(--primary))'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Invoice Management</h2>
+                    <p className="text-muted-foreground dark:text-muted-foreground mt-1">
+                      View and manage all platform invoices
+                    </p>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <ModernButton variant="outline" onClick={handleExportCsv}>
@@ -449,8 +469,8 @@ const BillingSettings = () => {
                   </ModernButton>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="p-0 pt-6">
+            </div>
+            <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
                   <div className="relative flex-1">
@@ -589,8 +609,8 @@ const BillingSettings = () => {
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </section>
         </TabsContent>
         
         <TabsContent value="topup">
