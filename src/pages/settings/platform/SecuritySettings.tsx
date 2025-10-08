@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from "@/hooks/use-toast";
@@ -119,24 +118,33 @@ const SecuritySettingsContent = () => {
     >
       <div className="space-y-6">
         {/* Role Management Section */}
-        <Card className="p-6 bg-white dark:bg-neutral-800/50">
-          <CardHeader className="flex flex-row items-center justify-between p-0 pb-6">
-            <div>
-              <CardTitle className="text-2xl">Role Management</CardTitle>
-              <CardDescription className="text-base mt-2">
-                Define custom roles for agents with specific permissions
-              </CardDescription>
+        <section className="p-8 bg-white dark:bg-neutral-800/50 rounded-2xl">
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl flex items-center justify-center bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
+                  <svg className="h-5 w-5" style={{color: 'hsl(var(--primary))'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Role Management</h2>
+                  <p className="text-muted-foreground dark:text-muted-foreground mt-1">
+                    Define custom roles for agents with specific permissions
+                  </p>
+                </div>
+              </div>
+              <ModernButton 
+                variant="primary" 
+                onClick={handleCreateNew}
+                size='sm'
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add New Role
+              </ModernButton>
             </div>
-            <ModernButton 
-              variant="primary" 
-              onClick={handleCreateNew}
-              size='sm'
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add New Role
-            </ModernButton>
-          </CardHeader>
-          <CardContent className="p-0">
+          </div>
+          <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
@@ -217,8 +225,8 @@ const SecuritySettingsContent = () => {
                   </Table>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </section>
         </div>
       </PlatformSettingsLayout>
   );

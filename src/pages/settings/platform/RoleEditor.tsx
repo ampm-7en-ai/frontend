@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -163,27 +162,35 @@ const RoleEditorContent = () => {
       title={isEditMode ? "Edit Role" : "Create Role"}
       description={isEditMode ? "Update role details and permissions" : "Define a new role with specific permissions"}
     >
-      <div className="mb-6">
-        <ModernButton
-          variant="ghost"
-          onClick={() => navigate('/settings/platform/security')}
-          className="gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Security Settings
-        </ModernButton>
-      </div>
-
-      <Card className="p-6 bg-white dark:bg-neutral-800/50">
-        <CardHeader className="p-0 pb-6">
-          <CardTitle className="text-2xl">
-            {isEditMode ? 'Edit Role' : 'Create New Role'}
-          </CardTitle>
-          <CardDescription className="text-base mt-2">
-            {isEditMode ? 'Update role details and permissions' : 'Define a new role with specific permissions'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
+      <section className="p-8 bg-white dark:bg-neutral-800/50 rounded-2xl">
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-6">
+            <ModernButton
+              variant="ghost"
+              onClick={() => navigate('/settings/platform/security')}
+              iconOnly
+              className="h-10 w-10"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </ModernButton>
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl flex items-center justify-center bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
+                <svg className="h-5 w-5" style={{color: 'hsl(var(--primary))'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+                  {isEditMode ? 'Edit Role' : 'Create New Role'}
+                </h2>
+                <p className="text-muted-foreground dark:text-muted-foreground mt-1">
+                  {isEditMode ? 'Update role details and permissions' : 'Define a new role with specific permissions'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -281,8 +288,8 @@ const RoleEditorContent = () => {
               </ModernButton>
             </div>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </PlatformSettingsLayout>
   );
 };

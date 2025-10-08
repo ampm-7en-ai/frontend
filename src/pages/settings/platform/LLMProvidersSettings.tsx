@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
@@ -173,18 +172,29 @@ const LLMProvidersSettings = () => {
       description="Configure integrations with language model providers"
     >
       {/* Providers Section */}
-      <Card className="p-6 dark:text-neutral-200 bg-white dark:bg-neutral-800/50">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="pl-0">Provider Configuration</CardTitle>
-            <CardDescription>Manage LLM provider API connections and their models</CardDescription>
+      <section className="p-8 bg-white dark:bg-neutral-800/50 rounded-2xl">
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl flex items-center justify-center bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
+                <svg className="h-5 w-5" style={{color: 'hsl(var(--primary))'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Provider Configuration</h2>
+                <p className="text-muted-foreground dark:text-muted-foreground mt-1">
+                  Manage LLM provider API connections and their models
+                </p>
+              </div>
+            </div>
+            <ModernButton onClick={() => setIsAddProviderDialogOpen(true)} variant='primary'>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Provider
+            </ModernButton>
           </div>
-          <ModernButton onClick={() => setIsAddProviderDialogOpen(true)} variant='primary'>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Provider
-          </ModernButton>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
@@ -339,27 +349,37 @@ const LLMProvidersSettings = () => {
               ))}
             </Accordion>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
       
       {/* Agent System Prompts Section */}
-      <Card className="mt-8 p-6 bg-white dark:bg-neutral-800/50">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="pl-0">Agent System Prompts</CardTitle>
-            <CardDescription>Configure system prompts by agent type</CardDescription>
+      <section className="p-8 bg-white dark:bg-neutral-800/50 rounded-2xl">
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl flex items-center justify-center bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
+                <svg className="h-5 w-5" style={{color: 'hsl(var(--primary))'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Agent System Prompts</h2>
+                <p className="text-muted-foreground dark:text-muted-foreground mt-1">
+                  Configure system prompts by agent type
+                </p>
+              </div>
+            </div>
+            <ModernButton 
+              variant="outline" 
+              size="sm"
+              onClick={() => setIsAddPromptDialogOpen(true)}
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              Add New
+            </ModernButton>
           </div>
-          <ModernButton 
-            variant="outline" 
-            size="sm"
-            onClick={() => setIsAddPromptDialogOpen(true)}
-          >
-            <Plus className="mr-1 h-4 w-4" />
-            Add New
-          </ModernButton>
-          
-        </CardHeader>
-        <CardContent className="space-y-4">
+        </div>
+        <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm space-y-4">
           {isLoadingPrompts ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
@@ -429,8 +449,8 @@ const LLMProvidersSettings = () => {
               </ModernButton>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
       {/* Add Provider Dialog */}
       <AddProviderDialog
