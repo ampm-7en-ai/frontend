@@ -33,7 +33,7 @@ interface RolesResponse {
   permissions: string[];
 }
 
-const SecuritySettings = () => {
+const SecuritySettingsContent = () => {
   const { toast } = useToast();
   const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -216,8 +216,7 @@ const SecuritySettings = () => {
   const showForm = !!(selectedRole || isCreating);
 
   return (
-    <PermissionProvider>
-      <PlatformSettingsLayout 
+    <PlatformSettingsLayout
         title="Security Settings"
         description="Configure platform security, roles, and permissions"
       >
@@ -443,6 +442,13 @@ const SecuritySettings = () => {
           )}
         </div>
       </PlatformSettingsLayout>
+  );
+};
+
+const SecuritySettings = () => {
+  return (
+    <PermissionProvider>
+      <SecuritySettingsContent />
     </PermissionProvider>
   );
 };
