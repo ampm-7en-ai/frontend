@@ -128,10 +128,7 @@ const SecuritySettingsContent = () => {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Role Management</h2>
-                  <p className="text-muted-foreground dark:text-muted-foreground mt-1">
-                    Define custom roles for agents with specific permissions
-                  </p>
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Roles</h2>
                 </div>
               </div>
               <ModernButton 
@@ -144,7 +141,7 @@ const SecuritySettingsContent = () => {
               </ModernButton>
             </div>
           </div>
-          <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
+          <div className="bg-transparent dark:bg-transparent rounded-2xl p-0 backdrop-blur-sm">
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-primary/70" />

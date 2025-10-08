@@ -349,10 +349,10 @@ const BillingSettings = () => {
     >
       <Tabs defaultValue="plans">
         <TabsList className="grid w-full grid-cols-4 mb-8 bg-muted/50 p-1 rounded-xl">
-          <TabsTrigger value="plans" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800">Subscription Plans</TabsTrigger>
-          <TabsTrigger value="invoices" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800">Invoices</TabsTrigger>
-          <TabsTrigger value="topup" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800">Topup</TabsTrigger>
-          <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800">Settings</TabsTrigger>
+          <TabsTrigger value="plans" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Subscription Plans</TabsTrigger>
+          <TabsTrigger value="invoices" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Invoices</TabsTrigger>
+          <TabsTrigger value="topup" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Topup</TabsTrigger>
+          <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Settings</TabsTrigger>
         </TabsList>
         
         <TabsContent value="plans">
@@ -366,13 +366,10 @@ const BillingSettings = () => {
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Subscription Plans</h2>
-                    <p className="text-muted-foreground dark:text-muted-foreground mt-1">
-                      Manage plans and pricing packages
-                    </p>
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Subscription Plans</h2>
                   </div>
                 </div>
-                <ModernButton onClick={handleCreatePlan} variant="primary">
+                <ModernButton onClick={handleCreatePlan} variant="primary" size='sm'>
                   <Plus className="mr-2 h-4 w-4" />
                   Create New Plan
                 </ModernButton>
@@ -452,18 +449,15 @@ const BillingSettings = () => {
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Invoice Management</h2>
-                    <p className="text-muted-foreground dark:text-muted-foreground mt-1">
-                      View and manage all platform invoices
-                    </p>
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Invoice Management</h2> 
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <ModernButton variant="outline" onClick={handleExportCsv}>
+                  <ModernButton variant="outline" onClick={handleExportCsv} size='sm'>
                     <Download className="h-4 w-4 mr-2" /> 
                     Export CSV
                   </ModernButton>
-                  <ModernButton onClick={() => setIsCreateInvoiceOpen(true)}>
+                  <ModernButton onClick={() => setIsCreateInvoiceOpen(true)} size='sm'>
                     <Plus className="h-4 w-4 mr-2" /> 
                     Create Invoice
                   </ModernButton>
@@ -614,24 +608,28 @@ const BillingSettings = () => {
         </TabsContent>
         
         <TabsContent value="topup">
+          
           <Card className="p-6 bg-white dark:bg-neutral-800/50">
-            <CardHeader className="p-0 pb-6">
-              <CardTitle className="text-2xl">Topup Configuration</CardTitle>
-              <CardDescription className="text-base mt-2">Manage topup packages and ranges</CardDescription>
-            </CardHeader>
+            
             <CardContent className="space-y-6 p-0">
             <Tabs defaultValue="packages" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1 rounded-xl">
-                <TabsTrigger value="packages" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800">Packages</TabsTrigger>
-                <TabsTrigger value="ranges" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800">Ranges</TabsTrigger>
+              <TabsList className="grid grid-cols-2 bg-muted/50 p-1 rounded-xl w-52 m-auto">
+                <TabsTrigger value="packages" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Packages</TabsTrigger>
+                <TabsTrigger value="ranges" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Ranges</TabsTrigger>
               </TabsList>
               
               <TabsContent value="packages">
-                <Card className="p-6 mt-6 bg-neutral-50/50 dark:bg-neutral-900/20">
+                <Card className="p-0 mt-6 bg-transparent dark:bg-transparent">
                   <CardHeader className="flex flex-row items-center justify-between p-0 pb-4">
-                    <div>
-                      <CardTitle className="text-lg">Topup Packages</CardTitle>
-                      <CardDescription>Manage fixed topup packages</CardDescription>
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-xl flex items-center justify-center bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
+                        <svg className="h-5 w-5" style={{color: 'hsl(var(--primary))'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Topup Packages</h2>
+                      </div>
                     </div>
                     <ModernButton 
                       onClick={() => {
@@ -651,7 +649,7 @@ const BillingSettings = () => {
                     ) : topupPackages && topupPackages.length > 0 ? (
                       <div className="space-y-4">
                         {topupPackages.map((pkg) => (
-                          <Card key={pkg.id} className="border">
+                          <Card key={pkg.id} className="border text-foreground">
                             <div className="p-4">
                               <div className="flex justify-between items-start">
                                 <div>
@@ -704,11 +702,17 @@ const BillingSettings = () => {
               </TabsContent>
               
               <TabsContent value="ranges">
-                <Card className="p-6 mt-6 bg-neutral-50/50 dark:bg-neutral-900/20">
+                <Card className="p-0 mt-6 bg-transparent dark:bg-transparent">
                   <CardHeader className="flex flex-row items-center justify-between p-0 pb-4">
-                    <div>
-                      <CardTitle className="text-lg">Topup Ranges</CardTitle>
-                      <CardDescription>Manage flexible topup pricing ranges</CardDescription>
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-xl flex items-center justify-center bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
+                        <svg className="h-5 w-5" style={{color: 'hsl(var(--primary))'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Topup Ranges</h2>
+                      </div>
                     </div>
                     <ModernButton 
                       onClick={() => {
@@ -728,7 +732,7 @@ const BillingSettings = () => {
                     ) : topupRanges && topupRanges.length > 0 ? (
                       <div className="space-y-4">
                         {topupRanges.map((range) => (
-                          <Card key={range.id} className="border">
+                          <Card key={range.id} className="border text-foreground">
                             <div className="p-4">
                               <div className="flex justify-between items-start">
                                 <div>
@@ -786,12 +790,7 @@ const BillingSettings = () => {
 
         <TabsContent value="settings">
           <Card className="p-6 bg-white dark:bg-neutral-800/50">
-            <CardHeader className="flex flex-row items-center justify-between p-0 pb-6">
-              <div>
-                <CardTitle className="text-2xl">Billing Configuration</CardTitle>
-                <CardDescription className="text-base mt-2">Configure platform billing and invoicing settings</CardDescription>
-              </div>
-            </CardHeader>
+            
             <CardContent className="space-y-8 p-0 pt-6">
               {isLoadingConfig ? (
                 <div className="flex items-center justify-center py-8">
@@ -805,7 +804,7 @@ const BillingSettings = () => {
               ) : (
                 <>
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium">General Settings</h3>
+                    <h3 className="text-lg font-medium text-foreground">General Settings</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="billingCurrency">Default Currency</Label>
@@ -862,7 +861,7 @@ const BillingSettings = () => {
                   </div>
                   
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Invoice Settings</h3>
+                    <h3 className="text-lg font-medium text-foreground">Invoice Settings</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="companyName">Company Name</Label>
@@ -893,7 +892,7 @@ const BillingSettings = () => {
                   </div>
                   
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Reminders & Notifications</h3>
+                    <h3 className="text-lg font-medium text-foreground">Reminders & Notifications</h3>
                     <div className="space-y-2">
                       <Label htmlFor="reminderDays">Send Payment Reminder (days before due date)</Label>
                       <Input 

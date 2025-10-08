@@ -16,9 +16,9 @@ const PlatformSettingsLayout = ({
   return (
     <div className="container max-w-6xl mx-auto px-6 py-8">
       <div className="mb-8 text-left">
-        <h1 className="text-3xl font-bold text-foreground">{title}</h1>
+        <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
         {description && (
-          <p className="text-muted-foreground mt-2 text-lg">{description}</p>
+          <p className="text-muted-foreground mt-1">{description}</p>
         )}
       </div>
       

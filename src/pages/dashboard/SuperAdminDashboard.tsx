@@ -356,10 +356,10 @@ const SuperAdminDashboard = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
               Platform Dashboard
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-neutral-600 dark:text-neutral-400 mt-1">
               Overview of your entire platform
             </p>
           </div>

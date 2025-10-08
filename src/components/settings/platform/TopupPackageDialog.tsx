@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useCreateTopupPackage, useUpdateTopupPackage, TopupPackage } from '@/hooks/useTopupPackages';
 import { Loader2 } from 'lucide-react';
+import ModernButton from '@/components/dashboard/ModernButton';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
 interface TopupPackageDialogProps {
   open: boolean;
@@ -138,30 +140,32 @@ const TopupPackageDialog: React.FC<TopupPackageDialogProps> = ({
         
         <div className="space-y-2">
           <Label htmlFor="status">Status</Label>
-          <Select value={status} onValueChange={(value: 'ACTIVE' | 'INACTIVE') => setStatus(value)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="INACTIVE">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
+          <ModernDropdown
+            value={status}
+            onValueChange={(value: 'ACTIVE' | 'INACTIVE') => setStatus(value)}
+            options={[
+              {label: "Active", value: "ACTIVE"},
+              {label: "Inactive", value: "INACTIVE"}
+            ]}
+            placeholder="Select Providers"
+            className="w-full text-xs rounded-xl border-neutral-200 dark:border-neutral-700"
+          />
+          
         </div>
         
         <div className="flex justify-end gap-2 pt-4">
-          <Button 
+          <ModernButton 
             type="button" 
             variant="outline" 
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
           >
             Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading}>
+          </ModernButton>
+          <ModernButton type="submit" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {editPackage ? 'Update Package' : 'Create Package'}
-          </Button>
+          </ModernButton>
         </div>
       </form>
     </DialogContent>

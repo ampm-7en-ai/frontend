@@ -229,7 +229,7 @@ const AgentList = () => {
             {/* Header Section */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 px-0">
               <div>
-                <h1 className="text-2xl font-bold text-foreground dark:text-foreground mb-2">AI Agents</h1>
+                <h1 className="text-2xl font-semibold text-foreground dark:text-foreground mb-2">AI Agents</h1>
                 <p className="text-muted-foreground dark:text-muted-foreground text-base">Manage and create your AI agents</p>
               </div>
               <div className="flex items-center gap-3">

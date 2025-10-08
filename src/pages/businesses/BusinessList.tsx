@@ -52,7 +52,7 @@ const BusinessList = () => {
 
   if (isError) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+      <div className="min-h-screen bg-neutral-50 dark:bg-slate-900">
         <div className="container max-w-7xl mx-auto p-6 space-y-8">
           <Card className="my-6">
             <CardContent className="p-6">
@@ -73,10 +73,10 @@ const BusinessList = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
               Business Management
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-neutral-600 dark:text-neutral-400 mt-1">
               Manage all businesses on your platform
             </p>
           </div>

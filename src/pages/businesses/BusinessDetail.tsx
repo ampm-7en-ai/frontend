@@ -171,7 +171,7 @@ const BusinessDetail = () => {
               </Link>
             </ModernButton>
             <div>
-              <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100 capitalize">
+              <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 capitalize">
                 {business.name || 'Business Name'}
               </h2>
             </div>

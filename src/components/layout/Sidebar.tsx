@@ -355,7 +355,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 z-50">
-                  <div className="flex-1 min-w-0 border-b border-neutral-50 dark:border-neutral-700 pb-4 mb-1">
+                  <div className={`flex-1 min-w-0 ${ userRole === 'USER' && "border-b border-neutral-50 dark:border-neutral-700"} pb-4 mb-1`}>
                     <p className="text-xs font-medium text-neutral-900 dark:text-neutral-100 truncate">
                       {user?.name || 'User'}
                     </p>
@@ -436,7 +436,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-48 mb-2 p-4 bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 z-50">
-                  <div className="flex-1 min-w-0 border-b border-neutral-50 dark:border-neutral-700 pb-4 mb-1">
+                  <div className={`flex-1 min-w-0 ${ userRole === 'USER' && "border-b border-neutral-50 dark:border-neutral-700"} pb-4 mb-1`}>
                     <p className="text-xs font-medium text-neutral-900 dark:text-neutral-100 truncate">
                       {user?.name || 'User'}
                     </p>
@@ -444,15 +444,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                       {user?.email || 'user@example.com'}
                     </p>
                   </div>
-                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-neutral-200 dark:hover:!bg-neutral-700">
-                    
-                    <Icon type='plain' name={`Person`} color='hsl(var(--primary))'className="h-4 w-4" /> 
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-neutral-200 dark:hover:!bg-neutral-700">
-                    <Icon type='plain' name={`Receipt`} color='hsl(var(--primary))'className="h-4 w-4" /> 
-                    Billing
-                  </DropdownMenuItem>
+                  {
+                    userRole === 'USER' && (
+                      <>
+                      <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-neutral-200 dark:hover:!bg-neutral-700">
+                        
+                        <Icon type='plain' name={`Person`} color='hsl(var(--primary))'className="h-4 w-4" /> 
+                        Profile
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="flex items-center gap-2 cursor-pointer dark:text-neutral-200 dark:hover:!bg-neutral-700">
+                        <Icon type='plain' name={`Receipt`} color='hsl(var(--primary))'className="h-4 w-4" /> 
+                        Billing
+                      </DropdownMenuItem>
+                      </>
+                    )
+                  }
+                  
                   <DropdownMenuSeparator className="dark:bg-neutral-700" />
                   <DropdownMenuItem 
                     className="flex items-center gap-2 cursor-pointer dark:text-neutral-200 dark:hover:!bg-neutral-700"

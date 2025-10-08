@@ -79,10 +79,7 @@ const GeneralSettings = () => {
               </svg>
             </div>
             <div>
-              <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Platform Information</h2>
-              <p className="text-muted-foreground dark:text-muted-foreground mt-1">
-                Update your platform name and details
-              </p>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Platform Information</h2>
             </div>
           </div>
         </div>

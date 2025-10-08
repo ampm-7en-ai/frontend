@@ -182,13 +182,10 @@ const LLMProvidersSettings = () => {
                 </svg>
               </div>
               <div>
-                <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Provider Configuration</h2>
-                <p className="text-muted-foreground dark:text-muted-foreground mt-1">
-                  Manage LLM provider API connections and their models
-                </p>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Provider Configuration</h2>
               </div>
             </div>
-            <ModernButton onClick={() => setIsAddProviderDialogOpen(true)} variant='primary'>
+            <ModernButton onClick={() => setIsAddProviderDialogOpen(true)} variant='primary' size='sm'>
               <Plus className="mr-2 h-4 w-4" />
               Add Provider
             </ModernButton>
@@ -363,10 +360,7 @@ const LLMProvidersSettings = () => {
                 </svg>
               </div>
               <div>
-                <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Agent System Prompts</h2>
-                <p className="text-muted-foreground dark:text-muted-foreground mt-1">
-                  Configure system prompts by agent type
-                </p>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Agent Persona Prompts</h2>
               </div>
             </div>
             <ModernButton 
