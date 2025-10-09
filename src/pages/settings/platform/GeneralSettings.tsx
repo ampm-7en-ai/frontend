@@ -83,10 +83,10 @@ const GeneralSettings = () => {
             </div>
           </div>
         </div>
-        <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
+        <div className="dark:text-gray-200 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none p-6">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
+              <Loader2 className="h-8 w-8 animate-spin text-foreground" />
               <span className="ml-3 text-muted-foreground">Loading settings...</span>
             </div>
           ) : (

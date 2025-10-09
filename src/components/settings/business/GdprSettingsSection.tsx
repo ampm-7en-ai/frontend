@@ -19,10 +19,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useConversations } from '@/hooks/useConversations';
+import { API_BASE_URL, MEDIA_BASE_URL } from '@/config/env';
 
 interface GdprSettingsSectionProps {
   initialSettings?: {
     data_retention_days: number | null;
+    data_retention_message: string | null;
+    gdpr_message_display: boolean | null;
   };
 }
 
@@ -32,8 +35,8 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
   const [retentionDays, setRetentionDays] = useState<string>(
     initialSettings?.data_retention_days?.toString() || ''
   );
-  const [retentionMessage, setRetentionMessage] = useState('');
-  const [isMessageVisible, setIsMessageVisible] = useState(false);
+  const [retentionMessage, setRetentionMessage] = useState( initialSettings?.data_retention_message?.toString() || '');
+  const [isMessageVisible, setIsMessageVisible] = useState(initialSettings?.gdpr_message_display || false);
   const [isSaving, setIsSaving] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -60,7 +63,9 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
       // TODO: API call to save GDPR settings
       const payload = {
         gdpr_settings: {
-          data_retention_days: +retentionDays
+          data_retention_days: +retentionDays,
+          data_retention_message: retentionMessage,
+          gdpr_message_display: isMessageVisible
         }
       };
 
@@ -165,7 +170,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
 
   const handleDownloadExport = () => {
     if (exportData?.url) {
-      window.open(exportData.url, '_blank');
+      window.open(MEDIA_BASE_URL+exportData.url, '_blank');
     }
   };
 
@@ -282,7 +287,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
             {/* Data Export */}
             
             <div className="pt-4 border-t border-neutral-200 dark:border-neutral-700">
-              <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-neutral-700">
+              <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none">
                 <div className="space-y-0.5">
                   <Label className="text-slate-900 dark:text-slate-100">Data Export</Label>
                   <p className="text-sm text-muted-foreground">
@@ -349,7 +354,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
 
               </div>
               {/* delete data */}
-              <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-neutral-700 mt-4">
+              <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none mt-4">
                 <div className="space-y-0.5">
                   <Label className="text-red-900 dark:text-red-100">Delete All Conversations</Label>
                   <p className="text-sm text-muted-foreground">
@@ -368,7 +373,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                 
               </div>
               {/* delete account */}
-              <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-neutral-700 mt-4">
+              <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none mt-4">
                 <div className="space-y-0.5">
                   <Label className="text-red-900 dark:text-red-100">Delete Account</Label>
                   <p className="text-sm text-muted-foreground">

@@ -76,10 +76,7 @@ const BillingSettings = () => {
   
   // Use the updated useSubscription hook with options
   const { 
-    subscriptionPlans, 
-    invoicesList,
-    isLoadingInvoices,
-    invoiceError,
+    subscriptionPlans,
     isLoadingSubscriptionPlans,
     subscriptionPlansError,
     refetchSubscriptionPlans
@@ -161,19 +158,12 @@ const BillingSettings = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  // Filter invoices based on search and status
-  const filteredInvoices = invoicesList.filter(invoice => {
-    const matchesSearch = invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                        invoice.business.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+ 
 
   // Get current invoices for pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentInvoices = filteredInvoices.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
+
 
   const handleDeletePlanRequest = (plan: SubscriptionPlan) => {
     setPlanToDelete(plan);
@@ -253,9 +243,7 @@ const BillingSettings = () => {
     // Create CSV content
     let csvContent = "Invoice ID,Business,Amount,Status,Date\n";
     
-    filteredInvoices.forEach(invoice => {
-      csvContent += `${invoice.id},${invoice.business},${invoice.amount},${invoice.status},${invoice.date}\n`;
-    });
+    
     
     // Create blob and download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -276,21 +264,6 @@ const BillingSettings = () => {
     });
   };
 
-  const handleCreateInvoice = (invoice: Omit<Invoice, 'id'>) => {
-    const newInvoice: Invoice = {
-      id: `INV-2025-${String(invoicesList.length + 1).padStart(3, '0')}`,
-      ...invoice
-    };
-    
-    setInvoices([newInvoice, ...invoices]);
-    
-    toast({
-      title: "Invoice Created",
-      description: "New invoice has been created successfully.",
-    });
-    
-    setIsCreateInvoiceOpen(false);
-  };
 
   const handleCreatePlan = () => {
     navigate('/settings/platform/subscription-plan');
@@ -348,9 +321,9 @@ const BillingSettings = () => {
       description="Manage subscription plans and platform billing configurations"
     >
       <Tabs defaultValue="plans">
-        <TabsList className="grid w-full grid-cols-4 mb-8 bg-muted/50 p-1 rounded-xl">
-          <TabsTrigger value="plans" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Subscription Plans</TabsTrigger>
-          <TabsTrigger value="invoices" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Invoices</TabsTrigger>
+        <TabsList className="grid w-80 grid-cols-3 mb-8 bg-neutral-200 dark:bg-neutral-800 p-1 rounded-xl">
+          <TabsTrigger value="plans" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Subscriptions</TabsTrigger>
+          {/* <TabsTrigger value="invoices" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Invoices</TabsTrigger> */}
           <TabsTrigger value="topup" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Topup</TabsTrigger>
           <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Settings</TabsTrigger>
         </TabsList>
@@ -375,7 +348,7 @@ const BillingSettings = () => {
                 </ModernButton>
               </div>
             </div>
-            <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
+            <div className="bg-transparent dark:bg-transparent rounded-2xl p-0 backdrop-blur-sm">
               <div className="space-y-6">
                 {isLoadingSubscriptionPlans ? (
                   <div className="text-center py-8">Loading subscription plans...</div>
@@ -385,7 +358,7 @@ const BillingSettings = () => {
                   </div>
                 ) : subscriptionPlans && subscriptionPlans.length > 0 ? (
                   subscriptionPlans.map((plan) => (
-                    <Card key={plan.id} className="border dark:text-gray-200">
+                    <Card key={plan.id} className="dark:text-gray-200 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none">
                       <div className="p-6">
                         <div className="flex justify-between items-start mb-4">
                           <div>
@@ -438,174 +411,7 @@ const BillingSettings = () => {
           </section>
         </TabsContent>
         
-        <TabsContent value="invoices">
-          <section className="p-8 bg-white dark:bg-neutral-800/50 rounded-2xl">
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl flex items-center justify-center bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
-                    <svg className="h-5 w-5" style={{color: 'hsl(var(--primary))'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Invoice Management</h2> 
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <ModernButton variant="outline" onClick={handleExportCsv} size='sm'>
-                    <Download className="h-4 w-4 mr-2" /> 
-                    Export CSV
-                  </ModernButton>
-                  <ModernButton onClick={() => setIsCreateInvoiceOpen(true)} size='sm'>
-                    <Plus className="h-4 w-4 mr-2" /> 
-                    Create Invoice
-                  </ModernButton>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between gap-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
-                    <Input 
-                      placeholder="Search invoices..." 
-                      className="pl-10" 
-                      value={searchTerm}
-                      variant="modern"
-                      onChange={(e) => {
-                        setSearchTerm(e.target.value);
-                        setCurrentPage(1); // Reset to first page on new search
-                      }}
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Filter className="h-4 w-4 text-muted-foreground" />
-                    <ModernDropdown
-                      value={statusFilter}
-                      onValueChange={(value) => {
-                        setStatusFilter(value);
-                        setCurrentPage(1); // Reset to first page on filter change
-                      }}
-                      options={[
-                        { label: "All Statuses", value: "all"},
-                        { label: "Paid", value: "paid"},
-                        { label: "Pending", value: "pending"},
-                        { label: "Overdue", value: "overdue"}
-                      ]}
-                      placeholder="Select Members"
-                      className="text-xs rounded-xl border-slate-200 dark:border-slate-700"
-                    />
-                    {/* <Select 
-                      value={statusFilter} 
-                      onValueChange={(value) => {
-                        setStatusFilter(value);
-                        setCurrentPage(1); // Reset to first page on filter change
-                      }}
-                    >
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Statuses</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="overdue">Overdue</SelectItem>
-                      </SelectContent>
-                    </Select> */}
-                  </div>
-                </div>
-                
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Invoice #</TableHead>
-                      <TableHead>Business</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {currentInvoices.length > 0 ? (
-                      currentInvoices.map((invoice) => (
-                        <TableRow key={invoice.id}>
-                          <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
-                          <TableCell>{invoice.business}</TableCell>
-                          <TableCell>{invoice.amount}</TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant="outline" 
-                              className={
-                                invoice.status === "paid" ? "bg-green-50 text-green-700" : 
-                                invoice.status === "pending" ? "bg-yellow-50 text-yellow-700" : 
-                                "bg-red-50 text-red-700"
-                              }
-                            >
-                              {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{invoice.date}</TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" onClick={() => window.location.href=`https://invoice.stripe.com/i/acct_abcdefghijklmno/${invoice.stripe_invoice_id}?s=em`}>
-                              <FileText className="h-4 w-4 mr-1" /> 
-                              View
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          No invoices found matching your criteria
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-                
-                {filteredInvoices.length > 0 && (
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      Showing {Math.min(indexOfFirstItem + 1, filteredInvoices.length)} to {Math.min(indexOfLastItem, filteredInvoices.length)} of {filteredInvoices.length} invoices
-                    </div>
-                    
-                    <Pagination>
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious 
-                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
-                            className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                          />
-                        </PaginationItem>
-                        
-                        {[...Array(totalPages)].map((_, i) => (
-                          <PaginationItem key={i}>
-                            <PaginationLink 
-                              isActive={currentPage === i + 1}
-                              onClick={() => setCurrentPage(i + 1)}
-                            >
-                              {i + 1}
-                            </PaginationLink>
-                          </PaginationItem>
-                        ))}
-                        
-                        <PaginationItem>
-                          <PaginationNext 
-                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
-        </TabsContent>
+       
         
         <TabsContent value="topup">
           
@@ -613,7 +419,7 @@ const BillingSettings = () => {
             
             <CardContent className="space-y-6 p-0">
             <Tabs defaultValue="packages" className="w-full">
-              <TabsList className="grid grid-cols-2 bg-muted/50 p-1 rounded-xl w-52 m-auto">
+              <TabsList className="grid grid-cols-2 bg-neutral-200 dark:bg-neutral-800 p-1 rounded-xl w-52 m-auto">
                 <TabsTrigger value="packages" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Packages</TabsTrigger>
                 <TabsTrigger value="ranges" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Ranges</TabsTrigger>
               </TabsList>
@@ -649,7 +455,7 @@ const BillingSettings = () => {
                     ) : topupPackages && topupPackages.length > 0 ? (
                       <div className="space-y-4">
                         {topupPackages.map((pkg) => (
-                          <Card key={pkg.id} className="border text-foreground">
+                          <Card key={pkg.id} className="dark:text-gray-200 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none">
                             <div className="p-4">
                               <div className="flex justify-between items-start">
                                 <div>
@@ -732,7 +538,7 @@ const BillingSettings = () => {
                     ) : topupRanges && topupRanges.length > 0 ? (
                       <div className="space-y-4">
                         {topupRanges.map((range) => (
-                          <Card key={range.id} className="border text-foreground">
+                          <Card key={range.id} className="dark:text-gray-200 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none">
                             <div className="p-4">
                               <div className="flex justify-between items-start">
                                 <div>
@@ -789,9 +595,9 @@ const BillingSettings = () => {
         </TabsContent>
 
         <TabsContent value="settings">
-          <Card className="p-6 bg-white dark:bg-neutral-800/50">
+          <Card className="p-6 bg-white dark:bg-neutral-800/70">
             
-            <CardContent className="space-y-8 p-0 pt-6">
+            <CardContent className="space-y-8 p-0">
               {isLoadingConfig ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
@@ -912,7 +718,7 @@ const BillingSettings = () => {
                       <Label htmlFor="overdueNotifications">Enable Overdue Payment Notifications</Label>
                     </div>
                   </div>
-                  
+                  <div className='flex justify-end'>
                   <ModernButton 
                     onClick={handleSaveBillingSettings}
                     disabled={updateConfigMutation.isPending}
@@ -927,6 +733,7 @@ const BillingSettings = () => {
                       'Save Settings'
                     )}
                   </ModernButton>
+                  </div>
                 </>
               )}
             </CardContent>
@@ -934,11 +741,7 @@ const BillingSettings = () => {
         </TabsContent>
       </Tabs>
       
-      <CreateInvoiceDialog
-        open={isCreateInvoiceOpen}
-        onOpenChange={setIsCreateInvoiceOpen}
-        onSubmit={handleCreateInvoice}
-      />
+      
 
       <DeleteSubscriptionPlanDialog
         open={isDeleteDialogOpen}

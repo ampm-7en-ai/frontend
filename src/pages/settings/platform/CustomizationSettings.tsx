@@ -239,28 +239,14 @@ const CustomizationSettings = () => {
       description="Personalize your platform's look and feel"
     >
       <Tabs defaultValue="branding">
-        <TabsList className="grid w-full grid-cols-2 mb-8 bg-muted/50 p-1 rounded-xl">
-          <TabsTrigger value="branding" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800">Branding</TabsTrigger>
-          <TabsTrigger value="emails" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800">Email Templates</TabsTrigger>
+        <TabsList className="grid w-64 grid-cols-2 mb-8 bg-neutral-200 dark:bg-neutral-800 p-1 rounded-xl">
+          <TabsTrigger value="branding" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Branding</TabsTrigger>
+          <TabsTrigger value="emails" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Email Templates</TabsTrigger>
         </TabsList>
         
         <TabsContent value="branding">
-          <section className="p-8 bg-white dark:bg-neutral-800/50 rounded-2xl">
-            <div className="mb-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="rounded-xl flex items-center justify-center bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
-                  <svg className="h-5 w-5" style={{color: 'hsl(var(--primary))'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Platform Branding</h2>
-                  <p className="text-muted-foreground dark:text-muted-foreground mt-1">
-                    Customize your platform's logo and branding elements
-                  </p>
-                </div>
-              </div>
-            </div>
+          <section className="p-0 bg-transparent dark:bg-transparent rounded-2xl">
+            
             <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm space-y-6">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
@@ -449,7 +435,7 @@ const CustomizationSettings = () => {
                       <Label htmlFor="showPoweredBy">Show "Powered by 7en AI" badge</Label>
                     </div>
                   </div>
-                  
+                  <div className="flex items-center justify-end gap-4">
                   <ModernButton 
                     onClick={handleSaveBrandingSettings}
                     disabled={updateMutation.isPending}
@@ -464,6 +450,7 @@ const CustomizationSettings = () => {
                       'Save Branding Settings'
                     )}
                   </ModernButton>
+                  </div>
                 </>
               )}
             </div>
@@ -471,14 +458,8 @@ const CustomizationSettings = () => {
         </TabsContent>
         
         <TabsContent value="emails">
-          <Card className="mb-6 p-6">
-            <CardHeader>
-              <div>
-                <CardTitle className="pl-0">Email Templates</CardTitle>
-                <CardDescription>Customize email notifications and templates</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <Card className="mb-6 p-6 dark:bg-neutral-800/70">
+            <CardContent className="space-y-6 p-0">
               {isLoadingTypes ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
@@ -592,7 +573,7 @@ const CustomizationSettings = () => {
                     ) : null}
                   </div>
                   
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-end gap-4">
                     <ModernButton 
                       onClick={handleSaveEmailTemplate}
                       disabled={updateEmailTemplateMutation.isPending || !selectedTemplateType}

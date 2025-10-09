@@ -144,7 +144,7 @@ const SecuritySettingsContent = () => {
           <div className="bg-transparent dark:bg-transparent rounded-2xl p-0 backdrop-blur-sm">
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
+                  <Loader2 className="h-8 w-8 animate-spin text-foreground" />
                   <span className="ml-3 text-muted-foreground">Loading roles...</span>
                 </div>
               ) : (

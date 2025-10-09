@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useCreateTopupRange, useUpdateTopupRange, TopupRange } from '@/hooks/useTopupRanges';
 import { Loader2 } from 'lucide-react';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface TopupRangeDialogProps {
   open: boolean;
@@ -177,18 +178,18 @@ const TopupRangeDialog: React.FC<TopupRangeDialogProps> = ({
         </div>
         
         <div className="flex justify-end gap-2 pt-4">
-          <Button 
+          <ModernButton 
             type="button" 
             variant="outline" 
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
           >
             Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading}>
+          </ModernButton>
+          <ModernButton type="submit" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {editRange ? 'Update Range' : 'Create Range'}
-          </Button>
+          </ModernButton>
         </div>
       </form>
     </DialogContent>

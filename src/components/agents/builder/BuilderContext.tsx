@@ -52,6 +52,14 @@ interface AgentFormData {
   ticketing_providers: string[];
   default_ticketing_provider: string;
   is_slack_enabled: boolean;
+  gdpr_settings?: GdprConfig;
+  privacy_url?: string;
+}
+
+interface GdprConfig {
+  data_retention_days: number;
+  data_retention_message: string;
+  gdpr_message_display: boolean;
 }
 
 interface BuilderState {
@@ -230,7 +238,13 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         status: agentData.status,
         ticketing_providers: agentData.ticketing_providers || [],
         default_ticketing_provider: agentData.default_ticketing_provider || "",
-        is_slack_enabled: agentData.is_slack_enabled || false
+        is_slack_enabled: agentData.is_slack_enabled || false,
+        privacy_url: agentData.privacy_url || "#",
+        gdpr_settings: {
+          data_retention_days: agentData.gdpr_settings?.data_retention_days || 0,
+          data_retention_message: agentData.gdpr_settings?.data_retention_message || "",
+          gdpr_message_display: agentData.gdpr_settings?.gdpr_message_display || false
+        }
       };
 
       console.log('Mapped agent data with status preserved:', {

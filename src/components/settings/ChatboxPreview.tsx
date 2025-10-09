@@ -52,6 +52,10 @@ interface ChatboxPreviewProps {
   enableSessionStorage?: boolean;
   onSessionIdReceived?: (sessionId: string) => void;
   sessionId?: string | null;
+  retentionPeriod?: number;
+  retentionMessage?: string;
+  displayRetentionMessage?: boolean;
+  privacyUrl?: string;
 }
 
 export const ChatboxPreview = ({
@@ -77,7 +81,11 @@ export const ChatboxPreview = ({
   canvasMode = false,
   enableSessionStorage = false,
   onSessionIdReceived,
-  sessionId  
+  sessionId,
+  retentionPeriod,
+  retentionMessage,
+  displayRetentionMessage,
+  privacyUrl
 }: ChatboxPreviewProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -2087,6 +2095,23 @@ export const ChatboxPreview = ({
                 </div>
               </div>
             )}
+
+            {displayRetentionMessage && retentionMessage && retentionMessage.trim() && (
+              <div className="animate-fade-in">
+                <div 
+                  className="border rounded-lg p-3 text-left"
+                  style={{
+                    backgroundColor: `${primaryColor}05`,
+                    borderColor: `${primaryColor}20`
+                  }}
+                >
+                  <div className="text-xs italic text-gray-600 leading-relaxed text-left">
+                    {retentionPeriod > 0 && <b>{retentionPeriod} days of data retention period.</b>}
+                    <ReactMarkdown>{retentionMessage}</ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+            )}
             
             {/* Regular Messages */}
             {messages.map((message, index) => {
@@ -2594,9 +2619,10 @@ export const ChatboxPreview = ({
               <label htmlFor="terms-acceptance-main" className="cursor-pointer leading-relaxed">
                 By chatting, you accept our{' '}
                 <a 
-                  href="#" 
+                  href={privacyUrl || "#"} 
                   className="underline hover:text-gray-800 transition-colors"
-                  onClick={(e) => e.preventDefault()}
+                  onClick={(e) => privacyUrl === "#" && e.preventDefault()}
+                  target='_blank'
                 >
                   terms and conditions
                 </a>

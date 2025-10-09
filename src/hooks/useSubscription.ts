@@ -44,32 +44,7 @@ interface Invoice {
   updated_at: string;
 }
 
-async function fetchInvoices(): Promise<Invoice[]> {
-const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
-  if (!token) {
-    throw new Error('Authentication token not found');
-  }
-  try {
-    const response = await fetch(`${BASE_URL}${API_ENDPOINTS.GET_INVOICE}`, {
-      method: 'GET',
-      headers: getAuthHeaders(token),
-    });
 
-    if (response.status === 404) {
-      return null;
-    }
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch Invoices');
-    }
-
-    const data = await response.json();
-    return data.data;
-  } catch (error) {
-    return null;
-  }
-
-}
 
 async function fetchCurrentSubscription(): Promise<Subscription | null> {
   const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).accessToken : null;
@@ -161,14 +136,7 @@ export function useSubscription(options: UseSubscriptionOptions = { fetchCurrent
     enabled: fetchAllPlans, // Only fetch if option is true
   });
 
-  const InvoiceQuery = useQuery({
-    queryKey: ['invoice'],
-    queryFn: fetchInvoices,
-    staleTime: 60000, // 1 minute
-    refetchOnWindowFocus: true,
-    retry: 1,
-    enabled: fetchInvoice, // Only fetch if option is true
-  });
+  
   
   // Function to force refetch subscription plans
   const refetchSubscriptionPlans = async () => {
@@ -181,9 +149,6 @@ export function useSubscription(options: UseSubscriptionOptions = { fetchCurrent
     isLoadingCurrentSubscription: currentSubscriptionQuery.isLoading,
     currentSubscriptionError: currentSubscriptionQuery.error,
     subscriptionPlans: subscriptionPlansQuery.data || [],
-    invoicesList: InvoiceQuery.data || [],
-    isLoadingInvoices: InvoiceQuery.isLoading,
-    invoiceError: InvoiceQuery.error,
     isLoadingSubscriptionPlans: subscriptionPlansQuery.isLoading,
     subscriptionPlansError: subscriptionPlansQuery.error,
     refetchCurrentSubscription: currentSubscriptionQuery.refetch,

@@ -166,28 +166,15 @@ const RoleEditorContent = () => {
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-6">
             <ModernButton
-              variant="ghost"
+              variant="outline"
               onClick={() => navigate('/settings/platform/security')}
+              size='sm'
               iconOnly
-              className="h-10 w-10"
+              className="h-10 w-10 flex"
             >
               <ArrowLeft className="h-5 w-5" />
             </ModernButton>
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl flex items-center justify-center bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
-                <svg className="h-5 w-5" style={{color: 'hsl(var(--primary))'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-                  {isEditMode ? 'Edit Role' : 'Create New Role'}
-                </h2>
-                <p className="text-muted-foreground dark:text-muted-foreground mt-1">
-                  {isEditMode ? 'Update role details and permissions' : 'Define a new role with specific permissions'}
-                </p>
-              </div>
-            </div>
+            
           </div>
         </div>
         <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">

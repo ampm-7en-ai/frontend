@@ -19,6 +19,14 @@ interface ChatbotConfig {
   emailPlaceholder?: string;
   emailMessage?: string;
   collectEmail?: boolean;
+  gdprSettings?: GdprConfig ;
+  privacyUrl?: string;
+}
+
+interface GdprConfig {
+  data_retention_days: number;
+  data_retention_message: string;
+  gdpr_message_display: boolean;
 }
 
 const ChatPreview = () => {
@@ -218,9 +226,13 @@ const ChatPreview = () => {
           collectEmail={config.collectEmail || false}
           className="w-full h-full p-0"
           sessionId={sessionId}
+          retentionMessage={config?.gdprSettings?.data_retention_message || ''}
+          retentionPeriod={config?.gdprSettings?.data_retention_days || 0}
+          displayRetentionMessage={config?.gdprSettings?.gdpr_message_display || false}
           enableSessionStorage={true}
           onSessionIdReceived={handleSessionIdReceived}
           onRestart={handleChatRestart}
+          privacyUrl={config?.privacyUrl || "#"}
         />
       </div>
     </div>

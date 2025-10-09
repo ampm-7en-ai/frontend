@@ -12,6 +12,7 @@ import { ArrowLeft } from 'lucide-react';
 import PlatformSettingsLayout from '@/components/settings/platform/PlatformSettingsLayout';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useQueryClient } from '@tanstack/react-query';
+import ModernButton from '@/components/dashboard/ModernButton';
 
 interface SubscriptionPlan {
   id?: number;
@@ -194,30 +195,25 @@ const SubscriptionPlanEditor = () => {
         : "Add a new subscription plan to your platform"
       }
     >
-      <div className="mb-6">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate('/settings/platform/billing')}
-          className="px-0 hover:bg-transparent"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Billing Settings
-        </Button>
-      </div>
+      <section className="p-8 bg-white dark:bg-neutral-800/50 rounded-2xl">
+      <div className="mb-8">
+          <div className="flex items-center gap-4 mb-6">
+            <ModernButton
+              variant="outline"
+              onClick={() => navigate('/settings/platform/billing')}
+              size='sm'
+              iconOnly
+              className="h-10 w-10 flex"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </ModernButton>
+            
+          </div>
+        </div>
       
       <Card>
         <form onSubmit={handleSubmit}>
-          <CardHeader>
-            <CardTitle>{isEditMode ? "Edit Plan Details" : "New Subscription Plan"}</CardTitle>
-            <CardDescription>
-              {isEditMode 
-                ? "Update the information below to modify your subscription plan"
-                : "Fill in the details below to create a new subscription plan"
-              }
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             <div className="space-y-2">
               <Label htmlFor="name">Plan Name</Label>
               <Input 
@@ -300,20 +296,21 @@ const SubscriptionPlanEditor = () => {
             </div>
           </CardContent>
           
-          <CardFooter className="flex justify-between">
-            <Button 
+          <CardFooter className="flex justify-end gap-4">
+            <ModernButton 
               type="button" 
               variant="outline" 
               onClick={() => navigate('/settings/platform/billing')}
             >
               Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
+            </ModernButton>
+            <ModernButton type="submit" disabled={isLoading}>
               {isLoading ? 'Saving...' : isEditMode ? 'Update Plan' : 'Create Plan'}
-            </Button>
+            </ModernButton>
           </CardFooter>
         </form>
       </Card>
+      </section>
     </PlatformSettingsLayout>
   );
 };

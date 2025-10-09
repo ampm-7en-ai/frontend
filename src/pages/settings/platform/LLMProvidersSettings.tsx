@@ -191,10 +191,10 @@ const LLMProvidersSettings = () => {
             </ModernButton>
           </div>
         </div>
-        <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
+        <div className="dark:text-gray-200 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none p-6">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
+              <Loader2 className="h-8 w-8 animate-spin text-foreground" />
               <span className="ml-2 text-sm text-muted-foreground">Loading providers...</span>
             </div>
           ) : providers.length === 0 ? (
@@ -373,7 +373,7 @@ const LLMProvidersSettings = () => {
             </ModernButton>
           </div>
         </div>
-        <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm space-y-4">
+        <div className="dark:text-gray-200 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none p-6">
           {isLoadingPrompts ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
@@ -427,7 +427,7 @@ const LLMProvidersSettings = () => {
                 />
                 <Label htmlFor="fallbackProvider">Enable fallback provider if primary fails</Label>
               </div>
-              
+              <div className='flex justify-end'>
               <ModernButton 
                 onClick={handleSaveConfiguration}
                 disabled={isSavingPrompt || !systemPrompt.trim()}
@@ -441,6 +441,7 @@ const LLMProvidersSettings = () => {
                   'Save Configuration'
                 )}
               </ModernButton>
+              </div>
             </div>
           )}
         </div>

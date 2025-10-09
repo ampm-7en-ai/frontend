@@ -31,6 +31,8 @@ export interface BusinessSettings {
   };
   gdpr_settings: {
     data_retention_days: number | null;
+    data_retention_message: string | null;
+    gdpr_message_display: boolean | null;
   };
 }
 
