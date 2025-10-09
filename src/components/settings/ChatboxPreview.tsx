@@ -2007,21 +2007,21 @@ export const ChatboxPreview = ({
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => setShowEndChatConfirmation(true)}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-100"
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-100 dark:!text-neutral-900"
               >
-                End chat
+                End Chat
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => setShowEmailConfirmation(true)}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-100"
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-100 dark:!text-neutral-900"
               >
-                Export chat
+                Export Chat
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => setShowDeleteChatConfirmation(true)}
                 className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-red-600 dark:hover:!bg-neutral-100"
               >
-                Delete chat
+                Delete Chat
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
