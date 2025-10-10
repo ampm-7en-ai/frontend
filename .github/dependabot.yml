@@ -1,0 +1,91 @@
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    # Limit the number of open pull requests
+    open-pull-requests-limit: 10
+    
+    # Add reviewers
+    reviewers:
+      - "7en-ai/engineering-team"
+    
+    # Add assignees
+    assignees:
+      - "tech-lead"
+    
+    # Add labels to pull requests
+    labels:
+      - "dependencies"
+      - "automated"
+    
+    # Commit message preferences
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    
+    # Target branch for pull requests
+    target-branch: "main"
+    
+    # Group dependencies
+    groups:
+      # Group all Radix UI updates together
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      
+      # Group testing dependencies
+      testing:
+        patterns:
+          - "vitest*"
+          - "@vitest/*"
+          - "@testing-library/*"
+          - "jsdom"
+      
+      # Group React core dependencies
+      react-core:
+        patterns:
+          - "react"
+          - "react-dom"
+      
+      # Group development dependencies
+      dev-dependencies:
+        dependency-type: "development"
+    
+    # Allow specific dependency updates
+    allow:
+      # Allow both direct and indirect updates
+      - dependency-type: "all"
+    
+    # Ignore specific dependencies (if needed)
+    ignore:
+      # Example: Ignore major version updates for React (uncomment if needed)
+      # - dependency-name: "react"
+      #   update-types: ["version-update:semver-major"]
+      
+      # Ignore specific versions (uncomment if needed)
+      # - dependency-name: "some-package"
+      #   versions: ["4.x", "5.x"]
+    
+    # Pull request branch name prefix
+    pull-request-branch-name:
+      separator: "/"
+    
+    # Rebase strategy
+    rebase-strategy: "auto"
+    
+  # Monitor GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "ci/cd"
+      - "dependencies"
+    commit-message:
+      prefix: "ci"
