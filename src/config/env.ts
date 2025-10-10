@@ -1,18 +1,24 @@
-
 /**
- * Configuration access
+ * Configuration access using Vite environment variables
  * This file provides access to configuration values with proper typing
  */
-import config from './config.json';
 
+// API Configuration
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.7en.ai/api/';
+export const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL || 'wss://api.7en.ai/ws/';
+export const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_BASE_URL || 'https://api.7en.ai/';
 
-// Common configuration values as convenient exports
-export const API_BASE_URL = config.API_BASE_URL || 'https://api.7en.ai/api/';
-export const WS_BASE_URL = config.WS_BASE_URL || 'wss://api.7en.ai/ws/';
-export const MEDIA_BASE_URL = config.MEDIA_BASE_URL || 'wss://api.7en.ai/';
-export const SLACK_CLIENT_ID = config.slack.SLACK_CLIENT_ID || '';
-export const SLACK_REDIRECT_URI = config.slack.REDIRECT_URI || '';
-export const FACEBOOK_APP_ID = config.facebook.FACEBOOK_APP_ID || '';
-export const FACEBOOK_CONFIG_ID = config.facebook.FACEBOOK_CONFIG_ID || '';
+// Slack Configuration
+export const SLACK_CLIENT_ID = import.meta.env.VITE_SLACK_CLIENT_ID || '';
+export const SLACK_REDIRECT_URI = import.meta.env.VITE_SLACK_REDIRECT_URI || '';
+
+// Facebook Configuration
+export const FACEBOOK_APP_ID = import.meta.env.VITE_FACEBOOK_APP_ID || '';
+export const FACEBOOK_CONFIG_ID = import.meta.env.VITE_FACEBOOK_CONFIG_ID || '';
+
+// Environment info
+export const NODE_ENV = import.meta.env.MODE || 'development';
+export const IS_PRODUCTION = import.meta.env.PROD;
+export const IS_DEVELOPMENT = import.meta.env.DEV;
 
 
