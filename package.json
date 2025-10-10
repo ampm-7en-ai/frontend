@@ -12,7 +12,10 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "build:staging": "vite build --mode staging",
+    "build:beta": "vite build --mode beta",
+    "build:prod": "vite build --mode production"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

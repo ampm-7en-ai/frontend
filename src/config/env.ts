@@ -4,9 +4,9 @@
  */
 
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.7en.ai/api/';
-export const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL || 'wss://api.7en.ai/ws/';
-export const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_BASE_URL || 'https://api.7en.ai/';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api-staging.7en.ai/api/';
+export const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL || 'wss://api-staging.7en.ai/ws/';
+export const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_BASE_URL || 'https://api-staging.7en.ai/';
 
 // Slack Configuration
 export const SLACK_CLIENT_ID = import.meta.env.VITE_SLACK_CLIENT_ID || '';
