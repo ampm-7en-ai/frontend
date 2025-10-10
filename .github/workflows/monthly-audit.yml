@@ -1,0 +1,298 @@
+name: Monthly Security & Dependency Audit
+
+on:
+  # Run on the first day of every month at 9 AM UTC
+  schedule:
+    - cron: '0 9 1 * *'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      create_issue:
+        description: 'Create GitHub issue for findings'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  comprehensive-audit:
+    name: Comprehensive Dependency Audit
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      issues: write
+      security-events: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+      
+      - name: Create reports directory
+        run: mkdir -p reports
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run security audit
+        id: security-audit
+        run: |
+          echo "Running npm audit..."
+          npm audit --json > reports/security-audit.json || true
+          npm audit > reports/security-audit.txt || true
+          
+          # Extract vulnerability counts
+          CRITICAL=$(jq '.metadata.vulnerabilities.critical // 0' reports/security-audit.json)
+          HIGH=$(jq '.metadata.vulnerabilities.high // 0' reports/security-audit.json)
+          MODERATE=$(jq '.metadata.vulnerabilities.moderate // 0' reports/security-audit.json)
+          LOW=$(jq '.metadata.vulnerabilities.low // 0' reports/security-audit.json)
+          
+          echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+          echo "high=$HIGH" >> $GITHUB_OUTPUT
+          echo "moderate=$MODERATE" >> $GITHUB_OUTPUT
+          echo "low=$LOW" >> $GITHUB_OUTPUT
+          
+          echo "## Security Audit Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Critical: $CRITICAL" >> $GITHUB_STEP_SUMMARY
+          echo "- High: $HIGH" >> $GITHUB_STEP_SUMMARY
+          echo "- Moderate: $MODERATE" >> $GITHUB_STEP_SUMMARY
+          echo "- Low: $LOW" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Check for outdated packages
+        id: outdated-check
+        run: |
+          echo "Checking for outdated packages..."
+          npm outdated --json > reports/outdated-packages.json || true
+          npm outdated > reports/outdated-packages.txt || true
+          
+          OUTDATED_COUNT=$(jq 'length' reports/outdated-packages.json || echo "0")
+          echo "outdated_count=$OUTDATED_COUNT" >> $GITHUB_OUTPUT
+          
+          echo "## Outdated Packages" >> $GITHUB_STEP_SUMMARY
+          echo "Total outdated packages: $OUTDATED_COUNT" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Generate license report
+        id: license-check
+        run: |
+          echo "Generating license report..."
+          npx license-checker --json --out reports/licenses.json || true
+          npx license-checker --summary > reports/licenses-summary.txt || true
+          
+          echo "## License Report" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat reports/licenses-summary.txt >> $GITHUB_STEP_SUMMARY || echo "No license data" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Generate dependency tree
+        run: |
+          echo "Generating dependency tree..."
+          npm list --all --json > reports/dependency-tree.json || true
+          npm list --all > reports/dependency-tree.txt || true
+      
+      - name: Analyze bundle size
+        run: |
+          echo "Analyzing bundle size..."
+          npm run build || true
+          
+          if [ -d "dist" ]; then
+            du -sh dist/ > reports/bundle-size.txt
+            find dist/ -type f -name "*.js" -exec ls -lh {} \; | sort -k5 -hr > reports/js-files.txt
+            
+            echo "## Build Size Analysis" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            cat reports/bundle-size.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Upload audit reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: audit-reports-${{ github.run_number }}
+          path: reports/
+          retention-days: 90
+      
+      - name: Check for critical security issues
+        id: check-critical
+        run: |
+          CRITICAL=${{ steps.security-audit.outputs.critical }}
+          HIGH=${{ steps.security-audit.outputs.high }}
+          
+          if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
+            echo "has_critical=true" >> $GITHUB_OUTPUT
+            echo "severity=critical" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.security-audit.outputs.moderate }}" -gt 0 ]; then
+            echo "has_critical=false" >> $GITHUB_OUTPUT
+            echo "severity=moderate" >> $GITHUB_OUTPUT
+          else
+            echo "has_critical=false" >> $GITHUB_OUTPUT
+            echo "severity=low" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create security issue
+        if: |
+          steps.check-critical.outputs.has_critical == 'true' &&
+          (github.event_name == 'schedule' || inputs.create_issue)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read audit results
+            let auditText = '';
+            try {
+              auditText = fs.readFileSync('reports/security-audit.txt', 'utf8');
+            } catch (e) {
+              auditText = 'Unable to read audit report';
+            }
+            
+            const critical = ${{ steps.security-audit.outputs.critical }};
+            const high = ${{ steps.security-audit.outputs.high }};
+            const moderate = ${{ steps.security-audit.outputs.moderate }};
+            const low = ${{ steps.security-audit.outputs.low }};
+            
+            const title = `🚨 Security Vulnerabilities Detected - ${new Date().toISOString().split('T')[0]}`;
+            
+            const body = `
+            ## 🔒 Monthly Security Audit Results
+            
+            **Scan Date:** ${new Date().toISOString()}
+            **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            ### Vulnerability Summary
+            
+            | Severity | Count |
+            |----------|-------|
+            | 🔴 Critical | ${critical} |
+            | 🟠 High | ${high} |
+            | 🟡 Moderate | ${moderate} |
+            | 🟢 Low | ${low} |
+            
+            ### Action Required
+            
+            ${critical > 0 ? '**⚠️ CRITICAL vulnerabilities found! Immediate action required.**' : ''}
+            ${high > 0 ? '**⚠️ HIGH severity vulnerabilities found. Please address within 7 days.**' : ''}
+            
+            ### Next Steps
+            
+            1. Review the [audit report](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            2. Run \`npm audit fix\` to apply automatic patches
+            3. For manual fixes, review individual package vulnerabilities
+            4. Test thoroughly in staging before deploying
+            5. Update \`docs/dependencies/SECURITY.md\` after resolution
+            
+            ### Audit Output
+            
+            <details>
+            <summary>Click to view full audit report</summary>
+            
+            \`\`\`
+            ${auditText.substring(0, 20000)}
+            \`\`\`
+            
+            </details>
+            
+            ### Resources
+            
+            - [Security Documentation](./docs/dependencies/SECURITY.md)
+            - [Dependency Inventory](./docs/dependencies/DEPENDENCIES.md)
+            - [npm audit docs](https://docs.npmjs.com/cli/v8/commands/npm-audit)
+            
+            ---
+            
+            *This issue was automatically created by the monthly security audit workflow.*
+            `;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['security', 'high-priority', 'automated', 'dependencies']
+            });
+      
+      - name: Create outdated packages issue
+        if: |
+          steps.outdated-check.outputs.outdated_count > 5 &&
+          (github.event_name == 'schedule' || inputs.create_issue)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let outdatedText = '';
+            try {
+              outdatedText = fs.readFileSync('reports/outdated-packages.txt', 'utf8');
+            } catch (e) {
+              outdatedText = 'Unable to read outdated packages report';
+            }
+            
+            const title = `📦 Outdated Dependencies Report - ${new Date().toISOString().split('T')[0]}`;
+            
+            const body = `
+            ## 📦 Monthly Dependency Update Report
+            
+            **Scan Date:** ${new Date().toISOString()}
+            **Outdated Packages:** ${{ steps.outdated-check.outputs.outdated_count }}
+            
+            ### Summary
+            
+            Several packages have newer versions available. Consider updating to benefit from:
+            - Bug fixes
+            - Performance improvements
+            - New features
+            - Security patches
+            
+            ### Action Items
+            
+            1. Review the outdated packages list below
+            2. Check changelogs for breaking changes
+            3. Update packages in batches:
+               - Patch versions: \`npm update\`
+               - Minor versions: Review and test
+               - Major versions: Evaluate migration effort
+            4. Test thoroughly in development and staging
+            
+            ### Outdated Packages
+            
+            <details>
+            <summary>Click to view full report</summary>
+            
+            \`\`\`
+            ${outdatedText.substring(0, 20000)}
+            \`\`\`
+            
+            </details>
+            
+            ### Resources
+            
+            - [Dependency Inventory](./docs/dependencies/DEPENDENCIES.md)
+            - [Update Policy](./docs/dependencies/DEPENDENCIES.md#update-policy)
+            
+            ---
+            
+            *This issue was automatically created by the monthly audit workflow.*
+            `;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['dependencies', 'maintenance', 'automated']
+            });
+      
+      - name: Post success summary
+        if: steps.check-critical.outputs.has_critical == 'false'
+        run: |
+          echo "## ✅ Audit Complete - No Critical Issues" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All checks passed successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "- No critical or high vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          echo "- All reports generated and uploaded" >> $GITHUB_STEP_SUMMARY
