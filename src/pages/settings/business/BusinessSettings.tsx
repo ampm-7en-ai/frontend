@@ -110,7 +110,9 @@ const BusinessSettings = () => {
           {/* GDPR Settings Section */}
           <div className="rounded-2xl overflow-hidden">
             <GdprSettingsSection initialSettings={settingsData?.gdpr_settings || {
-              data_retention_days: null
+              data_retention_days: null,
+              data_retention_message: null,
+              gdpr_message_display: null
             }}/>
           </div>
         </div>

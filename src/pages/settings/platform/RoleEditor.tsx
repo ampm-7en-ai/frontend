@@ -177,7 +177,7 @@ const RoleEditorContent = () => {
             
           </div>
         </div>
-        <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 backdrop-blur-sm">
+        <div className="dark:text-gray-200 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -227,11 +227,12 @@ const RoleEditorContent = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl border">
                   {availablePermissions.map((permission) => (
-                    <div key={permission.id} className="flex items-start space-x-3">
+                    <div key={permission.id} className="flex items-center space-x-3">
                       <Checkbox 
                         id={`permission-${permission.id}`}
                         checked={selectedPermissions.includes(permission.id)}
                         onCheckedChange={() => handlePermissionToggle(permission.id)}
+                        className='rounded-[4px]'
                       />
                       <div className="flex-1">
                         <Label 

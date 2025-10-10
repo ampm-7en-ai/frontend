@@ -211,7 +211,7 @@ const SubscriptionPlanEditor = () => {
           </div>
         </div>
       
-      <Card>
+      <Card className='dark:text-gray-200 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none p-2'>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-6 pt-6">
             <div className="space-y-2">
