@@ -68,4 +68,18 @@ This project is built with .
 - shadcn-ui
 - Tailwind CSS
 
+## 🚀 Deployment
+
+This project uses automated CI/CD pipelines for deployments to Staging, Beta, and Production environments.
+
+**Quick Links:**
+- [Deployment Guide](./DEPLOYMENT.md) - Manual deployment and server setup
+- [CI/CD Pipeline](./docs/deployment/CI-CD-PIPELINE.md) - Automated deployment workflows
+- [Rollback Procedures](./docs/deployment/ROLLBACK-PROCEDURES.md) - How to rollback deployments
+- [QA Testing Guide](./docs/deployment/QA-ENVIRONMENT.md) - QA workflow and testing procedures
+
+## 🔒 Security
+
+For comprehensive security documentation, see [docs/security/](./docs/security/).
+
 
