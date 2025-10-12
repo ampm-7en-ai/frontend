@@ -14,7 +14,7 @@ import { ModernInput } from '@/components/ui/modern-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '../ui/input';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { duotoneLight, oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { duotoneLight, oneDark, oneLight } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Icon } from '../icons';

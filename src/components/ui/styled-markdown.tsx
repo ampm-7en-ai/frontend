@@ -1,7 +1,7 @@
 import React, { memo, useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneDark, oneLight } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from "remark-gfm";
 interface StyledMarkdownProps {
