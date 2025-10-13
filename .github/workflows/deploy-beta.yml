@@ -1,0 +1,90 @@
+name: Deploy - Beta
+
+on:
+  push:
+    branches: [ "beta" ]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-beta
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: beta
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Pre-deploy backup (best-effort)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.BETA_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            TARGET_DIR="/var/www/beta.7en.ai"
+            BACKUP_BASE="/var/www/backups"
+            if [ -d "$TARGET_DIR" ]; then
+              TS=$(date +'%Y-%m-%d-%H-%M-%S')
+              sudo mkdir -p "$BACKUP_BASE"
+              sudo cp -r "$TARGET_DIR" "$BACKUP_BASE/beta-$TS"
+              echo "Backup created: $BACKUP_BASE/beta-$TS"
+            else
+              echo "Target dir not present; skipping backup"
+            fi
+
+      - name: Upload build to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.BETA_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "dist/*"
+          target: "/var/www/beta.7en.ai"
+          overwrite: true
+
+      - name: Post-deploy health check
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.BETA_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            URL="https://beta.7en.ai"
+            if [ -f "/var/www/beta.7en.ai/scripts/health-check.sh" ]; then
+              bash /var/www/beta.7en.ai/scripts/health-check.sh beta || true
+            fi
+            curl -fsSL "$URL" >/dev/null && echo "Healthy" || (echo "Health check failed" && exit 1)
+
+      - name: Notify deployment (best-effort)
+        if: always()
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.BETA_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            STATUS="${{ job.status }}"
+            if [ -f "/var/www/beta.7en.ai/scripts/notify-deployment.sh" ]; then
+              bash /var/www/beta.7en.ai/scripts/notify-deployment.sh beta "$STATUS" "GitHub Actions"
+            fi
