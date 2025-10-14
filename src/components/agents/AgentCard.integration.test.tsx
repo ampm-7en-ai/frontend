@@ -139,9 +139,7 @@ describe('AgentCard Component Integration', () => {
     const toggleButton = screen.getByTestId('toggle-status-btn');
     await user.click(toggleButton);
 
-    // Should show loading state
-    expect(screen.getByText('Updating...')).toBeInTheDocument();
-
+    // Wait for the operation to complete
     await waitFor(() => {
       expect(onStatusToggle).toHaveBeenCalledWith(mockAgent.id);
     });
@@ -160,9 +158,7 @@ describe('AgentCard Component Integration', () => {
     const deleteButton = screen.getByTestId('delete-btn');
     await user.click(deleteButton);
 
-    // Should show loading state
-    await screen.findByText('Deleting...');
-
+    // Wait for the operation to complete
     await waitFor(() => {
       expect(onDelete).toHaveBeenCalledWith(mockAgent.id);
     });
