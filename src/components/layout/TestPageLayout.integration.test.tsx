@@ -5,13 +5,10 @@ import { TestPageLayout } from './TestPageLayout';
 import { renderWithProviders } from '@/test/helpers/integration-helpers';
 
 // Mock the useAuth hook
-vi.mock('@/context/AuthContext', async () => {
-  const actual = await vi.importActual('@/context/AuthContext');
-  return {
-    ...actual,
-    useAuth: vi.fn(),
-  };
-});
+vi.mock('@/context/AuthContext', () => ({
+  useAuth: vi.fn(),
+}));
+import { useAuth } from '@/context/AuthContext';
 
 describe('TestPageLayout Integration', () => {
   beforeEach(() => {
@@ -19,11 +16,10 @@ describe('TestPageLayout Integration', () => {
   });
 
   it('should show loading spinner while auth is loading', () => {
-    const { useAuth } = require('@/context/AuthContext');
-    useAuth.mockReturnValue({
-      isAuthenticated: false,
-      isLoading: true,
-    });
+(useAuth as any).mockReturnValue({
+  isAuthenticated: false,
+  isLoading: true,
+});
 
     renderWithProviders(<TestPageLayout />);
     
@@ -31,11 +27,10 @@ describe('TestPageLayout Integration', () => {
   });
 
   it('should redirect to login when not authenticated', async () => {
-    const { useAuth } = require('@/context/AuthContext');
-    useAuth.mockReturnValue({
-      isAuthenticated: false,
-      isLoading: false,
-    });
+(useAuth as any).mockReturnValue({
+  isAuthenticated: false,
+  isLoading: false,
+});
 
     renderWithProviders(<TestPageLayout />);
     
@@ -46,12 +41,11 @@ describe('TestPageLayout Integration', () => {
   });
 
   it('should render outlet when authenticated', () => {
-    const { useAuth } = require('@/context/AuthContext');
-    useAuth.mockReturnValue({
-      isAuthenticated: true,
-      isLoading: false,
-      user: { id: '123', email: 'test@example.com' },
-    });
+(useAuth as any).mockReturnValue({
+  isAuthenticated: true,
+  isLoading: false,
+  user: { id: '123', email: 'test@example.com' },
+});
 
     const { container } = renderWithProviders(<TestPageLayout />);
     
@@ -59,21 +53,21 @@ describe('TestPageLayout Integration', () => {
   });
 
   it('should handle auth state changes', async () => {
-    const { useAuth } = require('@/context/AuthContext');
+    // using mocked useAuth
     
     // Start with loading
     const mockAuth = {
       isAuthenticated: false,
       isLoading: true,
     };
-    useAuth.mockReturnValue(mockAuth);
+    (useAuth as any).mockReturnValue(mockAuth);
 
     const { rerender } = renderWithProviders(<TestPageLayout />);
     
     expect(screen.getByText('Loading...')).toBeInTheDocument();
 
     // Then authenticated
-    useAuth.mockReturnValue({
+(useAuth as any).mockReturnValue({
       isAuthenticated: true,
       isLoading: false,
       user: { id: '123', email: 'test@example.com' },

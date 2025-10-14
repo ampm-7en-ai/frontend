@@ -161,7 +161,7 @@ describe('AgentCard Component Integration', () => {
     await user.click(deleteButton);
 
     // Should show loading state
-    expect(screen.getByText('Deleting...')).toBeInTheDocument();
+    await screen.findByText('Deleting...');
 
     await waitFor(() => {
       expect(onDelete).toHaveBeenCalledWith(mockAgent.id);
