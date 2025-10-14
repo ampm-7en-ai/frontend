@@ -247,6 +247,7 @@ const CreateSupportTicketModal = ({
               options={providerOptions}
               placeholder="Select a ticketing provider"
               disabled={isCreating}
+              className='dark:!bg-neutral-700'
               renderOption={(option) => (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -269,9 +270,6 @@ const CreateSupportTicketModal = ({
                       )}
                     </div>
                   </div>
-                  {option.value === selectedProvider && (
-                    <div className="h-4 w-4 text-blue-600 dark:text-blue-400">✓</div>
-                  )}
                 </div>
               )}
             />
