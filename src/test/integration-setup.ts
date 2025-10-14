@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, afterAll } from 'vitest';
+import { afterEach, beforeAll, afterAll, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
 // Cleanup after each test
@@ -37,7 +37,7 @@ export const createMockAuthContext = (overrides = {}) => ({
   isAuthenticated: true,
   isLoading: false,
   user: createMockUser(),
-  login: async () => {},
-  logout: async () => {},
+  login: vi.fn(),
+  logout: vi.fn(),
   ...overrides,
 });

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 import { renderWithProviders, mockApiSuccess, mockApiError } from '@/test/helpers/integration-helpers';
 
 // Mock Dashboard Component
@@ -52,8 +53,6 @@ const Dashboard = () => {
     </div>
   );
 };
-
-import React from 'react';
 
 describe('Dashboard Component Integration', () => {
   beforeEach(() => {
