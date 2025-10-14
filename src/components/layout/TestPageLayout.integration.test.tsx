@@ -2,13 +2,40 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { TestPageLayout } from './TestPageLayout';
-import { renderWithProviders } from '@/test/helpers/integration-helpers';
+import { render } from '@testing-library/react';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock the useAuth hook
 vi.mock('@/context/AuthContext', () => ({
   useAuth: vi.fn(),
 }));
 import { useAuth } from '@/context/AuthContext';
+
+// Helper to render with proper routing
+const renderWithRouting = (initialRoute = '/test') => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        gcTime: 0,
+      },
+    },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[initialRoute]}>
+        <Routes>
+          <Route path="/test" element={<TestPageLayout />}>
+            <Route index element={<div>Test Content</div>} />
+          </Route>
+          <Route path="/login" element={<div>Login Page</div>} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+};
 
 describe('TestPageLayout Integration', () => {
   beforeEach(() => {
@@ -26,7 +53,7 @@ describe('TestPageLayout Integration', () => {
       isLoading: true,
     });
 
-    renderWithProviders(<TestPageLayout />);
+    renderWithRouting();
     
     expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
@@ -37,10 +64,10 @@ describe('TestPageLayout Integration', () => {
       isLoading: false,
     });
 
-    renderWithProviders(<TestPageLayout />);
+    renderWithRouting();
     
-    // The Navigate component should redirect, so loading should not be present
-    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    // Should navigate to login page
+    expect(screen.getByText('Login Page')).toBeInTheDocument();
   });
 
   it('should render outlet when authenticated', () => {
@@ -50,9 +77,10 @@ describe('TestPageLayout Integration', () => {
       user: { id: '123', email: 'test@example.com' },
     });
 
-    const { container } = renderWithProviders(<TestPageLayout />);
+    renderWithRouting();
     
-    expect(container.querySelector('.min-h-screen')).toBeInTheDocument();
+    // Should render the outlet content
+    expect(screen.getByText('Test Content')).toBeInTheDocument();
   });
 
   it('should handle auth state changes', async () => {
@@ -62,7 +90,7 @@ describe('TestPageLayout Integration', () => {
       isLoading: true,
     });
 
-    const { unmount } = renderWithProviders(<TestPageLayout />);
+    const { unmount } = renderWithRouting();
     
     expect(screen.getByText('Loading...')).toBeInTheDocument();
     
@@ -75,14 +103,10 @@ describe('TestPageLayout Integration', () => {
       user: { id: '123', email: 'test@example.com' },
     });
 
-    renderWithProviders(<TestPageLayout />);
+    renderWithRouting();
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      expect(screen.getByText('Test Content')).toBeInTheDocument();
     });
-    
-    // Verify the main layout is rendered
-    const mainDiv = document.querySelector('.min-h-screen');
-    expect(mainDiv).toBeInTheDocument();
   });
 });
