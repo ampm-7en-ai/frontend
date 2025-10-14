@@ -13,6 +13,10 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "test:run": "vitest run",
+    "test:integration": "vitest -c vitest.integration.config.ts",
+    "test:integration:run": "vitest run -c vitest.integration.config.ts",
+    "test:integration:coverage": "vitest run -c vitest.integration.config.ts --coverage",
+    "test:integration:ui": "vitest -c vitest.integration.config.ts --ui",
     "build:staging": "vite build --mode staging",
     "build:beta": "vite build --mode beta",
     "build:prod": "vite build --mode production"
