@@ -13,39 +13,42 @@ import { useAuth } from '@/context/AuthContext';
 describe('TestPageLayout Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset the mock implementation before each test
+    (useAuth as any).mockReturnValue({
+      isAuthenticated: false,
+      isLoading: false,
+    });
   });
 
   it('should show loading spinner while auth is loading', () => {
-(useAuth as any).mockReturnValue({
-  isAuthenticated: false,
-  isLoading: true,
-});
+    (useAuth as any).mockReturnValue({
+      isAuthenticated: false,
+      isLoading: true,
+    });
 
     renderWithProviders(<TestPageLayout />);
     
     expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
-  it('should redirect to login when not authenticated', async () => {
-(useAuth as any).mockReturnValue({
-  isAuthenticated: false,
-  isLoading: false,
-});
+  it('should redirect to login when not authenticated', () => {
+    (useAuth as any).mockReturnValue({
+      isAuthenticated: false,
+      isLoading: false,
+    });
 
     renderWithProviders(<TestPageLayout />);
     
-    await waitFor(() => {
-      // Check if Navigate component is rendered (would redirect)
-      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-    });
+    // The Navigate component should redirect, so loading should not be present
+    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
   });
 
   it('should render outlet when authenticated', () => {
-(useAuth as any).mockReturnValue({
-  isAuthenticated: true,
-  isLoading: false,
-  user: { id: '123', email: 'test@example.com' },
-});
+    (useAuth as any).mockReturnValue({
+      isAuthenticated: true,
+      isLoading: false,
+      user: { id: '123', email: 'test@example.com' },
+    });
 
     const { container } = renderWithProviders(<TestPageLayout />);
     
@@ -53,30 +56,33 @@ describe('TestPageLayout Integration', () => {
   });
 
   it('should handle auth state changes', async () => {
-    // using mocked useAuth
-    
-    // Start with loading
-    const mockAuth = {
+    // Start with loading state
+    (useAuth as any).mockReturnValue({
       isAuthenticated: false,
       isLoading: true,
-    };
-    (useAuth as any).mockReturnValue(mockAuth);
+    });
 
-    const { rerender } = renderWithProviders(<TestPageLayout />);
+    const { unmount } = renderWithProviders(<TestPageLayout />);
     
     expect(screen.getByText('Loading...')).toBeInTheDocument();
+    
+    // Unmount and re-render with authenticated state
+    unmount();
 
-    // Then authenticated
-(useAuth as any).mockReturnValue({
+    (useAuth as any).mockReturnValue({
       isAuthenticated: true,
       isLoading: false,
       user: { id: '123', email: 'test@example.com' },
     });
 
-    rerender(<TestPageLayout />);
+    renderWithProviders(<TestPageLayout />);
 
     await waitFor(() => {
       expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     });
+    
+    // Verify the main layout is rendered
+    const mainDiv = document.querySelector('.min-h-screen');
+    expect(mainDiv).toBeInTheDocument();
   });
 });
