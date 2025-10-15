@@ -31,7 +31,7 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build
+        run: npm run build:staging
 
       - name: Pre-deploy backup (best-effort)
         uses: appleboy/ssh-action@v1.0.3
