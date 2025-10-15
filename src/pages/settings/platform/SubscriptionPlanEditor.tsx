@@ -13,6 +13,7 @@ import PlatformSettingsLayout from '@/components/settings/platform/PlatformSetti
 import { useSubscription } from '@/hooks/useSubscription';
 import { useQueryClient } from '@tanstack/react-query';
 import ModernButton from '@/components/dashboard/ModernButton';
+import { useAIModels } from '@/hooks/useAIModels';
 
 interface PlanConfig {
   limits: {
@@ -42,16 +43,7 @@ interface PlanConfig {
     messenger: boolean;
     instagram: boolean;
   };
-  models: {
-    gpt_4o: boolean;
-    gpt_4o_mini: boolean;
-    claude_haiku_3_5: boolean;
-    command_r_plus: boolean;
-    deepseek_v3: boolean;
-    mistral_large_2: boolean;
-    llama_3_1_70b: boolean;
-    qwen_3: boolean;
-  };
+  models: Record<string, boolean>;
 }
 
 interface SubscriptionPlan {
@@ -78,12 +70,12 @@ const SubscriptionPlanEditor = () => {
   const isEditMode = !!planId;
   const queryClient = useQueryClient();
   
-  // We don't need to fetch any subscription data here,
-  // but we need access to the queryClient for refetching later
   const { refetchSubscriptionPlans } = useSubscription({ 
     fetchCurrent: false, 
     fetchAllPlans: false 
   });
+
+  const { allModelOptions, isLoading: modelsLoading } = useAIModels(true);
 
   const [plan, setPlan] = useState<SubscriptionPlan>({
     name: '',
@@ -122,16 +114,7 @@ const SubscriptionPlanEditor = () => {
         messenger: false,
         instagram: false
       },
-      models: {
-        gpt_4o: false,
-        gpt_4o_mini: false,
-        claude_haiku_3_5: false,
-        command_r_plus: false,
-        deepseek_v3: false,
-        mistral_large_2: false,
-        llama_3_1_70b: false,
-        qwen_3: false
-      }
+      models: {}
     }
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -141,6 +124,23 @@ const SubscriptionPlanEditor = () => {
       fetchPlanDetails();
     }
   }, [planId]);
+
+  // Initialize models when they're loaded
+  useEffect(() => {
+    if (!modelsLoading && allModelOptions.length > 0 && Object.keys(plan.config.models).length === 0) {
+      const initialModels: Record<string, boolean> = {};
+      allModelOptions.forEach(model => {
+        initialModels[model.value] = false;
+      });
+      setPlan(prev => ({
+        ...prev,
+        config: {
+          ...prev.config,
+          models: initialModels
+        }
+      }));
+    }
+  }, [modelsLoading, allModelOptions]);
 
   const fetchPlanDetails = async () => {
     setIsLoading(true);
@@ -557,19 +557,23 @@ const SubscriptionPlanEditor = () => {
             {/* Models */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">AI Models</h3>
-              <div className="grid grid-cols-3 gap-4">
-                {Object.keys(plan.config.models).map((key) => (
-                  <label key={key} className="flex items-center gap-2">
-                    <input 
-                      type="checkbox"
-                      checked={plan.config.models[key as keyof typeof plan.config.models]}
-                      onChange={(e) => handleConfigChange('models', key, e.target.checked)}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm">{key.replace(/_/g, ' ').toUpperCase()}</span>
-                  </label>
-                ))}
-              </div>
+              {modelsLoading ? (
+                <div className="text-sm text-muted-foreground">Loading models...</div>
+              ) : (
+                <div className="grid grid-cols-3 gap-4">
+                  {allModelOptions.map((model) => (
+                    <label key={model.value} className="flex items-center gap-2">
+                      <input 
+                        type="checkbox"
+                        checked={plan.config.models[model.value] || false}
+                        onChange={(e) => handleConfigChange('models', model.value, e.target.checked)}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm">{model.label}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
           
