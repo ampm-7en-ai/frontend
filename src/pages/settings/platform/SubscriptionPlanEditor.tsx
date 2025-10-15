@@ -14,16 +14,61 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useQueryClient } from '@tanstack/react-query';
 import ModernButton from '@/components/dashboard/ModernButton';
 
+interface PlanConfig {
+  limits: {
+    ai_agents: number;
+    team_seats: number;
+    training_per_agent_mb: number;
+    integration: number;
+  };
+  handoffs: {
+    to_email: boolean;
+    to_agent: boolean;
+    to_integration: boolean;
+  };
+  toggles: {
+    embed_unlimited_websites: boolean;
+    weblink_training: number;
+    analytics: boolean;
+  };
+  integrations: {
+    freshdesk: boolean;
+    zendesk: boolean;
+    slack: boolean;
+    zoho: boolean;
+    zapier: boolean;
+    salesforce: boolean;
+    whatsapp: boolean;
+    messenger: boolean;
+    instagram: boolean;
+  };
+  models: {
+    gpt_4o: boolean;
+    gpt_4o_mini: boolean;
+    claude_haiku_3_5: boolean;
+    command_r_plus: boolean;
+    deepseek_v3: boolean;
+    mistral_large_2: boolean;
+    llama_3_1_70b: boolean;
+    qwen_3: boolean;
+  };
+}
+
 interface SubscriptionPlan {
   id?: number;
   name: string;
-  description: string[];
-  price: number;
-  duration_days: number;
-  for_type?: string;
+  description: string;
+  for_type: string;
+  total_replies: number;
+  price_monthly: number;
+  duration_days_monthly: number;
+  price_annual: number;
+  duration_days_annual: number;
+  config: PlanConfig;
   stripe_product_id?: string;
-  stripe_price_id?: string;
-  total_replies?: number;
+  stripe_price_id_monthly?: string;
+  stripe_price_id_annual?: string;
+  status?: string;
 }
 
 const SubscriptionPlanEditor = () => {
@@ -42,14 +87,54 @@ const SubscriptionPlanEditor = () => {
 
   const [plan, setPlan] = useState<SubscriptionPlan>({
     name: '',
-    description: [],
-    price: 0,
-    duration_days: 30,
-    for_type: '',
-    total_replies: 0
+    description: '',
+    for_type: 'Individual',
+    total_replies: 0,
+    price_monthly: 0,
+    duration_days_monthly: 30,
+    price_annual: 0,
+    duration_days_annual: 365,
+    config: {
+      limits: {
+        ai_agents: 1,
+        team_seats: 1,
+        training_per_agent_mb: 100,
+        integration: 0
+      },
+      handoffs: {
+        to_email: false,
+        to_agent: false,
+        to_integration: false
+      },
+      toggles: {
+        embed_unlimited_websites: false,
+        weblink_training: 0,
+        analytics: false
+      },
+      integrations: {
+        freshdesk: false,
+        zendesk: false,
+        slack: false,
+        zoho: false,
+        zapier: false,
+        salesforce: false,
+        whatsapp: false,
+        messenger: false,
+        instagram: false
+      },
+      models: {
+        gpt_4o: false,
+        gpt_4o_mini: false,
+        claude_haiku_3_5: false,
+        command_r_plus: false,
+        deepseek_v3: false,
+        mistral_large_2: false,
+        llama_3_1_70b: false,
+        qwen_3: false
+      }
+    }
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [featuresText, setFeaturesText] = useState('');
 
   useEffect(() => {
     if (isEditMode) {
@@ -81,18 +166,19 @@ const SubscriptionPlanEditor = () => {
       setPlan({
         id: planData.id,
         name: planData.name,
-        description: Array.isArray(planData.description) ? planData.description : [],
-        price: typeof planData.price === 'string' ? parseFloat(planData.price) : planData.price,
-        duration_days: planData.duration_days,
-        for_type: planData.for_type || planData.name,
+        description: planData.description || '',
+        for_type: planData.for_type,
+        total_replies: planData.total_replies,
+        price_monthly: typeof planData.price_monthly === 'string' ? parseFloat(planData.price_monthly) : planData.price_monthly,
+        duration_days_monthly: planData.duration_days_monthly,
+        price_annual: typeof planData.price_annual === 'string' ? parseFloat(planData.price_annual) : planData.price_annual,
+        duration_days_annual: planData.duration_days_annual,
+        config: planData.config,
         stripe_product_id: planData.stripe_product_id,
-        stripe_price_id: planData.stripe_price_id,
-        total_replies: planData.total_Replies
+        stripe_price_id_monthly: planData.stripe_price_id_monthly,
+        stripe_price_id_annual: planData.stripe_price_id_annual,
+        status: planData.status
       });
-      
-      // Join array features back to text for editing
-      const features = Array.isArray(planData.description) ? planData.description : [];
-      setFeaturesText(features.join('\n'));
     } catch (error) {
       console.error('Error fetching plan details:', error);
       toast({
@@ -109,12 +195,23 @@ const SubscriptionPlanEditor = () => {
     const { name, value } = e.target;
     setPlan(prev => ({
       ...prev,
-      [name]: name === 'price' ? parseFloat(value) || 0 : value
+      [name]: ['price_monthly', 'price_annual'].includes(name) ? parseFloat(value) || 0 : 
+              ['duration_days_monthly', 'duration_days_annual', 'total_replies'].includes(name) ? parseInt(value) || 0 :
+              value
     }));
   };
 
-  const handleFeaturesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFeaturesText(e.target.value);
+  const handleConfigChange = (section: keyof PlanConfig, key: string, value: any) => {
+    setPlan(prev => ({
+      ...prev,
+      config: {
+        ...prev.config,
+        [section]: {
+          ...prev.config[section],
+          [key]: value
+        }
+      }
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -128,20 +225,16 @@ const SubscriptionPlanEditor = () => {
         throw new Error('Authentication token not found');
       }
       
-      // Process features from text area (one feature per line)
-      const features = featuresText
-        .split('\n')
-        .filter(line => line.trim() !== '')
-        .map(line => line.trim());
-      
-      // Prepare the payload according to the new API requirements
       const submitData = {
         name: plan.name,
-        description: features, // Send as array
-        price: plan.price, // Send as number
-        duration_days: plan.duration_days,
-        for_type: plan.for_type || plan.name, // Use plan name as default for_type
-        total_replies: plan.total_replies
+        description: plan.description,
+        for_type: plan.for_type,
+        total_replies: plan.total_replies,
+        price_monthly: plan.price_monthly,
+        duration_days_monthly: plan.duration_days_monthly,
+        price_annual: plan.price_annual,
+        duration_days_annual: plan.duration_days_annual,
+        config: plan.config
       };
       
       console.log('Submitting plan data:', submitData);
@@ -163,7 +256,6 @@ const SubscriptionPlanEditor = () => {
         throw new Error(errorData.message || `Failed to ${isEditMode ? 'update' : 'create'} subscription plan`);
       }
       
-      // Invalidate and refetch subscription plans data after successful creation/update
       await queryClient.invalidateQueries({ queryKey: ['subscriptionPlans'] });
       await refetchSubscriptionPlans();
       
@@ -172,7 +264,6 @@ const SubscriptionPlanEditor = () => {
         description: `Subscription plan has been ${isEditMode ? 'updated' : 'created'} successfully.`,
       });
       
-      // Redirect back to billing settings page
       navigate('/settings/platform/billing');
       
     } catch (error) {
@@ -213,86 +304,272 @@ const SubscriptionPlanEditor = () => {
       
       <Card className='dark:text-gray-200 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none p-2'>
         <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-6 pt-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Plan Name</Label>
-              <Input 
-                id="name"
-                name="name"
-                value={plan.name}
-                onChange={handleChange}
-                placeholder="e.g., Basic, Premium, Enterprise"
-                required
-              />
+          <CardContent className="space-y-8 pt-6">
+            {/* Basic Details */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Basic Details</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Plan Name</Label>
+                  <Input 
+                    id="name"
+                    name="name"
+                    value={plan.name}
+                    onChange={handleChange}
+                    placeholder="e.g., Core, Pro, Enterprise"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="for_type">Plan Type</Label>
+                  <Input 
+                    id="for_type"
+                    name="for_type"
+                    value={plan.for_type}
+                    onChange={handleChange}
+                    placeholder="e.g., Individual, Team, Business"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea 
+                  id="description"
+                  name="description"
+                  value={plan.description}
+                  onChange={handleChange}
+                  placeholder="Short description of the plan"
+                  rows={2}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="total_replies">Total Replies</Label>
+                <Input 
+                  id="total_replies"
+                  name="total_replies"
+                  type="number"
+                  min="0"
+                  value={plan.total_replies}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="for_type">Plan Type</Label>
-              <Input 
-                id="for_type"
-                name="for_type"
-                value={plan.for_type}
-                onChange={handleChange}
-                placeholder="e.g., Individual, Business, Enterprise"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="price">Monthly Price ($)</Label>
-              <Input 
-                id="price"
-                name="price"
-                type="number"
-                step="0.01"
-                min="0"
-                value={plan.price}
-                onChange={handleChange}
-                placeholder="e.g., 19.99"
-                required
-              />
-              <p className="text-xs text-muted-foreground">Enter price as a number</p>
+            {/* Pricing */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Pricing & Duration</h3>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4 p-4 border rounded-lg">
+                  <h4 className="font-medium">Monthly</h4>
+                  <div className="space-y-2">
+                    <Label htmlFor="price_monthly">Price ($)</Label>
+                    <Input 
+                      id="price_monthly"
+                      name="price_monthly"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={plan.price_monthly}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="duration_days_monthly">Duration (days)</Label>
+                    <Input 
+                      id="duration_days_monthly"
+                      name="duration_days_monthly"
+                      type="number"
+                      min="1"
+                      value={plan.duration_days_monthly}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4 p-4 border rounded-lg">
+                  <h4 className="font-medium">Annual</h4>
+                  <div className="space-y-2">
+                    <Label htmlFor="price_annual">Price ($)</Label>
+                    <Input 
+                      id="price_annual"
+                      name="price_annual"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={plan.price_annual}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="duration_days_annual">Duration (days)</Label>
+                    <Input 
+                      id="duration_days_annual"
+                      name="duration_days_annual"
+                      type="number"
+                      min="1"
+                      value={plan.duration_days_annual}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="total_replies">Total Replies</Label>
-              <Input 
-                id="total_replies"
-                name="total_replies"
-                type="number"
-                min="1"
-                value={plan.total_replies}
-                onChange={handleChange}
-                required
-              />
+            {/* Limits */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Limits</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>AI Agents</Label>
+                  <Input 
+                    type="number"
+                    min="0"
+                    value={plan.config.limits.ai_agents}
+                    onChange={(e) => handleConfigChange('limits', 'ai_agents', parseInt(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Team Seats</Label>
+                  <Input 
+                    type="number"
+                    min="0"
+                    value={plan.config.limits.team_seats}
+                    onChange={(e) => handleConfigChange('limits', 'team_seats', parseInt(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Training per Agent (MB)</Label>
+                  <Input 
+                    type="number"
+                    min="0"
+                    value={plan.config.limits.training_per_agent_mb}
+                    onChange={(e) => handleConfigChange('limits', 'training_per_agent_mb', parseInt(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Integrations</Label>
+                  <Input 
+                    type="number"
+                    min="0"
+                    value={plan.config.limits.integration}
+                    onChange={(e) => handleConfigChange('limits', 'integration', parseInt(e.target.value) || 0)}
+                  />
+                </div>
+              </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="duration_days">Duration (days)</Label>
-              <Input 
-                id="duration_days"
-                name="duration_days"
-                type="number"
-                min="1"
-                value={plan.duration_days}
-                onChange={handleChange}
-                required
-              />
+
+            {/* Handoffs */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Handoffs</h3>
+              <div className="flex gap-6">
+                <label className="flex items-center gap-2">
+                  <input 
+                    type="checkbox"
+                    checked={plan.config.handoffs.to_email}
+                    onChange={(e) => handleConfigChange('handoffs', 'to_email', e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <span>To Email</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input 
+                    type="checkbox"
+                    checked={plan.config.handoffs.to_agent}
+                    onChange={(e) => handleConfigChange('handoffs', 'to_agent', e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <span>To Agent</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input 
+                    type="checkbox"
+                    checked={plan.config.handoffs.to_integration}
+                    onChange={(e) => handleConfigChange('handoffs', 'to_integration', e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <span>To Integration</span>
+                </label>
+              </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="features">Features (one per line)</Label>
-              <Textarea 
-                id="features"
-                value={featuresText}
-                onChange={handleFeaturesChange}
-                placeholder="e.g., 5 Agents&#10;10GB Storage&#10;24/7 Support"
-                rows={6}
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                Enter each feature on a separate line. These will be sent as an array to the API.
-              </p>
+
+            {/* Toggles */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Feature Toggles</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <label className="flex items-center gap-2">
+                  <input 
+                    type="checkbox"
+                    checked={plan.config.toggles.embed_unlimited_websites}
+                    onChange={(e) => handleConfigChange('toggles', 'embed_unlimited_websites', e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <span>Embed Unlimited Websites</span>
+                </label>
+                <div className="space-y-2">
+                  <Label>Weblink Training</Label>
+                  <Input 
+                    type="number"
+                    min="0"
+                    value={plan.config.toggles.weblink_training}
+                    onChange={(e) => handleConfigChange('toggles', 'weblink_training', parseInt(e.target.value) || 0)}
+                  />
+                </div>
+                <label className="flex items-center gap-2">
+                  <input 
+                    type="checkbox"
+                    checked={plan.config.toggles.analytics}
+                    onChange={(e) => handleConfigChange('toggles', 'analytics', e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <span>Analytics</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Integrations */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Integrations</h3>
+              <div className="grid grid-cols-3 gap-4">
+                {Object.keys(plan.config.integrations).map((key) => (
+                  <label key={key} className="flex items-center gap-2">
+                    <input 
+                      type="checkbox"
+                      checked={plan.config.integrations[key as keyof typeof plan.config.integrations]}
+                      onChange={(e) => handleConfigChange('integrations', key, e.target.checked)}
+                      className="w-4 h-4"
+                    />
+                    <span className="capitalize">{key}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Models */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">AI Models</h3>
+              <div className="grid grid-cols-3 gap-4">
+                {Object.keys(plan.config.models).map((key) => (
+                  <label key={key} className="flex items-center gap-2">
+                    <input 
+                      type="checkbox"
+                      checked={plan.config.models[key as keyof typeof plan.config.models]}
+                      onChange={(e) => handleConfigChange('models', key, e.target.checked)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">{key.replace(/_/g, ' ').toUpperCase()}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </CardContent>
           
