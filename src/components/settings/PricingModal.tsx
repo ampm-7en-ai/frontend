@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { Check, X } from 'lucide-react';
+import { Check, X, ChevronDown } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { usePricingModal } from '@/hooks/usePricingModal';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/context/AuthContext';
@@ -34,14 +35,23 @@ export const PricingModal = () => {
   const [isAnnual, setIsAnnual] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
 
-  // Generate dynamic features list from all plans
-  const features = useMemo(() => {
-    const featureSet: Array<{ key: string; label: string; category: string }> = [
-      { key: 'price_monthly', label: 'Monthly Price', category: 'pricing' },
-      { key: 'price_annual', label: 'Annual Price', category: 'pricing' },
-      { key: 'total_replies', label: 'Monthly Replies', category: 'basic' },
-      { key: 'approx_conversations', label: 'Approx. Conversations', category: 'basic' },
-    ];
+  // Generate dynamic features list from all plans, grouped by category
+  const featureGroups = useMemo(() => {
+    const groups: Record<string, Array<{ key: string; label: string; category: string }>> = {
+      pricing: [
+        { key: 'price_monthly', label: 'Monthly Price', category: 'pricing' },
+        { key: 'price_annual', label: 'Annual Price', category: 'pricing' },
+      ],
+      basic: [
+        { key: 'total_replies', label: 'Monthly Replies', category: 'basic' },
+        { key: 'approx_conversations', label: 'Approx. Conversations', category: 'basic' },
+      ],
+      limits: [],
+      toggles: [],
+      handoffs: [],
+      integrations: [],
+      models: [],
+    };
 
     if (subscriptionPlans.length > 0) {
       const samplePlan = subscriptionPlans[0];
@@ -49,41 +59,46 @@ export const PricingModal = () => {
       // Add limits
       if (samplePlan.config?.limits) {
         Object.keys(samplePlan.config.limits).forEach(key => {
-          featureSet.push({ key: `limits.${key}`, label: formatFeatureName(key), category: 'limits' });
+          groups.limits.push({ key: `limits.${key}`, label: formatFeatureName(key), category: 'limits' });
         });
       }
 
       // Add toggles
       if (samplePlan.config?.toggles) {
         Object.keys(samplePlan.config.toggles).forEach(key => {
-          featureSet.push({ key: `toggles.${key}`, label: formatFeatureName(key), category: 'toggles' });
+          groups.toggles.push({ key: `toggles.${key}`, label: formatFeatureName(key), category: 'toggles' });
         });
       }
 
       // Add handoffs
       if (samplePlan.config?.handoffs) {
         Object.keys(samplePlan.config.handoffs).forEach(key => {
-          featureSet.push({ key: `handoffs.${key}`, label: formatFeatureName(key), category: 'handoffs' });
+          groups.handoffs.push({ key: `handoffs.${key}`, label: formatFeatureName(key), category: 'handoffs' });
         });
       }
 
       // Add integrations
       if (samplePlan.config?.integrations) {
         Object.keys(samplePlan.config.integrations).forEach(key => {
-          featureSet.push({ key: `integrations.${key}`, label: formatFeatureName(key), category: 'integrations' });
+          groups.integrations.push({ key: `integrations.${key}`, label: formatFeatureName(key), category: 'integrations' });
         });
       }
 
       // Add models
       if (samplePlan.config?.models) {
         Object.keys(samplePlan.config.models).forEach(key => {
-          featureSet.push({ key: `models.${key}`, label: key, category: 'models' });
+          groups.models.push({ key: `models.${key}`, label: key, category: 'models' });
         });
       }
     }
 
-    return featureSet;
+    return groups;
   }, [subscriptionPlans]);
+
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    models: false,
+    integrations: false,
+  });
 
   // Get feature value from plan
   const getFeatureValue = (plan: any, featureKey: string) => {
@@ -241,7 +256,8 @@ export const PricingModal = () => {
                 </tr>
               </thead>
               <tbody>
-                {features.map((feature) => (
+                {/* Pricing */}
+                {featureGroups.pricing.map((feature) => (
                   <tr key={feature.key} className="border-t border-border hover:bg-muted/20 transition-colors">
                     <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
                       <div className="w-[200px] text-sm">{feature.label}</div>
@@ -266,6 +282,202 @@ export const PricingModal = () => {
                     })}
                   </tr>
                 ))}
+
+                {/* Basic Features */}
+                {featureGroups.basic.map((feature) => (
+                  <tr key={feature.key} className="border-t border-border hover:bg-muted/20 transition-colors">
+                    <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
+                      <div className="w-[200px] text-sm">{feature.label}</div>
+                    </td>
+                    {subscriptionPlans.map(plan => {
+                      const value = getFeatureValue(plan, feature.key);
+                      return (
+                        <td key={`${plan.id}-${feature.key}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
+                          <div className="text-sm">
+                            {value === false || value === null || value === undefined ? (
+                              <X className="w-4 h-4 text-muted-foreground mx-auto" />
+                            ) : value === true ? (
+                              <Check className="w-4 h-4 text-green-500 mx-auto" />
+                            ) : (
+                              <span className="flex items-center justify-center gap-2">
+                                {typeof value === 'number' ? value.toLocaleString() : value}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+
+                {/* Limits */}
+                {featureGroups.limits.map((feature) => (
+                  <tr key={feature.key} className="border-t border-border hover:bg-muted/20 transition-colors">
+                    <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
+                      <div className="w-[200px] text-sm">{feature.label}</div>
+                    </td>
+                    {subscriptionPlans.map(plan => {
+                      const value = getFeatureValue(plan, feature.key);
+                      return (
+                        <td key={`${plan.id}-${feature.key}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
+                          <div className="text-sm">
+                            {value === false || value === null || value === undefined ? (
+                              <X className="w-4 h-4 text-muted-foreground mx-auto" />
+                            ) : value === true ? (
+                              <Check className="w-4 h-4 text-green-500 mx-auto" />
+                            ) : (
+                              <span className="flex items-center justify-center gap-2">
+                                {typeof value === 'number' ? value.toLocaleString() : value}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+
+                {/* Toggles */}
+                {featureGroups.toggles.map((feature) => (
+                  <tr key={feature.key} className="border-t border-border hover:bg-muted/20 transition-colors">
+                    <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
+                      <div className="w-[200px] text-sm">{feature.label}</div>
+                    </td>
+                    {subscriptionPlans.map(plan => {
+                      const value = getFeatureValue(plan, feature.key);
+                      return (
+                        <td key={`${plan.id}-${feature.key}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
+                          <div className="text-sm">
+                            {value === false || value === null || value === undefined ? (
+                              <X className="w-4 h-4 text-muted-foreground mx-auto" />
+                            ) : value === true ? (
+                              <Check className="w-4 h-4 text-green-500 mx-auto" />
+                            ) : (
+                              <span className="flex items-center justify-center gap-2">
+                                {typeof value === 'number' ? value.toLocaleString() : value}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+
+                {/* Handoffs */}
+                {featureGroups.handoffs.map((feature) => (
+                  <tr key={feature.key} className="border-t border-border hover:bg-muted/20 transition-colors">
+                    <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
+                      <div className="w-[200px] text-sm">{feature.label}</div>
+                    </td>
+                    {subscriptionPlans.map(plan => {
+                      const value = getFeatureValue(plan, feature.key);
+                      return (
+                        <td key={`${plan.id}-${feature.key}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
+                          <div className="text-sm">
+                            {value === false || value === null || value === undefined ? (
+                              <X className="w-4 h-4 text-muted-foreground mx-auto" />
+                            ) : value === true ? (
+                              <Check className="w-4 h-4 text-green-500 mx-auto" />
+                            ) : (
+                              <span className="flex items-center justify-center gap-2">
+                                {typeof value === 'number' ? value.toLocaleString() : value}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+
+                {/* AI Models - Collapsible */}
+                {featureGroups.models.length > 0 && (
+                  <>
+                    <tr className="border-t border-border bg-muted/10">
+                      <td colSpan={subscriptionPlans.length + 1} className="p-0">
+                        <Collapsible
+                          open={openSections.models}
+                          onOpenChange={(open) => setOpenSections(prev => ({ ...prev, models: open }))}
+                        >
+                          <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/20 transition-colors">
+                            <span className="text-sm font-semibold text-foreground">AI Models ({featureGroups.models.length})</span>
+                            <ChevronDown className={`w-4 h-4 transition-transform ${openSections.models ? 'rotate-180' : ''}`} />
+                          </CollapsibleTrigger>
+                        </Collapsible>
+                      </td>
+                    </tr>
+                    {openSections.models && featureGroups.models.map((feature) => (
+                      <tr key={feature.key} className="border-t border-border hover:bg-muted/20 transition-colors">
+                        <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
+                          <div className="w-[200px] text-sm pl-4">{feature.label}</div>
+                        </td>
+                        {subscriptionPlans.map(plan => {
+                          const value = getFeatureValue(plan, feature.key);
+                          return (
+                            <td key={`${plan.id}-${feature.key}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
+                              <div className="text-sm">
+                                {value === false || value === null || value === undefined ? (
+                                  <X className="w-4 h-4 text-muted-foreground mx-auto" />
+                                ) : value === true ? (
+                                  <Check className="w-4 h-4 text-green-500 mx-auto" />
+                                ) : (
+                                  <span className="flex items-center justify-center gap-2">
+                                    {typeof value === 'number' ? value.toLocaleString() : value}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </>
+                )}
+
+                {/* Integrations - Collapsible */}
+                {featureGroups.integrations.length > 0 && (
+                  <>
+                    <tr className="border-t border-border bg-muted/10">
+                      <td colSpan={subscriptionPlans.length + 1} className="p-0">
+                        <Collapsible
+                          open={openSections.integrations}
+                          onOpenChange={(open) => setOpenSections(prev => ({ ...prev, integrations: open }))}
+                        >
+                          <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/20 transition-colors">
+                            <span className="text-sm font-semibold text-foreground">Integrations ({featureGroups.integrations.length})</span>
+                            <ChevronDown className={`w-4 h-4 transition-transform ${openSections.integrations ? 'rotate-180' : ''}`} />
+                          </CollapsibleTrigger>
+                        </Collapsible>
+                      </td>
+                    </tr>
+                    {openSections.integrations && featureGroups.integrations.map((feature) => (
+                      <tr key={feature.key} className="border-t border-border hover:bg-muted/20 transition-colors">
+                        <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
+                          <div className="w-[200px] text-sm pl-4">{feature.label}</div>
+                        </td>
+                        {subscriptionPlans.map(plan => {
+                          const value = getFeatureValue(plan, feature.key);
+                          return (
+                            <td key={`${plan.id}-${feature.key}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
+                              <div className="text-sm">
+                                {value === false || value === null || value === undefined ? (
+                                  <X className="w-4 h-4 text-muted-foreground mx-auto" />
+                                ) : value === true ? (
+                                  <Check className="w-4 h-4 text-green-500 mx-auto" />
+                                ) : (
+                                  <span className="flex items-center justify-center gap-2">
+                                    {typeof value === 'number' ? value.toLocaleString() : value}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </>
+                )}
               </tbody>
             </table>
           </div>
