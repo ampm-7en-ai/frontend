@@ -18,7 +18,7 @@ jobs:
     environment: beta
 
     steps:
-       - name: Setup SSH
+      - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.BETA_SSH_KEY }}" > ~/.ssh/id_ed25519
