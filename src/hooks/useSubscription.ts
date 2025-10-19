@@ -12,6 +12,19 @@ export interface SubscriptionPlan {
   duration_days: number;
   features?: string[];
   total_replies?: number;
+  for_type?: string;
+  status?: string;
+  price_monthly?: string;
+  price_annual?: string;
+  duration_days_monthly?: number;
+  duration_days_annual?: number;
+  config?: {
+    limits?: Record<string, number>;
+    models?: Record<string, boolean>;
+    toggles?: Record<string, boolean | number>;
+    handoffs?: Record<string, boolean>;
+    integrations?: Record<string, boolean>;
+  };
 }
 
 export interface Subscription {

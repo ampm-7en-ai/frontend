@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Check, X } from 'lucide-react';
 import {
   Dialog,
@@ -18,149 +18,106 @@ import { BASE_URL, getAuthHeaders } from '@/utils/api-config';
 import ModernButton from '../dashboard/ModernButton';
 import { LoadingSpinner } from '../ui/loading-spinner';
 
-// Static pricing data
-const pricingData = {
-  "Free": [
-    { "feature": "Billed monthly", "value": 0 },
-    { "feature": "Annually corresponding", "value": 0 },
-    { "feature": "Billed annually", "value": 0 },
-    { "feature": "Monthly corresponding", "value": 0 },
-    { "feature": "Numbers of replies", "value": 200 },
-    { "feature": "Approx. conversations", "value": 67 },
-    { "feature": "Knowledge base uploads", "value": "Unlimited" },
-    { "feature": "Supported channels", "value": "Web, WhatsApp, Messenger, Instagram, Slack" },
-    { "feature": "Team seats", "value": "Unlimited" },
-    { "feature": "Usage insights", "value": "Basic analytics" },
-    { "feature": "Integrations", "value": "Zapier, Google Drive" },
-    { "feature": "AI-powered ticketing automation", "value": "-" },
-    { "feature": "Caching & FAQ fallback", "value": "-" },
-    { "feature": "Multi-LLM choice", "value": "GPT (all versions), Claude, Gemini, Mistral, Deepseek" },
-    { "feature": "Model hosting", "value": "All LLMs hosted on European servers" },
-    { "feature": "Data privacy", "value": "Fully GDPR-compliant, no data leaves EU" },
-    { "feature": "Support", "value": "Community" },
-    { "feature": "Hosting / Compliance", "value": "Shared EU cloud" },
-    { "feature": "White-label branding", "value": "Add-on $35/mo" },
-    { "feature": "Enterprise extras", "value": "-" }
-  ],
-  "Starter": [
-    { "feature": "Billed monthly", "value": 30 },
-    { "feature": "Annually corresponding", "value": 360 },
-    { "feature": "Billed annually", "value": 288 },
-    { "feature": "Monthly corresponding", "value": 24 },
-    { "feature": "Numbers of replies", "value": 3500 },
-    { "feature": "Approx. conversations", "value": 1167 },
-    { "feature": "Knowledge base uploads", "value": "Unlimited" },
-    { "feature": "Supported channels", "value": "Web, WhatsApp, Messenger, Instagram, Slack" },
-    { "feature": "Team seats", "value": "Unlimited" },
-    { "feature": "Usage insights", "value": "Full analytics" },
-    { "feature": "Integrations", "value": "Zapier, Google Drive" },
-    { "feature": "AI-powered ticketing automation", "value": "Ticket sync only" },
-    { "feature": "Caching & FAQ fallback", "value": "-" },
-    { "feature": "Multi-LLM choice", "value": "GPT (all versions), Claude, Gemini, Mistral, Deepseek" },
-    { "feature": "Model hosting", "value": "All LLMs hosted on European servers" },
-    { "feature": "Data privacy", "value": "Fully GDPR-compliant, no data leaves EU" },
-    { "feature": "Support", "value": "Standard" },
-    { "feature": "Hosting / Compliance", "value": "Shared EU cloud" },
-    { "feature": "White-label branding", "value": "Add-on $35/mo" },
-    { "feature": "Enterprise extras", "value": "-" }
-  ],
-  "Growth": [
-    { "feature": "Billed monthly", "value": 120 },
-    { "feature": "Annually corresponding", "value": 1440 },
-    { "feature": "Billed annually", "value": 1152 },
-    { "feature": "Monthly corresponding", "value": 96 },
-    { "feature": "Numbers of replies", "value": 13000 },
-    { "feature": "Approx. conversations", "value": 4333 },
-    { "feature": "Knowledge base uploads", "value": "Unlimited" },
-    { "feature": "Supported channels", "value": "Web, WhatsApp, Messenger, Instagram, Slack" },
-    { "feature": "Team seats", "value": "Unlimited" },
-    { "feature": "Usage insights", "value": "Advanced analytics" },
-    { "feature": "Integrations", "value": "Zapier, Google Drive" },
-    { "feature": "AI-powered ticketing automation", "value": "Ticket sync only" },
-    { "feature": "Caching & FAQ fallback", "value": "Included" },
-    { "feature": "Multi-LLM choice", "value": "GPT (all versions), Claude, Gemini, Mistral, Deepseek" },
-    { "feature": "Model hosting", "value": "All LLMs hosted on European servers" },
-    { "feature": "Data privacy", "value": "Fully GDPR-compliant, no data leaves EU" },
-    { "feature": "Support", "value": "Priority" },
-    { "feature": "Hosting / Compliance", "value": "Shared EU cloud" },
-    { "feature": "White-label branding", "value": "Add-on $35/mo" },
-    { "feature": "Enterprise extras", "value": "-" }
-  ],
-  "Scale": [
-    { "feature": "Billed monthly", "value": 460 },
-    { "feature": "Annually corresponding", "value": 5520 },
-    { "feature": "Billed annually", "value": 4416 },
-    { "feature": "Monthly corresponding", "value": 368 },
-    { "feature": "Numbers of replies", "value": 50000 },
-    { "feature": "Approx. conversations", "value": 16667 },
-    { "feature": "Knowledge base uploads", "value": "Unlimited" },
-    { "feature": "Supported channels", "value": "Web, WhatsApp, Messenger, Instagram, Slack" },
-    { "feature": "Team seats", "value": "Unlimited" },
-    { "feature": "Usage insights", "value": "Advanced + optimization" },
-    { "feature": "Integrations", "value": "Zapier, Google Drive" },
-    { "feature": "AI-powered ticketing automation", "value": "Add-on: AI auto-responses (+ Google Reviews & Trustpilot)" },
-    { "feature": "Caching & FAQ fallback", "value": "Included" },
-    { "feature": "Multi-LLM choice", "value": "GPT (all versions), Claude, Gemini, Mistral, Deepseek" },
-    { "feature": "Model hosting", "value": "All LLMs hosted on European servers" },
-    { "feature": "Data privacy", "value": "Fully GDPR-compliant, no data leaves EU" },
-    { "feature": "Support", "value": "Priority + onboarding" },
-    { "feature": "Hosting / Compliance", "value": "EU cloud with geo-options" },
-    { "feature": "White-label branding", "value": "Add-on $35/mo" },
-    { "feature": "Enterprise extras", "value": "-" }
-  ],
-  "Enterprise": [
-    { "feature": "Billed monthly", "value": "Project based" },
-    { "feature": "Annually corresponding", "value": "Project based" },
-    { "feature": "Billed annually", "value": "Project based" },
-    { "feature": "Monthly corresponding", "value": "Project based" },
-    { "feature": "Numbers of replies", "value": "Project based" },
-    { "feature": "Approx. conversations", "value": "Project based" },
-    { "feature": "Knowledge base uploads", "value": "Unlimited" },
-    { "feature": "Supported channels", "value": "Web, WhatsApp, Messenger, Instagram, Slack" },
-    { "feature": "Team seats", "value": "Unlimited" },
-    { "feature": "Usage insights", "value": "Enterprise-level reporting & AI optimization" },
-    { "feature": "Integrations", "value": "Zapier, Google Drive" },
-    { "feature": "AI-powered ticketing automation", "value": "Included" },
-    { "feature": "Caching & FAQ fallback", "value": "Included" },
-    { "feature": "Multi-LLM choice", "value": "GPT (all versions), Claude, Gemini, Mistral, Deepseek" },
-    { "feature": "Model hosting", "value": "All LLMs hosted on European servers" },
-    { "feature": "Data privacy", "value": "Fully GDPR-compliant, no data leaves EU" },
-    { "feature": "Support", "value": "Dedicated account manager + SLA" },
-    { "feature": "Hosting / Compliance", "value": "On-premise / private EU hosting" },
-    { "feature": "White-label branding", "value": "Included" },
-    { "feature": "Enterprise extras", "value": "SLA, on-prem, fine-tuning, dedicated manager" }
-  ]
+// Helper to format feature names
+const formatFeatureName = (key: string): string => {
+  return key
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 };
 
 export const PricingModal = () => {
   const { isOpen, closePricingModal } = usePricingModal();
-  const { currentSubscription, subscriptionPlans } = useSubscription({ fetchCurrent: true, fetchAllPlans: true });
+  const { currentSubscription, subscriptionPlans, isLoadingSubscriptionPlans } = useSubscription({ fetchCurrent: true, fetchAllPlans: true });
   const { getToken } = useAuth();
   const { toast } = useToast();
   const [isAnnual, setIsAnnual] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
 
-  const tiers = Object.keys(pricingData);
-  const features = pricingData.Free.map(f => f.feature);
+  // Generate dynamic features list from all plans
+  const features = useMemo(() => {
+    const featureSet: Array<{ key: string; label: string; category: string }> = [
+      { key: 'price_monthly', label: 'Monthly Price', category: 'pricing' },
+      { key: 'price_annual', label: 'Annual Price', category: 'pricing' },
+      { key: 'total_replies', label: 'Monthly Replies', category: 'basic' },
+      { key: 'approx_conversations', label: 'Approx. Conversations', category: 'basic' },
+    ];
 
-  const handleUpgrade = async (tierName: string) => {
-    setCheckoutLoading(tierName);
+    if (subscriptionPlans.length > 0) {
+      const samplePlan = subscriptionPlans[0];
+      
+      // Add limits
+      if (samplePlan.config?.limits) {
+        Object.keys(samplePlan.config.limits).forEach(key => {
+          featureSet.push({ key: `limits.${key}`, label: formatFeatureName(key), category: 'limits' });
+        });
+      }
+
+      // Add toggles
+      if (samplePlan.config?.toggles) {
+        Object.keys(samplePlan.config.toggles).forEach(key => {
+          featureSet.push({ key: `toggles.${key}`, label: formatFeatureName(key), category: 'toggles' });
+        });
+      }
+
+      // Add handoffs
+      if (samplePlan.config?.handoffs) {
+        Object.keys(samplePlan.config.handoffs).forEach(key => {
+          featureSet.push({ key: `handoffs.${key}`, label: formatFeatureName(key), category: 'handoffs' });
+        });
+      }
+
+      // Add integrations
+      if (samplePlan.config?.integrations) {
+        Object.keys(samplePlan.config.integrations).forEach(key => {
+          featureSet.push({ key: `integrations.${key}`, label: formatFeatureName(key), category: 'integrations' });
+        });
+      }
+
+      // Add models
+      if (samplePlan.config?.models) {
+        Object.keys(samplePlan.config.models).forEach(key => {
+          featureSet.push({ key: `models.${key}`, label: key, category: 'models' });
+        });
+      }
+    }
+
+    return featureSet;
+  }, [subscriptionPlans]);
+
+  // Get feature value from plan
+  const getFeatureValue = (plan: any, featureKey: string) => {
+    if (featureKey === 'price_monthly') {
+      return isAnnual ? `$${parseFloat(plan.price_annual || '0') / 12}` : `$${plan.price_monthly || '0'}`;
+    }
+    if (featureKey === 'price_annual') {
+      return `$${plan.price_annual || '0'}`;
+    }
+    if (featureKey === 'total_replies') {
+      return plan.total_replies || 0;
+    }
+    if (featureKey === 'approx_conversations') {
+      return plan.total_replies ? Math.floor(plan.total_replies / 3) : 0;
+    }
+
+    // Handle nested config values
+    const parts = featureKey.split('.');
+    if (parts.length === 2 && plan.config) {
+      const [category, key] = parts;
+      return plan.config[category]?.[key];
+    }
+    return null;
+  };
+
+  const handleUpgrade = async (planId: number) => {
+    setCheckoutLoading(planId.toString());
     try {
       const token = getToken();
       if (!token) {
         throw new Error('Authentication token not found');
       }
 
-      // Find matching plan from API
-      const matchingPlan = subscriptionPlans.find(plan => 
-        plan.name.toLowerCase() === tierName.toLowerCase()
-      );
-
-      if (!matchingPlan) {
-        throw new Error('Plan not found');
-      }
-
-      const response = await fetch(`${BASE_URL}subscriptions/${matchingPlan.id}/checkout/`, {
+      const response = await fetch(`${BASE_URL}subscriptions/${planId}/checkout/`, {
         method: 'POST',
         headers: getAuthHeaders(token),
       });
@@ -188,20 +145,11 @@ export const PricingModal = () => {
     }
   };
 
-  const getPriceText = (tier: string, feature: string) => {
-    const value = pricingData[tier as keyof typeof pricingData].find(f => f.feature === feature)?.value;
-   // if (tier === "Enterprise") return "Custom";
-    if (feature === "Billed monthly" || feature === "Monthly corresponding") {
-      return isAnnual ? `$${value}/mo` : `$${value}/mo`;
-    }
-    return typeof value === "number" ? value.toLocaleString() : value;
-  };
-
-  const calculateSavings = (tier: string) => {
-    const monthlyPrice = pricingData[tier as keyof typeof pricingData].find(f => f.feature === "Billed monthly")?.value;
-    const annualPrice = pricingData[tier as keyof typeof pricingData].find(f => f.feature === "Billed annually")?.value;
+  const calculateSavings = (plan: any) => {
+    const monthlyPrice = parseFloat(plan.price_monthly || '0');
+    const annualPrice = parseFloat(plan.price_annual || '0');
     
-    if (typeof monthlyPrice === "number" && typeof annualPrice === "number") {
+    if (monthlyPrice > 0 && annualPrice > 0) {
       const annualCostIfMonthly = monthlyPrice * 12;
       const savings = annualCostIfMonthly - annualPrice;
       return savings > 0 ? savings : 0;
@@ -209,15 +157,25 @@ export const PricingModal = () => {
     return 0;
   };
 
-  const isCurrentPlan = (tierName: string) => {
-    return currentSubscription?.plan?.name?.toLowerCase() === tierName.toLowerCase();
+  const isCurrentPlan = (planId: number) => {
+    return currentSubscription?.plan?.id === planId;
   };
 
-  const getButtonText = (tier: string) => {
-    if (tier === "Enterprise") return "Contact Us";
-    if (isCurrentPlan(tier)) return "Current Plan";
-    return `Choose ${tier}`;
+  const getButtonText = (plan: any) => {
+    if (plan.name === "Enterprise") return "Contact Us";
+    if (isCurrentPlan(plan.id)) return "Current Plan";
+    return `Choose ${plan.name}`;
   };
+
+  if (isLoadingSubscriptionPlans) {
+    return (
+      <Dialog open={isOpen} onOpenChange={closePricingModal}>
+        <DialogContent className="max-w-[95vw] min-h-[90vh] flex items-center justify-center">
+          <LoadingSpinner />
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={closePricingModal}>
@@ -234,37 +192,34 @@ export const PricingModal = () => {
                   <th className="w-[200px] p-4 text-left text-foreground font-semibold border-r border-foreground">
                     <div className="w-[200px]"></div>
                   </th>
-                  {tiers.map(tier => (
-                    <th key={tier} className="min-w-[250px] max-w-[250px] p-4 text-left text-foreground font-semibold align-top bg-neutral-50 dark:bg-neutral-800/95 border-l border-foreground">
+                  {subscriptionPlans.map(plan => (
+                    <th key={plan.id} className="min-w-[250px] max-w-[250px] p-4 text-left text-foreground font-semibold align-top bg-neutral-50 dark:bg-neutral-800/95 border-l border-foreground">
                       <div className="space-y-3 mb-2">
-                        <h3 className="text-sm font-normal uppercase">{tier}</h3>
+                        <h3 className="text-sm font-normal uppercase">{plan.name}</h3>
                         
                         <p className="text-2xl font-semibold text-foreground">
-                          {getPriceText(tier, isAnnual ? "Monthly corresponding" : "Billed monthly")}
+                          {isAnnual 
+                            ? `$${parseFloat(plan.price_annual || '0') / 12}/mo` 
+                            : `$${plan.price_monthly || '0'}/mo`}
                         </p>
-                        {/* {tier !== "Free" && (
-                          <p className="text-sm text-muted-foreground">
-                            All included from {tier === "Starter" ? "Free" : tier === "Growth" ? "Starter" : tier === "Scale" ? "Growth" : "Scale"}
-                          </p>
-                        )} */}
                         <ModernButton 
-                          variant={isCurrentPlan(tier) ? "outline" : tier === "Growth" ? "gradient" : "primary"}
+                          variant={isCurrentPlan(plan.id) ? "outline" : plan.name === "Growth" ? "gradient" : "primary"}
                           size="sm"
                           className="w-full"
-                          disabled={isCurrentPlan(tier) || checkoutLoading === tier}
-                          onClick={() => handleUpgrade(tier)}
+                          disabled={isCurrentPlan(plan.id) || checkoutLoading === plan.id.toString()}
+                          onClick={() => handleUpgrade(plan.id)}
                         >
-                          {checkoutLoading === tier ? (
+                          {checkoutLoading === plan.id.toString() ? (
                             <>
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
                               Processing...
                             </>
                           ) : (
-                            getButtonText(tier)
+                            getButtonText(plan)
                           )}
                         </ModernButton>
                       </div>
-                      {tier !== "Free" && tier !== "Enterprise" && (
+                      {parseFloat(plan.price_monthly || '0') > 0 && (
                         <div className="flex items-center justify-between gap-2 mb-0 py-4">
                           <div className='flex items-center'>
                             <Switch
@@ -274,9 +229,9 @@ export const PricingModal = () => {
                           />
                           <span className="text-sm text-muted-foreground">Annual</span>
                           </div>
-                          {isAnnual && calculateSavings(tier) > 0 && (
+                          {isAnnual && calculateSavings(plan) > 0 && (
                             <span className="text-sm text-green-600 font-medium ml-2">
-                              Save ${calculateSavings(tier).toLocaleString()}
+                              Save ${calculateSavings(plan).toLocaleString()}
                             </span>
                           )}
                         </div>
@@ -286,24 +241,23 @@ export const PricingModal = () => {
                 </tr>
               </thead>
               <tbody>
-                {features.map((feature, index) => (
-                  <tr key={feature} className="border-t border-border hover:bg-muted/20 transition-colors">
+                {features.map((feature) => (
+                  <tr key={feature.key} className="border-t border-border hover:bg-muted/20 transition-colors">
                     <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
-                      <div className="w-[200px] text-sm">{feature}</div>
+                      <div className="w-[200px] text-sm">{feature.label}</div>
                     </td>
-                    {tiers.map(tier => {
-                      const value = pricingData[tier as keyof typeof pricingData].find(f => f.feature === feature)?.value;
+                    {subscriptionPlans.map(plan => {
+                      const value = getFeatureValue(plan, feature.key);
                       return (
-                        <td key={`${tier}-${feature}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
+                        <td key={`${plan.id}-${feature.key}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
                           <div className="text-sm">
-                            {value === "-" ? (
+                            {value === false || value === null || value === undefined ? (
                               <X className="w-4 h-4 text-muted-foreground mx-auto" />
+                            ) : value === true ? (
+                              <Check className="w-4 h-4 text-green-500 mx-auto" />
                             ) : (
                               <span className="flex items-center justify-center gap-2">
-                                {getPriceText(tier, feature)}
-                                {feature === "Numbers of replies" && typeof value === "number" && (
-                                  <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                                )}
+                                {typeof value === 'number' ? value.toLocaleString() : value}
                               </span>
                             )}
                           </div>
