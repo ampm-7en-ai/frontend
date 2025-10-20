@@ -537,7 +537,31 @@ const SubscriptionPlanEditor = () => {
 
             {/* Integrations */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Integrations</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Integrations</h3>
+                <label className="flex items-center gap-2 text-sm">
+                  <input 
+                    type="checkbox"
+                    checked={Object.values(plan.config.integrations).every(v => v)}
+                    onChange={(e) => {
+                      const allChecked = e.target.checked;
+                      const updatedIntegrations = Object.keys(plan.config.integrations).reduce((acc, key) => ({
+                        ...acc,
+                        [key]: allChecked
+                      }), {} as typeof plan.config.integrations);
+                      setPlan(prev => ({
+                        ...prev,
+                        config: {
+                          ...prev.config,
+                          integrations: updatedIntegrations
+                        }
+                      }));
+                    }}
+                    className="w-4 h-4"
+                  />
+                  <span>Select All</span>
+                </label>
+              </div>
               <div className="grid grid-cols-3 gap-4">
                 {Object.keys(plan.config.integrations).map((key) => (
                   <label key={key} className="flex items-center gap-2">
@@ -555,7 +579,33 @@ const SubscriptionPlanEditor = () => {
 
             {/* Models */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">AI Models</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">AI Models</h3>
+                {!modelsLoading && (
+                  <label className="flex items-center gap-2 text-sm">
+                    <input 
+                      type="checkbox"
+                      checked={Object.values(plan.config.models).every(v => v)}
+                      onChange={(e) => {
+                        const allChecked = e.target.checked;
+                        const updatedModels = Object.keys(plan.config.models).reduce((acc, key) => ({
+                          ...acc,
+                          [key]: allChecked
+                        }), {} as typeof plan.config.models);
+                        setPlan(prev => ({
+                          ...prev,
+                          config: {
+                            ...prev.config,
+                            models: updatedModels
+                          }
+                        }));
+                      }}
+                      className="w-4 h-4"
+                    />
+                    <span>Select All</span>
+                  </label>
+                )}
+              </div>
               {modelsLoading ? (
                 <div className="text-sm text-muted-foreground">Loading models...</div>
               ) : (
