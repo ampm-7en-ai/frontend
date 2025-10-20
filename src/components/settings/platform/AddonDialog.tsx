@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { useCreateAddon, useUpdateAddon, Addon } from '@/hooks/useAddons';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -139,20 +139,18 @@ export function AddonDialog({ open, onOpenChange, addon }: AddonDialogProps) {
             
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select
+              <ModernDropdown
                 value={formData.status}
                 onValueChange={(value: 'ACTIVE' | 'INACTIVE') => 
                   setFormData(prev => ({ ...prev, status: value }))
                 }
-              >
-                <SelectTrigger id="status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+                options={[
+                  { label: "Active", value: "ACTIVE" },
+                  { label: "Inactive", value: "INACTIVE" },
+                ]}
+                placeholder="Select status"
+                className="w-full"
+              />
             </div>
           </div>
           

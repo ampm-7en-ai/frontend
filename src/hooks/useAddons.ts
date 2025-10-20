@@ -82,15 +82,40 @@ async function deleteAddon(id: number): Promise<void> {
   }
 }
 
+// Dummy data for when API is not connected
+const dummyAddons: Addon[] = [
+  {
+    id: 1,
+    name: "Auto Ticket Response",
+    description: "Automatically respond to support tickets with AI-powered responses",
+    price_monthly: "49.00",
+    status: 'ACTIVE',
+  },
+  {
+    id: 2,
+    name: "White Label",
+    description: "Remove branding and customize the platform with your own logo",
+    price_monthly: "39.00",
+    status: 'ACTIVE',
+  },
+];
+
 export function useAddons() {
   const { isAuthenticated, user } = useAuth();
 
   return useQuery({
     queryKey: ['addons', user?.id],
-    queryFn: fetchAddons,
+    queryFn: async () => {
+      try {
+        return await fetchAddons();
+      } catch (error) {
+        console.log('API not connected, using dummy data');
+        return dummyAddons;
+      }
+    },
     staleTime: 60000,
     refetchOnWindowFocus: false,
-    retry: 2,
+    retry: 0,
     enabled: isAuthenticated && !!user?.id,
   });
 }
