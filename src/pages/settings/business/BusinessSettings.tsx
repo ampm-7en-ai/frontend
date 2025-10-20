@@ -8,6 +8,7 @@ import BusinessProfileSection from '@/components/settings/business/BusinessProfi
 import TeamManagementSection from '@/components/settings/business/TeamManagementSection';
 import GlobalAgentSettingsSection from '@/components/settings/business/GlobalAgentSettingsSection';
 import GdprSettingsSection from '@/components/settings/business/GdprSettingsSection';
+import AddonsSection from '@/components/settings/business/AddonsSection';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { PricingModal } from '@/components/settings/PricingModal';
 import { CurrentPlanCard } from '@/components/settings/business/CurrentPlanCard';
@@ -69,6 +70,11 @@ const BusinessSettings = () => {
 
         {/* Settings Sections */}
         <div className="space-y-8">
+          {/* Add-ons Section */}
+          <div className="rounded-2xl overflow-hidden">
+            <AddonsSection />
+          </div>
+
           {/* Usage Section */}
           <div className="rounded-2xl overflow-hidden">
             <UsageSection usageMetrics={settingsData?.usage_metrics || {
