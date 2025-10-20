@@ -38,8 +38,10 @@ import DeleteSubscriptionPlanDialog from '@/components/settings/platform/DeleteS
 import { useBillingConfig, useUpdateBillingConfig } from '@/hooks/useBillingConfig';
 import { useTopupPackages, useDeleteTopupPackage, TopupPackage } from '@/hooks/useTopupPackages';
 import { useTopupRanges, useDeleteTopupRange, TopupRange } from '@/hooks/useTopupRanges';
+import { useAddons, useDeleteAddon, Addon } from '@/hooks/useAddons';
 import TopupPackageDialog from '@/components/settings/platform/TopupPackageDialog';
 import TopupRangeDialog from '@/components/settings/platform/TopupRangeDialog';
+import { AddonDialog } from '@/components/settings/platform/AddonDialog';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
 
@@ -88,11 +90,19 @@ const BillingSettings = () => {
   const deletePackageMutation = useDeleteTopupPackage();
   const deleteRangeMutation = useDeleteTopupRange();
   
+  // Add-ons hooks
+  const { data: addons, isLoading: isLoadingAddons } = useAddons();
+  const deleteAddonMutation = useDeleteAddon();
+  
   // Topup dialog states
   const [packageDialogOpen, setPackageDialogOpen] = useState(false);
   const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
   const [editingPackage, setEditingPackage] = useState<TopupPackage | null>(null);
   const [editingRange, setEditingRange] = useState<TopupRange | null>(null);
+  
+  // Add-on dialog states
+  const [addonDialogOpen, setAddonDialogOpen] = useState(false);
+  const [editingAddon, setEditingAddon] = useState<Addon | null>(null);
 
   // Update form data when billing config is loaded
   useEffect(() => {
@@ -315,15 +325,36 @@ const BillingSettings = () => {
     setRangeDialogOpen(true);
   };
 
+  const handleDeleteAddon = async (addonId: number) => {
+    try {
+      await deleteAddonMutation.mutateAsync(addonId);
+      toast({
+        title: "Add-on Deleted",
+        description: "Add-on has been deleted successfully."
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete add-on.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEditAddon = (addon: Addon) => {
+    setEditingAddon(addon);
+    setAddonDialogOpen(true);
+  };
+
   return (
     <PlatformSettingsLayout
       title="Billing Settings"
       description="Manage subscription plans and platform billing configurations"
     >
       <Tabs defaultValue="plans">
-        <TabsList className="grid w-80 grid-cols-3 mb-8 bg-neutral-200 dark:bg-neutral-800 p-1 rounded-xl">
+        <TabsList className="grid w-[450px] grid-cols-4 mb-8 bg-neutral-200 dark:bg-neutral-800 p-1 rounded-xl">
           <TabsTrigger value="plans" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Subscriptions</TabsTrigger>
-          {/* <TabsTrigger value="invoices" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Invoices</TabsTrigger> */}
+          <TabsTrigger value="addons" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Add-ons</TabsTrigger>
           <TabsTrigger value="topup" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Topup</TabsTrigger>
           <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700">Settings</TabsTrigger>
         </TabsList>
@@ -411,7 +442,92 @@ const BillingSettings = () => {
           </section>
         </TabsContent>
         
-       
+        <TabsContent value="addons">
+          <section className="p-8 bg-white dark:bg-neutral-800/50 rounded-2xl">
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl flex items-center justify-center bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
+                    <svg className="h-5 w-5" style={{color: 'hsl(var(--primary))'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Subscription Add-ons</h2>
+                    <p className="text-sm text-muted-foreground">Manage additional features that users can add to their subscriptions</p>
+                  </div>
+                </div>
+                <ModernButton 
+                  onClick={() => {
+                    setEditingAddon(null);
+                    setAddonDialogOpen(true);
+                  }}
+                  variant="primary"
+                  size='sm'
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Add-on
+                </ModernButton>
+              </div>
+            </div>
+            <div className="bg-transparent dark:bg-transparent rounded-2xl p-0 backdrop-blur-sm">
+              <div className="space-y-6">
+                {isLoadingAddons ? (
+                  <div className="text-center py-8">Loading add-ons...</div>
+                ) : addons && addons.length > 0 ? (
+                  addons.map((addon) => (
+                    <Card key={addon.id} className="dark:text-gray-200 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none">
+                      <div className="p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="text-lg font-semibold">{addon.name}</h3>
+                            <div className="text-2xl font-bold mt-1">
+                              ${addon.price_monthly}
+                              <span className="text-sm font-normal text-muted-foreground">/month</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Badge 
+                              variant={addon.status === 'ACTIVE' ? 'default' : 'secondary'}
+                            >
+                              {addon.status}
+                            </Badge>
+                            <ModernButton 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleEditAddon(addon)}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
+                            </ModernButton>
+                            <ModernButton 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-red-500 hover:bg-red-50"
+                              onClick={() => handleDeleteAddon(addon.id)}
+                              disabled={deleteAddonMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
+                            </ModernButton>
+                          </div>
+                        </div>
+                        
+                        {addon.description && (
+                          <p className="text-muted-foreground">{addon.description}</p>
+                        )}
+                      </div>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No add-ons found. Create your first add-on to get started.
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        </TabsContent>
         
         <TabsContent value="topup">
           
@@ -767,6 +883,15 @@ const BillingSettings = () => {
           if (!open) setEditingRange(null);
         }}
         editRange={editingRange}
+      />
+
+      <AddonDialog
+        open={addonDialogOpen}
+        onOpenChange={(open) => {
+          setAddonDialogOpen(open);
+          if (!open) setEditingAddon(null);
+        }}
+        addon={editingAddon}
       />
     </PlatformSettingsLayout>
   );
