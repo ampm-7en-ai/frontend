@@ -177,7 +177,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
   return (
     <section className="p-8">
       <div className="mb-8 pl-2">
-        <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">GDPR Settings</h2>
+        <h2 className="text-2xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">GDPR Settings</h2>
         <p className="text-muted-foreground dark:text-muted-foreground leading-relaxed">
           Manage data retention, privacy, and compliance settings
         </p>
@@ -189,7 +189,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
             <div className="bg-transparent rounded-xl flex items-center justify-start bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-3">
               <Icon type='plain' name='Layer' color='hsl(var(--primary))' className='h-5 w-5' />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Data & Privacy</h3>
+            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Data & Privacy</h3>
           </div>
           <ModernButton
             variant="outline"
@@ -205,7 +205,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
           <div className="space-y-6">
             {/* Data Retention Configuration */}
             <div className="space-y-2">
-              <Label htmlFor="retention-days" className="text-slate-900 dark:text-slate-100">
+              <Label htmlFor="retention-days" className="text-neutral-900 dark:text-neutral-100">
                 Data Retention Period (days)
               </Label>
               <Input
@@ -215,7 +215,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                 value={retentionDays}
                 onChange={(e) => setRetentionDays(e.target.value)}
                 variant="modern"
-                className="max-w-xs bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
+                className="max-w-xs bg-white/80 dark:bg-neutral-800/80 border-neutral-200 dark:border-neutral-600 rounded-xl"
               />
               <p className="text-xs text-muted-foreground">
                 Number of days to retain user data. Leave empty for indefinite retention.
@@ -224,7 +224,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
 
             {/* Data Retention Message */}
             <div className="space-y-2">
-              <Label htmlFor="retention-message" className="text-slate-900 dark:text-slate-100">
+              <Label htmlFor="retention-message" className="text-neutral-900 dark:text-neutral-100">
                 Data Retention Message
               </Label>
               <Textarea
@@ -233,14 +233,14 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                 value={retentionMessage}
                 onChange={(e) => setRetentionMessage(e.target.value)}
                 rows={4}
-                className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
+                className="bg-white/80 dark:bg-neutral-800/80 border-neutral-200 dark:border-neutral-600 rounded-xl"
               />
             </div>
 
             {/* Message Visibility Toggle */}
             <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-neutral-700">
               <div className="space-y-0.5">
-                <Label className="text-slate-900 dark:text-slate-100">Display Retention Message</Label>
+                <Label className="text-neutral-900 dark:text-neutral-100">Display Retention Message</Label>
                 <p className="text-sm text-muted-foreground">
                   Show the data retention message to users
                 </p>
@@ -262,7 +262,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
             {/* Read-only view */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-neutral-200/50 dark:border-none">
-                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Data Retention Period</h4>
+                <h4 className="font-medium text-neutral-900 dark:text-neutral-100 mb-2">Data Retention Period</h4>
                 <p className="text-muted-foreground dark:text-muted-foreground">
                   {retentionDays || initialSettings?.data_retention_days 
                     ? `${retentionDays || initialSettings?.data_retention_days} days`
@@ -270,7 +270,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                 </p>
               </div>
               <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-neutral-200/50 dark:border-none">
-                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Message Visibility</h4>
+                <h4 className="font-medium text-neutral-900 dark:text-neutral-100 mb-2">Message Visibility</h4>
                 <p className="text-muted-foreground dark:text-muted-foreground">
                   {isMessageVisible ? 'Visible' : 'Hidden'}
                 </p>
@@ -279,7 +279,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
 
             {retentionMessage && (
               <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl p-4 border border-neutral-200/50 dark:border-none">
-                <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Retention Message</h4>
+                <h4 className="font-medium text-neutral-900 dark:text-neutral-100 mb-2">Retention Message</h4>
                 <p className="text-sm text-muted-foreground">{retentionMessage}</p>
               </div>
             )}
@@ -289,7 +289,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
             <div className="pt-4 border-t border-neutral-200 dark:border-neutral-700">
               <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none">
                 <div className="space-y-0.5">
-                  <Label className="text-slate-900 dark:text-slate-100">Data Export</Label>
+                  <Label className="text-neutral-900 dark:text-neutral-100">Data Export</Label>
                   <p className="text-sm text-muted-foreground">
                   Export all your business data in compliance with GDPR regulations
                   </p>
@@ -397,7 +397,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
 
         {/* Audit Logs Section */}
         <div className="mt-8 pt-8 border-t border-neutral-200 dark:border-neutral-700">
-          <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Activity Log</h4>
+          <h4 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Activity Log</h4>
           <p className="text-sm text-muted-foreground mb-4">
             Tracks who accessed, modified, or deleted data
           </p>
@@ -426,7 +426,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               variant="modern"
-              className="max-w-md bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
+              className="max-w-md bg-white/80 dark:bg-neutral-800/80 border-neutral-200 dark:border-neutral-600 rounded-xl"
             />
           </div>
 
@@ -450,7 +450,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                          <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                             {formatEventType(log.event_type)}
                           </span>
                           <span className="text-xs text-muted-foreground">

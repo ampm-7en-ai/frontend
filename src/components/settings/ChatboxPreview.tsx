@@ -1951,7 +1951,7 @@ export const ChatboxPreview = ({
         boxShadow: `0`,
         border: `none`,
         transformOrigin: showFloatingButton ? (position === 'bottom-left' ? 'bottom left' : 'bottom right') : 'center',
-        borderRadius: "8px"
+        borderRadius: "10px"
       }}
     >
       {/* Header */}
@@ -2125,8 +2125,12 @@ export const ChatboxPreview = ({
                     <X className="h-3.5 w-3.5" />
                   </button>
                   <div className="text-xs italic text-gray-600 leading-relaxed text-left pr-6">
-                    {retentionPeriod > 0 && <b>{retentionPeriod} days of data retention period.</b>}
+                    
                     <ReactMarkdown>{retentionMessage}</ReactMarkdown>
+                    {retentionPeriod > 0 && (<p>
+                      <b>Data retention period:</b><br/>
+                      <b>{retentionPeriod} days</b>
+                      </p>)}
                   </div>
                 </div>
               </div>

@@ -210,7 +210,7 @@ export const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
           
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-transparent flex items-center justify-center">
-              <Icon name={`Magic`} className='w-5 h-5'/>
+              <Icon name={`Magic`} type='plain' color='hsl(var(--primary))' className='w-5 h-5'/>
             </div>
             <span className="font-medium text-gray-900 dark:text-gray-100">
               {agentData.name || 'Untitled Agent'}
