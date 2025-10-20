@@ -160,8 +160,7 @@ const SubscriptionPlanEditor = () => {
         throw new Error('Failed to fetch subscription plan details');
       }
       
-      const result = await response.json();
-      const planData = result.data;
+      const planData = await response.json();
       
       setPlan({
         id: planData.id,
