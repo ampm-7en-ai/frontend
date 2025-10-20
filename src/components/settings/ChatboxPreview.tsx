@@ -126,6 +126,11 @@ export const ChatboxPreview = ({
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const [timeoutQuestionSent, setTimeoutQuestionSent] = useState(false);
 
+  // Dismissable states
+  const [showWelcomeMessage, setShowWelcomeMessage] = useState(true);
+  const [showRetentionMessage, setShowRetentionMessage] = useState(true);
+  const [showTermsAcceptance, setShowTermsAcceptance] = useState(true);
+
   // Check if input should be disabled (when there's a pending UI state)
   const shouldDisableInput = messages.some(msg => 
     msg.type === 'ui' && msg.ui_type === 'email'
@@ -2080,32 +2085,46 @@ export const ChatboxPreview = ({
             )}
             
             {/* Welcome Message - Only show if welcomeMessage has content */}
-            {welcomeMessage && welcomeMessage.trim() && (
+            {showWelcomeMessage && welcomeMessage && welcomeMessage.trim() && (
               <div className="animate-fade-in">
                 <div 
-                  className="border rounded-lg p-3 text-left"
+                  className="border rounded-lg p-3 text-left relative"
                   style={{
                     backgroundColor: `${primaryColor}05`,
                     borderColor: `${primaryColor}20`
                   }}
                 >
-                  <div className="text-xs italic text-gray-600 leading-relaxed text-left">
+                  <button
+                    onClick={() => setShowWelcomeMessage(false)}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
+                    aria-label="Close welcome message"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                  <div className="text-xs italic text-gray-600 leading-relaxed text-left pr-6">
                     <ReactMarkdown>{welcomeMessage}</ReactMarkdown>
                   </div>
                 </div>
               </div>
             )}
 
-            {displayRetentionMessage && retentionMessage && retentionMessage.trim() && (
+            {showRetentionMessage && displayRetentionMessage && retentionMessage && retentionMessage.trim() && (
               <div className="animate-fade-in">
                 <div 
-                  className="border rounded-lg p-3 text-left"
+                  className="border rounded-lg p-3 text-left relative"
                   style={{
                     backgroundColor: `${primaryColor}05`,
                     borderColor: `${primaryColor}20`
                   }}
                 >
-                  <div className="text-xs italic text-gray-600 leading-relaxed text-left">
+                  <button
+                    onClick={() => setShowRetentionMessage(false)}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
+                    aria-label="Close retention message"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                  <div className="text-xs italic text-gray-600 leading-relaxed text-left pr-6">
                     {retentionPeriod > 0 && <b>{retentionPeriod} days of data retention period.</b>}
                     <ReactMarkdown>{retentionMessage}</ReactMarkdown>
                   </div>
@@ -2607,9 +2626,16 @@ export const ChatboxPreview = ({
         )}
         
         {/* Terms and Conditions - Only show if not accepted */}
-        {!termsAccepted && (
-          <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/80 backdrop-blur-sm">
-            <div className="flex items-center gap-2 text-xs text-gray-600">
+        {!termsAccepted && showTermsAcceptance && (
+          <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/80 backdrop-blur-sm relative">
+            <button
+              onClick={() => setShowTermsAcceptance(false)}
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close terms message"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+            <div className="flex items-center gap-2 text-xs text-gray-600 pr-6">
               <Checkbox 
                 id="terms-acceptance-main"
                 checked={termsAccepted}
