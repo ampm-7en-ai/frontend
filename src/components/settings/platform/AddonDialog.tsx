@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import ModernButton from '@/components/dashboard/ModernButton';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -155,18 +155,18 @@ export function AddonDialog({ open, onOpenChange, addon }: AddonDialogProps) {
           </div>
           
           <DialogFooter>
-            <Button
+            <ModernButton
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
               Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
+            </ModernButton>
+            <ModernButton type="submit" disabled={isLoading} variant="primary">
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {addon ? 'Update' : 'Create'}
-            </Button>
+            </ModernButton>
           </DialogFooter>
         </form>
       </DialogContent>
