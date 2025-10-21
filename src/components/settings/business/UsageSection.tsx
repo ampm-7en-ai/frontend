@@ -15,6 +15,8 @@ import { Icon } from '@/components/icons';
 import { Switch } from '@/components/ui/switch';
 import { ModernInput } from '@/components/ui/modern-input';
 import { Label } from '@/components/ui/label';
+import { useUpdateSettings } from '@/hooks/useSettings';
+import { toast } from 'sonner';
 
 interface UsageSectionProps {
   usageMetrics?: {
@@ -36,6 +38,28 @@ const UsageSection = ({ usageMetrics, options }: UsageSectionProps) => {
   const [isAutoTopupEnabled, setIsAutoTopupEnabled] = useState(options?.is_auto_topup_enabled || false);
   const [autoTopupThreshold, setAutoTopupThreshold] = useState(options?.auto_topup_threshold || 0);
   const [autoTopupReplies, setAutoTopupReplies] = useState(options?.auto_topup_replies || 0);
+  
+  const updateSettings = useUpdateSettings();
+
+  const handleSaveAutoRecharge = () => {
+    updateSettings.mutate(
+      {
+        options: {
+          is_auto_topup_enabled: isAutoTopupEnabled,
+          auto_topup_threshold: autoTopupThreshold,
+          auto_topup_replies: autoTopupReplies,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success('Auto recharge settings saved successfully');
+        },
+        onError: () => {
+          toast.error('Failed to save auto recharge settings');
+        },
+      }
+    );
+  };
 
   return (
     <section className="p-8">
@@ -158,8 +182,14 @@ const UsageSection = ({ usageMetrics, options }: UsageSectionProps) => {
                     </p>
                   </div>
                 </div>
-                <ModernButton variant="primary" size="sm" className="mt-2">
-                  Save Auto Recharge Settings
+                <ModernButton 
+                  variant="primary" 
+                  size="sm" 
+                  className="mt-2"
+                  onClick={handleSaveAutoRecharge}
+                  disabled={updateSettings.isPending}
+                >
+                  {updateSettings.isPending ? 'Saving...' : 'Save Auto Recharge Settings'}
                 </ModernButton>
               </div>
             )}

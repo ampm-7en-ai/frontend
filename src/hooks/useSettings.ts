@@ -1,7 +1,7 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getApiUrl } from "@/utils/api-config";
-import { apiGet } from "@/utils/api-interceptor";
+import { apiGet, apiRequest } from "@/utils/api-interceptor";
 import { useAuth } from "@/context/AuthContext";
 
 export interface BusinessSettings {
@@ -55,6 +55,26 @@ async function fetchSettings(): Promise<BusinessSettings> {
   return data.data;
 }
 
+async function updateSettings(data: Partial<BusinessSettings>): Promise<BusinessSettings> {
+  console.log('Updating settings:', data);
+  const response = await apiRequest(getApiUrl('settings/'), {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    console.error(`Update settings API error: ${response.status}`);
+    throw new Error('Failed to update settings');
+  }
+
+  const result = await response.json();
+  console.log('Settings updated:', result);
+  return result.data;
+}
+
 export function useSettings() {
   const { isAuthenticated } = useAuth();
 
@@ -67,5 +87,21 @@ export function useSettings() {
     refetchOnMount: false,
     retry: 1,
     enabled: isAuthenticated,
+  });
+}
+
+export function useUpdateSettings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateSettings,
+    onSuccess: (data) => {
+      console.log('Settings update successful:', data);
+      queryClient.setQueryData(['settings'], data);
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+    },
+    onError: (error) => {
+      console.error('Settings update failed:', error);
+    },
   });
 }
