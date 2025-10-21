@@ -44,6 +44,16 @@ import TopupRangeDialog from '@/components/settings/platform/TopupRangeDialog';
 import { AddonDialog } from '@/components/settings/platform/AddonDialog';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { ModernDropdown } from '@/components/ui/modern-dropdown';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Invoice {
   id: string;
@@ -103,6 +113,8 @@ const BillingSettings = () => {
   // Add-on dialog states
   const [addonDialogOpen, setAddonDialogOpen] = useState(false);
   const [editingAddon, setEditingAddon] = useState<Addon | null>(null);
+  const [addonToDelete, setAddonToDelete] = useState<Addon | null>(null);
+  const [showDeleteAddonDialog, setShowDeleteAddonDialog] = useState(false);
 
   // Update form data when billing config is loaded
   useEffect(() => {
@@ -325,13 +337,23 @@ const BillingSettings = () => {
     setRangeDialogOpen(true);
   };
 
-  const handleDeleteAddon = async (addonId: number) => {
+  const handleDeleteAddonRequest = (addon: Addon) => {
+    setAddonToDelete(addon);
+    setShowDeleteAddonDialog(true);
+  };
+
+  const confirmDeleteAddon = async () => {
+    if (!addonToDelete) return;
+    
     try {
-      await deleteAddonMutation.mutateAsync(addonId);
+      await deleteAddonMutation.mutateAsync(addonToDelete.id);
       toast({
         title: "Add-on Deleted",
-        description: "Add-on has been deleted successfully."
+        description: "Add-on has been deleted successfully.",
+        variant: "success"
       });
+      setShowDeleteAddonDialog(false);
+      setAddonToDelete(null);
     } catch (error) {
       toast({
         title: "Error",
@@ -504,8 +526,7 @@ const BillingSettings = () => {
                               variant="outline" 
                               size="sm" 
                               className="text-red-500 hover:bg-red-50"
-                              onClick={() => handleDeleteAddon(addon.id)}
-                              disabled={deleteAddonMutation.isPending}
+                              onClick={() => handleDeleteAddonRequest(addon)}
                             >
                               <Trash2 className="h-4 w-4 mr-1" />
                               Delete
@@ -893,6 +914,27 @@ const BillingSettings = () => {
         }}
         addon={editingAddon}
       />
+
+      <AlertDialog open={showDeleteAddonDialog} onOpenChange={setShowDeleteAddonDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Add-on</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{addonToDelete?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteAddon}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteAddonMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PlatformSettingsLayout>
   );
 };

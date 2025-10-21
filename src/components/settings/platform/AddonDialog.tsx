@@ -58,6 +58,16 @@ export function AddonDialog({ open, onOpenChange, addon }: AddonDialogProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate required fields
+    if (!formData.name || !formData.price_monthly || !formData.addon_type) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const data = {
         name: formData.name,
@@ -72,12 +82,14 @@ export function AddonDialog({ open, onOpenChange, addon }: AddonDialogProps) {
         toast({
           title: "Success",
           description: "Add-on updated successfully.",
+          variant: "success",
         });
       } else {
         await createMutation.mutateAsync(data);
         toast({
           title: "Success",
           description: "Add-on created successfully.",
+          variant: "success",
         });
       }
       
