@@ -18,6 +18,16 @@ import { Label } from '@/components/ui/label';
 import { useUpdateSettings } from '@/hooks/useSettings';
 import { useToast } from '@/hooks/use-toast';
 import { useTopupOptions } from '@/hooks/useTopupOptions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface UsageSectionProps {
   usageMetrics?: {
@@ -39,10 +49,53 @@ const UsageSection = ({ usageMetrics, options }: UsageSectionProps) => {
   const [isAutoTopupEnabled, setIsAutoTopupEnabled] = useState(options?.is_auto_topup_enabled || false);
   const [autoTopupThreshold, setAutoTopupThreshold] = useState(options?.auto_topup_threshold || 0);
   const [autoTopupReplies, setAutoTopupReplies] = useState(options?.auto_topup_replies || 0);
+  const [showDisableDialog, setShowDisableDialog] = useState(false);
   
   const updateSettings = useUpdateSettings();
   const { data: topupOptions } = useTopupOptions();
   const { toast } = useToast();
+
+  const handleSwitchChange = (checked: boolean) => {
+    if (!checked && isAutoTopupEnabled) {
+      // Show confirmation dialog when trying to disable
+      setShowDisableDialog(true);
+    } else {
+      // Allow enabling without confirmation
+      setIsAutoTopupEnabled(checked);
+    }
+  };
+
+  const confirmDisable = () => {
+    setIsAutoTopupEnabled(false);
+    setShowDisableDialog(false);
+    // Auto-save when disabling
+    updateSettings.mutate(
+      {
+        options: {
+          is_auto_topup_enabled: false,
+          auto_topup_threshold: autoTopupThreshold,
+          auto_topup_replies: autoTopupReplies,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Success",
+            description: "Auto recharge has been disabled",
+          });
+        },
+        onError: () => {
+          toast({
+            title: "Error",
+            description: "Failed to disable auto recharge",
+            variant: "destructive",
+          });
+          // Revert on error
+          setIsAutoTopupEnabled(true);
+        },
+      }
+    );
+  };
 
   const calculateEstimatedCost = () => {
     if (!autoTopupReplies || !topupOptions?.ranges) return null;
@@ -167,7 +220,7 @@ const UsageSection = ({ usageMetrics, options }: UsageSectionProps) => {
               </div>
               <Switch
                 checked={isAutoTopupEnabled}
-                onCheckedChange={setIsAutoTopupEnabled}
+                onCheckedChange={handleSwitchChange}
               />
             </div>
 
@@ -242,6 +295,23 @@ const UsageSection = ({ usageMetrics, options }: UsageSectionProps) => {
         open={isTopupModalOpen} 
         onOpenChange={setIsTopupModalOpen}
       />
+
+      <AlertDialog open={showDisableDialog} onOpenChange={setShowDisableDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Disable Auto Recharge?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to disable automatic recharge? You'll need to manually top up your credits when they run low.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDisable}>
+              Disable
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 };
