@@ -112,10 +112,10 @@ export const PricingModal = () => {
   // Get feature value from plan
   const getFeatureValue = (plan: any, featureKey: string) => {
     if (featureKey === 'price_monthly') {
-      return isAnnual ? `$${Math.round(parseFloat(plan.price_annual || '0') / 12)}` : `$${plan.price_monthly || '0'}`;
+      return isAnnual ? `$${Math.round(parseFloat(plan.price_annual || '0') / 12)}` : `$${Math.round(parseFloat(plan.price_monthly || '0'))}`;
     }
     if (featureKey === 'price_annual') {
-      return `$${plan.price_annual || '0'}`;
+      return `$${Math.round(parseFloat(plan.price_annual || '0'))}`;
     }
     if (featureKey === 'total_replies') {
       return plan.total_replies || 0;
@@ -224,7 +224,7 @@ export const PricingModal = () => {
                         <p className="text-2xl font-semibold text-foreground">
                           {isAnnual 
                             ? `$${Math.round(parseFloat(plan.price_annual || '0') / 12)}/mo` 
-                            : `$${plan.price_monthly || '0'}/mo`}
+                            : `$${Math.round(parseFloat(plan.price_monthly || '0'))}/mo`}
                         </p>
                         <ModernButton 
                           variant={isCurrentPlan(plan.id) ? "outline" : plan.name === "Growth" ? "gradient" : "primary"}
