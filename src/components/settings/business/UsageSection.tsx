@@ -16,7 +16,8 @@ import { Switch } from '@/components/ui/switch';
 import { ModernInput } from '@/components/ui/modern-input';
 import { Label } from '@/components/ui/label';
 import { useUpdateSettings } from '@/hooks/useSettings';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
+import { useTopupOptions } from '@/hooks/useTopupOptions';
 
 interface UsageSectionProps {
   usageMetrics?: {
@@ -40,6 +41,23 @@ const UsageSection = ({ usageMetrics, options }: UsageSectionProps) => {
   const [autoTopupReplies, setAutoTopupReplies] = useState(options?.auto_topup_replies || 0);
   
   const updateSettings = useUpdateSettings();
+  const { data: topupOptions } = useTopupOptions();
+  const { toast } = useToast();
+
+  const calculateEstimatedCost = () => {
+    if (!autoTopupReplies || !topupOptions?.ranges) return null;
+
+    const applicableRange = topupOptions.ranges.find(
+      range => autoTopupReplies >= range.min_qty && autoTopupReplies <= range.max_qty
+    );
+
+    return applicableRange ? {
+      price: (autoTopupReplies * applicableRange.price_per_reply).toFixed(2),
+      range: applicableRange
+    } : null;
+  };
+
+  const estimatedCost = calculateEstimatedCost();
 
   const handleSaveAutoRecharge = () => {
     updateSettings.mutate(
@@ -52,10 +70,17 @@ const UsageSection = ({ usageMetrics, options }: UsageSectionProps) => {
       },
       {
         onSuccess: () => {
-          toast.success('Auto recharge settings saved successfully');
+          toast({
+            title: "Success",
+            description: "Auto recharge settings saved successfully",
+          });
         },
         onError: () => {
-          toast.error('Failed to save auto recharge settings');
+          toast({
+            title: "Error",
+            description: "Failed to save auto recharge settings",
+            variant: "destructive",
+          });
         },
       }
     );
@@ -177,9 +202,25 @@ const UsageSection = ({ usageMetrics, options }: UsageSectionProps) => {
                       placeholder="e.g., 500"
                       min={0}
                     />
-                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">
-                      Number of replies to purchase automatically
-                    </p>
+                    {estimatedCost ? (
+                      <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-green-700 dark:text-green-400">Estimated cost:</span>
+                          <span className="text-sm font-semibold text-green-900 dark:text-green-300">${estimatedCost.price}</span>
+                        </div>
+                        <div className="text-xs text-green-600 dark:text-green-500 mt-0.5">
+                          Using {estimatedCost.range.name} range (${estimatedCost.range.price_per_reply}/reply)
+                        </div>
+                      </div>
+                    ) : autoTopupReplies > 0 ? (
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        Please enter a quantity within the available ranges
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground dark:text-muted-foreground">
+                        Number of replies to purchase automatically
+                      </p>
+                    )}
                   </div>
                 </div>
                 <ModernButton 
