@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Trash, Clock, Mail, User, AlertCircle, Send } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,25 +13,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useAuth } from '@/context/AuthContext';
-import { getApiUrl, getAuthHeaders, API_ENDPOINTS, getAccessToken } from '@/utils/api-config';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Icon } from '@/components/icons';
 import { ModernModal } from '@/components/ui/modern-modal';
-
-interface Role {
-  id: number;
-  name: string;
-  description: string;
-  permissions: {
-    id: number;
-    name: string;
-    description: string;
-  }[];
-  is_active: boolean;
-  created_at: string;
-}
+import { 
+  useTeamRoles, 
+  useTeamMembers, 
+  useCreateTeamInvite, 
+  useCancelInvite, 
+  useRemoveTeamMember 
+} from '@/hooks/useTeamManagement';
 
 const inviteFormSchema = z.object({
   email: z.string().email("Invalid email address."),
@@ -40,268 +33,26 @@ const inviteFormSchema = z.object({
 
 type InviteFormValues = z.infer<typeof inviteFormSchema>;
 
-interface Member {
-  id: string;
-  email: string | null;
-  role: string;
-  created_at?: string;
-  status: 'pending' | 'active';
-  name?: string;
-  expires_at?: string;
-  used?: boolean;
-}
-
 const TeamManagementSection = () => {
-  const { user, getToken } = useAuth();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
   const [inviteApiError, setInviteApiError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [teamMembers, setTeamMembers] = useState<Member[]>([]);
-  const [showTeamManagement, setShowTeamManagement] = useState(true);
-  const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
-  const [loadingRoles, setLoadingRoles] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [memberId, setMemberId] = useState(null);
-  const [isDeleting,setIsDeleting] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [memberId, setMemberId] = useState<string | null>(null);
+
+  // Use React Query hooks
+  const { data: availableRoles = [], isLoading: loadingRoles } = useTeamRoles();
+  const { data: teamMembers = [], isLoading: loadingMembers } = useTeamMembers();
+  const createInvite = useCreateTeamInvite();
+  const cancelInvite = useCancelInvite();
+  const removeMember = useRemoveTeamMember();
+  
   const inviteForm = useForm<InviteFormValues>({
     resolver: zodResolver(inviteFormSchema),
     defaultValues: {
       email: '',
     },
   });
-
-  useEffect(() => {
-    fetchTeamMembers();
-    fetchAvailableRoles();
-  }, []);
-
-  const fetchAvailableRoles = async () => {
-    try {
-      setLoadingRoles(true);
-      const token = getToken();
-      if (!token) {
-        throw new Error("You must be logged in to view roles");
-      }
-      
-      const response = await fetch(getApiUrl(API_ENDPOINTS.USER_ROLE), {
-        method: 'GET',
-        headers: getAuthHeaders(token),
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to fetch roles");
-      }
-      
-      const data = await response.json();
-      setAvailableRoles(data.data);
-    } catch (error) {
-      console.error("Error fetching roles:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch available roles",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingRoles(false);
-    }
-  };
-
-  const fetchTeamMembers = async () => {
-    try {
-      setLoading(true);
-      const token = getToken();
-      if (!token) {
-        throw new Error("You must be logged in to view team members");
-      }
-      
-      // Fetch team invites
-      const response = await fetch(getApiUrl('users/get_team_invites/'), {
-        method: 'GET',
-        headers: getAuthHeaders(token),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "An error occurred" }));
-        
-        if (errorData.error === "Only team owners can view invites") {
-          setShowTeamManagement(false);
-          console.log("User doesn't have permission to view team invites. Hiding team management section.");
-        } else {
-          throw new Error(errorData.error || `Failed to fetch team invites: ${response.status}`);
-        }
-        return;
-      }
-      
-      setShowTeamManagement(true);
-      
-      const inviteData = await response.json();
-      console.log("Team invites fetched:", inviteData.data);
-      
-      // Format the invites as members with active/pending status based on 'used' property
-      const formattedMembers: Member[] = inviteData.data.map((invite: any) => ({
-        id: invite.id.toString(),
-        email: invite.email,
-        role: invite.team_role,
-        status: invite.used ? 'active' : 'pending',
-        name: invite.email, // replace with name after api is done
-        created_at: invite.created_at || new Date().toISOString(),
-        expires_at: invite.expires_at,
-        used: invite.used
-      }));
-      
-      
-      setTeamMembers(formattedMembers.sort(a => a.used ? -1 : 1));
-    } catch (error) {
-      console.error("Error fetching team members:", error);
-      if (error instanceof Error && error.message !== "Only team owners can view invites") {
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to fetch team members",
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const cancelInvite = async (inviteId: string) => {
-    setIsDeleting(true);
-    try {
-      const token = getToken();
-      if (!token) {
-        throw new Error("You must be logged in to cancel invitations");
-      }
-      
-      const response = await fetch(getApiUrl(API_ENDPOINTS.REMOVE_INVITE), {
-        method: 'DELETE',
-        headers: getAuthHeaders(token),
-        body: JSON.stringify({
-          invite_id: inviteId
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "An error occurred" }));
-        throw new Error(errorData.error || `Failed to cancel invitation: ${response.status}`);
-      }
-      
-      setTeamMembers(teamMembers.filter(member => member.id !== inviteId));
-      
-      toast({
-        title: "Invitation cancelled",
-        description: "The team invitation has been cancelled successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred while cancelling the invitation.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDeleting(false);
-      setDeleteConfirmOpen(false);
-    }
-  };
-
-  const removeActiveMember = async (memberId: string) => {
-    setIsDeleting(true);
-    try {
-      const token = getToken();
-      if (!token) {
-        throw new Error("You must be logged in to remove team members");
-      }
-      
-      const response = await fetch(getApiUrl(API_ENDPOINTS.REMOVE_MEMBER), {
-        method: 'DELETE',
-        headers: getAuthHeaders(token),
-        body: JSON.stringify({
-          invite_id: memberId
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error.message || `Failed to remove team member: ${response.status}`);
-      }
-      
-      // For now, just remove from local state for mock implementation
-      setTeamMembers(teamMembers.filter(member => member.id !== memberId));
-      
-      toast({
-        title: "Member removed",
-        description: "The team member has been removed successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred while removing the team member.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDeleting(false);
-      setDeleteConfirmOpen(false);
-    }
-  };
-
-  const onInviteSubmit = async (data: InviteFormValues) => {
-    try {
-      setIsSubmitting(true);
-      setInviteApiError(null);
-      
-      const token = getToken();
-      if (!token) {
-        throw new Error("You must be logged in to send invitations");
-      }
-      
-      const response = await fetch(getApiUrl('users/create_team_invite/'), {
-        method: 'POST',
-        headers: {
-          "Authorization": `Bearer ${getAccessToken()}`,
-          "X-Frontend-URL": window.location.origin,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          email: data.email,
-          team_role_id: data.team_role_id
-        }),
-      });
-      
-      const responseData = await response.json();
-      
-      if (!response.ok) {
-        if (responseData.error) {
-            if(responseData.error.fields && responseData.error.fields.hasOwnProperty("email")){
-                setInviteApiError(responseData.error.fields.email[0]);
-            } else {
-                setInviteApiError(responseData.error.message || "Failed to send invitation");
-            }
-          return;
-        } else {
-          throw new Error(responseData.error.message || `Failed to send invitation: ${response.status}`);
-        }
-      }
-      
-      toast({
-        title: "Invitation sent",
-        description: `An invitation has been sent to ${data.email}.`,
-      });
-      
-      fetchTeamMembers();
-      
-      inviteForm.reset();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred while sending the invitation.",
-        variant: "destructive",
-      });
-      console.error("Team invite error:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);

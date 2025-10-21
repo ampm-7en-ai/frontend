@@ -1,7 +1,7 @@
-
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApiUrl } from '@/utils/api-config';
 import { apiGet, apiPost, apiDelete } from '@/utils/api-interceptor';
+import { useAuth } from '@/context/AuthContext';
 
 export interface ApiKey {
   id: number;
@@ -38,36 +38,34 @@ export interface ApiKeyCreateResponse {
   permissions: string[];
 }
 
+async function fetchApiKeys(): Promise<ApiKey[]> {
+  const response = await apiGet(getApiUrl('v1/keys/'));
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch API keys');
+  }
+
+  const data: ApiKeysResponse = await response.json();
+  return data.data.api_keys;
+}
+
 export function useApiKeys() {
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const { isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
 
-  const fetchApiKeys = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const response = await apiGet(getApiUrl('v1/keys/'));
+  const { data: apiKeys = [], isLoading, error } = useQuery({
+    queryKey: ['apiKeys'],
+    queryFn: fetchApiKeys,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    retry: 1,
+    enabled: isAuthenticated,
+  });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch API keys');
-      }
-
-      const data: ApiKeysResponse = await response.json();
-      setApiKeys(data.data.api_keys);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to fetch API keys'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const createApiKey = async (name: string): Promise<string> => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
+  const createApiKeyMutation = useMutation({
+    mutationFn: async (name: string) => {
       const response = await apiPost(getApiUrl('v1/keys/'), { name });
 
       if (!response.ok) {
@@ -75,50 +73,31 @@ export function useApiKeys() {
       }
 
       const data: ApiKeyCreateResponse = await response.json();
-      
-      // Refresh the keys list
-      await fetchApiKeys();
-      
       return data.data.raw_key;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to create API key'));
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['apiKeys'] });
+    },
+  });
 
-  const deleteApiKey = async (keyId: number): Promise<void> => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
+  const deleteApiKeyMutation = useMutation({
+    mutationFn: async (keyId: number) => {
       const response = await apiDelete(getApiUrl(`v1/keys/${keyId}/`));
 
       if (!response.ok) {
         throw new Error('Failed to delete API key');
       }
-
-      // Refresh the keys list
-      await fetchApiKeys();
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to delete API key'));
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchApiKeys();
-  }, []);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['apiKeys'] });
+    },
+  });
 
   return {
     apiKeys,
-    isLoading,
+    isLoading: isLoading || createApiKeyMutation.isPending || deleteApiKeyMutation.isPending,
     error,
-    createApiKey,
-    deleteApiKey,
-    fetchApiKeys
+    createApiKey: createApiKeyMutation.mutateAsync,
+    deleteApiKey: deleteApiKeyMutation.mutateAsync,
   };
 }

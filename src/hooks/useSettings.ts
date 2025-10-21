@@ -56,9 +56,11 @@ export function useSettings() {
   return useQuery({
     queryKey: ['settings'],
     queryFn: fetchSettings,
-    staleTime: 60000, // 1 minute
-    refetchOnWindowFocus: true,
-    retry: 2,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    retry: 1,
     enabled: isAuthenticated,
   });
 }

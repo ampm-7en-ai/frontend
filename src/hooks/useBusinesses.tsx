@@ -94,7 +94,10 @@ export const useBusinesses = () => {
       }));
     },
     enabled: isAuthenticated,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes cache
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 };
 

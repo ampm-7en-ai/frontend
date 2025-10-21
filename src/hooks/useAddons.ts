@@ -101,10 +101,10 @@ const dummyAddons: Addon[] = [
 ];
 
 export function useAddons() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return useQuery({
-    queryKey: ['addons', user?.id],
+    queryKey: ['addons'],
     queryFn: async () => {
       try {
         return await fetchAddons();
@@ -113,46 +113,45 @@ export function useAddons() {
         return dummyAddons;
       }
     },
-    staleTime: 60000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes cache
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
     retry: 0,
-    enabled: isAuthenticated && !!user?.id,
+    enabled: isAuthenticated,
   });
 }
 
 export function useCreateAddon() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
 
   return useMutation({
     mutationFn: createAddon,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['addons', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['addons'] });
     },
   });
 }
 
 export function useUpdateAddon() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
 
   return useMutation({
     mutationFn: ({ id, ...data }: { id: number } & Partial<CreateAddonData>) =>
       updateAddon(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['addons', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['addons'] });
     },
   });
 }
 
 export function useDeleteAddon() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
 
   return useMutation({
     mutationFn: deleteAddon,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['addons', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['addons'] });
     },
   });
 }

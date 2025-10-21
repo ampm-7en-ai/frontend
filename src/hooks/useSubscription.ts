@@ -134,8 +134,10 @@ export function useSubscription(options: UseSubscriptionOptions = { fetchCurrent
   const currentSubscriptionQuery = useQuery({
     queryKey: ['subscription'],
     queryFn: fetchCurrentSubscription,
-    staleTime: 60000, // 1 minute
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     retry: 1,
     enabled: fetchCurrent, // Only fetch if option is true
   });
@@ -143,8 +145,10 @@ export function useSubscription(options: UseSubscriptionOptions = { fetchCurrent
   const subscriptionPlansQuery = useQuery({
     queryKey: ['subscriptionPlans'],
     queryFn: fetchAllSubscriptionPlans,
-    staleTime: 60000, // 1 minute
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     retry: 1,
     enabled: fetchAllPlans, // Only fetch if option is true
   });
