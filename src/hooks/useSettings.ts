@@ -34,6 +34,11 @@ export interface BusinessSettings {
     data_retention_message: string | null;
     gdpr_message_display: boolean | null;
   };
+  options: {
+    is_auto_topup_enabled: boolean;
+    auto_topup_threshold: number;
+    auto_topup_replies: number;
+  };
 }
 
 async function fetchSettings(): Promise<BusinessSettings> {

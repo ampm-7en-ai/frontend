@@ -77,13 +77,20 @@ const BusinessSettings = () => {
 
           {/* Usage Section */}
           <div className="rounded-2xl overflow-hidden">
-            <UsageSection usageMetrics={settingsData?.usage_metrics || {
-              websites_crawled: 0,
-              tokens_used: 0,
-              credits_used: 0,
-              remaining_credits: 0,
-              total_credits: 0
-            }}/>
+            <UsageSection 
+              usageMetrics={settingsData?.usage_metrics || {
+                websites_crawled: 0,
+                tokens_used: 0,
+                credits_used: 0,
+                remaining_credits: 0,
+                total_credits: 0
+              }}
+              options={settingsData?.options || {
+                is_auto_topup_enabled: false,
+                auto_topup_threshold: 0,
+                auto_topup_replies: 0
+              }}
+            />
           </div>
 
 
