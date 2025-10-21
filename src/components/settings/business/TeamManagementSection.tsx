@@ -44,8 +44,8 @@ const TeamManagementSection = () => {
   const { data: availableRoles = [], isLoading: loadingRoles } = useTeamRoles();
   const { data: teamMembers = [], isLoading: loadingMembers } = useTeamMembers();
   const createInvite = useCreateTeamInvite();
-  const cancelInvite = useCancelInvite();
-  const removeMember = useRemoveTeamMember();
+  const cancelInviteMutation = useCancelInvite();
+  const removeMemberMutation = useRemoveTeamMember();
   
   const inviteForm = useForm<InviteFormValues>({
     resolver: zodResolver(inviteFormSchema),
@@ -53,6 +53,69 @@ const TeamManagementSection = () => {
       email: '',
     },
   });
+
+  const onInviteSubmit = async (data: InviteFormValues) => {
+    try {
+      setInviteApiError(null);
+      await createInvite.mutateAsync({
+        email: data.email,
+        team_role_id: data.team_role_id
+      });
+      
+      toast({
+        title: "Invitation sent",
+        description: `An invitation has been sent to ${data.email}.`,
+      });
+      
+      inviteForm.reset();
+    } catch (error) {
+      if (error instanceof Error) {
+        setInviteApiError(error.message);
+      } else {
+        toast({
+          title: "Error",
+          description: "An error occurred while sending the invitation.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleCancelInvite = async (inviteId: string) => {
+    try {
+      await cancelInviteMutation.mutateAsync(inviteId);
+      toast({
+        title: "Invitation cancelled",
+        description: "The team invitation has been cancelled successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "An error occurred while cancelling the invitation.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteConfirmOpen(false);
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string) => {
+    try {
+      await removeMemberMutation.mutateAsync(memberId);
+      toast({
+        title: "Member removed",
+        description: "The team member has been removed successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "An error occurred while removing the team member.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteConfirmOpen(false);
+    }
+  };
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -92,17 +155,19 @@ const TeamManagementSection = () => {
     }
   };
 
-  if (!showTeamManagement) {
+  // If no team members data available and no permission, don't show the section
+  if (!loadingMembers && teamMembers.length === 0 && availableRoles.length === 0) {
     return null;
   }
 
-  //handle remove invitation or user
-  const handleRemove = (delType: string,item: string) => {
-    
+  const handleRemove = (delType: string, item: string) => {
     setSelectedItem(delType);
     setDeleteConfirmOpen(true);
     setMemberId(item);
-  }
+  };
+
+  const isDeleting = cancelInviteMutation.isPending || removeMemberMutation.isPending;
+
   return (
     <section className="p-8">
       <div className="mb-8 pl-2">
@@ -177,10 +242,10 @@ const TeamManagementSection = () => {
               type="submit" 
               variant="primary"
               icon={Send}
-              disabled={isSubmitting}
+              disabled={createInvite.isPending}
               className="font-medium h-11 px-6"
             >
-              {isSubmitting ? 'Sending...' : 'Send'}
+              {createInvite.isPending ? 'Sending...' : 'Send'}
             </ModernButton>
           </form>
         </Form>
@@ -222,13 +287,13 @@ const TeamManagementSection = () => {
           </div>
         </div>
         {/* Team Members List - More Compact */}
-          {(teamMembers.length > 0 || loading) && (
+          {(teamMembers.length > 0 || loadingMembers) && (
             <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl border border-slate-200/50 dark:border-neutral-600/50 backdrop-blur-sm overflow-hidden">
               <div className="p-4 border-b border-slate-200/50 dark:border-neutral-600/50">
                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">Team Members</h3>
               </div>
               
-              {loading ? (
+              {loadingMembers ? (
                 <div className="bg-none">
                   <div className="container mx-auto py-12 flex justify-center items-center h-64">
                     <LoadingSpinner size="lg" text="Loading..." />
@@ -273,7 +338,7 @@ const TeamManagementSection = () => {
                       <ModernButton
                         variant="outline"
                         size="sm"
-                        onClick={() => member.status === 'pending' ? handleRemove("cancel",member.id) : handleRemove("remove",member.id)}
+                        onClick={() => member.status === 'pending' ? handleRemove("cancel", member.id) : handleRemove("remove", member.id)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:!text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 h-10 w-10 p-0"
                       >
                         <Icon type='plain' name={`Bin`} color='hsl(var(--primary))' className='h-5 w-5' />
@@ -283,7 +348,7 @@ const TeamManagementSection = () => {
                 </div>
               )}
               
-              {!loading && teamMembers.length === 0 && (
+              {!loadingMembers && teamMembers.length === 0 && (
                 <div className="p-6 text-center">
                   <div className="w-12 h-12 bg-slate-100 dark:bg-slate-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
                     <User className="h-6 w-6 text-slate-400" />
@@ -302,7 +367,7 @@ const TeamManagementSection = () => {
             open={deleteConfirmOpen}
             onOpenChange={setDeleteConfirmOpen}
             title={selectedItem === 'cancel' ? "Cancel Invitation" : "Remove Member"}
-            description={`Are you sure you want to delete invitation"? This action cannot be undone.`}
+            description={`Are you sure you want to ${selectedItem === 'cancel' ? 'cancel this invitation' : 'remove this member'}? This action cannot be undone.`}
             size="md"
             type='alert'
             footer={
@@ -312,8 +377,9 @@ const TeamManagementSection = () => {
                 </ModernButton>
                 <ModernButton 
                   variant="primary" 
-                  onClick={() => selectedItem === 'cancel' ? cancelInvite(memberId) : removeActiveMember(memberId) }
+                  onClick={() => memberId && (selectedItem === 'cancel' ? handleCancelInvite(memberId) : handleRemoveMember(memberId))}
                   className="!bg-red-600 hover:!bg-red-700 focus:ring-red-600 !text-white"
+                  disabled={isDeleting}
                 >
                   {isDeleting ? "Deleting..." : "Delete"}
                 </ModernButton>
@@ -322,7 +388,10 @@ const TeamManagementSection = () => {
           >
             <div className="py-4">
               <p className="text-muted-foreground dark:text-muted-foreground">
-                This will permanently remove the knowledge source from your agent.
+                {selectedItem === 'cancel' 
+                  ? 'This will cancel the pending invitation and the recipient will no longer be able to join.'
+                  : 'This will permanently remove the team member and revoke their access to the workspace.'
+                }
               </p>
             </div>
           </ModernModal>
