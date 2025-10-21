@@ -31,6 +31,7 @@ export function AddonDialog({ open, onOpenChange, addon }: AddonDialogProps) {
     name: '',
     description: '',
     price_monthly: '',
+    addon_type: 'AUTO_TICKET_RESPONSE' as 'AUTO_TICKET_RESPONSE' | 'WHITE_LABELING' | 'ADD_ON_AGENT',
     status: 'ACTIVE' as 'ACTIVE' | 'INACTIVE',
   });
 
@@ -40,6 +41,7 @@ export function AddonDialog({ open, onOpenChange, addon }: AddonDialogProps) {
         name: addon.name,
         description: addon.description,
         price_monthly: addon.price_monthly,
+        addon_type: addon.addon_type,
         status: addon.status,
       });
     } else {
@@ -47,6 +49,7 @@ export function AddonDialog({ open, onOpenChange, addon }: AddonDialogProps) {
         name: '',
         description: '',
         price_monthly: '',
+        addon_type: 'AUTO_TICKET_RESPONSE',
         status: 'ACTIVE',
       });
     }
@@ -60,6 +63,7 @@ export function AddonDialog({ open, onOpenChange, addon }: AddonDialogProps) {
         name: formData.name,
         description: formData.description,
         price_monthly: parseFloat(formData.price_monthly),
+        addon_type: formData.addon_type,
         status: formData.status,
       };
 
@@ -134,6 +138,23 @@ export function AddonDialog({ open, onOpenChange, addon }: AddonDialogProps) {
                 value={formData.price_monthly}
                 onChange={(e) => setFormData(prev => ({ ...prev, price_monthly: e.target.value }))}
                 required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="addon_type">Addon Type *</Label>
+              <ModernDropdown
+                value={formData.addon_type}
+                onValueChange={(value: 'AUTO_TICKET_RESPONSE' | 'WHITE_LABELING' | 'ADD_ON_AGENT') => 
+                  setFormData(prev => ({ ...prev, addon_type: value }))
+                }
+                options={[
+                  { label: "Auto Ticket Response", value: "AUTO_TICKET_RESPONSE" },
+                  { label: "White Labeling", value: "WHITE_LABELING" },
+                  { label: "Add-on Agent", value: "ADD_ON_AGENT" },
+                ]}
+                placeholder="Select addon type"
+                className="w-full"
               />
             </div>
             

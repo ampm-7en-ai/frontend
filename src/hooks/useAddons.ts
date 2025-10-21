@@ -8,6 +8,7 @@ export interface Addon {
   name: string;
   description: string;
   price_monthly: string;
+  addon_type: 'AUTO_TICKET_RESPONSE' | 'WHITE_LABELING' | 'ADD_ON_AGENT';
   status: 'ACTIVE' | 'INACTIVE';
   created_at?: string;
   updated_at?: string;
@@ -17,6 +18,7 @@ export interface CreateAddonData {
   name: string;
   description: string;
   price_monthly: number;
+  addon_type: 'AUTO_TICKET_RESPONSE' | 'WHITE_LABELING' | 'ADD_ON_AGENT';
   status: 'ACTIVE' | 'INACTIVE';
 }
 
@@ -89,6 +91,7 @@ const dummyAddons: Addon[] = [
     name: "Auto Ticket Response",
     description: "Automatically respond to support tickets with AI-powered responses",
     price_monthly: "49.00",
+    addon_type: 'AUTO_TICKET_RESPONSE',
     status: 'ACTIVE',
   },
   {
@@ -96,6 +99,7 @@ const dummyAddons: Addon[] = [
     name: "White Label",
     description: "Remove branding and customize the platform with your own logo",
     price_monthly: "39.00",
+    addon_type: 'WHITE_LABELING',
     status: 'ACTIVE',
   },
 ];
