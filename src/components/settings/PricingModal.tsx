@@ -100,6 +100,15 @@ export const PricingModal = () => {
     integrations: false,
   });
 
+  // Sort plans by price in ascending order
+  const sortedPlans = useMemo(() => {
+    return [...subscriptionPlans].sort((a, b) => {
+      const priceA = parseFloat(isAnnual ? (a.price_annual || '0') : (a.price_monthly || '0'));
+      const priceB = parseFloat(isAnnual ? (b.price_annual || '0') : (b.price_monthly || '0'));
+      return priceA - priceB;
+    });
+  }, [subscriptionPlans, isAnnual]);
+
   // Get feature value from plan
   const getFeatureValue = (plan: any, featureKey: string) => {
     if (featureKey === 'price_monthly') {
@@ -207,7 +216,7 @@ export const PricingModal = () => {
                   <th className="w-[200px] p-4 text-left text-foreground font-semibold border-r border-foreground">
                     <div className="w-[200px]"></div>
                   </th>
-                  {subscriptionPlans.map(plan => (
+                  {sortedPlans.map(plan => (
                     <th key={plan.id} className="min-w-[250px] max-w-[250px] p-4 text-left text-foreground font-semibold align-top bg-neutral-50 dark:bg-neutral-800/95 border-l border-foreground">
                       <div className="space-y-3 mb-2">
                         <h3 className="text-sm font-normal uppercase">{plan.name}</h3>
@@ -262,7 +271,7 @@ export const PricingModal = () => {
                     <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
                       <div className="w-[200px] text-sm">{feature.label}</div>
                     </td>
-                    {subscriptionPlans.map(plan => {
+                    {sortedPlans.map(plan => {
                       const value = getFeatureValue(plan, feature.key);
                       return (
                         <td key={`${plan.id}-${feature.key}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
@@ -289,7 +298,7 @@ export const PricingModal = () => {
                     <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
                       <div className="w-[200px] text-sm">{feature.label}</div>
                     </td>
-                    {subscriptionPlans.map(plan => {
+                    {sortedPlans.map(plan => {
                       const value = getFeatureValue(plan, feature.key);
                       return (
                         <td key={`${plan.id}-${feature.key}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
@@ -316,7 +325,7 @@ export const PricingModal = () => {
                     <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
                       <div className="w-[200px] text-sm">{feature.label}</div>
                     </td>
-                    {subscriptionPlans.map(plan => {
+                    {sortedPlans.map(plan => {
                       const value = getFeatureValue(plan, feature.key);
                       return (
                         <td key={`${plan.id}-${feature.key}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
@@ -343,7 +352,7 @@ export const PricingModal = () => {
                     <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
                       <div className="w-[200px] text-sm">{feature.label}</div>
                     </td>
-                    {subscriptionPlans.map(plan => {
+                    {sortedPlans.map(plan => {
                       const value = getFeatureValue(plan, feature.key);
                       return (
                         <td key={`${plan.id}-${feature.key}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
@@ -370,7 +379,7 @@ export const PricingModal = () => {
                     <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
                       <div className="w-[200px] text-sm">{feature.label}</div>
                     </td>
-                    {subscriptionPlans.map(plan => {
+                    {sortedPlans.map(plan => {
                       const value = getFeatureValue(plan, feature.key);
                       return (
                         <td key={`${plan.id}-${feature.key}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
@@ -395,7 +404,7 @@ export const PricingModal = () => {
                 {featureGroups.models.length > 0 && (
                   <>
                     <tr className="border-t border-border bg-muted/10">
-                      <td colSpan={subscriptionPlans.length + 1} className="p-0">
+                      <td colSpan={sortedPlans.length + 1} className="p-0">
                         <Collapsible
                           open={openSections.models}
                           onOpenChange={(open) => setOpenSections(prev => ({ ...prev, models: open }))}
@@ -412,7 +421,7 @@ export const PricingModal = () => {
                         <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
                           <div className="w-[200px] text-sm pl-4">{feature.label}</div>
                         </td>
-                        {subscriptionPlans.map(plan => {
+                        {sortedPlans.map(plan => {
                           const value = getFeatureValue(plan, feature.key);
                           return (
                             <td key={`${plan.id}-${feature.key}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
@@ -439,7 +448,7 @@ export const PricingModal = () => {
                 {featureGroups.integrations.length > 0 && (
                   <>
                     <tr className="border-t border-border bg-muted/10">
-                      <td colSpan={subscriptionPlans.length + 1} className="p-0">
+                      <td colSpan={sortedPlans.length + 1} className="p-0">
                         <Collapsible
                           open={openSections.integrations}
                           onOpenChange={(open) => setOpenSections(prev => ({ ...prev, integrations: open }))}
@@ -456,7 +465,7 @@ export const PricingModal = () => {
                         <td className="w-[200px] p-4 text-foreground font-medium border-r border-border">
                           <div className="w-[200px] text-sm pl-4">{feature.label}</div>
                         </td>
-                        {subscriptionPlans.map(plan => {
+                        {sortedPlans.map(plan => {
                           const value = getFeatureValue(plan, feature.key);
                           return (
                             <td key={`${plan.id}-${feature.key}`} className="min-w-[250px] max-w-[250px] p-4 text-center text-foreground border-l border-border">
