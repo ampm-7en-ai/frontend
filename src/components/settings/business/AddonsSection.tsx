@@ -44,7 +44,7 @@ const fetchAvailableAddons = async (): Promise<Addon[]> => {
   return result.data;
 };
 
-const toggleAddon = async (addonType: string): Promise<void> => {
+const subscribeAddon = async (addonType: string): Promise<void> => {
   const token = getAccessToken();
   const response = await fetch(getApiUrl('subscriptions/addons/subscribe/'), {
     method: 'POST',
@@ -56,7 +56,23 @@ const toggleAddon = async (addonType: string): Promise<void> => {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to toggle addon');
+    throw new Error('Failed to subscribe to addon');
+  }
+};
+
+const cancelAddon = async (addonType: string): Promise<void> => {
+  const token = getAccessToken();
+  const response = await fetch(getApiUrl('subscriptions/addons/cancel/'), {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ addon_type: addonType }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to cancel addon');
   }
 };
 
@@ -69,13 +85,13 @@ const AddonsSection = () => {
     queryFn: fetchAvailableAddons,
   });
 
-  const toggleMutation = useMutation({
-    mutationFn: toggleAddon,
+  const subscribeMutation = useMutation({
+    mutationFn: subscribeAddon,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['available-addons'] });
       toast({
         title: "Success",
-        description: `Add-on ${pendingToggle?.action === 'enable' ? 'enabled' : 'disabled'} successfully.`,
+        description: "Add-on enabled successfully.",
         variant: "success",
       });
       setPendingToggle(null);
@@ -83,7 +99,28 @@ const AddonsSection = () => {
     onError: (error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to toggle add-on.",
+        description: error instanceof Error ? error.message : "Failed to enable add-on.",
+        variant: "destructive",
+      });
+      setPendingToggle(null);
+    },
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: cancelAddon,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['available-addons'] });
+      toast({
+        title: "Success",
+        description: "Add-on disabled successfully.",
+        variant: "success",
+      });
+      setPendingToggle(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to disable add-on.",
         variant: "destructive",
       });
       setPendingToggle(null);
@@ -99,7 +136,11 @@ const AddonsSection = () => {
 
   const confirmToggle = () => {
     if (pendingToggle) {
-      toggleMutation.mutate(pendingToggle.addon.addon_type);
+      if (pendingToggle.action === 'enable') {
+        subscribeMutation.mutate(pendingToggle.addon.addon_type);
+      } else {
+        cancelMutation.mutate(pendingToggle.addon.addon_type);
+      }
     }
   };
 
@@ -154,7 +195,7 @@ const AddonsSection = () => {
                   <Switch 
                     checked={addon.status === 'ACTIVE'}
                     onCheckedChange={(checked) => handleToggleRequest(addon, checked)}
-                    disabled={toggleMutation.isPending}
+                    disabled={subscribeMutation.isPending || cancelMutation.isPending}
                   />
                 </div>
               </div>
