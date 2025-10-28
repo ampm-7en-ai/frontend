@@ -124,7 +124,8 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
               width: '400px',
               height: '80vh',
               marginBottom: '20px',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              maxHeight: '800px'
             }}
           >
             {/* ChatboxPreview - unmount/mount based on loading state */}

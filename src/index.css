@@ -128,7 +128,7 @@
 .dark .convo-list .data-\[state\=checked\]\:bg-black[data-state="checked"] {
   background-color: rgb(200 200 200 / var(--tw-bg-opacity, 1));
 }
-.dark .data-\[state\=checked\]\:text-primary-foreground[data-state="checked"]{
+.dark .convo-list .data-\[state\=checked\]\:text-primary-foreground[data-state="checked"]{
   color: black;
 }
 /* Hover effect (optional) */
