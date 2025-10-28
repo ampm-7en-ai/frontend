@@ -24,9 +24,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { ModernInput } from '@/components/ui/modern-input';
+import ModernButton from '@/components/dashboard/ModernButton';
+import { Loader2 } from 'lucide-react';
 
 interface Addon {
   id: number;
@@ -300,16 +301,16 @@ const AddonsSection = () => {
 
       {/* Quantity Input Dialog for ADD_ON_AGENT */}
       <Dialog open={showQuantityDialog} onOpenChange={setShowQuantityDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Select Number of Agents</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-xl font-semibold">Select Number of Agents</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               How many additional agents would you like to add?
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="quantity">Number of Agents</Label>
+              <Label htmlFor="quantity" className="text-sm font-medium">Number of Agents</Label>
               <ModernInput
                 id="quantity"
                 type="number"
@@ -320,18 +321,18 @@ const AddonsSection = () => {
               />
             </div>
             {selectedAddon && (
-              <div className="bg-neutral-50 dark:bg-neutral-800/70 rounded-lg p-4 space-y-2">
+              <div className="bg-neutral-50 dark:bg-neutral-800/70 rounded-xl p-4 space-y-2 border border-neutral-200 dark:border-neutral-700">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Price per agent:</span>
-                  <span className="font-medium">${parseFloat(selectedAddon.price_monthly).toFixed(2)}/month</span>
+                  <span className="font-medium text-neutral-900 dark:text-neutral-100">${parseFloat(selectedAddon.price_monthly).toFixed(2)}/month</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Quantity:</span>
-                  <span className="font-medium">×{quantityInput}</span>
+                  <span className="font-medium text-neutral-900 dark:text-neutral-100">×{quantityInput}</span>
                 </div>
                 <div className="h-px bg-neutral-200 dark:bg-neutral-700 my-2" />
-                <div className="flex justify-between font-semibold">
-                  <span>Total:</span>
+                <div className="flex justify-between font-semibold text-base">
+                  <span className="text-neutral-900 dark:text-neutral-100">Total:</span>
                   <span className="text-primary">
                     ${(parseFloat(selectedAddon.price_monthly) * quantityInput).toFixed(2)}/month
                   </span>
@@ -339,39 +340,64 @@ const AddonsSection = () => {
               </div>
             )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowQuantityDialog(false)}>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <ModernButton 
+              variant="outline" 
+              onClick={() => setShowQuantityDialog(false)}
+              disabled={subscribeMutation.isPending}
+            >
               Cancel
-            </Button>
-            <Button onClick={handleQuantityConfirm}>
+            </ModernButton>
+            <ModernButton 
+              variant="primary" 
+              onClick={handleQuantityConfirm}
+              disabled={subscribeMutation.isPending}
+            >
               Continue
-            </Button>
+            </ModernButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Confirmation Dialog */}
       <AlertDialog open={!!pendingToggle} onOpenChange={() => setPendingToggle(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="sm:max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>
+            <AlertDialogTitle className="text-xl font-semibold">
               {pendingToggle?.action === 'enable' ? 'Enable' : 'Disable'} Add-on
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-muted-foreground">
               Are you sure you want to {pendingToggle?.action} "{pendingToggle?.addon.name}"?
               {pendingToggle?.action === 'enable' && pendingToggle.quantity && (
-                <> This will add ${(parseFloat(pendingToggle.addon.price_monthly) * pendingToggle.quantity).toFixed(2)}/month ({pendingToggle.quantity} × ${parseFloat(pendingToggle.addon.price_monthly).toFixed(2)}) to your subscription.</>
+                <span className="block mt-2 font-medium text-neutral-900 dark:text-neutral-100">
+                  This will add ${(parseFloat(pendingToggle.addon.price_monthly) * pendingToggle.quantity).toFixed(2)}/month ({pendingToggle.quantity} × ${parseFloat(pendingToggle.addon.price_monthly).toFixed(2)}) to your subscription.
+                </span>
               )}
               {pendingToggle?.action === 'enable' && !pendingToggle.quantity && (
-                <> This will add ${parseFloat(pendingToggle.addon.price_monthly).toFixed(2)}/month to your subscription.</>
+                <span className="block mt-2 font-medium text-neutral-900 dark:text-neutral-100">
+                  This will add ${parseFloat(pendingToggle.addon.price_monthly).toFixed(2)}/month to your subscription.
+                </span>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmToggle}>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <ModernButton 
+              variant="outline" 
+              onClick={() => setPendingToggle(null)}
+              disabled={subscribeMutation.isPending || cancelMutation.isPending}
+            >
+              Cancel
+            </ModernButton>
+            <ModernButton 
+              variant="primary" 
+              onClick={confirmToggle}
+              disabled={subscribeMutation.isPending || cancelMutation.isPending}
+            >
+              {(subscribeMutation.isPending || cancelMutation.isPending) && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              )}
               Confirm
-            </AlertDialogAction>
+            </ModernButton>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
