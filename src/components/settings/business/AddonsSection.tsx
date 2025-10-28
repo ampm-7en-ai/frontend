@@ -1,12 +1,107 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { useAddons } from '@/hooks/useAddons';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Icon } from '@/components/icons';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getAccessToken, getApiUrl } from '@/utils/api-config';
+import { toast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
+interface Addon {
+  id: number;
+  name: string;
+  description: string;
+  price_monthly: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  addon_type: string;
+  created_at: string;
+}
+
+const fetchAvailableAddons = async (): Promise<Addon[]> => {
+  const token = getAccessToken();
+  const response = await fetch(getApiUrl('subscriptions/addons/available/'), {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch available addons');
+  }
+
+  const result = await response.json();
+  return result.data;
+};
+
+const toggleAddon = async (addonType: string): Promise<void> => {
+  const token = getAccessToken();
+  const response = await fetch(getApiUrl('subscriptions/addons/subscribe/'), {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ addon_type: addonType }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to toggle addon');
+  }
+};
 
 const AddonsSection = () => {
-  const { data: addons, isLoading } = useAddons();
+  const queryClient = useQueryClient();
+  const [pendingToggle, setPendingToggle] = useState<{ addon: Addon; action: 'enable' | 'disable' } | null>(null);
+  
+  const { data: addons, isLoading } = useQuery({
+    queryKey: ['available-addons'],
+    queryFn: fetchAvailableAddons,
+  });
+
+  const toggleMutation = useMutation({
+    mutationFn: toggleAddon,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['available-addons'] });
+      toast({
+        title: "Success",
+        description: `Add-on ${pendingToggle?.action === 'enable' ? 'enabled' : 'disabled'} successfully.`,
+        variant: "success",
+      });
+      setPendingToggle(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to toggle add-on.",
+        variant: "destructive",
+      });
+      setPendingToggle(null);
+    },
+  });
+
+  const handleToggleRequest = (addon: Addon, checked: boolean) => {
+    setPendingToggle({
+      addon,
+      action: checked ? 'enable' : 'disable',
+    });
+  };
+
+  const confirmToggle = () => {
+    if (pendingToggle) {
+      toggleMutation.mutate(pendingToggle.addon.addon_type);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -58,10 +153,8 @@ const AddonsSection = () => {
                   </span>
                   <Switch 
                     checked={addon.status === 'ACTIVE'}
-                    onCheckedChange={() => {
-                      // TODO: Implement toggle functionality
-                      console.log('Toggle addon:', addon.id);
-                    }}
+                    onCheckedChange={(checked) => handleToggleRequest(addon, checked)}
+                    disabled={toggleMutation.isPending}
                   />
                 </div>
               </div>
@@ -69,6 +162,28 @@ const AddonsSection = () => {
           ))}
         </div>
       </div>
+
+      <AlertDialog open={!!pendingToggle} onOpenChange={() => setPendingToggle(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingToggle?.action === 'enable' ? 'Enable' : 'Disable'} Add-on
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to {pendingToggle?.action} "{pendingToggle?.addon.name}"?
+              {pendingToggle?.action === 'enable' && (
+                <> This will add ${parseFloat(pendingToggle.addon.price_monthly).toFixed(0)}/month to your subscription.</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmToggle}>
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 };
