@@ -16,6 +16,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { ModernInput } from '@/components/ui/modern-input';
 
 interface Addon {
   id: number;
@@ -81,15 +92,20 @@ const fetchCurrentAddons = async (): Promise<CurrentAddon[]> => {
   return result.data;
 };
 
-const subscribeAddon = async (addonType: string): Promise<void> => {
+const subscribeAddon = async (addonType: string, quantity?: number): Promise<void> => {
   const token = getAccessToken();
+  const payload: { addon_type: string; quantity?: number } = { addon_type: addonType };
+  if (quantity !== undefined) {
+    payload.quantity = quantity;
+  }
+  
   const response = await fetch(getApiUrl('subscriptions/addons/subscribe/'), {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ addon_type: addonType }),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
@@ -115,7 +131,10 @@ const cancelAddon = async (addonType: string): Promise<void> => {
 
 const AddonsSection = () => {
   const queryClient = useQueryClient();
-  const [pendingToggle, setPendingToggle] = useState<{ addon: Addon; action: 'enable' | 'disable' } | null>(null);
+  const [pendingToggle, setPendingToggle] = useState<{ addon: Addon; action: 'enable' | 'disable'; quantity?: number } | null>(null);
+  const [quantityInput, setQuantityInput] = useState<number>(1);
+  const [showQuantityDialog, setShowQuantityDialog] = useState(false);
+  const [selectedAddon, setSelectedAddon] = useState<Addon | null>(null);
   
   const { data: addons, isLoading: isLoadingAddons } = useQuery({
     queryKey: ['available-addons'],
@@ -134,7 +153,8 @@ const AddonsSection = () => {
   };
 
   const subscribeMutation = useMutation({
-    mutationFn: subscribeAddon,
+    mutationFn: ({ addonType, quantity }: { addonType: string; quantity?: number }) => 
+      subscribeAddon(addonType, quantity),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['available-addons'] });
       queryClient.invalidateQueries({ queryKey: ['current-addons'] });
@@ -178,16 +198,37 @@ const AddonsSection = () => {
   });
 
   const handleToggleRequest = (addon: Addon, checked: boolean) => {
-    setPendingToggle({
-      addon,
-      action: checked ? 'enable' : 'disable',
-    });
+    if (checked && addon.addon_type === 'ADD_ON_AGENT') {
+      // Show quantity dialog for ADD_ON_AGENT
+      setSelectedAddon(addon);
+      setQuantityInput(1);
+      setShowQuantityDialog(true);
+    } else {
+      setPendingToggle({
+        addon,
+        action: checked ? 'enable' : 'disable',
+      });
+    }
+  };
+
+  const handleQuantityConfirm = () => {
+    if (selectedAddon && quantityInput > 0) {
+      setShowQuantityDialog(false);
+      setPendingToggle({
+        addon: selectedAddon,
+        action: 'enable',
+        quantity: quantityInput,
+      });
+    }
   };
 
   const confirmToggle = () => {
     if (pendingToggle) {
       if (pendingToggle.action === 'enable') {
-        subscribeMutation.mutate(pendingToggle.addon.addon_type);
+        subscribeMutation.mutate({
+          addonType: pendingToggle.addon.addon_type,
+          quantity: pendingToggle.quantity,
+        });
       } else {
         cancelMutation.mutate(pendingToggle.addon.addon_type);
       }
@@ -257,6 +298,59 @@ const AddonsSection = () => {
         </div>
       </div>
 
+      {/* Quantity Input Dialog for ADD_ON_AGENT */}
+      <Dialog open={showQuantityDialog} onOpenChange={setShowQuantityDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select Number of Agents</DialogTitle>
+            <DialogDescription>
+              How many additional agents would you like to add?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="quantity">Number of Agents</Label>
+              <ModernInput
+                id="quantity"
+                type="number"
+                min="1"
+                value={quantityInput}
+                onChange={(e) => setQuantityInput(Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-full"
+              />
+            </div>
+            {selectedAddon && (
+              <div className="bg-neutral-50 dark:bg-neutral-800/70 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Price per agent:</span>
+                  <span className="font-medium">${parseFloat(selectedAddon.price_monthly).toFixed(2)}/month</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Quantity:</span>
+                  <span className="font-medium">×{quantityInput}</span>
+                </div>
+                <div className="h-px bg-neutral-200 dark:bg-neutral-700 my-2" />
+                <div className="flex justify-between font-semibold">
+                  <span>Total:</span>
+                  <span className="text-primary">
+                    ${(parseFloat(selectedAddon.price_monthly) * quantityInput).toFixed(2)}/month
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowQuantityDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleQuantityConfirm}>
+              Continue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog */}
       <AlertDialog open={!!pendingToggle} onOpenChange={() => setPendingToggle(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -265,8 +359,11 @@ const AddonsSection = () => {
             </AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to {pendingToggle?.action} "{pendingToggle?.addon.name}"?
-              {pendingToggle?.action === 'enable' && (
-                <> This will add ${parseFloat(pendingToggle.addon.price_monthly).toFixed(0)}/month to your subscription.</>
+              {pendingToggle?.action === 'enable' && pendingToggle.quantity && (
+                <> This will add ${(parseFloat(pendingToggle.addon.price_monthly) * pendingToggle.quantity).toFixed(2)}/month ({pendingToggle.quantity} × ${parseFloat(pendingToggle.addon.price_monthly).toFixed(2)}) to your subscription.</>
+              )}
+              {pendingToggle?.action === 'enable' && !pendingToggle.quantity && (
+                <> This will add ${parseFloat(pendingToggle.addon.price_monthly).toFixed(2)}/month to your subscription.</>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
