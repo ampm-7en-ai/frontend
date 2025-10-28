@@ -234,14 +234,14 @@ const ConversationCard = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-      <CardContent className="p-4 pb-1">
+      <CardContent className="p-4 pb-1 convo-list">
         <div className="flex items-start gap-3">
           {isBulkSelectMode && (
             <Checkbox 
               checked={isSelectedForBulk}
               onCheckedChange={handleCheckboxChange}
               onClick={(e) => e.stopPropagation()}
-              className="rounded-[4px] mt-3"
+              className="mt-3 border-0 bg-neutral-300 dark:bg-neutral-600 p-[1px]"
             />
           )}
           {getChannelIcon()}

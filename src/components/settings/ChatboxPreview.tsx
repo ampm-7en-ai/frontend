@@ -2132,8 +2132,7 @@ export const ChatboxPreview = ({
                     
                     <ReactMarkdown>{retentionMessage}</ReactMarkdown>
                     {retentionPeriod > 0 && (<p>
-                      <b>Data retention period:</b><br/>
-                      <b>{retentionPeriod} days</b>
+                      <b>Data retention period: {retentionPeriod} days</b>
                       </p>)}
                   </div>
                 </div>
@@ -2649,16 +2648,17 @@ export const ChatboxPreview = ({
                 </a>
                 .
               </div>
-              <Button
+              <ModernButton
                 onClick={() => {
                   setTermsAccepted(true);
                   setShowTermsAcceptance(false);
                 }}
                 size="sm"
                 className="h-7 px-3 text-xs flex-shrink-0"
+                variant="secondary"
               >
                 OK
-              </Button>
+              </ModernButton>
             </div>
           </div>
         )}

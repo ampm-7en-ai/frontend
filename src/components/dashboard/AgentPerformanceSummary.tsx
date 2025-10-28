@@ -21,12 +21,12 @@ interface AgentPerformanceSummaryProps {
 }
 
 const CHANNEL_COLORS = {
-  website: '#b4a7d6',
-  facebook: '#9fc5e8',
-  whatsapp: '#93c47d',
-  instagram: '#f6b26b',
-  playground: '#8b5cf6',
-  ticketing: '#d5a6bd'
+  website: '#734cd9',
+  facebook: '#4b64f2',
+  whatsapp: '#59c429',
+  instagram: '#f06425',
+  playground: '#5b18f2',
+  ticketing: '#d95294'
 };
 
 const AgentPerformanceSummary: React.FC<AgentPerformanceSummaryProps> = ({
