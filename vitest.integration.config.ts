@@ -12,8 +12,14 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    environmentOptions: {
+      jsdom: {
+        resources: 'usable',
+      },
+    },
     setupFiles: './src/test/integration-setup.ts',
     css: true,
+    pool: 'forks',
     include: ['**/*.integration.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',
