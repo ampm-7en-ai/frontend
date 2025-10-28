@@ -1744,14 +1744,8 @@ export const ChatboxPreview = ({
         
         {/* Terms and Conditions */}
         <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/80 backdrop-blur-sm">
-          <div className="flex items-center gap-2 text-xs text-gray-600">
-            <Checkbox 
-              id="terms-acceptance"
-              checked={termsAccepted}
-              onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
-              className="h-4 w-4"
-            />
-            <label htmlFor="terms-acceptance" className="cursor-pointer leading-relaxed">
+          <div className="flex items-center justify-between gap-3 text-xs text-gray-600">
+            <div className="leading-relaxed">
               By chatting you accept our{' '}
               <a 
                 href="#" 
@@ -1761,7 +1755,17 @@ export const ChatboxPreview = ({
                 terms and conditions
               </a>
               .
-            </label>
+            </div>
+            <Button
+              onClick={() => {
+                setTermsAccepted(true);
+                setShowTermsAcceptance(false);
+              }}
+              size="sm"
+              className="h-7 px-3 text-xs flex-shrink-0"
+            >
+              OK
+            </Button>
           </div>
         </div>
 
@@ -2631,22 +2635,9 @@ export const ChatboxPreview = ({
         
         {/* Terms and Conditions - Only show if not accepted */}
         {!termsAccepted && showTermsAcceptance && (
-          <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/80 backdrop-blur-sm relative">
-            <button
-              onClick={() => setShowTermsAcceptance(false)}
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
-              aria-label="Close terms message"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-            <div className="flex items-center gap-2 text-xs text-gray-600 pr-6">
-              <Checkbox 
-                id="terms-acceptance-main"
-                checked={termsAccepted}
-                onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
-                className="h-4 w-4"
-              />
-              <label htmlFor="terms-acceptance-main" className="cursor-pointer leading-relaxed">
+          <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/80 backdrop-blur-sm">
+            <div className="flex items-center justify-between gap-3 text-xs text-gray-600">
+              <div className="leading-relaxed">
                 By chatting, you accept our{' '}
                 <a 
                   href={privacyUrl || "#"} 
@@ -2657,7 +2648,17 @@ export const ChatboxPreview = ({
                   terms and conditions
                 </a>
                 .
-              </label>
+              </div>
+              <Button
+                onClick={() => {
+                  setTermsAccepted(true);
+                  setShowTermsAcceptance(false);
+                }}
+                size="sm"
+                className="h-7 px-3 text-xs flex-shrink-0"
+              >
+                OK
+              </Button>
             </div>
           </div>
         )}
