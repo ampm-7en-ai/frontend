@@ -10,7 +10,7 @@ export interface ModernInputProps
 }
 
 const ModernInput = React.forwardRef<HTMLInputElement, ModernInputProps>(
-  ({ className, type, variant = 'modern', showNumberControls, ...props }, ref) => {
+  ({ className, type, variant = 'modern', showNumberControls = true, ...props }, ref) => {
     const inputRef = React.useRef<HTMLInputElement>(null)
     
     React.useImperativeHandle(ref, () => inputRef.current!)
@@ -43,7 +43,7 @@ const ModernInput = React.forwardRef<HTMLInputElement, ModernInputProps>(
       }
     }
 
-    if (type === 'number' && showNumberControls) {
+    if (type === 'number' && showNumberControls !== false) {
       return (
         <div className="relative">
           <input
