@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Bot, Send, User, WifiOff, AlertCircle, Minus, RotateCcw, MessageCircleReplyIcon, User2, MessageSquare, MoreHorizontal, MessageCircle, Star, X, Plus } from 'lucide-react';
+import { Bot, Send, User, WifiOff, AlertCircle, Minus, RotateCcw, MessageCircleReplyIcon, User2, MessageSquare, MoreHorizontal, MessageCircle, Star, X, Plus, Lock, Unlock } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ChatWebSocketService } from '@/services/ChatWebSocketService';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -130,6 +130,9 @@ export const ChatboxPreview = ({
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(true);
   const [showRetentionMessage, setShowRetentionMessage] = useState(true);
   const [showTermsAcceptance, setShowTermsAcceptance] = useState(true);
+  
+  // Privacy mode state
+  const [isPrivateMode, setIsPrivateMode] = useState(false);
 
   // Check if input should be disabled (when there's a pending UI state)
   const shouldDisableInput = messages.some(msg => 
@@ -910,6 +913,22 @@ export const ChatboxPreview = ({
     }, 500);
   };
 
+  // Handle privacy mode toggle
+  const handlePrivacyModeToggle = () => {
+    if (isPrivateMode) {
+      // Turning off private mode
+      if (messages.length > 2) {
+        // Show feedback form if there are more than 2 messages
+        setShowFeedbackForm(true);
+      }
+      setIsPrivateMode(false);
+    } else {
+      // Turning on private mode - start new session
+      setIsPrivateMode(true);
+      handleRestart();
+    }
+  };
+
   // Handle Delete chat
   const handleDeleteChat = () => {
     if (messages.length === 0) {
@@ -1170,13 +1189,30 @@ export const ChatboxPreview = ({
                   </div>
                   <div className="flex flex-col">
                     <span className="font-semibold text-white text-lg drop-shadow-sm" style={{color:`${secondaryColor} !important`}}>{chatbotName}</span>
-                    <span className="text-white/80 text-sm">
-                      {isConnected ? 'Online' : 'Connecting...'}
-                    </span>
+                    {isPrivateMode ? (
+                      <span className="text-white/90 text-xs font-medium">
+                        🔒 Private mode - No messages stored
+                      </span>
+                    ) : (
+                      <span className="text-white/80 text-sm">
+                        {isConnected ? 'Online' : 'Connecting...'}
+                      </span>
+                    )}
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-2 relative z-10">
+                  {/* Privacy mode toggle */}
+                  <ModernButton
+                    onClick={handlePrivacyModeToggle}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+                    title={isPrivateMode ? "Disable private mode" : "Enable private mode"}
+                    icon={isPrivateMode ? Lock : Unlock}
+                    iconOnly
+                  />
+                  
                   {/* Menu dropdown */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -1992,10 +2028,29 @@ export const ChatboxPreview = ({
           </div>
           <div className="flex flex-col">
             <span className="font-normal text-white text-lg drop-shadow-sm" style={{color: secondaryColor}}>{chatbotName}</span>
+            {isPrivateMode && (
+              <span className="text-white/90 text-xs font-medium" style={{color: `${secondaryColor}E6`}}>
+                🔒 Private mode - No messages stored
+              </span>
+            )}
           </div>
         </div>
         
         <div className="flex items-center gap-2 relative z-10">
+          {/* Privacy mode toggle */}
+          <ModernButton
+            onClick={handlePrivacyModeToggle}
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors dark:hover:bg-white/20"
+            title={isPrivateMode ? "Disable private mode" : "Enable private mode"}
+            icon={isPrivateMode ? Lock : Unlock}
+            style={{
+              color: `${secondaryColor}80`
+            }}
+            iconOnly
+          />
+          
           {/* Menu dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
