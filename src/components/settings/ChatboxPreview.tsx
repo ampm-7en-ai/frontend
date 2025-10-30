@@ -926,6 +926,14 @@ export const ChatboxPreview = ({
       // Turning on private mode - start new session
       setIsPrivateMode(true);
       handleRestart();
+      
+      // Send private mode message via WebSocket after restart
+      setTimeout(() => {
+        if (chatServiceRef.current?.isConnected()) {
+          chatServiceRef.current.send({ type: "private" });
+          console.log('🔒 Private mode message sent via WebSocket');
+        }
+      }, 500);
     }
   };
 
