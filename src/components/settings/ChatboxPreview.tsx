@@ -739,6 +739,13 @@ export const ChatboxPreview = ({
               setTimeout(() => {
                 restartingRef.current = false;
               }, 1000);
+              
+              // Send private mode message if pending
+              if (pendingPrivateModeRef.current && chatServiceRef.current) {
+                console.log('🔒 Sending private mode message via WebSocket');
+                chatServiceRef.current.send({ type: "private" });
+                pendingPrivateModeRef.current = false;
+              }
             }
           },
           ...(enableSessionStorage && onSessionIdReceived && {
@@ -913,6 +920,9 @@ export const ChatboxPreview = ({
     }, 500);
   };
 
+  // Track if we need to send private mode message after reconnect
+  const pendingPrivateModeRef = useRef(false);
+
   // Handle privacy mode toggle
   const handlePrivacyModeToggle = () => {
     if (isPrivateMode) {
@@ -925,15 +935,8 @@ export const ChatboxPreview = ({
     } else {
       // Turning on private mode - start new session
       setIsPrivateMode(true);
+      pendingPrivateModeRef.current = true; // Set flag to send private message after reconnect
       handleRestart();
-      
-      // Send private mode message via WebSocket after restart
-      setTimeout(() => {
-        if (chatServiceRef.current?.isConnected()) {
-          chatServiceRef.current.send({ type: "private" });
-          console.log('🔒 Private mode message sent via WebSocket');
-        }
-      }, 500);
     }
   };
 
