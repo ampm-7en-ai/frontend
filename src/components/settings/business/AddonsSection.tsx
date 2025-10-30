@@ -130,12 +130,30 @@ const cancelAddon = async (addonType: string): Promise<void> => {
   }
 };
 
+const updateAddonQuantity = async (addonType: string, quantity: number): Promise<void> => {
+  const token = getAccessToken();
+  const response = await fetch(getApiUrl('subscriptions/addons/quantity/'), {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ addon_type: addonType, quantity }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update addon quantity');
+  }
+};
+
 const AddonsSection = () => {
   const queryClient = useQueryClient();
   const [pendingToggle, setPendingToggle] = useState<{ addon: Addon; action: 'enable' | 'disable'; quantity?: number } | null>(null);
   const [quantityInput, setQuantityInput] = useState<number>(1);
   const [showQuantityDialog, setShowQuantityDialog] = useState(false);
+  const [showEditQuantityDialog, setShowEditQuantityDialog] = useState(false);
   const [selectedAddon, setSelectedAddon] = useState<Addon | null>(null);
+  const [editingAddon, setEditingAddon] = useState<CurrentAddon | null>(null);
   
   const { data: addons, isLoading: isLoadingAddons } = useQuery({
     queryKey: ['available-addons'],
@@ -151,6 +169,12 @@ const AddonsSection = () => {
     return currentAddons?.some(
       (current) => current.package.addon_type === addonType && current.status === 'ACTIVE'
     ) || false;
+  };
+
+  const getCurrentAddon = (addonType: string): CurrentAddon | undefined => {
+    return currentAddons?.find(
+      (current) => current.package.addon_type === addonType && current.status === 'ACTIVE'
+    );
   };
 
   const subscribeMutation = useMutation({
@@ -198,6 +222,29 @@ const AddonsSection = () => {
     },
   });
 
+  const updateQuantityMutation = useMutation({
+    mutationFn: ({ addonType, quantity }: { addonType: string; quantity: number }) => 
+      updateAddonQuantity(addonType, quantity),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['available-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['current-addons'] });
+      toast({
+        title: "Success",
+        description: "Agent quantity updated successfully.",
+        variant: "success",
+      });
+      setShowEditQuantityDialog(false);
+      setEditingAddon(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update quantity.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleToggleRequest = (addon: Addon, checked: boolean) => {
     if (checked && addon.addon_type === 'ADD_ON_AGENT') {
       // Show quantity dialog for ADD_ON_AGENT
@@ -215,9 +262,27 @@ const AddonsSection = () => {
   const handleQuantityConfirm = () => {
     if (selectedAddon && quantityInput > 0) {
       setShowQuantityDialog(false);
-      setPendingToggle({
-        addon: selectedAddon,
-        action: 'enable',
+      // Add small delay to ensure proper modal cleanup
+      setTimeout(() => {
+        setPendingToggle({
+          addon: selectedAddon,
+          action: 'enable',
+          quantity: quantityInput,
+        });
+      }, 100);
+    }
+  };
+
+  const handleEditQuantity = (currentAddon: CurrentAddon) => {
+    setEditingAddon(currentAddon);
+    setQuantityInput(currentAddon.quantity);
+    setShowEditQuantityDialog(true);
+  };
+
+  const handleUpdateQuantity = () => {
+    if (editingAddon && quantityInput > 0) {
+      updateQuantityMutation.mutate({
+        addonType: editingAddon.package.addon_type,
         quantity: quantityInput,
       });
     }
@@ -264,6 +329,7 @@ const AddonsSection = () => {
         <div className="space-y-4">
           {addons?.filter(addon => addon.status === 'ACTIVE').map((addon) => {
             const subscribed = isSubscribed(addon.addon_type);
+            const currentAddon = getCurrentAddon(addon.addon_type);
             return (
               <div key={addon.id} className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl p-6 border border-neutral-200/50 dark:border-none">
                 <div className="flex items-start justify-between">
@@ -280,6 +346,20 @@ const AddonsSection = () => {
                     <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                       {addon.description}
                     </p>
+                    {subscribed && currentAddon && addon.addon_type === 'ADD_ON_AGENT' && (
+                      <div className="mt-3 flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Current quantity:</span>
+                        <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">{currentAddon.quantity}</span>
+                        <ModernButton 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditQuantity(currentAddon)}
+                          className="ml-2"
+                        >
+                          Edit
+                        </ModernButton>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="flex items-center gap-3 ml-6">
@@ -354,6 +434,69 @@ const AddonsSection = () => {
               disabled={subscribeMutation.isPending}
             >
               Continue
+            </ModernButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Quantity Dialog */}
+      <Dialog open={showEditQuantityDialog} onOpenChange={setShowEditQuantityDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">Update Number of Agents</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Change the number of additional agents in your subscription
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-quantity" className="text-sm font-medium">Number of Agents</Label>
+              <ModernInput
+                id="edit-quantity"
+                type="number"
+                min="1"
+                value={quantityInput}
+                onChange={(e) => setQuantityInput(Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-full"
+              />
+            </div>
+            {editingAddon && (
+              <div className="bg-neutral-50 dark:bg-neutral-800/70 rounded-xl p-4 space-y-2 border border-neutral-200 dark:border-neutral-700">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Current quantity:</span>
+                  <span className="font-medium text-neutral-900 dark:text-neutral-100">{editingAddon.quantity}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">New quantity:</span>
+                  <span className="font-medium text-neutral-900 dark:text-neutral-100">{quantityInput}</span>
+                </div>
+                <div className="h-px bg-neutral-200 dark:bg-neutral-700 my-2" />
+                <div className="flex justify-between font-semibold text-base">
+                  <span className="text-neutral-900 dark:text-neutral-100">New total:</span>
+                  <span className="text-primary">
+                    ${(parseFloat(editingAddon.package.price_monthly) * quantityInput).toFixed(2)}/month
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <ModernButton 
+              variant="outline" 
+              onClick={() => setShowEditQuantityDialog(false)}
+              disabled={updateQuantityMutation.isPending}
+            >
+              Cancel
+            </ModernButton>
+            <ModernButton 
+              variant="primary" 
+              onClick={handleUpdateQuantity}
+              disabled={updateQuantityMutation.isPending}
+            >
+              {updateQuantityMutation.isPending && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              )}
+              Update
             </ModernButton>
           </DialogFooter>
         </DialogContent>
