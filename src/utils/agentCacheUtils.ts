@@ -18,14 +18,21 @@ export const addAgentToCache = (queryClient: any, newAgent: Agent) => {
   console.log('📋 Current agents cache data:', currentData);
   console.log('📊 Current cache data type:', Array.isArray(currentData) ? 'Array' : typeof currentData);
   
+  // IMPORTANT: Only update cache if it already exists
+  // If no cache exists, let the page fetch fresh data from API
+  if (!currentData) {
+    console.log('⚠️ No existing cache found - skipping cache update. Page will fetch fresh data from API.');
+    return;
+  }
+  
   queryClient.setQueryData(['agents'], (oldData: Agent[] | undefined) => {
     console.log('🔄 Cache update function called with oldData:', oldData);
     console.log('🔍 oldData type:', Array.isArray(oldData) ? 'Array' : typeof oldData);
     console.log('🔍 oldData length:', Array.isArray(oldData) ? oldData.length : 'N/A');
     
     if (!oldData || !Array.isArray(oldData)) {
-      console.log('✨ No existing array data, creating new array with agent');
-      return [newAgent];
+      console.log('⚠️ Cache exists but is not an array - skipping update');
+      return oldData;
     }
     
     // Check if agent already exists (prevent duplicates)
