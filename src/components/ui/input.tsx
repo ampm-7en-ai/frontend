@@ -105,7 +105,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <button
               type="button"
               onClick={handleIncrement}
-              className="h-4 w-6 flex items-center justify-center rounded hover:bg-accent transition-colors"
+              className="h-4 w-6 flex items-center justify-center rounded hover:bg-transparent transition-colors"
               tabIndex={-1}
             >
               <ChevronUp className="h-3 w-3 text-muted-foreground" />
@@ -113,7 +113,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <button
               type="button"
               onClick={handleDecrement}
-              className="h-4 w-6 flex items-center justify-center rounded hover:bg-accent transition-colors"
+              className="h-4 w-6 flex items-center justify-center rounded hover:bg-transparent transition-colors"
               tabIndex={-1}
             >
               <ChevronDown className="h-3 w-3 text-muted-foreground" />
