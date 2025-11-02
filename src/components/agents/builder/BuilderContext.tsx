@@ -78,6 +78,7 @@ interface AgentFeature {
 
 interface BuilderContextType {
   state: BuilderState;
+  features: any;
   updateAgentData: (data: Partial<AgentFormData>) => void;
   setCanvasMode: (mode: 'embedded' | 'popup' | 'inline') => void;
   setDeviceMode: (mode: 'desktop' | 'tablet' | 'mobile') => void;
@@ -571,6 +572,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const value: BuilderContextType = {
     state,
+    features,
     updateAgentData,
     setCanvasMode,
     setDeviceMode,

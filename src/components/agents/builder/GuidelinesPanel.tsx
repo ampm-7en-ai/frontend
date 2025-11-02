@@ -27,7 +27,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Icon } from '@/components/icons';
 
 export const GuidelinesPanel = () => {
-  const { state, updateAgentData, saveAgent } = useBuilder();
+  const { state, features, updateAgentData, saveAgent } = useBuilder();
   const { agentData, lastSaveTimestamp, isLoading } = state;
   const fileInputRef = useRef<HTMLInputElement>(null);
     //track accrodion id opened
@@ -1105,6 +1105,7 @@ export const GuidelinesPanel = () => {
                                           <Checkbox 
                                             id={`auto-reply`}
                                             checked={agentData.behavior?.autoTicketReply || false}
+                                            disabled={!features?.AUTO_TICKET_RESPONSE}
                                             className='rounded-[4px]'
                                             onCheckedChange={(checked: any) => updateAgentData({ 
                                               behavior: { ...agentData.behavior, autoTicketReply: checked }
