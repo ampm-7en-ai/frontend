@@ -72,6 +72,9 @@ interface BuilderState {
   isLoading: boolean;
   lastSaveTimestamp?: number;
 }
+interface AgentFeature {
+  features: {};
+}
 
 interface BuilderContextType {
   state: BuilderState;
@@ -134,6 +137,7 @@ const initialState: BuilderState = {
 
 export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<BuilderState>(initialState);
+  const [features,setFeatures] = useState({});
   const navigate = useNavigate();
   const { toast } = useToast();
   const { id } = useParams();
@@ -189,8 +193,9 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       const result = await response.json();
       const agentData = result.data;
+      const agentFeatures = result.features;
       
-      console.log('Fetched agent data:', agentData);
+      console.log('Fetched agent data:', agentFeatures);
 
       // Map API response to our form structure - Enhanced model configuration mapping
       const mappedData: AgentFormData = {
@@ -261,6 +266,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isDirty: false,
         isLoading: false
       }));
+
+      setFeatures(agentFeatures);
 
       // Return the raw agentData for use in other effects (preserving original status)
       return agentData;
