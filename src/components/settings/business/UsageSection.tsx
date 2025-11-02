@@ -195,8 +195,8 @@ const UsageSection = ({ usageMetrics, options }: UsageSectionProps) => {
           </div>
 
           {/* Auto Recharge Section */}
-          <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl p-6 border border-neutral-200/50 dark:border-none">
-            <div className="flex items-start justify-between mb-4">
+          <div className="bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl p-6 pb-2 border border-neutral-200/50 dark:border-none">
+            <div className="flex items-start justify-between mb-0">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="bg-transparent rounded-lg flex items-center justify-center">

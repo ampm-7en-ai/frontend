@@ -521,19 +521,19 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button
+          <ModernButton
             variant="outline"
             onClick={() => setShowDeleteDialog(false)}
           >
             Cancel
-          </Button>
-          <Button
+          </ModernButton>
+          <ModernButton
             onClick={handleDeleteAllConversations}
             disabled={isDeleting}
             className='bg-red-600 hover:bg-red-700 text-white'
           >
             {isDeleting ? 'Deleting...' : 'Delete All'}
-          </Button>
+          </ModernButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -548,19 +548,19 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button
+          <ModernButton
             variant="outline"
             onClick={() => setShowDeleteAccountDialog(false)}
           >
             Cancel
-          </Button>
-          <Button
+          </ModernButton>
+          <ModernButton
             onClick={handleDeleteAccount}
             disabled={isDeleting}
             className='bg-red-600 hover:bg-red-700 text-white'
           >
             {isDeleting ? 'Deleting...' : 'Delete Account'}
-          </Button>
+          </ModernButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

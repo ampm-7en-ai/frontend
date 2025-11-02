@@ -288,7 +288,7 @@ const TeamManagementSection = () => {
         </div>
         {/* Team Members List - More Compact */}
           {(teamMembers.length > 0 || loadingMembers) && (
-            <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl border border-neutral-200/50 dark:border-neutral-600/50 backdrop-blur-sm overflow-hidden">
+            <div className="bg-white/50 dark:bg-neutral-800/70 rounded-2xl border border-neutral-200/50 dark:border-neutral-600/50 backdrop-blur-sm overflow-hidden mb-4">
               <div className="p-4 border-b border-neutral-200/50 dark:border-neutral-600/50">
                 <h3 className="font-semibold text-neutral-900 dark:text-neutral-100">Team Members</h3>
               </div>
