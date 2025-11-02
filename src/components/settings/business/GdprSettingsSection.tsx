@@ -18,6 +18,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useConversations } from '@/hooks/useConversations';
 import { API_BASE_URL, MEDIA_BASE_URL } from '@/config/env';
 
@@ -41,6 +49,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [exportData, setExportData] = useState<{ url: string; file_name: string; format: string } | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   const { bulkDeleteConversations } = useConversations();
 
@@ -131,11 +140,8 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
   };
 
   const handleDeleteAllConversations = async () => {
-    if (!confirm('Are you sure you want to delete all conversations? This action cannot be undone.')) {
-      return;
-    }
-    
     setIsDeleting(true);
+    setShowDeleteDialog(false);
     try {
       const user = localStorage.getItem('user');
       const accessToken = user ? JSON.parse(user).accessToken : null;
@@ -363,7 +369,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                   </p>
                 </div>
                 <ModernButton 
-                    onClick={handleDeleteAllConversations} 
+                    onClick={() => setShowDeleteDialog(true)} 
                     disabled={isDeleting} 
                     variant="outline"
                     icon={Trash}
@@ -483,6 +489,36 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
       </div>
       
     </section>
+
+    {/* Delete Confirmation Dialog */}
+    <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete All Conversations</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete all conversations? This action cannot be undone and all conversation data will be permanently removed.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <ModernButton
+            variant="outline"
+            onClick={() => setShowDeleteDialog(false)}
+          >
+            Cancel
+          </ModernButton>
+          <ModernButton
+            variant="outline"
+            onClick={handleDeleteAllConversations}
+            disabled={isDeleting}
+            icon={Trash}
+            className='text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-100 dark:hover:text-red-200 dark:hover:bg-red-900/20'
+          >
+            {isDeleting ? 'Deleting...' : 'Delete All'}
+          </ModernButton>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
     <section className='p-8 px-0'>
       <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 pt-2 backdrop-blur-sm">
           
