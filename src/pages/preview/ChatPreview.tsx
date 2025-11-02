@@ -21,6 +21,7 @@ interface ChatbotConfig {
   collectEmail?: boolean;
   gdprSettings?: GdprConfig ;
   privacyUrl?: string;
+  is_white_label?: boolean;
 }
 
 interface GdprConfig {
@@ -57,6 +58,7 @@ const ChatPreview = () => {
       return null;
     }
   };
+  
 
   // Handle when a new session ID is received from the server
   const handleSessionIdReceived = (newSessionId: string) => {
@@ -65,7 +67,7 @@ const ChatPreview = () => {
       return;
     }
     
-    console.log('📨 Session ID received from server:', newSessionId);
+    
     
     // Always store the new session ID (this fixes the issue)
     setStoredSessionId(agentId, newSessionId);
@@ -233,6 +235,7 @@ const ChatPreview = () => {
           onSessionIdReceived={handleSessionIdReceived}
           onRestart={handleChatRestart}
           privacyUrl={config?.privacyUrl || "#"}
+          isWhiteLabel={config?.is_white_label || false}
         />
       </div>
     </div>

@@ -126,7 +126,7 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
   };
 
   return (
-    <section className="p-8">
+    <section className="p-8 px-0">
       <div className="mb-8 pl-2">
         <h2 className="text-2xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">Business Profile</h2>
         <p className="text-muted-foreground dark:text-muted-foreground leading-relaxed">

@@ -211,7 +211,7 @@ const ConversationCard = ({
       }
     });
     
-    return result.trim() + ' ago';
+    return result.trim();
   }
 
   const escapeHTML = (str) => {

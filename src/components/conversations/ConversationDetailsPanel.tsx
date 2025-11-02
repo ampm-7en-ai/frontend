@@ -320,11 +320,11 @@ const ConversationDetailsPanel = ({
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
                       <XAxis
                         dataKey="index"
-                        label={{ value: "No. of Messages", position: "insideBottom", offset: -5 }}
+                        label={{ position: "insideBottom", offset: -5 }}
                       />
                       <YAxis
                         domain={[0, 10]}
-                        label={{ value: "Score", angle: -90, position: "insideLeft" }}
+                        label={{ angle: -90, position: "insideLeft" }}
                         ticks={[0, 2, 4, 6, 8, 10]}
                       />
                       <Tooltip contentStyle={{ 

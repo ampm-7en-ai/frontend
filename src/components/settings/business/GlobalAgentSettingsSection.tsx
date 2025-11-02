@@ -92,7 +92,7 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
   };
 
   return (
-    <section className="p-8">
+    <section className="p-8 px-0">
       <div className="mb-8 pl-2">
         <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Global Agent Settings</h2>
         <p className="text-muted-foreground dark:text-muted-foreground leading-relaxed">

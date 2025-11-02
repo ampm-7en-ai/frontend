@@ -175,7 +175,8 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
   };
 
   return (
-    <section className="p-8">
+    <>
+    <section className="p-8 px-0">
       <div className="mb-8 pl-2">
         <h2 className="text-2xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">GDPR Settings</h2>
         <p className="text-muted-foreground dark:text-muted-foreground leading-relaxed">
@@ -372,25 +373,6 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                   </ModernButton>
                 
               </div>
-              {/* delete account */}
-              <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none mt-4">
-                <div className="space-y-0.5">
-                  <Label className="text-red-900 dark:text-red-100">Delete Account</Label>
-                  <p className="text-sm text-muted-foreground">
-                  Delete your account
-                  </p>
-                </div>
-                <ModernButton 
-                    onClick={() => null} 
-                    disabled={isDeleting} 
-                    variant="outline"
-                    icon={Trash}
-                    className='text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-neutral-200 dark:hover:text-neutral-300 dark:hover:bg-red-900/20'
-                  >
-                    {isDeleting ? 'Deleting...' : 'Delete'}
-                  </ModernButton>
-                
-              </div>
             </div>
           </div>
         )}
@@ -454,7 +436,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                             {formatEventType(log.event_type)}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            • {log.entity_type} #{log.entity_id}
+                            {log.entity_type === "api_key" ? "API Key" : log.entity_type}
                           </span>
                         </div>
                         {log.details?.name && (
@@ -462,7 +444,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                             {log.details.name}
                           </p>
                         )}
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <span>User: {log.user}</span>
                           <span>•</span>
                           <span>{formatTimestamp(log.timestamp)}</span>
@@ -475,7 +457,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                         </div>
                       </div>
                       <div>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
+                        <span className={`text-xs px-2 py-1 rounded-full capitalize ${
                           log.status === 'success' 
                             ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
                             : 'bg-red-500/10 text-red-600 dark:text-red-400'
@@ -499,7 +481,33 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
           )}
         </div>
       </div>
+      
     </section>
+    <section className='p-8 px-0'>
+      <div className="bg-white/70 dark:bg-neutral-800/70 rounded-2xl p-6 pt-2 backdrop-blur-sm">
+          
+          {/* delete account */}
+          <div className="flex items-center justify-between p-4 bg-neutral-50/80 dark:bg-neutral-800/70 rounded-xl border border-neutral-200/50 dark:border-none mt-4">
+            <div className="space-y-0.5">
+              <Label className="text-red-900 dark:text-red-100">Delete Account</Label>
+              <p className="text-sm text-muted-foreground">
+              Delete your account
+              </p>
+            </div>
+            <ModernButton 
+                onClick={() => null} 
+                disabled={isDeleting} 
+                variant="outline"
+                icon={Trash}
+                className='text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-neutral-200 dark:hover:text-neutral-300 dark:hover:bg-red-900/20'
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </ModernButton>
+            
+          </div>
+      </div>
+    </section>
+    </>
   );
 };
 

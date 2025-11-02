@@ -67,7 +67,7 @@ const PaymentHistory = () => {
 
   return (
     <div className="min-h-screen dark:bg-[hsla(0,0%,0%,0.95)]">
-      <div className="container mx-auto p-6 max-w-6xl">
+      <div className="container mx-auto p-6 max-w-5xl">
         <div className="mb-6">
           
           <ModernButton
@@ -105,7 +105,6 @@ const PaymentHistory = () => {
               <div className="text-center py-12 text-muted-foreground dark:text-muted-foreground">
                 <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg font-medium mb-2">No payment history found</p>
-                <p className="text-sm">Your payment records will appear here once you subscribe to a plan.</p>
               </div>
             ) : (
               <div className="overflow-hidden rounded-xl border border-slate-200/50 dark:border-neutral-700/50">
@@ -125,7 +124,7 @@ const PaymentHistory = () => {
                     {paymentHistory.map((payment, index) => (
                       <TableRow 
                         key={index}
-                        className="group hover:bg-neutral-50/50 dark:hover:bg-neutral-700/30 dark:border-neutral-600 transition-colors"
+                        className="hover:bg-neutral-50/50 dark:hover:bg-neutral-700/30 dark:border-neutral-600 transition-colors"
                       >
                         <TableCell className="font-medium text-slate-900 dark:text-slate-100">{payment.plan_name !== null ? payment.plan_name : `Topup - ${payment.replies} replies`}</TableCell>
                         <TableCell className="text-slate-700 dark:text-slate-300">${payment?.price || payment?.amount}</TableCell>
@@ -145,10 +144,11 @@ const PaymentHistory = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDownloadInvoice(payment.invoice_url!, payment.plan_name)}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="opacity-100 transition-opacity"
+                              iconOnly
                             >
-                              <Download className="h-4 w-4 mr-1" />
-                              Download
+                              <Download className="h-4 w-4" />
+                              
                             </ModernButton>
                           ) : (
                             <span className="text-slate-400 dark:text-slate-500 text-sm">-</span>

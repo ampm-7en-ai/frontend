@@ -224,8 +224,8 @@ const AgentList = () => {
   return (
     <div className={`min-h-screen bg-neutral-100/50`}>
       <div className="min-h-screen bg-neutral-100/50 dark:bg-[hsla(0,0%,0%,0.95)] transition-colors duration-200">
-        <div className="container mx-auto px-4 py-6">
-          <div className="space-y-6 p-8">
+        <div className="container max-w-5xl mx-auto px-4 py-6">
+          <div className="space-y-6 p-8 px-0">
             {/* Header Section */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 px-0">
               <div>

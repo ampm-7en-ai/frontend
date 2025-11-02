@@ -54,6 +54,7 @@ interface AgentFormData {
   is_slack_enabled: boolean;
   gdpr_settings?: GdprConfig;
   privacy_url?: string;
+  is_white_label?: boolean;
 }
 
 interface GdprConfig {
@@ -118,7 +119,8 @@ const defaultAgentData: AgentFormData = {
   knowledgeSources: [],
   ticketing_providers: [],
   default_ticketing_provider: "",
-  is_slack_enabled: false
+  is_slack_enabled: false,
+  is_white_label: false
 };
 
 const initialState: BuilderState = {
@@ -239,6 +241,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         ticketing_providers: agentData.ticketing_providers || [],
         default_ticketing_provider: agentData.default_ticketing_provider || "",
         is_slack_enabled: agentData.is_slack_enabled || false,
+        is_white_label: agentData.is_white_label || false,
         privacy_url: agentData.privacy_url || "#",
         gdpr_settings: {
           data_retention_days: agentData.gdpr_settings?.data_retention_days || 0,
@@ -494,7 +497,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           knowledgeSources: formatKnowledgeSources(response.data.knowledge_sources || []),
           ticketing_providers: response.data.ticketing_providers || state.agentData.ticketing_providers,
           default_ticketing_provider: response.data.default_ticketing_provider || state.agentData.default_ticketing_provider,
-          is_slack_enabled: response.data.is_slack_enabled || state.agentData.is_slack_enabled
+          is_slack_enabled: response.data.is_slack_enabled || state.agentData.is_slack_enabled,
+          is_white_label: response.data.is_white_label || state.agentData.is_white_label
         };
         
         setState(prev => ({ 

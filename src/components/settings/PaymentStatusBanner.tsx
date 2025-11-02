@@ -51,17 +51,7 @@ export const PaymentStatusBanner = () => {
       </Button>
       
       {/* View Receipt link - only show on success */}
-      {isSuccess && (
-        <Button
-          variant="link"
-          size="sm"
-          onClick={handleViewReceipt}
-          className="absolute top-2 right-10 h-8 px-2 text-sm"
-        >
-          <FileText className="h-3 w-3 mr-1" />
-          View Receipt
-        </Button>
-      )}
+      
     </div>
   );
 };

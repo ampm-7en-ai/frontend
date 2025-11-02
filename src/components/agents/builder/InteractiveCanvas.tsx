@@ -29,8 +29,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
   const currentAgentId = agentData.id ? agentData.id.toString() : null;
   const shareableLink = currentAgentId ? `${window.location.origin}/chat/preview/${currentAgentId}?theme=${theme}` : '';
 
-  console.log(agentData);
-
+ 
   // Helper function to convert hex to rgba for glow effects
   const hexToRgba = (hex: string, alpha: number = 1): string => {
     try {
@@ -149,6 +148,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
                   retentionPeriod={agentData?.gdpr_settings?.data_retention_days || 0}
                   displayRetentionMessage={agentData?.gdpr_settings?.gdpr_message_display || false}
                   privacyUrl={agentData.privacy_url || "#"}
+                  isWhiteLabel={agentData.is_white_label || false}
                 />
               )}
             </div>
@@ -289,6 +289,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
                   retentionPeriod={agentData?.gdpr_settings?.data_retention_days || 0}
                   displayRetentionMessage={agentData?.gdpr_settings?.gdpr_message_display || false}
                   privacyUrl={agentData.privacy_url || "#"}
+                  isWhiteLabel={agentData.is_white_label || false}
                 />
               )}
             </div>

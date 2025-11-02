@@ -154,7 +154,7 @@ const ConversationList = () => {
     return (
       <div className="h-screen overflow-hidden bg-gradient-to-br from-gray-50/80 to-blue-50/50 dark:from-neutral-900/80 dark:to-neutral-800/50">
         <ResizablePanelGroup direction="horizontal" className="h-full">
-          <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+          <ResizablePanel defaultSize={20} minSize={25} maxSize={30}>
             <div className="h-full bg-white/70 dark:bg-neutral-900/70 backdrop-blur-sm border-r border-gray-200/60 dark:border-neutral-700/60 shadow-sm">
               <ConversationListErrorBoundary onRetry={handleErrorRetry}>
                 <ConversationListPanel 

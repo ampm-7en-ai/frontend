@@ -56,6 +56,7 @@ interface ChatboxPreviewProps {
   retentionMessage?: string;
   displayRetentionMessage?: boolean;
   privacyUrl?: string;
+  isWhiteLabel?: boolean;
 }
 
 export const ChatboxPreview = ({
@@ -85,7 +86,8 @@ export const ChatboxPreview = ({
   retentionPeriod,
   retentionMessage,
   displayRetentionMessage,
-  privacyUrl
+  privacyUrl,
+  isWhiteLabel
 }: ChatboxPreviewProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -2124,18 +2126,7 @@ export const ChatboxPreview = ({
             />
           )} */}
           
-          {isInitializing ? (
-            <LoadingSpinner size="sm" className="text-white/70" />
-          ) : connectionError ? (
-            <div className="flex items-center gap-2 bg-red-500/20 px-3 py-1.5 rounded-full border border-red-300/30 backdrop-blur-sm">
-              <AlertCircle size={14} className="text-white/90" />
-              <span className="text-xs text-white/90 font-medium">Error</span>
-            </div>
-          ) : !isConnected ? (
-            <div className="flex items-center gap-2 bg-orange-500/20 px-3 py-1.5 rounded-full border border-orange-300/30 backdrop-blur-sm">
-              <WifiOff size={14} className="text-white/90" />
-            </div>
-          ) : null}
+          
         </div>
       </div>
       
@@ -2772,9 +2763,14 @@ export const ChatboxPreview = ({
               <Send size={20} />
             </button>
           </form>
-          <div className="text-center mt-3 text-xs text-gray-400 font-medium">
-            Powered by 7en.ai
-          </div>
+         
+          {
+            !isWhiteLabel && (
+              <div className="text-center mt-3 text-xs text-gray-400 font-medium">
+                Powered by 7en.ai
+              </div>
+            )
+          }
         </div>
       </div>
       

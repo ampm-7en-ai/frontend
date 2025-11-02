@@ -18,9 +18,9 @@ export function AlertBanner({
 }: AlertBannerProps) {
   const variantStyles = {
     info: 'bg-blue-50 border-blue-100 text-blue-700',
-    success: 'bg-green-50 border-green-100 text-green-700',
+    success: 'text-green-600 border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400',
     warning: 'bg-amber-50 border-amber-100 text-amber-700',
-    error: 'bg-red-50 border-red-100 text-red-700'
+    error: 'text-red-600 border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400'
   };
 
   return (

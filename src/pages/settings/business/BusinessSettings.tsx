@@ -31,9 +31,9 @@ const BusinessSettings = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-blue-50 to-indigo-100 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">
         <div className="container mx-auto py-12 max-w-4xl">
-          <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl shadow-sm">
+          <div className="text-red-600 border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 px-6 py-4 rounded-xl shadow-sm">
             <p className="font-medium">Error loading settings</p>
             <p className="text-sm mt-1">{error instanceof Error ? error.message : 'Unknown error'}</p>
           </div>
@@ -64,7 +64,7 @@ const BusinessSettings = () => {
         </div>
 
         {/* Current Plan Card */}
-        <div className="mb-8 px-8">
+        <div className="mb-8 px-0">
           <CurrentPlanCard />
         </div>
 
