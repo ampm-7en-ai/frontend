@@ -3,7 +3,6 @@ import { Filter, X, Trash2, ArrowLeft } from 'lucide-react';
 import ModernTabNavigation from '@/components/dashboard/ModernTabNavigation';
 import ConversationFiltersDrawer from './ConversationFiltersDrawer';
 import ModernButton from '../dashboard/ModernButton';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Icon } from '../icons';
 import { Input } from '../ui/input';
 
@@ -150,15 +149,10 @@ const ConversationFiltersModern = ({
             />
           </div>
         </div>
-        {/* Search and select toggle row */}
-        <div className="flex items-center gap-2 h-8">
+        {/* Search row */}
+        <div className="space-y-2">
           {!isBulkSelectMode ? (
             <>
-              <Checkbox 
-                checked={isBulkSelectMode}
-                onCheckedChange={onBulkSelectModeChange}
-                className="rounded-[4px]"
-              />
               <Input
                 type="text"
                 variant='modern'
@@ -166,8 +160,26 @@ const ConversationFiltersModern = ({
                 placeholder="Search by conversation name or content..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 h-8"
+                className="w-full h-8"
               />
+              <div className="flex items-center gap-1 text-xs text-neutral-600 dark:text-neutral-400">
+                <button
+                  onClick={() => onBulkSelectModeChange(true)}
+                  className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors font-medium"
+                >
+                  Select
+                </button>
+                <span>|</span>
+                <button
+                  onClick={() => {
+                    onBulkSelectModeChange(true);
+                    setTimeout(() => onSelectAll(), 0);
+                  }}
+                  className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors font-medium"
+                >
+                  Select All
+                </button>
+              </div>
             </>
           ) : (
             <div className="flex items-center gap-2 w-full">
