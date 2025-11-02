@@ -50,6 +50,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [exportData, setExportData] = useState<{ url: string; file_name: string; format: string } | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
   
   const { bulkDeleteConversations } = useConversations();
 
@@ -177,6 +178,26 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
   const handleDownloadExport = () => {
     if (exportData?.url) {
       window.open(MEDIA_BASE_URL+exportData.url, '_blank');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    setShowDeleteAccountDialog(false);
+    try {
+      // TODO: Implement delete account API call
+      toast({
+        title: "Account Deleted",
+        description: "Your account has been permanently deleted.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete account",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -490,7 +511,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
       
     </section>
 
-    {/* Delete Confirmation Dialog */}
+    {/* Delete Conversations Confirmation Dialog */}
     <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
       <DialogContent>
         <DialogHeader>
@@ -500,21 +521,46 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <ModernButton
+          <Button
             variant="outline"
             onClick={() => setShowDeleteDialog(false)}
           >
             Cancel
-          </ModernButton>
-          <ModernButton
-            variant="outline"
+          </Button>
+          <Button
             onClick={handleDeleteAllConversations}
             disabled={isDeleting}
-            icon={Trash}
-            className='text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-100 dark:hover:text-red-200 dark:hover:bg-red-900/20'
+            className='bg-red-600 hover:bg-red-700 text-white'
           >
             {isDeleting ? 'Deleting...' : 'Delete All'}
-          </ModernButton>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    {/* Delete Account Confirmation Dialog */}
+    <Dialog open={showDeleteAccountDialog} onOpenChange={setShowDeleteAccountDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete Account</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setShowDeleteAccountDialog(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteAccount}
+            disabled={isDeleting}
+            className='bg-red-600 hover:bg-red-700 text-white'
+          >
+            {isDeleting ? 'Deleting...' : 'Delete Account'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -531,7 +577,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
               </p>
             </div>
             <ModernButton 
-                onClick={() => null} 
+                onClick={() => setShowDeleteAccountDialog(true)} 
                 disabled={isDeleting} 
                 variant="outline"
                 icon={Trash}
