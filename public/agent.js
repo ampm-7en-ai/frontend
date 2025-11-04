@@ -1,6 +1,19 @@
-
 (function() {
   'use strict';
+
+  // Load sanitization utility first
+  const sanitizerScript = document.createElement('script');
+  sanitizerScript.src = './sanitizer.js';
+  document.head.appendChild(sanitizerScript);
+
+  // Wait for sanitization functions to be available
+  function waitForSanitizer(callback) {
+    if (typeof window.chatSanitize === 'function' && typeof window.chatParseMarkdown === 'function') {
+      callback();
+    } else {
+      setTimeout(() => waitForSanitizer(callback), 50);
+    }
+  }
 
   // Configuration fetcher
   async function fetchConfig() {
@@ -925,10 +938,10 @@
       }
 
       if (hasText) {
-        const text = createElement('span', null, {
-          innerHTML: this.config.buttonText
-        });
-        this.button.appendChild(text);
+      const text = createElement('span', null, {
+        innerHTML: window.chatSanitize ? window.chatSanitize(this.config.buttonText) : this.config.buttonText
+      });
+      this.button.appendChild(text);
       }
 
       this.container.appendChild(this.button);
@@ -963,8 +976,9 @@
         avatar.innerHTML = '🤖';
       }
       
+      const sanitizedName = window.chatSanitize ? window.chatSanitize(this.config.chatbotName) : this.config.chatbotName;
       const headerText = createElement('div', 'chat-header-text', {
-        innerHTML: `<h3>${this.config.chatbotName}</h3><p>${this.isConnected ? 'Online' : 'Connecting...'}</p>`
+        innerHTML: `<h3>${sanitizedName}</h3><p>${this.isConnected ? 'Online' : 'Connecting...'}</p>`
       });
 
       headerInfo.appendChild(avatar);
@@ -1001,8 +1015,9 @@
       
       // Add welcome message if present
       if (this.config.welcomeMessage) {
+        const sanitizedWelcome = window.chatSanitize ? window.chatSanitize(this.config.welcomeMessage) : this.config.welcomeMessage;
         const welcomeDiv = createElement('div', 'welcome-message', {
-          innerHTML: this.config.welcomeMessage
+          innerHTML: sanitizedWelcome
         });
         this.messagesContainer.appendChild(welcomeDiv);
       }
@@ -1026,8 +1041,9 @@
       const suggestionsDiv = createElement('div', 'suggestions');
       
       this.config.suggestions.forEach(suggestion => {
+        const sanitizedSuggestion = window.chatSanitize ? window.chatSanitize(suggestion) : suggestion;
         const button = createElement('button', 'suggestion-button', {
-          innerHTML: suggestion,
+          innerHTML: sanitizedSuggestion,
           onclick: () => this.sendMessage(suggestion)
         });
         suggestionsDiv.appendChild(button);
@@ -1353,8 +1369,9 @@
         messageDiv.appendChild(avatar);
       }
       
+      const safeContent = window.chatParseMarkdown ? window.chatParseMarkdown(content) : this.parseMarkdown(content);
       const messageContent = createElement('div', 'message-content', {
-        innerHTML: this.parseMarkdown(content)
+        innerHTML: safeContent
       });
 
       messageDiv.appendChild(messageContent);
@@ -1410,8 +1427,9 @@
         }
         
         if (systemMessage) {
+          const sanitizedMessage = window.chatSanitize ? window.chatSanitize(systemMessage) : systemMessage;
           const messageSpan = createElement('span', null, {
-            innerHTML: systemMessage,
+            innerHTML: sanitizedMessage,
             style: 'font-size: 12px; color: #64748b; margin-left: 8px;'
           });
           dotsContainer.appendChild(messageSpan);
@@ -1432,10 +1450,13 @@
 
   // Initialize widget when DOM is ready
   async function initWidget() {
-    const config = await fetchConfig();
-    if (config) {
-      new ChatWidget(config);
-    }
+    // Wait for sanitizer to load before initializing widget
+    waitForSanitizer(async () => {
+      const config = await fetchConfig();
+      if (config) {
+        new ChatWidget(config);
+      }
+    });
   }
 
   // Initialize

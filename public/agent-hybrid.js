@@ -377,8 +377,9 @@
 
       // Add text if provided
       if (hasText) {
+        const sanitizedText = window.chatSanitize ? window.chatSanitize(this.config.buttonText) : this.config.buttonText;
         const text = createElement('span', null, {
-          innerHTML: this.config.buttonText
+          innerHTML: sanitizedText
         });
         contentContainer.appendChild(text);
       }
@@ -449,10 +450,13 @@
 
   // Initialize widget when DOM is ready
   async function initWidget() {
-    const config = await fetchConfig();
-    if (config) {
-      new ChatWidgetShell(config);
-    }
+    // Wait for sanitizer to load before initializing widget
+    waitForSanitizer(async () => {
+      const config = await fetchConfig();
+      if (config) {
+        new ChatWidgetShell(config);
+      }
+    });
   }
 
   // Initialize

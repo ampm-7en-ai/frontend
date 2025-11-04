@@ -16,6 +16,7 @@ import { StyledMarkdown } from '@/components/ui/styled-markdown';
 import { adjustColorForDarkTheme } from '@/utils/adjustColorForDarkTheme';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Icon } from '@/components/icons';
+import { useSanitize } from '@/hooks/useSanitize';
 
 interface ChatbotConfig {
   agentId: string;
@@ -99,6 +100,7 @@ const SearchAssistant = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme } = useAppTheme();
   const { toast } = useToast();
+  const { sanitize, sanitizeArray } = useSanitize();
   
   // Theme state for component
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('dark');
@@ -134,8 +136,17 @@ const SearchAssistant = () => {
         }
         
         const data = await response.json();
-        setConfig(data);
-        document.title = `${data.chatbotName} - AI Assistant`;
+        // Sanitize config data before setting state
+        const sanitizedConfig = {
+          ...data,
+          chatbotName: sanitize(data.chatbotName || ''),
+          welcomeMessage: sanitize(data.welcomeMessage || ''),
+          buttonText: sanitize(data.buttonText || ''),
+          suggestions: sanitizeArray(data.suggestions || []),
+          emailPlaceholder: sanitize(data.emailPlaceholder || 'Enter your email')
+        };
+        setConfig(sanitizedConfig);
+        document.title = `${sanitizedConfig.chatbotName} - AI Assistant`;
         
         // We don't automatically add the welcome message now
         // Instead, we'll show it after the first interaction or if the user clicks a suggestion

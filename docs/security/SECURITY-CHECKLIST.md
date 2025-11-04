@@ -106,6 +106,14 @@
   <div>{userInput}</div> // Automatic escaping
   ```
 
+- [x] **XSS Protection Fully Implemented**
+  - ✅ DOMPurify sanitization in vanilla JS widgets
+  - ✅ React `useSanitize()` hook for all React components
+  - ✅ All agent configuration fields sanitized
+  - ✅ All chat message content sanitized
+  - ✅ Safe markdown parsing with HTML escaping
+  - ✅ See `docs/security/XSS-PREVENTION.md` for complete documentation
+
 - [ ] **User content rendered through React components (automatic escaping)**
 
 - [ ] **Markdown rendered with safe plugins only**

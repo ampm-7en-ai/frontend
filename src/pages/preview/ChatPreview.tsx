@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ChatboxPreview } from '@/components/settings/ChatboxPreview';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useSanitize } from '@/hooks/useSanitize';
 
 interface ChatbotConfig {
   agentId: string;
@@ -36,6 +37,7 @@ const ChatPreview = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const { sanitize, sanitizeArray } = useSanitize();
 
   // Function to set session ID in localStorage
   const setStoredSessionId = (agentId: string, sessionId: string): void => {
@@ -216,19 +218,19 @@ const ChatPreview = () => {
           primaryColor={config.primaryColor}
           secondaryColor={config.secondaryColor}
           fontFamily={config.fontFamily}
-          chatbotName={config.chatbotName}
-          welcomeMessage={config.welcomeMessage}
-          buttonText={config.buttonText}
+          chatbotName={sanitize(config.chatbotName)}
+          welcomeMessage={sanitize(config.welcomeMessage)}
+          buttonText={sanitize(config.buttonText)}
           position={config.position}
-          suggestions={config.suggestions}
+          suggestions={sanitizeArray(config.suggestions)}
           avatarSrc={config.avatarUrl}
           emailRequired={config.emailRequired || false}
-          emailPlaceholder={config.emailPlaceholder || "Enter your email"}
-          emailMessage={config.emailMessage || "Please provide your email to continue"}
+          emailPlaceholder={sanitize(config.emailPlaceholder || "Enter your email")}
+          emailMessage={sanitize(config.emailMessage || "Please provide your email to continue")}
           collectEmail={config.collectEmail || false}
           className="w-full h-full p-0"
           sessionId={sessionId}
-          retentionMessage={config?.gdprSettings?.data_retention_message || ''}
+          retentionMessage={sanitize(config?.gdprSettings?.data_retention_message || '')}
           retentionPeriod={config?.gdprSettings?.data_retention_days || 0}
           displayRetentionMessage={config?.gdprSettings?.gdpr_message_display || false}
           enableSessionStorage={true}
