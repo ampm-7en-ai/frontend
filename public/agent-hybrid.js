@@ -1,6 +1,21 @@
 (function() {
   'use strict';
 
+  // Load sanitizer for XSS protection
+  const sanitizerScript = document.createElement('script');
+  sanitizerScript.src = 'https://app.7en.ai/sanitizer.js';
+  sanitizerScript.async = true;
+  document.head.appendChild(sanitizerScript);
+
+  // Utility to wait for sanitizer to load
+  function waitForSanitizer(callback) {
+    if (window.chatSanitize && window.chatParseMarkdown) {
+      callback();
+    } else {
+      setTimeout(() => waitForSanitizer(callback), 50);
+    }
+  }
+
   // Configuration fetcher
   async function fetchConfig() {
     const script = document.currentScript || document.querySelector('script[data-agent-id]');
