@@ -180,7 +180,7 @@ export const setupApiMocks = () => {
 
 // Helper to wait for loading states
 export const waitForLoadingToFinish = async () => {
-  const { waitFor } = await import('@testing-library/react');
+  const { waitFor } = await import('@testing-library/dom');
   await waitFor(() => {
     expect(document.querySelector('[data-loading]')).not.toBeInTheDocument();
   }, { timeout: 3000 });
@@ -188,7 +188,7 @@ export const waitForLoadingToFinish = async () => {
 
 // Helper to fill form fields
 export const fillForm = async (fields: Record<string, string>) => {
-  const { screen } = await import('@testing-library/react');
+  const { screen } = await import('@testing-library/dom');
   const userEvent = (await import('@testing-library/user-event')).default;
   const user = userEvent.setup();
 
@@ -201,7 +201,7 @@ export const fillForm = async (fields: Record<string, string>) => {
 
 // Helper to submit form
 export const submitForm = async (formName?: string) => {
-  const { screen } = await import('@testing-library/react');
+  const { screen } = await import('@testing-library/dom');
   const userEvent = (await import('@testing-library/user-event')).default;
   const user = userEvent.setup();
 
@@ -214,7 +214,7 @@ export const submitForm = async (formName?: string) => {
 
 // Helper to click button by text
 export const clickButton = async (buttonText: string) => {
-  const { screen } = await import('@testing-library/react');
+  const { screen } = await import('@testing-library/dom');
   const userEvent = (await import('@testing-library/user-event')).default;
   const user = userEvent.setup();
 

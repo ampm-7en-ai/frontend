@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/dom';
 import React from 'react';
 import { TestPageLayout } from './TestPageLayout';
 import { render } from '@testing-library/react';
