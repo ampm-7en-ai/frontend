@@ -68,7 +68,7 @@ export const CurrentPlanCard = () => {
                 <div className="flex items-center text-sm gap-1 text-amber-600 dark:text-amber-400">
                   <Calendar className="h-3 w-3" />
                   <span>
-                    {remainingDays} {remainingDays === 1 ? 'day' : 'days'} until renewal
+                    {remainingDays} {remainingDays === 1 ? 'day' : 'days'} left
                   </span>
                 </div>
               ): (

@@ -166,9 +166,7 @@ const UsageSection = ({ usageMetrics, options }: UsageSectionProps) => {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="bg-transparent rounded-lg flex items-center justify-center">
-                    <Icon type='plain' name={`Bubbles`} color='hsl(var(--primary))' className='h-5 w-5 mr-0.5' />
-                  </div>
+                  
                   <h4 className="font-semibold text-neutral-900 dark:text-neutral-100">Message Credits</h4>
                   <TooltipProvider>
                     <Tooltip>
@@ -188,7 +186,7 @@ const UsageSection = ({ usageMetrics, options }: UsageSectionProps) => {
                   <span className="text-muted-foreground dark:text-muted-foreground">/ {usageMetrics.total_credits}</span>
                 </div>
                 <p className="text-sm text-muted-foreground dark:text-muted-foreground">
-                  Please note that it takes a few minutes for the credits to be updated after a message is sent.
+                  Please note that it may take a few minutes for the credits to be updated.
                 </p>
               </div>
             </div>
@@ -199,9 +197,6 @@ const UsageSection = ({ usageMetrics, options }: UsageSectionProps) => {
             <div className="flex items-start justify-between mb-0">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="bg-transparent rounded-lg flex items-center justify-center">
-                    <Icon type='plain' name={`Receipt`} color='hsl(var(--primary))' className='h-5 w-5' />
-                  </div>
                   <h4 className="font-semibold text-neutral-900 dark:text-neutral-100">Auto Recharge</h4>
                   <TooltipProvider>
                     <Tooltip>
@@ -215,7 +210,7 @@ const UsageSection = ({ usageMetrics, options }: UsageSectionProps) => {
                   </TooltipProvider>
                 </div>
                 <p className="text-sm text-muted-foreground dark:text-muted-foreground mb-4">
-                  Enable automatic credit recharge when balance is low
+                  Enable automatic credit recharge for peace of mind.
                 </p>
               </div>
               <Switch
@@ -283,9 +278,9 @@ const UsageSection = ({ usageMetrics, options }: UsageSectionProps) => {
                   onClick={handleSaveAutoRecharge}
                   disabled={updateSettings.isPending}
                 >
-                  {updateSettings.isPending ? 'Saving...' : 'Save Auto Recharge Settings'}
+                  {updateSettings.isPending ? 'Saving...' : 'Save'}
                 </ModernButton>
-              </div>
+                </div>
             )}
           </div>
         </div>

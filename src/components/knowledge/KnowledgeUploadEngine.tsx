@@ -1060,7 +1060,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
             id="document-name" 
             variant="modern"
             size="lg"
-            placeholder="Enter a descriptive name for this knowledge source"
+            placeholder="Enter a name for this source"
             value={documentName}
             onChange={(e) => {
               setDocumentName(e.target.value);
@@ -1111,7 +1111,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                     <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.url}</p>
                   )}
                   <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    Enter the URL of the webpage you want to crawl. For multiple pages, we'll automatically explore linked pages.
+                    Enter the URL of the webpage you want to crawl.
                   </p>
                 </div>
                 
@@ -1124,7 +1124,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                     className='rounded-[4px]'
                   />
                   <Label htmlFor="import-all" className="text-sm font-medium cursor-pointer text-neutral-700 dark:text-neutral-300 flex items-center gap-2">
-                    Import all linked pages
+                    Import all pages
                     {isScrapingUrls && <Loader2 className="h-4 w-4 animate-spin" />}
                   </Label>
                   <Checkbox 

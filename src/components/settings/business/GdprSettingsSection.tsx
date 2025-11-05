@@ -279,9 +279,9 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-start gap-2 pt-4">
               <ModernButton onClick={handleSave} disabled={isSaving} variant="primary" icon={Save}>
-                {isSaving ? 'Saving...' : 'Save Settings'}
+                {isSaving ? 'Saving...' : 'Save Changes'}
               </ModernButton>
             </div>
           </div>
@@ -371,11 +371,8 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
                         icon={Download}
                         size="sm"
                       >
-                        Download {exportData.file_name || 'Export File'}
+                        Download JSON
                       </ModernButton>
-                      <span className="text-xs text-muted-foreground">
-                        Format: {exportData.format?.toUpperCase() || 'JSON'}
-                      </span>
                     </div>
                   </div>
                 )}
@@ -431,7 +428,7 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
           {/* Search */}
           <div className="mb-4">
             <Input
-              placeholder="Search logs by user or name..."
+              placeholder="Search logs"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               variant="modern"

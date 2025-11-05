@@ -304,7 +304,7 @@ const ConversationDetailsPanel = ({
                     <Icon type='plain' color='hsl(var(--primary))' name={`Chart`} className='h-5 w-5' />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground dark:text-foreground">Customer Sentiment Journey</h3>
+                    <h3 className="font-semibold text-foreground dark:text-foreground">Sentiment Journey</h3>
                   </div>
                 </div>
 

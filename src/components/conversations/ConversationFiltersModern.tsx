@@ -157,7 +157,7 @@ const ConversationFiltersModern = ({
                 type="text"
                 variant='modern'
                 size='sm'
-                placeholder="Search by conversation name or content..."
+                placeholder="Search conversations"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-8"

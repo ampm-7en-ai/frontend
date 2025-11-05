@@ -270,7 +270,7 @@ const BusinessProfileSection = ({ initialData }: BusinessProfileSectionProps) =>
                   </FormItem>
                 )}
               />
-              <div className="flex justify-end pt-4">
+              <div className="flex justify-start pt-4">
                 <ModernButton type="submit" variant="primary" icon={Save}>
                   Save Changes
                 </ModernButton>

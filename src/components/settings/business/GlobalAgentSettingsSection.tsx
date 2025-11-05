@@ -147,13 +147,13 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                   </FormItem>
                 )}
               />
-              <FormField
+              {/* <FormField
                 control={globalSettingsForm.control}
                 name="maxContextLength"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Maximum Context Length</FormLabel>
-                    {/* <FormControl>
+                    <FormControl>
                       <ModernDropdown
                         value={field.value?.toString() || ""}
                         onValueChange={(value) => field.onChange(Number(value))}
@@ -166,11 +166,11 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                         placeholder="Select context length"
                         className="bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-600 rounded-xl"
                       />
-                    </FormControl> */}
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
               <FormField
                 control={globalSettingsForm.control}
                 name="defaultTemperature"
@@ -194,9 +194,9 @@ const GlobalAgentSettingsSection = ({ initialSettings }: GlobalAgentSettingsProp
                   </FormItem>
                 )}
               />
-              <div className="flex justify-end pt-4">
+              <div className="flex justify-start pt-4">
                 <ModernButton type="submit" variant="primary" icon={Save}>
-                  Save Settings
+                  Save Changes
                 </ModernButton>
               </div>
             </form>
