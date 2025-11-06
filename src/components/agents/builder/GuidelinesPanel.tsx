@@ -1181,7 +1181,7 @@ export const GuidelinesPanel = () => {
                   <div className="p-2 pl-1 rounded-xl bg-transparent">
                     <Icon type='plain' color='hsl(var(--primary))' name={`Extension`} className='h-5 w-5' />
                   </div>
-                  <span className="text-sm font-medium">Chatbot Integration</span>
+                  <span className="text-sm font-medium">Apps Integration</span>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pb-4 px-1">
