@@ -16,31 +16,31 @@ interface AgentTypeSelectorProps {
 const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProps) => {
   const agentTypes = [
     {
-      id: 'assistant' as AgentType,
-      title: 'AI Assistant',
-      description: 'Advanced guidance and help assistant',
-      icon: CubeNode,
-      features: [
-        'Complex reasoning & analysis',
-        'Multi-step task execution',
-        'API & tool integrations',
-        'Advanced conversation handling'
-      ],
-      bestFor: 'Research, analysis, help center, web search'
-    },
-    {
       id: 'chatbot' as AgentType,
-      title: 'AI Chatbot',
-      description: 'Quick responses and customer support',
+      title: 'Chatbot',
+      description: 'Your smart frontline representative',
       icon: Bubbles,
       features: [
-        'Automatic ticket creation',
-        'Seamless AI to AI agent handoff',
-        'Supports third-party ticket providers',
-        'Customer support focused'
+        'Handle customer support conversations',
+        'Can hand off to other AI agents',
+        'Escalate to Freshdesk, Zoho etc.',
+        'Auto replies to tickets'
       ],
-      bestFor: 'Support, information retrieval, FAQs'
-    }
+      bestFor: 'Sales teams, support desks, marketing sites'
+    },
+    {
+      id: 'assistant' as AgentType,
+      title: 'Assistant',
+      description: 'Your intelligent documentation assistant',
+      icon: CubeNode,
+      features: [
+        'Interactive documentation assistant',
+        'Assist users in content-heavy pages',
+        'No handoff, content-based answers only',
+        'No escalation to ticketing systems'
+      ],
+      bestFor: 'Developer docs, knowledge bases, help centers'
+    }    
   ];
 
   return (
@@ -94,7 +94,7 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
               <div className="space-y-4">
                 <div>
                   <h5 className="text-sm font-medium text-foreground mb-3">
-                    Key Features
+                    Key points
                   </h5>
                   <ul className="space-y-2">
                     {type.features.map((feature, index) => (
@@ -112,7 +112,7 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
                 <div className="pt-4 border-t border-border">
                   <div>
                     <span className="text-xs font-medium text-foreground">
-                      Best for:
+                      Ideal use case:
                     </span>
                     <p className="text-xs text-neutral-600 dark:text-muted-foreground mt-1">
                       {type.bestFor}
