@@ -882,14 +882,14 @@ export const GuidelinesPanel = () => {
                   <div className="p-2 pl-1 rounded-xl bg-transparent">
                     <Icon type='plain' color='hsl(var(--primary))' name={`Scatter`} className='h-5 w-5' />
                   </div>
-                  <span className="text-sm font-medium">Behavior Guidelines</span>
+                  <span className="text-sm font-medium">Guidelines</span>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pb-4 px-1">
                 <div className="space-y-6">
                   {/* Agent Persona Selection */}
                   <div>
-                    <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Agent Persona Type</Label>
+                    <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Persona Type</Label>
                     { promptsLoading ? (
                        <div className="flex items-center gap-2 p-3 py-2 mt-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
                         <LoadingSpinner size="sm" />
@@ -1034,14 +1034,14 @@ export const GuidelinesPanel = () => {
                       <div className="space-y-4">
                         
                         
-                        <div className="flex items-center flex-col p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/70 dark:border-0 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
-                          <div className="flex items-center justify-between">
+                        <div className="flex flex-col">
+                          <div className="flex items-start justify-between">
                             <div className="space-y-1">
                               <Label className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                                 Human Handoff
                               </Label>
                               <p className="text-xs text-neutral-600 dark:text-neutral-400">
-                                Allow the agent to create ticket for human support
+                                Create ticket for human support
                               </p>
                             </div>
                             <Switch
@@ -1116,7 +1116,7 @@ export const GuidelinesPanel = () => {
                                               htmlFor={`auto-reply`}
                                               className="text-xs"
                                             >
-                                              Allow auto ticket reply.
+                                              Allow auto ticket reply
                                             </Label>
                                           </div>
                                         </div>
@@ -1138,7 +1138,7 @@ export const GuidelinesPanel = () => {
                                         placeholder="Enter email address"
                                         className="rounded-xl border-neutral-200 dark:border-neutral-700"
                                       />
-                                      <p className="text-[10px] leading-[10px] pt-2 text-neutral-500 dark:text-neutral-400">You will receive an email to this address if agent is unable to answer.</p>
+                                      <p className="text-[10px] leading-[10px] pt-2 text-neutral-500 dark:text-neutral-400">Chat transcript will be sent if agent cannot answer.</p>
                                     </div>
                                   )
                                 }
@@ -1148,13 +1148,13 @@ export const GuidelinesPanel = () => {
                           }
                         </div>
                         
-                        <div className="flex items-center justify-between p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/70 dark:border-0 border border-slate-200/50 dark:border-slate-600/50 backdrop-blur-sm">
+                        <div className="flex items-start justify-between dark:border-t-2 border-t-2 border-slate-200/50 dark:border-slate-600/50 pt-4">
                           <div className="space-y-1">
                             <Label className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                              AI to AI Handoff
+                              Agent Handoff
                             </Label>
                             <p className="text-xs text-neutral-600 dark:text-neutral-400">
-                              Allow the agent to escalate to other AI agents when needed
+                              Chat transfer between AI agents
                             </p>
                           </div>
                           <Switch
