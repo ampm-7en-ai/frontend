@@ -1086,7 +1086,7 @@ export const GuidelinesPanel = () => {
                                         IsAdding ? (
                                           <div className="flex items-center gap-2 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
                                             <LoadingSpinner size="sm" />
-                                            <span className="text-sm text-neutral-500">updating provider...</span>
+                                            <span className="text-sm text-neutral-500">Updating...</span>
                                           </div>
                                         ) : (
                                           <ModernDropdown
