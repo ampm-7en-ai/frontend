@@ -281,7 +281,7 @@ const Verify = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center dark:bg-[hsla(0,0%,0%,0.95)]">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-100 dark:bg-[hsla(0,0%,0%,0.95)]">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center justify-center mb-6">
           <div className="text-primary font-bold text-3xl mb-1">
@@ -296,7 +296,7 @@ const Verify = () => {
               Enter the 6-digit OTP code sent to
             </p>
             <div className="flex items-center justify-center mt-1 space-x-2">
-              <Mail className="h-4 w-4 text-primary" />
+              <Mail className="h-4 w-4 text-foreground" />
               <span className="font-medium">{email || user?.email}</span>
             </div>
           </div>
@@ -335,7 +335,7 @@ const Verify = () => {
                 ) : (
                   <Button 
                     variant="link" 
-                    className="h-auto p-0" 
+                    className="h-auto p-0 text-foreground" 
                     type="button" 
                     onClick={handleResendOtp}
                     disabled={isResendingOtp || resendCooldown > 0}
@@ -360,7 +360,7 @@ const Verify = () => {
               <div className="text-center">
                 <Button 
                   variant="link" 
-                  className="text-sm"
+                  className="text-sm text-foreground"
                   onClick={() => navigate('/login')}
                 >
                   Back to Login
