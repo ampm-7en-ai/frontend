@@ -33,6 +33,8 @@ export function useChatMessagesWebSocket({
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<string | null>(null);
+  const [creditsUsed, setCreditsUsed] = useState<number>(0);
   const wsRef = useRef<WebSocketService | null>(null);
   const currentSessionId = useRef<string | null>(null);
   const messagesMapRef = useRef<Map<string, Message[]>>(new Map());
@@ -125,6 +127,14 @@ export function useChatMessagesWebSocket({
           setMessages(validMessages);
           setSentimentScores(scores);
           onMessagesReceived?.(validMessages);
+          
+          // Capture mode and credits_used from response
+          if (data.mode) {
+            setMode(data.mode);
+          }
+          if (typeof data.credits_used === 'number') {
+            setCreditsUsed(data.credits_used);
+          }
         }
         
         // Cache messages for this session ID
@@ -270,6 +280,8 @@ export function useChatMessagesWebSocket({
     disconnect,
     sentimentScores,
     feedback,
-    averageSentiment
+    averageSentiment,
+    mode,
+    creditsUsed
   };
 }
