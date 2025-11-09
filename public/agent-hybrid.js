@@ -2,8 +2,12 @@
   'use strict';
 
   // Load sanitizer for XSS protection
+  const currentScript = document.currentScript || document.querySelector('script[src*="agent-hybrid.js"]');
+  const scriptSrc = currentScript?.src || '';
+  const baseUrl = scriptSrc.substring(0, scriptSrc.lastIndexOf('/') + 1);
+  
   const sanitizerScript = document.createElement('script');
-  sanitizerScript.src = 'https://app.7en.ai/sanitizer.js';
+  sanitizerScript.src = baseUrl + 'sanitizer.js';
   sanitizerScript.async = true;
   document.head.appendChild(sanitizerScript);
 
