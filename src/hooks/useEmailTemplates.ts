@@ -28,6 +28,7 @@ interface UpdateEmailTemplatePayload {
   content: string;
   is_html: boolean;
   is_active: boolean;
+  format?: string;
 }
 
 // Fetch all email template types

@@ -46,6 +46,7 @@ const CustomizationSettings = () => {
   const [templateContent, setTemplateContent] = useState<string>('');
   const [isHtmlEmail, setIsHtmlEmail] = useState<boolean>(true);
   const [isActiveTemplate, setIsActiveTemplate] = useState<boolean>(true);
+  const [templateFormat, setTemplateFormat] = useState<string>('html');
 
   // Email template hooks
   const { data: emailTemplateTypes, isLoading: isLoadingTypes } = useEmailTemplateTypes();
@@ -130,6 +131,7 @@ const CustomizationSettings = () => {
           content: templateContent,
           is_html: isHtmlEmail,
           is_active: isActiveTemplate,
+          format: templateFormat,
         },
       });
 
@@ -309,7 +311,33 @@ const CustomizationSettings = () => {
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="templateContent">Email Content</Label>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="templateContent">Email Content</Label>
+                            <div className="flex items-center gap-4">
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name="templateFormat"
+                                  value="html"
+                                  checked={templateFormat === 'html'}
+                                  onChange={(e) => setTemplateFormat(e.target.value)}
+                                  className="w-4 h-4 text-primary bg-background border-border focus:ring-2 focus:ring-primary"
+                                />
+                                <span className="text-sm font-medium text-foreground">HTML</span>
+                              </label>
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name="templateFormat"
+                                  value="mjml"
+                                  checked={templateFormat === 'mjml'}
+                                  onChange={(e) => setTemplateFormat(e.target.value)}
+                                  className="w-4 h-4 text-primary bg-background border-border focus:ring-2 focus:ring-primary"
+                                />
+                                <span className="text-sm font-medium text-foreground">MJML</span>
+                              </label>
+                            </div>
+                          </div>
                           <Textarea
                             id="templateContent"
                             className="h-96"
