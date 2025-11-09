@@ -743,6 +743,9 @@ export const ChatboxPreview = ({
                 // Send session init
                 chatServiceRef.current.sendSessionInit(sessionId);
                 
+                // Clear restarting flag immediately so messages can be received
+                restartingRef.current = false;
+                
                 // Set a reasonable timeout for session loading
                 setTimeout(() => {
                   console.log('📚 Restart - Session message loading timeout reached');
@@ -754,12 +757,10 @@ export const ChatboxPreview = ({
                 // Start timeout management when connected after restart
                 console.log('Restart connection established, starting timeout management');
                 manageTimeout();
-              }
-              
-              // Clear restarting flag once connected
-              setTimeout(() => {
+                
+                // Clear restarting flag immediately
                 restartingRef.current = false;
-              }, 1000);
+              }
               
               // Send private mode message if pending
               if (pendingPrivateModeRef.current && chatServiceRef.current) {
