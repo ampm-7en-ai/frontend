@@ -657,8 +657,8 @@ export const ChatboxPreview = ({
     setIsInitializing(true);
     setIsConnected(false);
     
-    // Reset terms acceptance on restart
-    setTermsAccepted(false);
+    // Don't reset terms acceptance - it should persist across restarts
+    // User has already accepted terms for this session
     
     // Clear processed message IDs and reset sequence
     processedMessageIds.current.clear();
