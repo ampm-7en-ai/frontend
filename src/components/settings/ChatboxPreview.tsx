@@ -734,9 +734,28 @@ export const ChatboxPreview = ({
             setIsInitializing(false);
             if (status) {
               setConnectionError(null);
-              // Start timeout management when connected after restart
-              console.log('Restart connection established, starting timeout management');
-              manageTimeout();
+              
+              // Handle session initialization if session storage is enabled
+              if (enableSessionStorage && sessionId && chatServiceRef.current) {
+                console.log('📨 Restart - Sending session initialization:', sessionId);
+                setIsLoadingSessionMessages(true);
+                
+                // Send session init
+                chatServiceRef.current.sendSessionInit(sessionId);
+                
+                // Set a reasonable timeout for session loading
+                setTimeout(() => {
+                  console.log('📚 Restart - Session message loading timeout reached');
+                  setIsLoadingSessionMessages(false);
+                  // Start timeout management after session loading
+                  manageTimeout();
+                }, 3000); // 3 seconds timeout for session loading
+              } else {
+                // Start timeout management when connected after restart
+                console.log('Restart connection established, starting timeout management');
+                manageTimeout();
+              }
+              
               // Clear restarting flag once connected
               setTimeout(() => {
                 restartingRef.current = false;
