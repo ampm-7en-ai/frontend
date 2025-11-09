@@ -24,7 +24,7 @@ const signupSchema = z.object({
     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
     .regex(/[0-9]/, "Password must contain at least one number")
     .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
-  phone_number: z.string().min(10, "Valid phone number is required"),
+  phone_number: z.string().optional(),
   website: z.string().optional(),
   address: z.string().optional(),
   username: z.string().min(3, "Username must be at least 3 characters"),
