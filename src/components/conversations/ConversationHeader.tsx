@@ -155,7 +155,7 @@ const ConversationHeader = ({
                           {conversation.credits_used.toFixed(1)}
                         </Badge>
                       </TooltipTrigger>
-                      <TooltipContent>
+                      <TooltipContent side="bottom">
                         <p>Credits used</p>
                       </TooltipContent>
                     </Tooltip>
