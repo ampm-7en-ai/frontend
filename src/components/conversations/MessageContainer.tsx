@@ -150,15 +150,18 @@ const MessageContainer = ({
     typeof msg.content === 'string'
   ) || [];
 
+  // Enhance conversation object with creditsUsed from WebSocket (must be before early return)
+  const enhancedConversation = useMemo(() => 
+    conversation ? ({
+      ...conversation,
+      credits_used: creditsUsed
+    }) : null, 
+    [conversation, creditsUsed]
+  );
+
   if (!conversation) {
     return <ConversationEmptyState />;
   }
-
-  // Enhance conversation object with creditsUsed from WebSocket
-  const enhancedConversation = useMemo(() => ({
-    ...conversation,
-    credits_used: creditsUsed
-  }), [conversation, creditsUsed]);
 
   return (
     <div className="flex flex-col h-full bg-white/70 dark:bg-[hsla(0,0%,0%,0.95)] backdrop-blur-sm">
