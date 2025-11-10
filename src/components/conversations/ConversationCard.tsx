@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Clock, Users, MessageSquare, Phone, Mail, Slack, Instagram, Globe2, Globe, Trash2 } from 'lucide-react';
+import { Clock, Users, MessageSquare, Phone, Mail, Slack, Instagram, Globe2, Globe, Trash2, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ interface Conversation {
   agentType?: "human" | "ai" | null;
   messages?: Array<any>;
   isUnread?: boolean;
+  isPrivate?: boolean;
 }
 
 interface ConversationCardProps {
@@ -255,6 +256,9 @@ const ConversationCard = ({
                 )}>
                   {conversation.customer || "Visitor"}
                 </h3>
+                {conversation.isPrivate && (
+                  <Lock className="h-3 w-3 text-muted-foreground" />
+                )}
                 {conversation.isUnread && (
                   <span className="inline-block w-2 h-2 bg-orange-500 rounded-full shadow-sm"></span>
                 )}

@@ -147,15 +147,22 @@ const ConversationHeader = ({
                 {getStatusBadge(conversation.status)}
                 {conversation.channel && getChannelBadge(conversation.channel)}
                 {conversation.credits_used !== undefined && (
-                  <TooltipProvider>
+                  <TooltipProvider delayDuration={300}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Badge className="bg-neutral-50 dark:bg-neutral-900/20 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-800 flex items-center gap-1">
-                          <Icon type='plain' name='Cart' color='currentColor' className='h-3 w-3' />
-                          {conversation.credits_used.toFixed(1)}
-                        </Badge>
+                        <div className="inline-flex">
+                          <Badge className="bg-neutral-50 dark:bg-neutral-900/20 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-800 flex items-center gap-1">
+                            <Icon type='plain' name='Cart' color='currentColor' className='h-3 w-3' />
+                            {conversation.credits_used.toFixed(1)}
+                          </Badge>
+                        </div>
                       </TooltipTrigger>
-                      <TooltipContent side="bottom" align="center" sideOffset={8}>
+                      <TooltipContent 
+                        side="bottom" 
+                        align="start"
+                        sideOffset={5}
+                        className="z-[100]"
+                      >
                         <p>Credits used</p>
                       </TooltipContent>
                     </Tooltip>
