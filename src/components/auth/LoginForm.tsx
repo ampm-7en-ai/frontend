@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { getApiUrl, API_ENDPOINTS, authApi } from '@/utils/api-config';
-import { GOOGLE_AUTH_CONFIG, GOOGLE_OAUTH_SCOPES } from '@/utils/auth-config';
+import { GOOGLE_AUTH_CONFIG, GOOGLE_OAUTH_SCOPES, RECAPTCHA_CONFIG } from '@/utils/auth-config';
 import ForgotPasswordDialog from './ForgotPasswordDialog';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -109,8 +109,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     setIsSendingOtp(true);
     
     try {
+      // Execute reCAPTCHA
+      let recaptchaToken: string | undefined;
+      try {
+        recaptchaToken = await window.grecaptcha.execute(RECAPTCHA_CONFIG.SITE_KEY, { action: 'code_login' });
+      } catch (error) {
+        console.error('reCAPTCHA error:', error);
+      }
+      
       const emailToUse = currentEmail || emailForm.getValues('email');
-      const response = await authApi.codeLogin(emailToUse);
+      const response = await authApi.codeLogin(emailToUse, recaptchaToken);
       
       if (response.ok) {
         const data = await response.json();
@@ -147,7 +155,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     setIsVerifyingOtp(true);
     
     try {
-      const response = await authApi.verifyCodeLogin(otpEmail, values.otp);
+      // Execute reCAPTCHA
+      let recaptchaToken: string | undefined;
+      try {
+        recaptchaToken = await window.grecaptcha.execute(RECAPTCHA_CONFIG.SITE_KEY, { action: 'verify_code' });
+      } catch (error) {
+        console.error('reCAPTCHA error:', error);
+      }
+      
+      const response = await authApi.verifyCodeLogin(otpEmail, values.otp, recaptchaToken);
       
       if (response.ok) {
         const data = await response.json();
@@ -429,6 +445,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
 
   useEffect(() => {
     const loadScripts = () => {
+      // Load reCAPTCHA Script
+      const recaptchaScript = document.createElement('script');
+      recaptchaScript.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_CONFIG.SITE_KEY}`;
+      recaptchaScript.async = true;
+      document.head.appendChild(recaptchaScript);
+      
       // Load Google Script
       const googleScript = document.createElement('script');
       googleScript.src = 'https://accounts.google.com/gsi/client';
@@ -467,17 +489,22 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpVerificationNeeded }) => {
     setIsLoggingIn(true);
     
     try {
-      const formData = new FormData();
-      formData.append('username', values.username);
-      formData.append('password', values.password);
+      // Execute reCAPTCHA
+      let recaptchaToken: string | undefined;
+      try {
+        recaptchaToken = await window.grecaptcha.execute(RECAPTCHA_CONFIG.SITE_KEY, { action: 'login' });
+      } catch (error) {
+        console.error('reCAPTCHA error:', error);
+        toast({
+          title: "Verification Failed",
+          description: "Could not verify reCAPTCHA. Please try again.",
+          variant: "destructive",
+        });
+        setIsLoggingIn(false);
+        return;
+      }
       
-      const apiUrl = getApiUrl(API_ENDPOINTS.LOGIN);
-      
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        body: formData,
-      });
-      
+      const response = await authApi.login(values.username, values.password, recaptchaToken);
       const data = await response.json();
       console.log("Login response:", data);
       

@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { authApi } from '@/utils/api-config';
+import { RECAPTCHA_CONFIG } from '@/utils/auth-config';
 import ModernButton from '../dashboard/ModernButton';
 
 // Schema for the forgot password form
@@ -46,13 +47,42 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({ isOpen, onC
     },
   });
 
+  // Load reCAPTCHA script
+  React.useEffect(() => {
+    if (isOpen) {
+      const script = document.createElement('script');
+      script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_CONFIG.SITE_KEY}`;
+      script.async = true;
+      document.head.appendChild(script);
+      
+      return () => {
+        document.head.removeChild(script);
+      };
+    }
+  }, [isOpen]);
+
   const handleSubmit = async (values: ForgotPasswordFormValues) => {
     setIsSubmitting(true);
     setErrorMessage(null);
     setEmail(values.email)
     
     try {
-      const response = await authApi.forgotPassword(values.email);
+      // Execute reCAPTCHA
+      let recaptchaToken: string | undefined;
+      try {
+        recaptchaToken = await window.grecaptcha.execute(RECAPTCHA_CONFIG.SITE_KEY, { action: 'forgot_password' });
+      } catch (error) {
+        console.error('reCAPTCHA error:', error);
+        toast({
+          title: "Verification Failed",
+          description: "Could not verify reCAPTCHA. Please try again.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const response = await authApi.forgotPassword(values.email, recaptchaToken);
       const data = await response.json();
       
       if (response.ok && data.status === 'success') {

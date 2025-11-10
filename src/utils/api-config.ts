@@ -184,16 +184,20 @@ import { apiRequest, apiGet, apiPost, apiPut, apiDelete, apiPatch } from './api-
 
 // Authentication API functions
 export const authApi = {
-  login: async (username: string, password: string) => {
+  login: async (username: string, password: string, recaptchaToken?: string) => {
     const response = await apiPost(getApiUrl(API_ENDPOINTS.LOGIN), {
       username,
-      password
+      password,
+      recaptcha_token: recaptchaToken
     }, false); // No auth required for login
     return response;
   },
 
-  register: async (userData: any) => {
-    const response = await apiPost(getApiUrl(API_ENDPOINTS.REGISTER), userData, false);
+  register: async (userData: any, recaptchaToken?: string) => {
+    const response = await apiPost(getApiUrl(API_ENDPOINTS.REGISTER), {
+      ...userData,
+      recaptcha_token: recaptchaToken
+    }, false);
     return response;
   },
 
@@ -212,34 +216,38 @@ export const authApi = {
     return response;
   },
 
-  forgotPassword: async (email: string) => {
+  forgotPassword: async (email: string, recaptchaToken?: string) => {
     const response = await apiPost(getApiUrl(API_ENDPOINTS.FORGOT_PASSWORD), {
       data: {email: email},
-      header: { "X-Frontend-URL": window.location.origin, 'Content-Type': 'application/json' }
+      header: { "X-Frontend-URL": window.location.origin, 'Content-Type': 'application/json' },
+      recaptcha_token: recaptchaToken
     }, false);
     return response;
   },
 
-  resetPassword: async (token: string, email: string, newPassword: string) => {
+  resetPassword: async (token: string, email: string, newPassword: string, recaptchaToken?: string) => {
     const response = await apiPost(getApiUrl(API_ENDPOINTS.RESET_PASSWORD), {
       token,
       email,
-      new_password: newPassword
+      new_password: newPassword,
+      recaptcha_token: recaptchaToken
     }, false);
     return response;
   },
 
-  codeLogin: async (email: string) => {
+  codeLogin: async (email: string, recaptchaToken?: string) => {
     const response = await apiPost(getApiUrl(API_ENDPOINTS.CODE_LOGIN), {
-      email
+      email,
+      recaptcha_token: recaptchaToken
     }, false);
     return response;
   },
 
-  verifyCodeLogin: async (email: string, code: string) => {
+  verifyCodeLogin: async (email: string, code: string, recaptchaToken?: string) => {
     const response = await apiPost(getApiUrl(API_ENDPOINTS.VERIFY_CODE_LOGIN), {
       email,
-      code
+      code,
+      recaptcha_token: recaptchaToken
     }, false);
     return response;
   }

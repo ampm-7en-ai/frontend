@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { authApi } from '@/utils/api-config';
+import { RECAPTCHA_CONFIG } from '@/utils/auth-config';
 import ModernButton from '@/components/dashboard/ModernButton';
 
 const resetPasswordSchema = z.object({
@@ -52,6 +53,16 @@ const ResetPassword = () => {
       });
       navigate('/login');
     }
+    
+    // Load reCAPTCHA script
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_CONFIG.SITE_KEY}`;
+    script.async = true;
+    document.head.appendChild(script);
+    
+    return () => {
+      document.head.removeChild(script);
+    };
   }, [token, email, navigate, toast]);
 
   const handleSubmit = async (values: ResetPasswordFormValues) => {
@@ -61,7 +72,22 @@ const ResetPassword = () => {
     setErrorMessage(null);
     
     try {
-      const response = await authApi.resetPassword(token, email, values.newPassword);
+      // Execute reCAPTCHA
+      let recaptchaToken: string | undefined;
+      try {
+        recaptchaToken = await window.grecaptcha.execute(RECAPTCHA_CONFIG.SITE_KEY, { action: 'reset_password' });
+      } catch (error) {
+        console.error('reCAPTCHA error:', error);
+        toast({
+          title: "Verification Failed",
+          description: "Could not verify reCAPTCHA. Please try again.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const response = await authApi.resetPassword(token, email, values.newPassword, recaptchaToken);
       const data = await response.json();
       
       if (response.ok && data.status === 'success') {

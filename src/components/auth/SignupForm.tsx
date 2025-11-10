@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { getApiUrl, API_ENDPOINTS, authApi } from '@/utils/api-config';
-import { GOOGLE_AUTH_CONFIG, GOOGLE_OAUTH_SCOPES } from '@/utils/auth-config';
+import { GOOGLE_AUTH_CONFIG, GOOGLE_OAUTH_SCOPES, RECAPTCHA_CONFIG } from '@/utils/auth-config';
 import { useAuth } from '@/context/AuthContext';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -63,6 +63,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
     setIsLoading(true);
     
     try {
+      // Execute reCAPTCHA
+      let recaptchaToken: string | undefined;
+      try {
+        recaptchaToken = await window.grecaptcha.execute(RECAPTCHA_CONFIG.SITE_KEY, { action: 'signup' });
+      } catch (error) {
+        console.error('reCAPTCHA error:', error);
+        toast({
+          title: "Verification Failed",
+          description: "Could not verify reCAPTCHA. Please try again.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
       const payload = {
         bussiness_name: values.business_name,
         email: values.email,
@@ -75,17 +90,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
 
       console.log('Sending signup data:', payload);
       
-      const targetUrl = getApiUrl(API_ENDPOINTS.REGISTER);
-      
       try {
-        const response = await fetch(targetUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
+        const response = await authApi.register(payload, recaptchaToken);
         
         const data = await response.json();
         
@@ -389,6 +395,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignupSuccess }) => {
 
   useEffect(() => {
     const loadScripts = () => {
+      // Load reCAPTCHA Script
+      const recaptchaScript = document.createElement('script');
+      recaptchaScript.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_CONFIG.SITE_KEY}`;
+      recaptchaScript.async = true;
+      document.head.appendChild(recaptchaScript);
+      
       // Load Google Script
       const googleScript = document.createElement('script');
       googleScript.src = 'https://accounts.google.com/gsi/client';
