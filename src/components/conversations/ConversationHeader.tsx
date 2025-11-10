@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getApiUrl, getAuthHeaders, getAccessToken } from '@/utils/api-config';
 import CreateSupportTicketModal from './CreateSupportTicketModal';
 import { Icon } from '../icons';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ConversationHeaderProps {
   conversation: {
@@ -16,6 +17,7 @@ interface ConversationHeaderProps {
     channel?: string;
     agent?: string;
     agentType?: string;
+    credits_used?: number;
     // ... other properties
   };
   selectedAgent: string | null;
@@ -144,6 +146,21 @@ const ConversationHeader = ({
               <div className='scale-75 flex gap-2 items-start origin-left'>
                 {getStatusBadge(conversation.status)}
                 {conversation.channel && getChannelBadge(conversation.channel)}
+                {conversation.credits_used !== undefined && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge className="bg-neutral-50 dark:bg-neutral-900/20 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-800 flex items-center gap-1">
+                          <Icon type='plain' name='Cart' color='currentColor' className='h-3 w-3' />
+                          {conversation.credits_used.toFixed(1)}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Credits used</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
               </div>
             </div>
           </div>
