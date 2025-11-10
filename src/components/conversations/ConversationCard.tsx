@@ -25,7 +25,7 @@ interface Conversation {
   agentType?: "human" | "ai" | null;
   messages?: Array<any>;
   isUnread?: boolean;
-  isPrivate?: boolean;
+  mode?: string;
 }
 
 interface ConversationCardProps {
@@ -256,7 +256,7 @@ const ConversationCard = ({
                 )}>
                   {conversation.customer || "Visitor"}
                 </h3>
-                {conversation.isPrivate && (
+                {conversation.mode === "private" && (
                   <Lock className="h-3 w-3 text-muted-foreground" />
                 )}
                 {conversation.isUnread && (
