@@ -154,10 +154,16 @@ const MessageContainer = ({
     return <ConversationEmptyState />;
   }
 
+  // Enhance conversation object with creditsUsed from WebSocket
+  const enhancedConversation = useMemo(() => ({
+    ...conversation,
+    credits_used: creditsUsed
+  }), [conversation, creditsUsed]);
+
   return (
     <div className="flex flex-col h-full bg-white/70 dark:bg-[hsla(0,0%,0%,0.95)] backdrop-blur-sm">
       <ConversationHeader 
-        conversation={conversation}
+        conversation={enhancedConversation}
         selectedAgent={selectedAgent}
         setSelectedAgent={setSelectedAgent}
         onInfoClick={onInfoClick}
