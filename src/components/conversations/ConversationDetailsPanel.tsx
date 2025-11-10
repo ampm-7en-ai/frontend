@@ -10,8 +10,9 @@ import { cn } from '@/lib/utils';
 import HandoffHistory from './HandoffHistory';
 import CreateSupportTicketModal from './CreateSupportTicketModal';
 import { analyzeSentiment } from '@/lib/sentiment';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import SentimentJourneyChart from './SentimentJourneyChart';
 import { Icon } from '../icons';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface ConversationDetailsPanelProps {
   conversation: any;
@@ -39,6 +40,7 @@ const ConversationDetailsPanel = ({
   feedback
 }: ConversationDetailsPanelProps) => {
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+  const [chartType, setChartType] = useState<'gradient-area' | 'color-bars' | 'smooth-line' | 'zone-area'>('gradient-area');
   const { sentimentScores, averageSentiment } = sentimentData;
   const scores = sentimentScores.map(item => item.score);
   const {weightedAverage, sentimentCategory, movingAverages, trend } = analyzeSentiment(scores);
@@ -299,60 +301,36 @@ const ConversationDetailsPanel = ({
           {/* Customer Sentiment - Only show if satisfaction data exists */}
           {hasSatisfactionData && (
             <div className="border rounded-lg bg-white dark:bg-neutral-800 dark:border-0 px-4 py-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="rounded-xl bg-transparent">
-                    <Icon type='plain' color='hsl(var(--primary))' name={`Chart`} className='h-5 w-5' />
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-xl bg-transparent">
+                      <Icon type='plain' color='hsl(var(--primary))' name={`Chart`} className='h-5 w-5' />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground dark:text-foreground">Sentiment Journey</h3>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground dark:text-foreground">Sentiment Journey</h3>
-                  </div>
+                  <Select value={chartType} onValueChange={(value: any) => setChartType(value)}>
+                    <SelectTrigger className="w-[140px] h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gradient-area">Gradient Area</SelectItem>
+                      <SelectItem value="color-bars">Color Bars</SelectItem>
+                      <SelectItem value="smooth-line">Smooth Line</SelectItem>
+                      <SelectItem value="zone-area">Zone Area</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <div className="text-center py-4">
+                <div className="py-4">
                   <div className="scale-95 origin-left">
-                    <LineChart
+                    <SentimentJourneyChart 
+                      chartData={chartData}
+                      type={chartType}
                       width={350}
-                      height={180}
-                      data={chartData}
-                      margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
-                      className="pb-4"
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
-                      <XAxis
-                        dataKey="index"
-                        label={{ position: "insideBottom", offset: -5 }}
-                      />
-                      <YAxis
-                        domain={[0, 10]}
-                        label={{ angle: -90, position: "insideLeft" }}
-                        ticks={[0, 2, 4, 6, 8, 10]}
-                      />
-                      <Tooltip contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '12px',
-                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                        color: 'hsl(var(--foreground))',
-                        transform: 'scale(0.75)'
-                      }} />
-                      {/* <Legend verticalAlign="top" height={36} /> */}
-                      <Line
-                        type="monotone"
-                        dataKey="score"
-                        stroke="#4CAF50"
-                        strokeWidth={2}
-                        name="Sentiment Score"
-                        activeDot={{ r: 8 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="movingAverage"
-                        stroke="#2196F3"
-                        strokeWidth={2}
-                        name="3-Message Moving Average"
-                        activeDot={{ r: 8 }}
-                      />
-                    </LineChart>
+                      height={200}
+                    />
                   </div>
               </div>
             </div>
