@@ -103,7 +103,7 @@ const RepliesCreditCard: React.FC<RepliesCreditCardProps> = ({ used, total }) =>
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
-                  <div className="text-xl font-bold text-foreground">{100-basePercentage.toFixed(1)}%</div>
+                  <div className="text-xl font-bold text-foreground">{(100-basePercentage).toFixed(1)}%</div>
                   <div className="text-xs text-muted-foreground">used</div>
                   {hasExcess && (
                     <div className="text-[10px] text-green-600 dark:text-green-400 font-medium mt-0.5">
