@@ -56,7 +56,7 @@ const SentimentJourneyChart = ({
         <p className="text-xs text-muted-foreground mt-1">
           Score: {score?.toFixed(1)}
         </p>
-        {movingAvg !== undefined && (
+        {movingAvg != null && (
           <p className="text-xs text-muted-foreground mt-0.5">
             3-msg avg: {movingAvg.toFixed(1)}
           </p>
