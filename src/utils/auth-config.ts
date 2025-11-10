@@ -56,7 +56,7 @@ export const validateInviteToken = async (token: string): Promise<{
 
 // reCAPTCHA Configuration
 export const RECAPTCHA_CONFIG = {
-  SITE_KEY: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI", // Test key - Replace with your production key
+  SITE_KEY: "6LflBwgsAAAAAKpixi6Bzemo40xExGQUrvX5Pr63", 
   VERSION: "v3"
 };
 
