@@ -155,6 +155,24 @@ const SentimentJourneyChart = ({
           animationDuration={800}
           animationEasing="ease-in-out"
         />
+        
+        {/* 3-message moving average */}
+        <Line
+          type="monotone"
+          dataKey="movingAverage"
+          stroke="hsl(var(--muted-foreground))"
+          strokeWidth={2}
+          strokeDasharray="5 5"
+          dot={false}
+          activeDot={{ 
+            r: 5, 
+            fill: 'hsl(var(--muted-foreground))',
+            stroke: 'hsl(var(--background))',
+            strokeWidth: 2
+          }}
+          animationDuration={800}
+          animationEasing="ease-in-out"
+        />
       </LineChart>
     </ResponsiveContainer>
   );
