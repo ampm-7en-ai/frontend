@@ -30,6 +30,7 @@ const SentimentJourneyChart = ({
     if (!active || !payload || !payload.length) return null;
     
     const score = payload[0]?.value;
+    const movingAvg = payload[0]?.payload?.movingAverage;
     const getSentimentLabel = (s: number) => {
       if (s <= 3) return { label: 'Frustrated', color: 'hsl(0, 70%, 50%)' };
       if (s <= 6) return { label: 'Neutral', color: 'hsl(45, 70%, 50%)' };
@@ -55,6 +56,11 @@ const SentimentJourneyChart = ({
         <p className="text-xs text-muted-foreground mt-1">
           Score: {score?.toFixed(1)}
         </p>
+        {movingAvg !== undefined && (
+          <p className="text-xs text-muted-foreground mt-0.5">
+            3-msg avg: {movingAvg.toFixed(1)}
+          </p>
+        )}
       </div>
     );
   };
