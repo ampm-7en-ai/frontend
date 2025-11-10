@@ -17,6 +17,7 @@ export interface Conversation {
   topic: string[];
   channel: string;
   agentType: "human" | "ai" | null;
+  isPrivate?: boolean;
   messages?: Array<{
     id: string;
     content: string;
@@ -118,6 +119,7 @@ const mockConversations: Conversation[] = [
     topic: ["statement", "documents"],
     channel: "slack",
     agentType: "human",
+    isPrivate: true,
   },
   {
     id: "006",

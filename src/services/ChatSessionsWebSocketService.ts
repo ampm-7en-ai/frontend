@@ -17,6 +17,7 @@ export interface ChatSessionData {
   channel: string;
   source?: string;
   agentType?: "human" | "ai" | null;
+  isPrivate?: boolean;
 }
 
 export interface ChatSessionMessage {
