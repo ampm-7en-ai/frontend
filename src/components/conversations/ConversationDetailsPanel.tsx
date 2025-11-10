@@ -12,7 +12,6 @@ import CreateSupportTicketModal from './CreateSupportTicketModal';
 import { analyzeSentiment } from '@/lib/sentiment';
 import SentimentJourneyChart from './SentimentJourneyChart';
 import { Icon } from '../icons';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface ConversationDetailsPanelProps {
   conversation: any;
@@ -40,7 +39,6 @@ const ConversationDetailsPanel = ({
   feedback
 }: ConversationDetailsPanelProps) => {
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
-  const [chartType, setChartType] = useState<'gradient-area' | 'color-bars' | 'smooth-line' | 'zone-area'>('gradient-area');
   const { sentimentScores, averageSentiment } = sentimentData;
   const scores = sentimentScores.map(item => item.score);
   const {weightedAverage, sentimentCategory, movingAverages, trend } = analyzeSentiment(scores);
@@ -301,38 +299,22 @@ const ConversationDetailsPanel = ({
           {/* Customer Sentiment - Only show if satisfaction data exists */}
           {hasSatisfactionData && (
             <div className="border rounded-lg bg-white dark:bg-neutral-800 dark:border-0 px-4 py-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-xl bg-transparent">
-                      <Icon type='plain' color='hsl(var(--primary))' name={`Chart`} className='h-5 w-5' />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground dark:text-foreground">Sentiment Journey</h3>
-                    </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="rounded-xl bg-transparent">
+                    <Icon type='plain' color='hsl(var(--primary))' name={`Chart`} className='h-5 w-5' />
                   </div>
-                  <Select value={chartType} onValueChange={(value: any) => setChartType(value)}>
-                    <SelectTrigger className="w-[140px] h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="gradient-area">Gradient Area</SelectItem>
-                      <SelectItem value="color-bars">Color Bars</SelectItem>
-                      <SelectItem value="smooth-line">Smooth Line</SelectItem>
-                      <SelectItem value="zone-area">Zone Area</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div>
+                    <h3 className="font-semibold text-foreground dark:text-foreground">Sentiment Journey</h3>
+                    <p className="text-xs text-muted-foreground">Conversation mood over time</p>
+                  </div>
                 </div>
 
-                <div className="py-4">
-                  <div className="scale-95 origin-left">
-                    <SentimentJourneyChart 
-                      chartData={chartData}
-                      type={chartType}
-                      width={350}
-                      height={200}
-                    />
-                  </div>
-              </div>
+                <div className="w-full">
+                  <SentimentJourneyChart 
+                    chartData={chartData}
+                    height={220}
+                  />
+                </div>
             </div>
           )}
 
