@@ -449,6 +449,17 @@
       this.isIframeLoaded = true;
       this.loadingElement.classList.add('hidden');
       this.iframe.classList.remove('hidden');
+      
+      // Send stored session ID to iframe if it exists
+      const storedSessionId = localStorage.getItem(`chat_session_${this.config.agentId}`);
+      if (storedSessionId) {
+        console.log('📤 Sending stored session ID to iframe:', storedSessionId);
+        this.iframe.contentWindow.postMessage({
+          type: 'init-session',
+          sessionId: storedSessionId,
+          agentId: this.config.agentId
+        }, '*');
+      }
     }
 
     toggleChat() {

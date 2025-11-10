@@ -181,12 +181,22 @@ const ChatPreview = () => {
     `;
     document.head.appendChild(style);
     
+    // Listen for session ID from parent window
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'init-session' && event.data.sessionId) {
+        console.log('📥 Received session ID from parent:', event.data.sessionId);
+        setSessionId(event.data.sessionId);
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
     window.parent.postMessage({ type: 'iframe-ready' }, '*');
     
     return () => {
       if (window.parent !== window) {
         document.body.style.overflow = 'auto';
       }
+      window.removeEventListener('message', handleMessage);
       document.head.removeChild(style);
     };
   }, []);
