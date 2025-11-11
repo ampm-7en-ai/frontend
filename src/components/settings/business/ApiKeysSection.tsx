@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Copy, AlertCircle, ChevronRight, Plus, KeyRound, Eye, EyeOff, Key, Trash2, Check, ExternalLink } from 'lucide-react';
+import { Copy, AlertCircle, ChevronRight, Plus, KeyRound, Eye, EyeOff, Key, Trash2, Check, ExternalLink, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -27,7 +27,7 @@ const ApiKeysSection = () => {
   // Simulate paid plan status - in real app this would come from user data
   const isPaidPlan = true; // Change to false to show the upgrade prompt
   
-  const { apiKeys, isLoading, createApiKey, deleteApiKey, error } = useApiKeys();
+  const { apiKeys, isLoading, createApiKey, deleteApiKey, refreshApiKey, error } = useApiKeys();
 
   const handleCreateKey = async (name: string) => {
     try {
@@ -62,6 +62,24 @@ const ApiKeysSection = () => {
       });
     } finally {
       setDeleteConfirmOpen(false);
+    }
+  };
+
+  const handleRefreshKey = async (keyId: number, keyName: string) => {
+    try {
+      const newKey = await refreshApiKey(keyId);
+      setCurrentApiKey(newKey);
+      setIsApiKeyDialogOpen(true);
+      toast({
+        title: "Success",
+        description: `API key "${keyName || 'Unnamed'}" refreshed successfully`,
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to refresh API key",
+        variant: "destructive"
+      });
     }
   };
 
@@ -188,7 +206,15 @@ const ApiKeysSection = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          
+                          <ModernButton
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRefreshKey(apiKey.id, apiKey.name)}
+                            disabled={isLoading}
+                            icon={RefreshCw}
+                            className="h-10 w-10 p-0"
+                            title="Refresh API key"
+                          />
                           <ModernButton
                             variant="outline"
                             size="sm"
@@ -271,8 +297,8 @@ const ApiKeysSection = () => {
       <ModernModal
         open={isApiKeyDialogOpen}
         onOpenChange={handleCloseDialog}
-        title="API Key Generated"
-        description="Your new API key has been generated successfully. Save it securely as it won't be shown again."
+        title="API Key"
+        description="Your API key has been generated successfully. Save it securely as it won't be shown again."
         size="lg"
         className="max-w-2xl"
       >

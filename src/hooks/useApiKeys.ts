@@ -93,11 +93,28 @@ export function useApiKeys() {
     },
   });
 
+  const refreshApiKeyMutation = useMutation({
+    mutationFn: async (keyId: number) => {
+      const response = await apiPost(getApiUrl(`v1/keys/${keyId}/`), {});
+
+      if (!response.ok) {
+        throw new Error('Failed to refresh API key');
+      }
+
+      const data: ApiKeyCreateResponse = await response.json();
+      return data.data.raw_key;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['apiKeys'] });
+    },
+  });
+
   return {
     apiKeys,
-    isLoading: isLoading || createApiKeyMutation.isPending || deleteApiKeyMutation.isPending,
+    isLoading: isLoading || createApiKeyMutation.isPending || deleteApiKeyMutation.isPending || refreshApiKeyMutation.isPending,
     error,
     createApiKey: createApiKeyMutation.mutateAsync,
     deleteApiKey: deleteApiKeyMutation.mutateAsync,
+    refreshApiKey: refreshApiKeyMutation.mutateAsync,
   };
 }
