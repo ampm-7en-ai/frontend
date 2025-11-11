@@ -403,7 +403,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!emailRegex.test(email)) {
         toast({
           title: "Validation Error",
-          description: "Please enter a valid email address.",
+          description: "Enter a valid email address for escalation",
           variant: "destructive"
         });
         return;

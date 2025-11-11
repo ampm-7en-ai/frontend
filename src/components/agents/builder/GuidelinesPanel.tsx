@@ -25,6 +25,7 @@ import { Link } from 'react-router-dom';
 import { TICKETING_PROVIDERS_LOGOS } from '@/utils/integrationUtils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Icon } from '@/components/icons';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const GuidelinesPanel = () => {
   const { state, features, updateAgentData, saveAgent } = useBuilder();
@@ -1101,25 +1102,34 @@ export const GuidelinesPanel = () => {
                                           />
                                         )
                                       }
-                                        <div className="flex items-center space-x-2">
-                                          <Checkbox 
-                                            id={`auto-reply`}
-                                            checked={agentData.behavior?.autoTicketReply || false}
-                                            disabled={!features?.AUTO_TICKET_RESPONSE}
-                                            className='rounded-[4px]'
-                                            onCheckedChange={(checked: any) => updateAgentData({ 
-                                              behavior: { ...agentData.behavior, autoTicketReply: checked }
-                                            })}
-                                          />
-                                          <div>
-                                            <Label 
-                                              htmlFor={`auto-reply`}
-                                              className="text-xs"
-                                            >
-                                              Allow auto ticket reply
-                                            </Label>
-                                          </div>
-                                        </div>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <div className="flex items-center space-x-2">
+                                              <Checkbox 
+                                                id={`auto-reply`}
+                                                checked={agentData.behavior?.autoTicketReply || false}
+                                                disabled={!features?.AUTO_TICKET_RESPONSE}
+                                                className='rounded-[4px]'
+                                                onCheckedChange={(checked: any) => updateAgentData({ 
+                                                  behavior: { ...agentData.behavior, autoTicketReply: checked }
+                                                })}
+                                              />
+                                              <div>
+                                                <Label 
+                                                  htmlFor={`auto-reply`}
+                                                  className="text-xs"
+                                                >
+                                                  Allow auto ticket reply
+                                                </Label>
+                                              </div>
+                                            </div>
+                                          </TooltipTrigger>
+                                          {!features?.AUTO_TICKET_RESPONSE && (
+                                            <TooltipContent>
+                                              <p>Not available in this plan</p>
+                                            </TooltipContent>
+                                          )}
+                                        </Tooltip>
                                       </>
                                     ) : (
                                       <div className="text-left py-2 text-neutral-500 dark:text-neutral-400 bg-neutral-200 dark:bg-neutral-600/50 !pb-3 !pl-2 rounded-lg !mt-3">
