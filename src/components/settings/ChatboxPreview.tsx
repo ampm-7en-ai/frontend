@@ -2765,14 +2765,88 @@ export const ChatboxPreview = ({
                   >
                     {suggestion}
                   </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </ScrollArea>
+                 ))}
+               </div>
+             )}
+             
+             {/* Typing Indicator - inside ScrollArea at bottom of messages */}
+             {showTypingIndicator && (
+               <div 
+                 className="flex items-center gap-2 mt-4 mb-2"
+                 style={{
+                   animation: 'typingBounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards'
+                 }}
+               >
+                 {/* Smaller Avatar (2x smaller) */}
+                 <div className="flex-shrink-0">
+                   {avatarSrc ? (
+                     <Avatar className="w-6 h-6">
+                     <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                     <AvatarFallback style={{ 
+                       background: ``,
+                       color: '#fff'
+                     }} className='bg-transparent'>
+                       <Icon name={`Person`} type='plain' color='#000000' />
+                     </AvatarFallback>
+                     </Avatar>
+                   ) : (
+                     <div 
+                       className="w-5 h-5 rounded-full flex items-center justify-center border border-white bg-transparent"
+                       style={{ 
+                         background: ``,
+                         color: secondaryColor
+                       }}
+                     >
+                       <Icon name={`Person`} type='plain' color='#000000' />
+                     </div>
+                   )}
+                 </div>
 
-        {/* Updated Typing Indicator - positioned 115px from bottom (20+5px more) */}
-        {showTypingIndicator && (
+                 {/* Smaller Typing Dots Container */}
+                 <div 
+                   className="rounded-full px-2 py-1 border border-gray-200/60 bg-white shadow-sm flex items-center gap-1"
+                 >
+                   <div className="flex space-x-1">
+                     <div 
+                       className="w-1.5 h-1.5 rounded-full"
+                       style={{ 
+                         backgroundColor: `${primaryColor}60`,
+                         animation: 'typingDotBounce 1.4s ease-in-out infinite',
+                         animationDelay: '0ms'
+                       }}
+                     ></div>
+                     <div 
+                       className="w-1.5 h-1.5 rounded-full"
+                       style={{ 
+                         backgroundColor: `${primaryColor}60`,
+                         animation: 'typingDotBounce 1.4s ease-in-out infinite',
+                         animationDelay: '200ms'
+                       }}
+                     ></div>
+                     <div 
+                       className="w-1.5 h-1.5 rounded-full"
+                       style={{ 
+                         backgroundColor: `${primaryColor}60`,
+                         animation: 'typingDotBounce 1.4s ease-in-out infinite',
+                         animationDelay: '400ms'
+                       }}
+                     ></div>
+                   </div>
+
+                   {/* System Message Display */}
+                   {systemMessage && (
+                     <div className="ml-2 text-xs text-gray-600 font-medium animate-fade-in">
+                       {systemMessage}
+                     </div>
+                   )}
+                 </div>
+               </div>
+             )}
+           </div>
+         </ScrollArea>
+
+         {/* Removed old fixed-position typing indicator */}
+         {false && showTypingIndicator && (
           <div 
             className="absolute bottom-[115px] left-4 flex items-center gap-2 z-20"
             style={{
@@ -3060,12 +3134,12 @@ export const ChatboxPreview = ({
                 minHeight: "44px",
                 maxHeight: "120px"
               }}
-              disabled={!isConnected || shouldDisableInput || !termsAccepted}
+              disabled={!isConnected || shouldDisableInput || (!termsAccepted && !isPrivateMode)}
               rows={1}
               expandable={true}
               maxExpandedHeight="120px"
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey && !shouldDisableInput && termsAccepted) {
+                if (e.key === 'Enter' && !e.shiftKey && !shouldDisableInput && (termsAccepted || isPrivateMode)) {
                   e.preventDefault();
                   handleSubmit(e);
                 }
@@ -3076,9 +3150,9 @@ export const ChatboxPreview = ({
               className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-lg transition-all hover:scale-105"
               style={{ 
                 color: primaryColor,
-                opacity: (isConnected && !shouldDisableInput && inputValue.trim() && termsAccepted) ? 1 : 0.4
+                opacity: (isConnected && !shouldDisableInput && inputValue.trim() && (termsAccepted || isPrivateMode)) ? 1 : 0.4
               }}
-              disabled={!isConnected || shouldDisableInput || !inputValue.trim() || !termsAccepted}
+              disabled={!isConnected || shouldDisableInput || !inputValue.trim() || (!termsAccepted && !isPrivateMode)}
             >
               <Send size={20} />
             </button>
