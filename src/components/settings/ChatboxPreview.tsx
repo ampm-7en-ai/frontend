@@ -468,15 +468,17 @@ export const ChatboxPreview = ({
           
           // Always send session_init right after connection
           if (chatServiceRef.current) {
-            const sessionIdToSend = isPrivateMode ? null : (sessionId || null);
-            console.log('📤 Sending session_init with sessionId:', sessionIdToSend, '(private mode:', isPrivateMode, ')');
+            // Check both state and ref for private mode (ref is set synchronously during toggle)
+            const isInPrivateMode = isPrivateMode || pendingPrivateModeRef.current;
+            const sessionIdToSend = isInPrivateMode ? null : (sessionId || null);
+            console.log('📤 Sending session_init with sessionId:', sessionIdToSend, '(private mode:', isInPrivateMode, ')');
             chatServiceRef.current.send({
               type: "session_init",
               session_id: sessionIdToSend
             });
             
             // Handle session initialization if session storage is enabled and we have a sessionId (and not in private mode)
-            if (enableSessionStorage && sessionId && !isPrivateMode) {
+            if (enableSessionStorage && sessionId && !isInPrivateMode) {
               console.log('📨 Loading previous session messages:', sessionId);
               setIsLoadingSessionMessages(true);
               
