@@ -9,8 +9,8 @@
 
   // Load DOMPurify library
   const script = document.createElement('script');
-  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js';
-  script.integrity = 'sha512-M72KfQy4kPuLYC6CeTrN0eA17U1lXEMmer20esp8mpALdj3KKXr6KYKnsV9f2GNujf7K3RsDDE5ACH1Ml1SxZg==';
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.2/purify.min.js';
+  script.integrity = 'sha512-kXfXkzxxUR9Y1ectVdtS6V/TgFZcNVYOXl5fVHeGDoaqNVcRsR1qbp90XX/SF69pwTLUCfCYr5Hm7+gKHjjHfA==';
   script.crossOrigin = 'anonymous';
   script.referrerPolicy = 'no-referrer';
   document.head.appendChild(script);
