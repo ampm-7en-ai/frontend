@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { Copy, AlertCircle, ChevronRight, Plus, KeyRound, Eye, EyeOff, Key, Trash2, Check, ExternalLink, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { addMonths } from 'date-fns';
 import { Input } from '@/components/ui/input';
+import { ModernDropdown } from '@/components/ui/modern-dropdown';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { usePricingModal } from '@/hooks/usePricingModal';
@@ -15,13 +15,23 @@ import { CreateApiKeyModal } from './CreateApiKeyModal';
 import { Link } from 'react-router-dom';
 import { Icon } from '@/components/icons';
 
+const EXPIRY_OPTIONS = [
+  { value: '1week', label: '1 week' },
+  { value: '15days', label: '15 days' },
+  { value: '1month', label: '1 month' },
+  { value: '3months', label: '3 months' },
+];
+
 const ApiKeysSection = () => {
   const { openPricingModal } = usePricingModal();
   const { toast } = useToast();
   const [isApiKeyDialogOpen, setIsApiKeyDialogOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isRefreshModalOpen, setIsRefreshModalOpen] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [currentApiKey, setCurrentApiKey] = useState<string | null>(null);
+  const [selectedKeyForRefresh, setSelectedKeyForRefresh] = useState<{ id: number; name: string } | null>(null);
+  const [refreshExpiresIn, setRefreshExpiresIn] = useState('3months');
   const [copied, setCopied] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   
@@ -30,9 +40,9 @@ const ApiKeysSection = () => {
   
   const { apiKeys, isLoading, createApiKey, deleteApiKey, refreshApiKey, error } = useApiKeys();
 
-  const handleCreateKey = async (name: string) => {
+  const handleCreateKey = async (name: string, expiresIn: string) => {
     try {
-      const newKey = await createApiKey(name);
+      const newKey = await createApiKey({ name, expiresIn });
       setCurrentApiKey(newKey);
       setIsApiKeyDialogOpen(true);
       toast({
@@ -66,14 +76,24 @@ const ApiKeysSection = () => {
     }
   };
 
-  const handleRefreshKey = async (keyId: number, keyName: string) => {
+  const openRefreshModal = (keyId: number, keyName: string) => {
+    setSelectedKeyForRefresh({ id: keyId, name: keyName });
+    setRefreshExpiresIn('3months');
+    setIsRefreshModalOpen(true);
+  };
+
+  const handleRefreshKey = async () => {
+    if (!selectedKeyForRefresh) return;
+    
     try {
-      const newKey = await refreshApiKey(keyId);
+      const newKey = await refreshApiKey({ keyId: selectedKeyForRefresh.id, expiresIn: refreshExpiresIn });
       setCurrentApiKey(newKey);
       setIsApiKeyDialogOpen(true);
+      setIsRefreshModalOpen(false);
+      setSelectedKeyForRefresh(null);
       toast({
         title: "Success",
-        description: `API key "${keyName || 'Unnamed'}" refreshed successfully`,
+        description: `API key "${selectedKeyForRefresh.name || 'Unnamed'}" refreshed successfully`,
       });
     } catch (err) {
       toast({
@@ -207,14 +227,14 @@ const ApiKeysSection = () => {
                         {formatDate(apiKey.created_at)}
                       </TableCell>
                       <TableCell className="text-muted-foreground dark:text-muted-foreground">
-                        {formatDate(addMonths(new Date(apiKey.created_at), 3).toISOString())}
+                        {apiKey.expiry_date ? formatDate(apiKey.expiry_date) : '-'}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <ModernButton
                             variant="outline"
                             size="sm"
-                            onClick={() => handleRefreshKey(apiKey.id, apiKey.name)}
+                            onClick={() => openRefreshModal(apiKey.id, apiKey.name)}
                             disabled={isLoading}
                             icon={RefreshCw}
                             className="h-10 w-10 p-0"
@@ -297,6 +317,50 @@ const ApiKeysSection = () => {
         onCreateKey={handleCreateKey}
         isLoading={isLoading}
       />
+
+      {/* Refresh API Key Modal */}
+      <ModernModal
+        open={isRefreshModalOpen}
+        onOpenChange={(open) => {
+          setIsRefreshModalOpen(open);
+          if (!open) {
+            setSelectedKeyForRefresh(null);
+            setRefreshExpiresIn('3months');
+          }
+        }}
+        title="Refresh API Key"
+        description="Select an expiry period for the refreshed API key. The old key will be invalidated."
+        size="md"
+      >
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-foreground">Expires in</label>
+            <ModernDropdown
+              value={refreshExpiresIn}
+              onValueChange={setRefreshExpiresIn}
+              options={EXPIRY_OPTIONS}
+              placeholder="Select expiry period"
+              showSearch={false}
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-6">
+          <ModernButton
+            variant="outline"
+            onClick={() => setIsRefreshModalOpen(false)}
+          >
+            Cancel
+          </ModernButton>
+          <ModernButton
+            variant="primary"
+            onClick={handleRefreshKey}
+            disabled={isLoading}
+          >
+            Refresh Key
+          </ModernButton>
+        </div>
+      </ModernModal>
 
       {/* Show New API Key Modal */}
       <ModernModal

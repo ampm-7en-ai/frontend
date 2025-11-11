@@ -8,6 +8,7 @@ export interface ApiKey {
   name: string;
   masked_key: string;
   created_at: string;
+  expiry_date?: string;
 }
 
 export interface ApiKeysResponse {
@@ -65,8 +66,8 @@ export function useApiKeys() {
   });
 
   const createApiKeyMutation = useMutation({
-    mutationFn: async (name: string) => {
-      const response = await apiPost(getApiUrl('v1/keys/'), { name });
+    mutationFn: async ({ name, expiresIn }: { name: string; expiresIn: string }) => {
+      const response = await apiPost(getApiUrl('v1/keys/'), { name, expires_in: expiresIn });
 
       if (!response.ok) {
         throw new Error('Failed to create API key');
@@ -94,8 +95,8 @@ export function useApiKeys() {
   });
 
   const refreshApiKeyMutation = useMutation({
-    mutationFn: async (keyId: number) => {
-      const response = await apiPost(getApiUrl('v1/keys/refresh/'), { id: keyId });
+    mutationFn: async ({ keyId, expiresIn }: { keyId: number; expiresIn: string }) => {
+      const response = await apiPost(getApiUrl('v1/keys/refresh/'), { id: keyId, expires_in: expiresIn });
 
       if (!response.ok) {
         throw new Error('Failed to refresh API key');
