@@ -2120,7 +2120,7 @@ export const ChatboxPreview = ({
                 onClick={() => setShowEmailConfirmation(true)}
                 className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-100 dark:!text-neutral-900"
               >
-                Export Chat
+                Transcript
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => setShowDeleteChatConfirmation(true)}
