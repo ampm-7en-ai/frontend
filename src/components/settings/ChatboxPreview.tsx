@@ -650,6 +650,173 @@ export const ChatboxPreview = ({
     sendMessage(suggestion);
   };
 
+  const handleNewChat = () => {
+    console.log('🆕 Starting new chat (always with null session_id)');
+    
+    if (onRestart) {
+      onRestart();
+    }
+    
+    // Set restarting flag
+    restartingRef.current = true;
+    
+    // Completely reset the chat state
+    setMessages([]);
+    setShowTypingIndicator(false);
+    setSystemMessage('');
+    setConnectionError(null);
+    setIsInitializing(true);
+    setIsConnected(false);
+    
+    // Clear processed message IDs and reset sequence
+    processedMessageIds.current.clear();
+    messageSequenceRef.current = 0;
+    
+    // Clear timeout timers and reset flags
+    clearTimeouts();
+    setTimeoutQuestionSent(false);
+    
+    // Properly disconnect and cleanup existing connection
+    if (chatServiceRef.current) {
+      chatServiceRef.current.disconnect();
+      chatServiceRef.current = null;
+    }
+    
+    // Create a completely new connection
+    setTimeout(() => {
+      if (agentId) {
+        console.log("Starting new chat with null session_id");
+        
+        chatServiceRef.current = new ChatWebSocketService(agentId, "preview");
+        
+        chatServiceRef.current.on({
+          onMessage: (message) => {
+            console.log("New Chat - Received message:", message);
+            
+            if (restartingRef.current) {
+              console.log("Still initializing, skipping message");
+              return;
+            }
+            
+            if (message.type === 'system_message') {
+              setSystemMessage(message.content);
+              setShowTypingIndicator(true);
+              return;
+            }
+
+            const normalizedType = message.type === 'message' ? 'user' : (message.type === 'assistant' ? 'bot_response' : message.type);
+            const messageForProcessing = { ...message, type: normalizedType };
+
+            const latest = getLatestMessage();
+            if (
+              normalizedType === 'user' &&
+              latest &&
+              latest.type === 'user' &&
+              (latest.content || '').trim() === (messageForProcessing.content || '').trim()
+            ) {
+              console.log('🔁 Skipping echoed user message from server');
+              return;
+            }
+            
+            const messageId = generateUniqueMessageId(messageForProcessing);
+            
+            if (processedMessageIds.current.has(messageId)) {
+              console.log("⚠️ Duplicate message detected, skipping");
+              return;
+            }
+            
+            processedMessageIds.current.add(messageId);
+            
+            if (processedMessageIds.current.size > 200) {
+              const idsArray = Array.from(processedMessageIds.current);
+              processedMessageIds.current = new Set(idsArray.slice(-100));
+            }
+            
+            setShowTypingIndicator(false);
+            setSystemMessage('');
+            
+            setMessages(prev => {
+              if (messageForProcessing.type === 'user') {
+                const trimmed = (messageForProcessing.content || '').trim();
+                const cutoff = Date.now() - 60000;
+                const match = outboxRef.current.find(o => o.content === trimmed && o.ts >= cutoff);
+                if (match) {
+                  for (let i = prev.length - 1; i >= 0; i--) {
+                    const m = prev[i];
+                    if (m.type === 'user' && (m.content || '').trim() === trimmed) {
+                      const updated = [...prev];
+                      updated[i] = { ...m, messageId, timestamp: messageForProcessing.timestamp, source: messageForProcessing.source || 'websocket' };
+                      return updated;
+                    }
+                  }
+                }
+              }
+
+              const newMessages = [...prev, { ...messageForProcessing, messageId }];
+              
+              if (messageForProcessing.type === 'bot_response' && messageForProcessing.source === 'websocket') {
+                setTimeout(() => {
+                  manageTimeout();
+                }, 0);
+              }
+              
+              return newMessages;
+            });
+          },
+          onTypingStart: () => {
+            if (!restartingRef.current) {
+              setShowTypingIndicator(true);
+            }
+          },
+          onTypingEnd: () => {
+            setShowTypingIndicator(false);
+            setSystemMessage('');
+          },
+          onError: (error) => {
+            console.error('New Chat error:', error);
+            setConnectionError(error);
+            toast({
+              title: "Connection Error",
+              description: error,
+              variant: "destructive",
+            });
+          },
+          onSessionIdReceived: (newSessionId) => {
+            console.log('New Chat - Received session ID (ignoring):', newSessionId);
+            // Don't store session ID for new chat
+          },
+          onConnectionChange: (status) => {
+            console.log("New Chat - Connection status changed:", status);
+            setIsConnected(status);
+            setIsInitializing(false);
+            if (status) {
+              setConnectionError(null);
+              
+              // Always send null for new chat
+              if (chatServiceRef.current) {
+                console.log('📤 New Chat - Sending session_init with null session_id');
+                chatServiceRef.current.send({
+                  type: "session_init",
+                  session_id: null
+                });
+              }
+              
+              // Start timeout management when connected
+              manageTimeout();
+              
+              // Clear restarting flag
+              restartingRef.current = false;
+            } else {
+              setConnectionError("Disconnected from chat service");
+            }
+          }
+        });
+        
+        chatServiceRef.current.connect();
+      }
+    }, 100);
+  };
+
   const handleRestart = () => {
 
     if (onRestart) {
@@ -2215,52 +2382,54 @@ export const ChatboxPreview = ({
             iconOnly
           />
           
-          {/* Menu dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <ModernButton
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors dark:hover:bg-white/20"
-                title="Menu"
-                icon={MoreHorizontal}
-                style={{
-                  color: `${secondaryColor}80`
-                }}
-                iconOnly
-              />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent 
-              align="end" 
-              className="bg-white dark:bg-white border border-gray-200 shadow-lg z-[9999] min-w-[150px] dark:!border-white"
-              sideOffset={5}
-            >
-              <DropdownMenuItem 
-                onClick={handleRestart}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-100 dark:!text-neutral-900"
+          {/* Menu dropdown - hidden in private mode */}
+          {!isPrivateMode && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <ModernButton
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 hover:bg-white/20 text-white/80 hover:text-white transition-colors dark:hover:bg-white/20"
+                  title="Menu"
+                  icon={MoreHorizontal}
+                  style={{
+                    color: `${secondaryColor}80`
+                  }}
+                  iconOnly
+                />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                align="end" 
+                className="bg-white dark:bg-white border border-gray-200 shadow-lg z-[9999] min-w-[150px] dark:!border-white"
+                sideOffset={5}
               >
-                New Chat
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setShowEndChatConfirmation(true)}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-100 dark:!text-neutral-900"
-              >
-                End Chat
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setShowEmailConfirmation(true)}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-100 dark:!text-neutral-900"
-              >
-                Transcript
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setShowDeleteChatConfirmation(true)}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-red-600 dark:hover:!bg-neutral-100"
-              >
-                Delete Chat
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem 
+                  onClick={handleNewChat}
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-100 dark:!text-neutral-900"
+                >
+                  New Chat
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setShowEndChatConfirmation(true)}
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-100 dark:!text-neutral-900"
+                >
+                  End Chat
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setShowEmailConfirmation(true)}
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer dark:hover:!bg-neutral-100 dark:!text-neutral-900"
+                >
+                  Transcript
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setShowDeleteChatConfirmation(true)}
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-red-600 dark:hover:!bg-neutral-100"
+                >
+                  Delete Chat
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           
           {/* {(onMinimize || showFloatingButton) && (
             <ModernButton
