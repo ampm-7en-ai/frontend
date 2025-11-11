@@ -466,25 +466,31 @@ export const ChatboxPreview = ({
         if (status) {
           setConnectionError(null);
           
-          // Handle session initialization if session storage is enabled
-          if (enableSessionStorage && sessionId && chatServiceRef.current) {
-            console.log('📨 Sending session initialization:', sessionId);
-            setIsLoadingSessionMessages(true);
+          // Always send session_init right after connection
+          if (chatServiceRef.current) {
+            console.log('📤 Sending session_init with sessionId:', sessionId || null);
+            chatServiceRef.current.send({
+              type: "session_init",
+              session_id: sessionId || null
+            });
             
-            // Send session init and track when database messages start/end loading
-            chatServiceRef.current.sendSessionInit(sessionId);
-            
-            // Set a reasonable timeout for session loading
-            setTimeout(() => {
-              console.log('📚 Session message loading timeout reached');
-              setIsLoadingSessionMessages(false);
-              // Start timeout management after session loading
+            // Handle session initialization if session storage is enabled and we have a sessionId
+            if (enableSessionStorage && sessionId) {
+              console.log('📨 Loading previous session messages:', sessionId);
+              setIsLoadingSessionMessages(true);
+              
+              // Set a reasonable timeout for session loading
+              setTimeout(() => {
+                console.log('📚 Session message loading timeout reached');
+                setIsLoadingSessionMessages(false);
+                // Start timeout management after session loading
+                manageTimeout();
+              }, 3000); // 3 seconds timeout for session loading
+            } else {
+              // Start timeout management immediately if no session to load
+              console.log('⏰ Connection established, starting timeout management (no session)');
               manageTimeout();
-            }, 3000); // 3 seconds timeout for session loading
-          } else {
-            // Start timeout management immediately if no session to load
-            console.log('⏰ Connection established, starting timeout management (no session)');
-            manageTimeout();
+            }
           }
         }
       },
