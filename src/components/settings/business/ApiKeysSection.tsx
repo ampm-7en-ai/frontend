@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Copy, AlertCircle, ChevronRight, Plus, KeyRound, Eye, EyeOff, Key, Trash2, Check, ExternalLink, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { addMonths } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
@@ -182,6 +183,7 @@ const ApiKeysSection = () => {
                     <TableHead>Name</TableHead>
                     <TableHead>Key</TableHead>
                     <TableHead>Created</TableHead>
+                    <TableHead>Expires</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -203,6 +205,9 @@ const ApiKeysSection = () => {
                       </TableCell>
                       <TableCell className="text-muted-foreground dark:text-muted-foreground">
                         {formatDate(apiKey.created_at)}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground dark:text-muted-foreground">
+                        {formatDate(addMonths(new Date(apiKey.created_at), 3).toISOString())}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
