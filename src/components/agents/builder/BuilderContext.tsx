@@ -382,6 +382,20 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return;
     }
 
+    // Validate email field when "send email" is selected
+    if (
+      state.agentData.behavior?.expertHandoff && 
+      state.agentData.behavior?.ticketType === "email" && 
+      (!state.agentData.behavior?.email || !state.agentData.behavior.email.trim())
+    ) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter an email address for escalation.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     console.log('Saving agent with data:', state.agentData);
     setState(prev => ({ ...prev, isLoading: true }));
 
