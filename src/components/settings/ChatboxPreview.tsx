@@ -744,13 +744,22 @@ export const ChatboxPreview = ({
             if (status) {
               setConnectionError(null);
               
-              // Handle session initialization if session storage is enabled
-              if (enableSessionStorage && sessionId && chatServiceRef.current) {
-                console.log('📨 Restart - Sending session initialization:', sessionId);
+              // Handle session initialization - check private mode first
+              const isInPrivateMode = isPrivateMode || pendingPrivateModeRef.current;
+              const sessionIdToSend = isInPrivateMode ? null : (sessionId || null);
+              
+              // Always send session_init right after restart connection
+              if (chatServiceRef.current) {
+                console.log('📤 Restart - Sending session_init with sessionId:', sessionIdToSend, '(private mode:', isInPrivateMode, ')');
+                chatServiceRef.current.send({
+                  type: "session_init",
+                  session_id: sessionIdToSend
+                });
+              }
+              
+              if (enableSessionStorage && sessionId && !isInPrivateMode && chatServiceRef.current) {
+                console.log('📨 Restart - Loading previous session messages:', sessionId);
                 setIsLoadingSessionMessages(true);
-                
-                // Send session init
-                chatServiceRef.current.sendSessionInit(sessionId);
                 
                 // Clear restarting flag immediately so messages can be received
                 restartingRef.current = false;
