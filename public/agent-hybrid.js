@@ -1,24 +1,24 @@
 (function() {
   'use strict';
 
-  // Load sanitizer for XSS protection
-  const currentScript = document.currentScript || document.querySelector('script[src*="agent-hybrid.js"]');
-  const scriptSrc = currentScript?.src || '';
-  const baseUrl = scriptSrc.substring(0, scriptSrc.lastIndexOf('/') + 1);
+  // // Load sanitizer for XSS protection
+  // const currentScript = document.currentScript || document.querySelector('script[src*="agent-hybrid.js"]');
+  // const scriptSrc = currentScript?.src || '';
+  // const baseUrl = scriptSrc.substring(0, scriptSrc.lastIndexOf('/') + 1);
   
-  const sanitizerScript = document.createElement('script');
-  sanitizerScript.src = baseUrl + 'sanitizer.js';
-  sanitizerScript.async = true;
-  document.head.appendChild(sanitizerScript);
+  // const sanitizerScript = document.createElement('script');
+  // sanitizerScript.src = baseUrl + 'sanitizer.js';
+  // sanitizerScript.async = true;
+  // document.head.appendChild(sanitizerScript);
 
-  // Utility to wait for sanitizer to load
-  function waitForSanitizer(callback) {
-    if (window.chatSanitize && window.chatParseMarkdown) {
-      callback();
-    } else {
-      setTimeout(() => waitForSanitizer(callback), 50);
-    }
-  }
+  // // Utility to wait for sanitizer to load
+  // function waitForSanitizer(callback) {
+  //   if (window.chatSanitize && window.chatParseMarkdown) {
+  //     callback();
+  //   } else {
+  //     setTimeout(() => waitForSanitizer(callback), 50);
+  //   }
+  // }
 
   // Configuration fetcher
   async function fetchConfig() {
@@ -481,12 +481,12 @@
   // Initialize widget when DOM is ready
   async function initWidget() {
     // Wait for sanitizer to load before initializing widget
-    waitForSanitizer(async () => {
+    
       const config = await fetchConfig();
       if (config) {
         new ChatWidgetShell(config);
       }
-    });
+   
   }
 
   // Initialize
