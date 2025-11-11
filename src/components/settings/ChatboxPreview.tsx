@@ -966,14 +966,127 @@ export const ChatboxPreview = ({
   // Handle privacy mode toggle
   const handlePrivacyModeToggle = () => {
     if (isPrivateMode) {
-      // Turning off private mode
+      // Exiting private mode - close connection and reconnect with stored session
+      console.log('🔓 Exiting private mode - reconnecting with stored session');
+      
+      // Show feedback form if there are more than 2 messages
       if (messages.length > 2) {
-        // Show feedback form if there are more than 2 messages
         setShowFeedbackForm(true);
       }
+      
+      // Update private mode state and ref
       setIsPrivateMode(false);
+      pendingPrivateModeRef.current = false;
+      
+      // Close current connection
+      if (chatServiceRef.current) {
+        console.log('🔌 Closing private mode connection');
+        chatServiceRef.current.disconnect();
+        chatServiceRef.current = null;
+      }
+      
+      // Clear current state
+      setMessages([]);
+      setShowTypingIndicator(false);
+      setSystemMessage('');
+      setIsConnected(false);
+      setIsInitializing(true);
+      
+      // Retrieve session ID from localStorage
+      const storedSessionId = localStorage.getItem(`chat_session_${agentId}`);
+      console.log('📦 Retrieved session ID from localStorage:', storedSessionId);
+      
+      // Reconnect with the stored session ID after a short delay
+      setTimeout(() => {
+        if (!agentId) {
+          console.log('❌ No agent ID available');
+          setIsInitializing(false);
+          return;
+        }
+        
+        console.log('🔄 Reconnecting with session ID:', storedSessionId);
+        
+        // Create new connection
+        chatServiceRef.current = new ChatWebSocketService(agentId, "preview");
+        
+        chatServiceRef.current.on({
+          onMessage: (message) => {
+            console.log("📥 Received message after reconnect:", message);
+            
+            if (message.type === 'system_message') {
+              setSystemMessage(message.content);
+              setShowTypingIndicator(true);
+              return;
+            }
+            
+            const normalizedType = message.type === 'message' ? 'user' : (message.type === 'assistant' ? 'bot_response' : message.type);
+            const messageForProcessing = { ...message, type: normalizedType };
+            const messageId = generateUniqueMessageId(messageForProcessing);
+            
+            if (processedMessageIds.current.has(messageId)) {
+              console.log("⚠️ Duplicate message detected, skipping:", messageId);
+              return;
+            }
+            
+            processedMessageIds.current.add(messageId);
+            setShowTypingIndicator(false);
+            setSystemMessage('');
+            setMessages(prev => [...prev, { ...messageForProcessing, messageId }]);
+          },
+          onTypingStart: () => {
+            setShowTypingIndicator(true);
+          },
+          onTypingEnd: () => {
+            setShowTypingIndicator(false);
+            setSystemMessage('');
+          },
+          onError: (error) => {
+            console.error('Chat error after reconnect:', error);
+            setConnectionError(error);
+            setIsConnected(false);
+            setIsInitializing(false);
+          },
+          onConnectionChange: (status) => {
+            console.log("🔗 Connection status after reconnect:", status);
+            setIsConnected(status);
+            setIsInitializing(false);
+            
+            if (status && chatServiceRef.current) {
+              setConnectionError(null);
+              
+              // Send session_init with the stored session ID
+              console.log('📤 Sending session_init with sessionId:', storedSessionId);
+              chatServiceRef.current.send({
+                type: "session_init",
+                session_id: storedSessionId
+              });
+              
+              // Load previous session messages if available
+              if (enableSessionStorage && storedSessionId) {
+                console.log('📨 Loading previous session messages:', storedSessionId);
+                setIsLoadingSessionMessages(true);
+                
+                setTimeout(() => {
+                  console.log('📚 Session message loading timeout reached');
+                  setIsLoadingSessionMessages(false);
+                  manageTimeout();
+                }, 3000);
+              } else {
+                manageTimeout();
+              }
+            }
+          },
+          ...(enableSessionStorage && onSessionIdReceived && {
+            onSessionIdReceived: onSessionIdReceived
+          })
+        });
+        
+        chatServiceRef.current.connect();
+      }, 500);
+      
     } else {
-      // Turning on private mode - start new session
+      // Entering private mode - start new session
+      console.log('🔒 Entering private mode');
       setIsPrivateMode(true);
       pendingPrivateModeRef.current = true; // Set flag to send private message after reconnect
       handleRestart();
