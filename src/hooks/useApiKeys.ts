@@ -95,7 +95,7 @@ export function useApiKeys() {
 
   const refreshApiKeyMutation = useMutation({
     mutationFn: async (keyId: number) => {
-      const response = await apiPost(getApiUrl(`v1/keys/${keyId}/`), {});
+      const response = await apiPost(getApiUrl('v1/keys/refresh/'), { id: keyId });
 
       if (!response.ok) {
         throw new Error('Failed to refresh API key');
