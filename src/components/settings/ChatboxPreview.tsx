@@ -276,6 +276,12 @@ export const ChatboxPreview = ({
     manageTimeout();
   }, [messages]);
 
+  // Debug history messages
+  useEffect(() => {
+    console.log("📜 [STATE] History messages state changed:", historyMessages);
+    console.log("📜 [STATE] History timestamp:", historyTimestamp);
+  }, [historyMessages, historyTimestamp]);
+
   // Updated scroll effect to only scroll the message container, not the entire tab
   useEffect(() => {
     if (scrollViewportRef.current) {
@@ -342,16 +348,24 @@ export const ChatboxPreview = ({
         
         // Handle history messages
         if (message.type === 'history') {
-          console.log("📜 Received history:", message);
+          console.log("📜 [HISTORY] Received history message:", message);
           const historyData = message as any;
+          console.log("📜 [HISTORY] History data:", historyData);
+          console.log("📜 [HISTORY] Messages array:", historyData.messages);
+          console.log("📜 [HISTORY] Is array?:", Array.isArray(historyData.messages));
+          
           if (historyData.messages && Array.isArray(historyData.messages)) {
             const formattedHistory = historyData.messages.map((msg: any, index: number) => ({
               ...msg,
               messageId: `history-${historyData.session_id}-${index}`,
               source: 'history'
             }));
+            console.log("📜 [HISTORY] Formatted history:", formattedHistory);
             setHistoryMessages(formattedHistory);
             setHistoryTimestamp(historyData.timestamp);
+            console.log("📜 [HISTORY] State updated with", formattedHistory.length, "messages");
+          } else {
+            console.warn("📜 [HISTORY] Invalid messages data");
           }
           return;
         }
@@ -720,16 +734,19 @@ export const ChatboxPreview = ({
             
             // Handle history messages
             if (message.type === 'history') {
-              console.log("📜 Received history (new chat):", message);
+              console.log("📜 [HISTORY-NEWCHAT] Received history (new chat):", message);
               const historyData = message as any;
+              console.log("📜 [HISTORY-NEWCHAT] History data:", historyData);
               if (historyData.messages && Array.isArray(historyData.messages)) {
                 const formattedHistory = historyData.messages.map((msg: any, index: number) => ({
                   ...msg,
                   messageId: `history-${historyData.session_id}-${index}`,
                   source: 'history'
                 }));
+                console.log("📜 [HISTORY-NEWCHAT] Formatted history:", formattedHistory);
                 setHistoryMessages(formattedHistory);
                 setHistoryTimestamp(historyData.timestamp);
+                console.log("📜 [HISTORY-NEWCHAT] State updated");
               }
               return;
             }
@@ -907,16 +924,19 @@ export const ChatboxPreview = ({
             
             // Handle history messages
             if (message.type === 'history') {
-              console.log("📜 Received history (restart):", message);
+              console.log("📜 [HISTORY-RESTART] Received history (restart):", message);
               const historyData = message as any;
+              console.log("📜 [HISTORY-RESTART] History data:", historyData);
               if (historyData.messages && Array.isArray(historyData.messages)) {
                 const formattedHistory = historyData.messages.map((msg: any, index: number) => ({
                   ...msg,
                   messageId: `history-${historyData.session_id}-${index}`,
                   source: 'history'
                 }));
+                console.log("📜 [HISTORY-RESTART] Formatted history:", formattedHistory);
                 setHistoryMessages(formattedHistory);
                 setHistoryTimestamp(historyData.timestamp);
+                console.log("📜 [HISTORY-RESTART] State updated");
               }
               return;
             }
@@ -1238,16 +1258,19 @@ export const ChatboxPreview = ({
             
             // Handle history messages
             if (message.type === 'history') {
-              console.log("📜 Received history (reconnect):", message);
+              console.log("📜 [HISTORY-RECONNECT] Received history (reconnect):", message);
               const historyData = message as any;
+              console.log("📜 [HISTORY-RECONNECT] History data:", historyData);
               if (historyData.messages && Array.isArray(historyData.messages)) {
                 const formattedHistory = historyData.messages.map((msg: any, index: number) => ({
                   ...msg,
                   messageId: `history-${historyData.session_id}-${index}`,
                   source: 'history'
                 }));
+                console.log("📜 [HISTORY-RECONNECT] Formatted history:", formattedHistory);
                 setHistoryMessages(formattedHistory);
                 setHistoryTimestamp(historyData.timestamp);
+                console.log("📜 [HISTORY-RECONNECT] State updated");
               }
               return;
             }
@@ -2595,7 +2618,7 @@ export const ChatboxPreview = ({
               const isSystemMessage = message.type === 'system_message';
               
               return (
-                <div key={`history-${message.messageId || index}`} className="opacity-70 mt-4">
+                <div key={`history-${message.messageId || index}`} className="mt-4">
                   {isUserMessage && (
                     <div className="flex justify-end items-start gap-3 animate-fade-in">
                       <div 
