@@ -1205,6 +1205,25 @@ export const ChatboxPreview = ({
           onMessage: (message) => {
             console.log("📥 Received message after reconnect:", message);
             
+            // Handle history messages
+            if (message.type === 'history') {
+              console.log("📚 History data received after reconnect:", message);
+              const historyData = message as any;
+              if (historyData.messages && Array.isArray(historyData.messages)) {
+                const historyMsgs = historyData.messages.map((msg: any, idx: number) => ({
+                  type: msg.type === 'message' ? 'user' : msg.type,
+                  content: msg.content,
+                  timestamp: msg.timestamp,
+                  messageId: `history-${msg.timestamp}-${idx}`,
+                  source: 'history'
+                }));
+                setHistoryMessages(historyMsgs);
+                setHistoryTimestamp(historyData.timestamp);
+                console.log("📚 History messages set after reconnect:", historyMsgs.length);
+              }
+              return;
+            }
+            
             if (message.type === 'system_message') {
               setSystemMessage(message.content);
               setShowTypingIndicator(true);
