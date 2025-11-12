@@ -201,17 +201,19 @@ export const authApi = {
     return response;
   },
 
-  verifyOtp: async (otp: string, email: string) => {
+  verifyOtp: async (otp: string, email: string, recaptchaToken?: string) => {
     const response = await apiPost(getApiUrl(API_ENDPOINTS.VERIFY_OTP), {
       otp,
-      email
+      email,
+      recaptcha_token: recaptchaToken
     }, false);
     return response;
   },
 
-  resendOtp: async (email: string) => {
+  resendOtp: async (email: string, recaptchaToken?: string) => {
     const response = await apiPost(getApiUrl(API_ENDPOINTS.RESEND_OTP), {
-      email
+      email,
+      recaptcha_token: recaptchaToken
     }, false);
     return response;
   },

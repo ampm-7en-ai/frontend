@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { getApiUrl, API_ENDPOINTS } from '@/utils/api-config';
+import { authApi } from '@/utils/api-config';
+import { RECAPTCHA_CONFIG } from '@/utils/auth-config';
 import { Button } from '@/components/ui/button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
@@ -47,6 +48,18 @@ const Verify = () => {
 
   const {theme} = useAppTheme();
 
+  // Load reCAPTCHA script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_CONFIG.SITE_KEY}`;
+    script.async = true;
+    document.head.appendChild(script);
+    
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
+
   useEffect(() => {
     // If user is authenticated and doesn't need verification, redirect to dashboard
     if (isAuthenticated && !needsVerification && !location.state?.forcedVerification) {
@@ -77,62 +90,28 @@ const Verify = () => {
   const handleVerifyOtp = async (values: OtpFormValues) => {
     setIsVerifying(true);
     try {
-      const payload = {
-        email: email || user?.email,
-        otp: values.otp
-      };
-      
-      console.log('Sending OTP verification data:', payload);
-      
-      const targetUrl = getApiUrl(API_ENDPOINTS.VERIFY_OTP);
-      
+      // Execute reCAPTCHA
+      let recaptchaToken: string | undefined;
       try {
-        const response = await fetch(targetUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-          handleVerificationSuccess(data);
-        } else {
-          handleVerificationError(data);
-        }
+        recaptchaToken = await window.grecaptcha.execute(RECAPTCHA_CONFIG.SITE_KEY, { action: 'verify_otp' });
       } catch (error) {
-        console.error('OTP verification call failed:', error);
-        
-        if (process.env.NODE_ENV === 'development') {
-          const simulatedData = {
-            status: "success",
-            message: "OTP verified successfully",
-            data: {
-              user: {
-                username: user?.name || "user",
-                email: email || user?.email,
-                role: user?.role || "admin"
-              }
-            }
-          };
-          
-          handleVerificationSuccess(simulatedData);
-          
-          toast({
-            title: "Development Mode",
-            description: "Using simulated OTP verification response",
-            variant: "default",
-          });
-        } else {
-          toast({
-            title: "Verification Error",
-            description: "Could not connect to verification service. Please try again later.",
-            variant: "destructive",
-          });
-        }
+        console.error('reCAPTCHA error:', error);
+        toast({
+          title: "Verification Failed",
+          description: "Could not verify reCAPTCHA. Please try again.",
+          variant: "destructive",
+        });
+        setIsVerifying(false);
+        return;
+      }
+
+      const response = await authApi.verifyOtp(values.otp, email || user?.email || '', recaptchaToken);
+      const data = await response.json();
+      
+      if (response.ok) {
+        handleVerificationSuccess(data);
+      } else {
+        handleVerificationError(data);
       }
     } catch (error) {
       console.error('OTP verification error:', error);
@@ -193,63 +172,39 @@ const Verify = () => {
     
     setIsResendingOtp(true);
     try {
-      const payload = {
-        email: email || user?.email
-      };
-      
-      console.log('Sending OTP resend request for:', payload);
-      
-      const targetUrl = getApiUrl(API_ENDPOINTS.RESEND_OTP);
-      
+      // Execute reCAPTCHA
+      let recaptchaToken: string | undefined;
       try {
-        const response = await fetch(targetUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify(payload),
+        recaptchaToken = await window.grecaptcha.execute(RECAPTCHA_CONFIG.SITE_KEY, { action: 'resend_otp' });
+      } catch (error) {
+        console.error('reCAPTCHA error:', error);
+        toast({
+          title: "Error",
+          description: "Could not verify reCAPTCHA. Please try again.",
+          variant: "destructive",
+        });
+        setIsResendingOtp(false);
+        return;
+      }
+
+      const response = await authApi.resendOtp(email || user?.email || '', recaptchaToken);
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast({
+          title: "OTP Sent",
+          description: data.message || "A new verification code has been sent to your email",
+          variant: "default",
         });
         
-        const data = await response.json();
-        
-        if (response.ok) {
-          toast({
-            title: "OTP Sent",
-            description: data.message || "A new verification code has been sent to your email",
-            variant: "default",
-          });
-          
-          // Start the resend cooldown timer (60 seconds)
-          setResendCooldown(60);
-          
-        } else {
-          toast({
-            title: "Error",
-            description: data.message || "Failed to resend verification code",
-            variant: "destructive",
-          });
-        }
-      } catch (error) {
-        console.error('OTP resend call failed:', error);
-        
-        if (process.env.NODE_ENV === 'development') {
-          toast({
-            title: "Development Mode",
-            description: "OTP resend simulation: A new code would be sent to your email",
-            variant: "default",
-          });
-          
-          // Start the resend cooldown timer (60 seconds) even in development mode
-          setResendCooldown(60);
-          
-        } else {
-          toast({
-            title: "Error",
-            description: "Could not connect to verification service. Please try again later.",
-            variant: "destructive",
-          });
-        }
+        // Start the resend cooldown timer (60 seconds)
+        setResendCooldown(60);
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to resend verification code",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('OTP resend error:', error);
