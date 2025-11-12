@@ -2240,13 +2240,13 @@ export const ChatboxPreview = ({
         <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/80 backdrop-blur-sm">
           <div className="flex items-center justify-between gap-3 text-xs text-gray-600">
             <div className="leading-relaxed">
-              By chatting you accept our{' '}
+              By chatting, you agree to our{' '}
               <a 
                 href="#" 
                 className="underline hover:text-gray-800 transition-colors"
                 onClick={(e) => e.preventDefault()}
               >
-                terms and conditions
+                privacy policy
               </a>
               .
             </div>
@@ -2966,79 +2966,8 @@ export const ChatboxPreview = ({
            </div>
          </ScrollArea>
 
-         {/* Removed old fixed-position typing indicator */}
-         {showTypingIndicator && (
-          <div 
-            className="absolute bottom-[87px] left-4 flex items-center gap-2 z-20"
-            style={{
-              animation: 'typingBounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards'
-            }}
-          >
-            {/* Smaller Avatar (2x smaller) */}
-            <div className="flex-shrink-0">
-              {avatarSrc ? (
-                <Avatar className="w-6 h-6">
-                <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
-                <AvatarFallback style={{ 
-                  background: ``,
-                  color: '#fff'
-                }} className='bg-transparent'>
-                  <Icon name={`Person`} type='plain' color='#000000' />
-                </AvatarFallback>
-                </Avatar>
-              ) : (
-                <div 
-                  className="w-5 h-5 rounded-full flex items-center justify-center border border-white bg-transparent"
-                  style={{ 
-                    background: ``,
-                    color: secondaryColor
-                  }}
-                >
-                  <Icon name={`Person`} type='plain' color='#000000' />
-                </div>
-              )}
-            </div>
-
-            {/* Smaller Typing Dots Container */}
-            <div 
-              className="rounded-full px-2 py-1 border border-gray-200/60 bg-white shadow-sm flex items-center gap-1"
-            >
-              <div className="flex space-x-1">
-                <div 
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ 
-                    backgroundColor: `${primaryColor}60`,
-                    animation: 'typingDotBounce 1.4s ease-in-out infinite',
-                    animationDelay: '0ms'
-                  }}
-                ></div>
-                <div 
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ 
-                    backgroundColor: `${primaryColor}60`,
-                    animation: 'typingDotBounce 1.4s ease-in-out infinite',
-                    animationDelay: '200ms'
-                  }}
-                ></div>
-                <div 
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ 
-                    backgroundColor: `${primaryColor}60`,
-                    animation: 'typingDotBounce 1.4s ease-in-out infinite',
-                    animationDelay: '400ms'
-                  }}
-                ></div>
-              </div>
-
-              {/* System Message Display */}
-              {systemMessage && (
-                <div className="ml-2 text-xs text-gray-600 font-medium animate-fade-in">
-                  {systemMessage}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+         
+         
         
         {/* End Chat Confirmation */}
         {showEndChatConfirmation && (
@@ -3223,14 +3152,14 @@ export const ChatboxPreview = ({
           <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/80 backdrop-blur-sm">
             <div className="flex items-center justify-between gap-3 text-xs text-gray-600">
               <div className="leading-relaxed">
-                By chatting, you accept our{' '}
+                By chatting, you agree to our{' '}
                 <a 
                   href={privacyUrl || "#"} 
                   className="underline hover:text-gray-800 transition-colors"
                   onClick={(e) => privacyUrl === "#" && e.preventDefault()}
                   target='_blank'
                 >
-                  terms and conditions
+                   privacy policy
                 </a>
                 .
               </div>
@@ -3252,7 +3181,79 @@ export const ChatboxPreview = ({
         )}
 
         {/* Message Input - With integrated send button */}
-        <div className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
+        <div className="relative border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
+          {showTypingIndicator && (
+            <div 
+              className="absolute bottom-[auto] top-[-32px] left-4 flex items-center gap-2 z-20"
+              style={{
+                animation: 'typingBounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards'
+              }}
+            >
+              {/* Smaller Avatar (2x smaller) */}
+              <div className="flex-shrink-0">
+                {avatarSrc ? (
+                  <Avatar className="w-6 h-6">
+                  <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                  <AvatarFallback style={{ 
+                    background: ``,
+                    color: '#fff'
+                  }} className='bg-transparent'>
+                    <Icon name={`Person`} type='plain' color='#000000' />
+                  </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <div 
+                    className="w-5 h-5 rounded-full flex items-center justify-center border border-white bg-transparent"
+                    style={{ 
+                      background: ``,
+                      color: secondaryColor
+                    }}
+                  >
+                    <Icon name={`Person`} type='plain' color='#000000' />
+                  </div>
+                )}
+              </div>
+
+              {/* Smaller Typing Dots Container */}
+              <div 
+                className="rounded-full px-2 py-1 border border-gray-200/60 bg-white shadow-sm flex items-center gap-1"
+              >
+                <div className="flex space-x-1">
+                  <div 
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ 
+                      backgroundColor: `${primaryColor}60`,
+                      animation: 'typingDotBounce 1.4s ease-in-out infinite',
+                      animationDelay: '0ms'
+                    }}
+                  ></div>
+                  <div 
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ 
+                      backgroundColor: `${primaryColor}60`,
+                      animation: 'typingDotBounce 1.4s ease-in-out infinite',
+                      animationDelay: '200ms'
+                    }}
+                  ></div>
+                  <div 
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ 
+                      backgroundColor: `${primaryColor}60`,
+                      animation: 'typingDotBounce 1.4s ease-in-out infinite',
+                      animationDelay: '400ms'
+                    }}
+                  ></div>
+                </div>
+
+                {/* System Message Display */}
+                {systemMessage && (
+                  <div className="ml-2 text-xs text-gray-600 font-medium animate-fade-in">
+                    {systemMessage}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="relative">
             <Textarea
               ref={textareaRef}

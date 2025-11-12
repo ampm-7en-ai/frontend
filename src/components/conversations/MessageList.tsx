@@ -217,7 +217,7 @@ const MessageList = ({
                   "border border-neutral-200/60 dark:border-none shadow-none"
                 )}
               >
-                <div className="prose-sm max-w-none break-words text-neutral-800 dark:text-neutral-200">
+                <div className="prose-sm max-w-none break-words text-neutral-800 dark:text-neutral-200 message-container">
                   {typeof message.content === 'string' && (
                      <StyledMarkdown
                        content={message.content}
