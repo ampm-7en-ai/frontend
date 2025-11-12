@@ -459,12 +459,21 @@ export const ChatboxPreview = ({
 
           const newMessages = [...prev, { ...messageForProcessing, messageId }];
           
+          // Debug: Log message details for timeout management
+          console.log('🔍 Message received for timeout check:', {
+            type: messageForProcessing.type,
+            source: messageForProcessing.source,
+            willTriggerTimeout: messageForProcessing.type === 'bot_response' && messageForProcessing.source === 'websocket'
+          });
+          
           // Only manage timeout for real-time bot responses, not database messages
           if (messageForProcessing.type === 'bot_response' && messageForProcessing.source === 'websocket') {
             setTimeout(() => {
               console.log('⏰ Managing timeout after real-time bot message');
               manageTimeout();
             }, 0);
+          } else {
+            console.log('❌ NOT triggering timeout - type:', messageForProcessing.type, 'source:', messageForProcessing.source);
           }
           
           return newMessages;
