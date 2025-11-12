@@ -125,6 +125,7 @@ export const ChatboxPreview = ({
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackText, setFeedbackText] = useState('');
   const [selectedFeedbackTemplate, setSelectedFeedbackTemplate] = useState<string>('');
+  const [showStartNewChatButton, setShowStartNewChatButton] = useState(false);
 
   // Timeout functionality
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
@@ -678,6 +679,9 @@ export const ChatboxPreview = ({
       onRestart();
     }
     
+    // Hide Start New Chat button if visible
+    setShowStartNewChatButton(false);
+    
     // Set restarting flag
     restartingRef.current = true;
     
@@ -1142,13 +1146,14 @@ export const ChatboxPreview = ({
         chatServiceRef.current = null;
       }
       
-      // Reset feedback form state but don't clear messages
+      // Reset feedback form state and show Start New Chat button
       setShowFeedbackForm(false);
       setFeedbackRating(0);
       setFeedbackText('');
       setSelectedFeedbackTemplate('');
+      setShowStartNewChatButton(true);
       
-      console.log('Connection closed after No Thanks, chat in idle state');
+      console.log('Connection closed after No Thanks, showing Start New Chat button');
     }, 500);
   };
 
@@ -2205,6 +2210,20 @@ export const ChatboxPreview = ({
           </div>
         )}
         
+        {/* Start New Chat Button */}
+        {showStartNewChatButton && (
+          <div className="px-4 py-3 bg-white border-t border-gray-100">
+            <Button
+              onClick={handleNewChat}
+              className="w-full text-sm rounded-lg py-2"
+              style={{ backgroundColor: primaryColor }}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Start New Chat
+            </Button>
+          </div>
+        )}
+        
         {/* Terms and Conditions */}
         <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/80 backdrop-blur-sm">
           <div className="flex items-center justify-between gap-3 text-xs text-gray-600">
@@ -3168,6 +3187,20 @@ export const ChatboxPreview = ({
                 </Button>
               </div>
             </div>
+          </div>
+        )}
+        
+        {/* Start New Chat Button */}
+        {showStartNewChatButton && (
+          <div className="px-4 py-3 bg-white border-t border-gray-100">
+            <Button
+              onClick={handleNewChat}
+              className="w-full text-sm rounded-lg py-2 dark:!bg-black"
+              style={{ backgroundColor: primaryColor }}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Start New Chat
+            </Button>
           </div>
         )}
         
