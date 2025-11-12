@@ -227,7 +227,7 @@ export const ChatboxPreview = ({
             console.log('⏰ Second timeout reached, showing custom message and feedback form');
             const customMessage = {
               content:
-                'Seems like you are offline. Start new chat whenever you are back. I am ending this session. Nice to talk with you.',
+                'It seems you’re currently offline. You can start a new chat anytime when you’re back. I’ll end this session for now. It was a pleasure speaking with you.',
               type: 'bot_response',
               timestamp: new Date().toISOString(),
               messageId: `custom-offline-${Date.now()}`,
