@@ -272,10 +272,8 @@ export const ChatboxPreview = ({
     setTimeoutQuestionSent(false);
   };
 
-  // Effect to manage timeout based on messages
-  useEffect(() => {
-    manageTimeout();
-  }, [messages]);
+  // Timeout is managed manually after bot responses and on connection
+  // to avoid duplicate calls when messages array changes
 
   // Updated scroll effect to only scroll the message container, not the entire tab
   useEffect(() => {
