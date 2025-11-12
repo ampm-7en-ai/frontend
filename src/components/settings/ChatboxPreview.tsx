@@ -2222,7 +2222,7 @@ export const ChatboxPreview = ({
         )}
         
         {/* Start New Chat Button */}
-        {showStartNewChatButton && (
+        {showStartNewChatButton && !isPrivateMode && (
           <div className="px-4 py-3 bg-white border-t border-gray-100">
             <Button
               onClick={handleNewChat}
@@ -3204,7 +3204,7 @@ export const ChatboxPreview = ({
         )}
         
         {/* Start New Chat Button */}
-        {showStartNewChatButton && (
+        {showStartNewChatButton && !isPrivateMode && (
           <div className="px-4 py-3 bg-white border-t border-gray-100">
             <Button
               onClick={handleNewChat}
