@@ -90,6 +90,8 @@ export const ChatboxPreview = ({
   isWhiteLabel
 }: ChatboxPreviewProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [historyMessages, setHistoryMessages] = useState<Message[]>([]);
+  const [historyTimestamp, setHistoryTimestamp] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const chatServiceRef = useRef<ChatWebSocketService | null>(null);
   const [inputValue, setInputValue] = useState('');
@@ -335,6 +337,22 @@ export const ChatboxPreview = ({
         // Skip if we're in the middle of restarting
         if (restartingRef.current) {
           console.log("⏭️ Skipping message during restart");
+          return;
+        }
+        
+        // Handle history messages
+        if (message.type === 'history') {
+          console.log("📜 Received history:", message);
+          const historyData = message as any;
+          if (historyData.messages && Array.isArray(historyData.messages)) {
+            const formattedHistory = historyData.messages.map((msg: any, index: number) => ({
+              ...msg,
+              messageId: `history-${historyData.session_id}-${index}`,
+              source: 'history'
+            }));
+            setHistoryMessages(formattedHistory);
+            setHistoryTimestamp(historyData.timestamp);
+          }
           return;
         }
         
@@ -662,6 +680,8 @@ export const ChatboxPreview = ({
     
     // Completely reset the chat state
     setMessages([]);
+    setHistoryMessages([]);
+    setHistoryTimestamp(null);
     setShowTypingIndicator(false);
     setSystemMessage('');
     setConnectionError(null);
@@ -695,6 +715,22 @@ export const ChatboxPreview = ({
             
             if (restartingRef.current) {
               console.log("Still initializing, skipping message");
+              return;
+            }
+            
+            // Handle history messages
+            if (message.type === 'history') {
+              console.log("📜 Received history (new chat):", message);
+              const historyData = message as any;
+              if (historyData.messages && Array.isArray(historyData.messages)) {
+                const formattedHistory = historyData.messages.map((msg: any, index: number) => ({
+                  ...msg,
+                  messageId: `history-${historyData.session_id}-${index}`,
+                  source: 'history'
+                }));
+                setHistoryMessages(formattedHistory);
+                setHistoryTimestamp(historyData.timestamp);
+              }
               return;
             }
             
@@ -827,6 +863,8 @@ export const ChatboxPreview = ({
     
     // Completely reset the chat state
     setMessages([]);
+    setHistoryMessages([]);
+    setHistoryTimestamp(null);
     setShowTypingIndicator(false);
     setSystemMessage('');
     setConnectionError(null);
@@ -864,6 +902,22 @@ export const ChatboxPreview = ({
             // Skip if we're still in restarting state
             if (restartingRef.current) {
               console.log("Still restarting, skipping message");
+              return;
+            }
+            
+            // Handle history messages
+            if (message.type === 'history') {
+              console.log("📜 Received history (restart):", message);
+              const historyData = message as any;
+              if (historyData.messages && Array.isArray(historyData.messages)) {
+                const formattedHistory = historyData.messages.map((msg: any, index: number) => ({
+                  ...msg,
+                  messageId: `history-${historyData.session_id}-${index}`,
+                  source: 'history'
+                }));
+                setHistoryMessages(formattedHistory);
+                setHistoryTimestamp(historyData.timestamp);
+              }
               return;
             }
             
@@ -1154,6 +1208,8 @@ export const ChatboxPreview = ({
       
       // Clear current state
       setMessages([]);
+      setHistoryMessages([]);
+      setHistoryTimestamp(null);
       setShowTypingIndicator(false);
       setSystemMessage('');
       setIsConnected(false);
@@ -1179,6 +1235,22 @@ export const ChatboxPreview = ({
         chatServiceRef.current.on({
           onMessage: (message) => {
             console.log("📥 Received message after reconnect:", message);
+            
+            // Handle history messages
+            if (message.type === 'history') {
+              console.log("📜 Received history (reconnect):", message);
+              const historyData = message as any;
+              if (historyData.messages && Array.isArray(historyData.messages)) {
+                const formattedHistory = historyData.messages.map((msg: any, index: number) => ({
+                  ...msg,
+                  messageId: `history-${historyData.session_id}-${index}`,
+                  source: 'history'
+                }));
+                setHistoryMessages(formattedHistory);
+                setHistoryTimestamp(historyData.timestamp);
+              }
+              return;
+            }
             
             if (message.type === 'system_message') {
               setSystemMessage(message.content);
@@ -2513,6 +2585,95 @@ export const ChatboxPreview = ({
                       </p>)}
                   </div>
                 </div>
+              </div>
+            )}
+            
+            {/* History Messages */}
+            {historyMessages.map((message, index) => {
+              const isUserMessage = message.type === 'message' || message.type === 'user';
+              const isBotMessage = message.type === 'bot_response' || message.type === 'assistant';
+              const isSystemMessage = message.type === 'system_message';
+              
+              return (
+                <div key={`history-${message.messageId || index}`} className="opacity-70 mt-4">
+                  {isUserMessage && (
+                    <div className="flex justify-end items-start gap-3 animate-fade-in">
+                      <div 
+                        className="px-4 py-3 rounded-2xl max-w-[80%] shadow-sm text-sm break-words"
+                        style={{ 
+                          backgroundColor: primaryColor,
+                          color: secondaryColor,
+                        }}
+                      >
+                        <ReactMarkdown>
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {isBotMessage && (
+                    <div className="flex gap-3 items-start animate-fade-in">
+                      <div className="flex-shrink-0">
+                        {avatarSrc ? (
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                            <AvatarFallback style={{ 
+                              background: ``,
+                              color: '#fff'
+                            }} className='bg-transparent'>
+                              <Icon name={`Person`} type='plain' color='#000000' />
+                            </AvatarFallback>
+                          </Avatar>
+                        ) : (
+                          <div 
+                            className="w-8 h-8 rounded-full flex items-center justify-center border border-white"
+                            style={{ 
+                              background: ``,
+                              color: secondaryColor
+                            }}
+                          >
+                            <Icon name={`Person`} type='plain' color='#000000' />
+                          </div>
+                        )}
+                      </div>
+                      <div 
+                        className="px-4 py-3 rounded-2xl max-w-[80%] bg-white border border-gray-200/60 shadow-sm text-sm text-gray-800 break-words"
+                      >
+                        <ReactMarkdown>
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {isSystemMessage && (
+                    <div className="flex justify-center my-4">
+                      <div className="text-xs text-gray-500 bg-gray-100/80 px-3 py-1.5 rounded-full">
+                        {message.content}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            
+            {/* History Separator */}
+            {historyMessages.length > 0 && (
+              <div className="flex items-center gap-3 my-6">
+                <div className="flex-1 h-px bg-gray-200"></div>
+                <div className="text-xs text-gray-500 whitespace-nowrap">
+                  {historyTimestamp 
+                    ? new Date(historyTimestamp).toLocaleString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })
+                    : 'Previous messages'
+                  }
+                </div>
+                <div className="flex-1 h-px bg-gray-200"></div>
               </div>
             )}
             
