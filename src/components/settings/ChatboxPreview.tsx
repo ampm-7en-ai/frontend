@@ -1199,6 +1199,7 @@ export const ChatboxPreview = ({
       setSystemMessage('');
       setIsConnected(false);
       setIsInitializing(true);
+      setShowStartNewChatButton(false); // Hide Start New Chat button when exiting private mode
       
       // Retrieve session ID from localStorage
       const storedSessionId = localStorage.getItem(`chat_session_${agentId}`);
