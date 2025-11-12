@@ -130,7 +130,6 @@ export const ChatboxPreview = ({
   // Timeout functionality
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const [timeoutQuestionSent, setTimeoutQuestionSent] = useState(false);
-  const isSettingUpTimeoutRef = useRef(false); // Prevent race conditions
 
   // Dismissable states
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(true);
@@ -156,7 +155,6 @@ export const ChatboxPreview = ({
       clearTimeout(timeoutId);
       setTimeoutId(null);
     }
-    isSettingUpTimeoutRef.current = false; // Reset lock when clearing
   };
 
   // Get the latest message
@@ -203,12 +201,6 @@ export const ChatboxPreview = ({
     if (latestMessage.type === 'bot_response') {
       console.log('🤖 Latest message is from bot, evaluating timers');
 
-      // Prevent race conditions - if already setting up timeout, skip
-      if (isSettingUpTimeoutRef.current) {
-        console.log('⏱️ Already setting up timeout, skipping to prevent duplicates');
-        return;
-      }
-
       // If a timer is already running (first or second), don't restart
       if (timeoutId) {
         console.log('⏱️ A timeout is already active, continuing countdown');
@@ -218,10 +210,8 @@ export const ChatboxPreview = ({
       // Start the appropriate timer depending on phase
       if (!timeoutQuestionSent) {
         console.log('⏰ Starting first 1-minute timeout to trigger timeout_question');
-        isSettingUpTimeoutRef.current = true; // Lock to prevent duplicates
-        
         const id = setTimeout(() => {
-          console.log('⏰ First timeout reached, sending timeout_question (ONCE)');
+          console.log('⏰ First timeout reached, sending timeout_question');
           if (chatServiceRef.current && chatServiceRef.current.isConnected()) {
             chatServiceRef.current.send({
               type: 'timeout_question',
@@ -232,13 +222,13 @@ export const ChatboxPreview = ({
             });
           }
           setTimeoutQuestionSent(true);
-          isSettingUpTimeoutRef.current = false; // Unlock
 
           // Start second timeout for feedback form
           const secondId = setTimeout(() => {
-            console.log('⏰ Second timeout reached, showing feedback form (ONCE)');
+            console.log('⏰ Second timeout reached, showing custom message and feedback form');
             const customMessage = {
-              content: "It seems you're currently offline. You can start a new chat anytime when you're back. I'll end this session for now. It was a pleasure speaking with you.",
+              content:
+                'It seems you’re currently offline. You can start a new chat anytime when you’re back. I’ll end this session for now. It was a pleasure speaking with you.',
               type: 'bot_response',
               timestamp: new Date().toISOString(),
               messageId: `custom-offline-${Date.now()}`,
@@ -255,12 +245,11 @@ export const ChatboxPreview = ({
       } else {
         // timeout_question already sent; if no timer running, start the second one
         console.log('⏳ timeout_question already sent; starting second timeout');
-        isSettingUpTimeoutRef.current = true; // Lock to prevent duplicates
-        
         const secondId = setTimeout(() => {
-          console.log('⏰ Second timeout reached, showing feedback form (ONCE)');
+          console.log('⏰ Second timeout reached, showing custom message and feedback form');
           const customMessage = {
-            content: 'Seems like you are offline. Start new chat whenever you are back. I am ending this session. Nice to talk with you.',
+            content:
+              'Seems like you are offline. Start new chat whenever you are back. I am ending this session. Nice to talk with you.',
             type: 'bot_response',
             timestamp: new Date().toISOString(),
             messageId: `custom-offline-${Date.now()}`,
@@ -268,7 +257,6 @@ export const ChatboxPreview = ({
           setMessages((prev) => [...prev, customMessage]);
           setShowFeedbackForm(true);
           setTimeoutId(null);
-          isSettingUpTimeoutRef.current = false; // Unlock
         }, 60000); // 1 minute
 
         setTimeoutId(secondId);
@@ -282,11 +270,12 @@ export const ChatboxPreview = ({
     clearTimeouts();
     setShowFeedbackForm(false);
     setTimeoutQuestionSent(false);
-    isSettingUpTimeoutRef.current = false; // Reset lock
   };
 
-  // Timeout is managed manually after bot responses and on connection
-  // to avoid duplicate calls when messages array changes
+  // Effect to manage timeout based on messages
+  useEffect(() => {
+    manageTimeout();
+  }, [messages]);
 
   // Updated scroll effect to only scroll the message container, not the entire tab
   useEffect(() => {
@@ -459,21 +448,12 @@ export const ChatboxPreview = ({
 
           const newMessages = [...prev, { ...messageForProcessing, messageId }];
           
-          // Debug: Log message details for timeout management
-          console.log('🔍 Message received for timeout check:', {
-            type: messageForProcessing.type,
-            source: messageForProcessing.source,
-            willTriggerTimeout: messageForProcessing.type === 'bot_response' && messageForProcessing.source === 'websocket'
-          });
-          
           // Only manage timeout for real-time bot responses, not database messages
           if (messageForProcessing.type === 'bot_response' && messageForProcessing.source === 'websocket') {
             setTimeout(() => {
               console.log('⏰ Managing timeout after real-time bot message');
               manageTimeout();
             }, 0);
-          } else {
-            console.log('❌ NOT triggering timeout - type:', messageForProcessing.type, 'source:', messageForProcessing.source);
           }
           
           return newMessages;
@@ -722,7 +702,6 @@ export const ChatboxPreview = ({
     // Clear timeout timers and reset flags
     clearTimeouts();
     setTimeoutQuestionSent(false);
-    isSettingUpTimeoutRef.current = false; // Reset lock
     
     // Properly disconnect and cleanup existing connection
     if (chatServiceRef.current) {
