@@ -165,6 +165,12 @@ export const ChatboxPreview = ({
 
   // Start/restart timeout based on latest message
   const manageTimeout = () => {
+    // Skip timeout management if terms not accepted
+    if (!termsAccepted) {
+      console.log('📋 Skipping timeout management - terms not accepted yet');
+      return;
+    }
+
     // Skip timeout management if we're loading session messages
     if (isLoadingSessionMessages) {
       console.log('📚 Skipping timeout management - session messages loading');
@@ -703,6 +709,10 @@ export const ChatboxPreview = ({
     clearTimeouts();
     setTimeoutQuestionSent(false);
     
+    // Reset terms acceptance for new chat - ask for consent again
+    setTermsAccepted(false);
+    setShowTermsAcceptance(true);
+    
     // Properly disconnect and cleanup existing connection
     if (chatServiceRef.current) {
       chatServiceRef.current.disconnect();
@@ -862,8 +872,9 @@ export const ChatboxPreview = ({
     setIsInitializing(true);
     setIsConnected(false);
     
-    // Don't reset terms acceptance - it should persist across restarts
-    // User has already accepted terms for this session
+    // Reset terms acceptance for restart - ask for consent again
+    setTermsAccepted(false);
+    setShowTermsAcceptance(true);
     
     // Clear processed message IDs and reset sequence
     processedMessageIds.current.clear();
@@ -2242,6 +2253,8 @@ export const ChatboxPreview = ({
               onClick={() => {
                 setTermsAccepted(true);
                 setShowTermsAcceptance(false);
+                // Start timeout management after terms acceptance
+                setTimeout(() => manageTimeout(), 100);
               }}
               size="sm"
               className="h-7 px-3 text-xs flex-shrink-0"
@@ -3224,6 +3237,8 @@ export const ChatboxPreview = ({
                 onClick={() => {
                   setTermsAccepted(true);
                   setShowTermsAcceptance(false);
+                  // Start timeout management after terms acceptance
+                  setTimeout(() => manageTimeout(), 100);
                 }}
                 size="sm"
                 className="h-7 px-3 text-xs flex-shrink-0"
