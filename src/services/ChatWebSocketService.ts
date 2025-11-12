@@ -99,6 +99,13 @@ export class ChatWebSocketService {
       this.events.onSessionIdReceived(data.session_id);
     }
 
+    // Handle history messages (pass through without processing)
+    if (data.type === 'history') {
+      console.log('📚 Passing through history message:', data);
+      this.events.onMessage?.(data as any);
+      return;
+    }
+
     const normalizedType = mapType(data.type, data.sender);
     
     // Handle UI messages (like email prompt) that don't have content
