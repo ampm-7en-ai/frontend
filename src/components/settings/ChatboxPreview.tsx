@@ -1696,7 +1696,17 @@ export const ChatboxPreview = ({
                         <div className="flex items-center gap-3 my-4">
                           <div className="flex-1 h-px bg-gray-300"></div>
                           <span className="text-xs text-gray-500 font-medium">
-                            {historyTimestamp ? new Date(historyTimestamp).toLocaleString() : 'Previous messages'}
+                            {historyTimestamp ? (() => {
+                              try {
+                                // Clean up malformed timestamp (remove Z if offset exists)
+                                const cleanTimestamp = historyTimestamp.replace(/\+\d{2}:\d{2}Z$/i, (match) => match.slice(0, -1));
+                                const date = new Date(cleanTimestamp);
+                                if (isNaN(date.getTime())) return 'Previous messages';
+                                return date.toLocaleString();
+                              } catch {
+                                return 'Previous messages';
+                              }
+                            })() : 'Previous messages'}
                           </span>
                           <div className="flex-1 h-px bg-gray-300"></div>
                         </div>
@@ -2631,7 +2641,17 @@ export const ChatboxPreview = ({
                 <div className="flex items-center gap-3 my-4">
                   <div className="flex-1 h-px bg-gray-300"></div>
                   <span className="text-xs text-gray-500 font-medium">
-                    {historyTimestamp ? new Date(historyTimestamp).toLocaleString() : 'Previous messages'}
+                    {historyTimestamp ? (() => {
+                      try {
+                        // Clean up malformed timestamp (remove Z if offset exists)
+                        const cleanTimestamp = historyTimestamp.replace(/\+\d{2}:\d{2}Z$/i, (match) => match.slice(0, -1));
+                        const date = new Date(cleanTimestamp);
+                        if (isNaN(date.getTime())) return 'Previous messages';
+                        return date.toLocaleString();
+                      } catch {
+                        return 'Previous messages';
+                      }
+                    })() : 'Previous messages'}
                   </span>
                   <div className="flex-1 h-px bg-gray-300"></div>
                 </div>
