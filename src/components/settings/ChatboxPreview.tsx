@@ -156,6 +156,7 @@ export const ChatboxPreview = ({
       clearTimeout(timeoutId);
       setTimeoutId(null);
     }
+    isSettingUpTimeoutRef.current = false; // Reset lock when clearing
   };
 
   // Get the latest message
