@@ -2583,6 +2583,61 @@ export const ChatboxPreview = ({
               </div>
             )}
             
+            {/* History Messages */}
+            {historyMessages.length > 0 && (
+              <>
+                {historyMessages.map((message, index) => {
+                  const styling = getMessageStyling(message.type);
+                  const isConsecutive = index > 0 && historyMessages[index - 1]?.type === message.type;
+                  
+                  return (
+                    <div key={message.messageId || `history-${index}`} className={isConsecutive ? 'mt-2' : 'mt-4'}>
+                      <div 
+                        className={`flex gap-4 items-start ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
+                      >
+                        <div
+                          className={cn(
+                            `rounded-[20px] p-4 max-w-[92%] relative transition-all duration-300 ${(message.type === 'user' || message.type === 'message') ? "!py-2 rounded-br-sm" : !isConsecutive ? "rounded-bl-sm" : "rounded-tl-sm"}`,
+                            styling.containerClass,
+                            styling.textClass
+                          )}
+                          style={styling.style}
+                        >
+                          {
+                            message.type === 'bot_response' && !isConsecutive && (
+                              <div className='flex items-center gap-2 bot mb-1'>
+                                <Avatar className="w-4 h-4">
+                                  <AvatarImage src={avatarSrc} alt={chatbotName} className="object-cover" />
+                                  <AvatarFallback className='bg-transparent'>
+                                    <Icon name={`Person`} type='plain' color='#000000' className='h-4 w-4' />
+                                  </AvatarFallback>
+                                </Avatar>
+                                <p className='text-sm font-semibold'>{chatbotName}</p>
+                              </div>
+                            )
+                          }
+                          <div className="text-sm prose prose-sm max-w-none markdown-content">
+                            <ReactMarkdown>
+                              {message.content}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                
+                {/* Timestamp separator */}
+                <div className="flex items-center gap-3 my-4">
+                  <div className="flex-1 h-px bg-gray-300"></div>
+                  <span className="text-xs text-gray-500 font-medium">
+                    {historyTimestamp ? new Date(historyTimestamp).toLocaleString() : 'Previous messages'}
+                  </span>
+                  <div className="flex-1 h-px bg-gray-300"></div>
+                </div>
+              </>
+            )}
+            
             {/* Regular Messages */}
             {messages.map((message, index) => {
               const styling = getMessageStyling(message.type);
