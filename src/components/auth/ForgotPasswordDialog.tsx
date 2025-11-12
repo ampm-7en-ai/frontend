@@ -186,6 +186,14 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({ isOpen, onC
             </DialogFooter>
           </div>
         )}
+        
+        <div className="text-center text-xs text-muted-foreground mt-4">
+          <p>
+            This site is protected by reCAPTCHA and the Google{' '}
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors underline">Privacy Policy</a> and{' '}
+            <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors underline">Terms of Service</a> apply.
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   );

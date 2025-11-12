@@ -109,6 +109,11 @@
     -webkit-box-shadow: 0 0 0px 1000px #343435 inset;
     -webkit-text-fill-color: white;
   }
+
+  /* Hide reCAPTCHA badge */
+  .grecaptcha-badge {
+    visibility: hidden !important;
+  }
 }
 
 .assistant ol li::before {

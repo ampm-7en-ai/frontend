@@ -324,6 +324,14 @@ const Verify = () => {
             </form>
           </Form>
         </div>
+        
+        <footer className="mt-6 text-center text-xs text-muted-foreground">
+          <p>
+            This site is protected by reCAPTCHA and the Google{' '}
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors underline">Privacy Policy</a> and{' '}
+            <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors underline">Terms of Service</a> apply.
+          </p>
+        </footer>
       </div>
     </div>
   );
