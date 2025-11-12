@@ -90,6 +90,8 @@ export const ChatboxPreview = ({
   isWhiteLabel
 }: ChatboxPreviewProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [historyMessages, setHistoryMessages] = useState<Message[]>([]);
+  const [historyTimestamp, setHistoryTimestamp] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const chatServiceRef = useRef<ChatWebSocketService | null>(null);
   const [inputValue, setInputValue] = useState('');
@@ -335,6 +337,25 @@ export const ChatboxPreview = ({
         // Skip if we're in the middle of restarting
         if (restartingRef.current) {
           console.log("⏭️ Skipping message during restart");
+          return;
+        }
+        
+        // Handle history messages
+        if (message.type === 'history') {
+          console.log("📚 History data received:", message);
+          const historyData = message as any;
+          if (historyData.messages && Array.isArray(historyData.messages)) {
+            const historyMsgs = historyData.messages.map((msg: any, idx: number) => ({
+              type: msg.type === 'message' ? 'user' : msg.type,
+              content: msg.content,
+              timestamp: msg.timestamp,
+              messageId: `history-${msg.timestamp}-${idx}`,
+              source: 'history'
+            }));
+            setHistoryMessages(historyMsgs);
+            setHistoryTimestamp(historyData.timestamp);
+            console.log("📚 History messages set:", historyMsgs.length);
+          }
           return;
         }
         
@@ -662,6 +683,8 @@ export const ChatboxPreview = ({
     
     // Completely reset the chat state
     setMessages([]);
+    setHistoryMessages([]);
+    setHistoryTimestamp(null);
     setShowTypingIndicator(false);
     setSystemMessage('');
     setConnectionError(null);
@@ -827,6 +850,8 @@ export const ChatboxPreview = ({
     
     // Completely reset the chat state
     setMessages([]);
+    setHistoryMessages([]);
+    setHistoryTimestamp(null);
     setShowTypingIndicator(false);
     setSystemMessage('');
     setConnectionError(null);
@@ -1634,6 +1659,48 @@ export const ChatboxPreview = ({
                           </div>
                         </div>
                       </div>
+                    )}
+                    
+                    {/* History Messages */}
+                    {historyMessages.length > 0 && (
+                      <>
+                        {historyMessages.map((message, index) => {
+                          const styling = getMessageStyling(message.type);
+                          const isConsecutive = index > 0 && historyMessages[index - 1]?.type === message.type;
+                          
+                          return (
+                            <div key={message.messageId || `history-${index}`} className={isConsecutive ? 'mt-2' : 'mt-4'}>
+                              <div 
+                                className={`flex gap-4 items-start ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
+                              >
+                                <div
+                                  className={cn(
+                                    "rounded-2xl p-4 max-w-[92%] relative transition-all duration-300",
+                                    styling.containerClass,
+                                    styling.textClass
+                                  )}
+                                  style={styling.style}
+                                >
+                                  <div className="text-sm prose prose-sm max-w-none markdown-content">
+                                    <ReactMarkdown>
+                                      {message.content}
+                                    </ReactMarkdown>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        
+                        {/* Timestamp separator */}
+                        <div className="flex items-center gap-3 my-4">
+                          <div className="flex-1 h-px bg-gray-300"></div>
+                          <span className="text-xs text-gray-500 font-medium">
+                            {historyTimestamp ? new Date(historyTimestamp).toLocaleString() : 'Previous messages'}
+                          </span>
+                          <div className="flex-1 h-px bg-gray-300"></div>
+                        </div>
+                      </>
                     )}
                     
                     {/* Regular Messages */}
