@@ -1302,7 +1302,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                     <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                       Selected Files ({files.length})
                     </Label>
-                    <ScrollArea className="h-[240px]">
+                    <ScrollArea className="max-h-[240px]">
                       <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl divide-y divide-neutral-100 dark:divide-neutral-700">
                         {files.map((file, index) => (
                           
@@ -1520,26 +1520,28 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                         <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                           Selected Files ({selectedFiles.length})
                         </Label>
-                        <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl divide-y divide-neutral-100 dark:divide-neutral-700">
-                          {selectedFiles.map((fileName, index) => (
-                            <div key={index} className="flex items-center justify-between p-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-700 rounded-lg flex items-center justify-center">
-                                  <FileText className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
+                        <ScrollArea className="max-h-[240px]">
+                          <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl divide-y divide-neutral-100 dark:divide-neutral-700">
+                            {selectedFiles.map((fileName, index) => (
+                              <div key={index} className="flex items-center justify-between p-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-700 rounded-lg flex items-center justify-center">
+                                    <FileText className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
+                                  </div>
+                                  <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">{fileName}</p>
                                 </div>
-                                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">{fileName}</p>
+                                <ModernButton
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRemoveSelectedFile(index)}
+                                  type="button"
+                                >
+                                  <X className="h-4 w-4" />
+                                </ModernButton>
                               </div>
-                              <ModernButton
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveSelectedFile(index)}
-                                type="button"
-                              >
-                                <X className="h-4 w-4" />
-                              </ModernButton>
-                            </div>
-                          ))}
-                        </div>
+                            ))}
+                          </div>
+                        </ScrollArea>
                       </div>
                     )}
 
