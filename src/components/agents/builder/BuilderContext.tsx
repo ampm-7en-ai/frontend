@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import { agentApi } from '@/utils/api-config';
-import { KnowledgeSource } from '@/components/agents/knowledge/types';
-import { updateAgentInCache, removeAgentFromCache } from '@/utils/agentCacheUtils';
-import { useQueryClient } from '@tanstack/react-query';
-import { AgentTrainingService } from '@/services/AgentTrainingService';
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { agentApi } from "@/utils/api-config";
+import { KnowledgeSource } from "@/components/agents/knowledge/types";
+import { updateAgentInCache, removeAgentFromCache } from "@/utils/agentCacheUtils";
+import { useQueryClient } from "@tanstack/react-query";
+import { AgentTrainingService } from "@/services/AgentTrainingService";
 
 interface AgentFormData {
   id?: string | number;
@@ -23,11 +23,11 @@ interface AgentFormData {
   chatbotName: string;
   welcomeMessage: string;
   buttonText: string;
-  position: 'bottom-right' | 'bottom-left';
+  position: "bottom-right" | "bottom-left";
   suggestions: string[];
   avatar?: string;
   avatarUrl?: string;
-  avatarType?: 'default' | 'predefined' | 'custom';
+  avatarType?: "default" | "predefined" | "custom";
   guidelines: {
     dos: string[];
     donts: string[];
@@ -40,7 +40,7 @@ interface AgentFormData {
     multilingualSupport?: boolean;
     autoTicketReply?: boolean;
     email?: string;
-    ticketType?: 'thirdparty' | 'email';
+    ticketType?: "thirdparty" | "email";
   };
   settings?: {
     temperature?: number;
@@ -65,8 +65,8 @@ interface GdprConfig {
 
 interface BuilderState {
   agentData: AgentFormData;
-  canvasMode: 'embedded' | 'popup' | 'inline';
-  deviceMode: 'desktop' | 'tablet' | 'mobile';
+  canvasMode: "embedded" | "popup" | "inline";
+  deviceMode: "desktop" | "tablet" | "mobile";
   isPreviewActive: boolean;
   isDirty: boolean;
   isLoading: boolean;
@@ -80,8 +80,8 @@ interface BuilderContextType {
   state: BuilderState;
   features: any;
   updateAgentData: (data: Partial<AgentFormData>) => void;
-  setCanvasMode: (mode: 'embedded' | 'popup' | 'inline') => void;
-  setDeviceMode: (mode: 'desktop' | 'tablet' | 'mobile') => void;
+  setCanvasMode: (mode: "embedded" | "popup" | "inline") => void;
+  setDeviceMode: (mode: "desktop" | "tablet" | "mobile") => void;
   togglePreview: () => void;
   saveAgent: () => Promise<void>;
   deleteAgent: () => void;
@@ -90,100 +90,96 @@ interface BuilderContextType {
 const BuilderContext = createContext<BuilderContextType | undefined>(undefined);
 
 const defaultAgentData: AgentFormData = {
-  name: 'Untitled Agent',
-  description: 'A helpful AI assistant created with our builder.',
-  agentType: 'Customer Support',
-  agent_category: 'assistant',
-  model: 'gpt-3.5-turbo',
+  name: "Untitled Agent",
+  description: "A helpful AI assistant created with our builder.",
+  agentType: "Customer Support",
+  agent_category: "assistant",
+  model: "gpt-3.5-turbo",
   temperature: 0.7,
   maxTokens: 1000,
-  systemPrompt: 'You are a helpful AI assistant. Be friendly, professional, and provide accurate information.',
-  primaryColor: '#0e1215',
-  secondaryColor: '#ffffff',
-  fontFamily: 'Inter',
-  chatbotName: 'AI Assistant',
-  welcomeMessage: 'Hello! How can I help you today?',
-  buttonText: 'Chat with us',
-  position: 'bottom-right',
-  suggestions: [
-    'How can I get started?', 
-    'What features do you offer?', 
-    'Tell me about your pricing'
-  ],
-  avatarType: 'default',
+  systemPrompt: "You are a helpful AI assistant. Be friendly, professional, and provide accurate information.",
+  primaryColor: "#0e1215",
+  secondaryColor: "#ffffff",
+  fontFamily: "Inter",
+  chatbotName: "AI Assistant",
+  welcomeMessage: "Hello! How can I help you today?",
+  buttonText: "Chat with us",
+  position: "bottom-right",
+  suggestions: ["How can I get started?", "What features do you offer?", "Tell me about your pricing"],
+  avatarType: "default",
   guidelines: {
-    dos: ['Be helpful and polite', 'Provide accurate information', 'Stay on topic'],
-    donts: ['Don\'t be rude', 'Don\'t provide false information', 'Don\'t ignore user questions']
+    dos: ["Be helpful and polite", "Provide accurate information", "Stay on topic"],
+    donts: ["Don't be rude", "Don't provide false information", "Don't ignore user questions"],
   },
   settings: {
     temperature: 0.7,
     token_length: 1000,
-    response_model: 'gpt-3.5-turbo'
+    response_model: "gpt-3.5-turbo",
   },
   knowledgeSources: [],
   ticketing_providers: [],
   default_ticketing_provider: "",
   is_slack_enabled: false,
-  is_white_label: false
+  is_white_label: false,
 };
 
 const initialState: BuilderState = {
   agentData: defaultAgentData,
-  canvasMode: 'embedded',
-  deviceMode: 'desktop',
+  canvasMode: "embedded",
+  deviceMode: "desktop",
   isPreviewActive: true,
   isDirty: false,
-  isLoading: false
+  isLoading: false,
 };
 
 export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<BuilderState>(initialState);
-  const [features,setFeatures] = useState({});
+  const [features, setFeatures] = useState({});
   const navigate = useNavigate();
   const { toast } = useToast();
   const { id } = useParams();
   const queryClient = useQueryClient();
 
   // Enhanced logging for debugging
-  console.log('BuilderProvider - Agent ID from URL:', id);
-  console.log('BuilderProvider - Current agent data:', state.agentData);
+  console.log("BuilderProvider - Agent ID from URL:", id);
+  console.log("BuilderProvider - Current agent data:", state.agentData);
 
   // Helper function to format knowledge sources - Updated to include status field
   const formatKnowledgeSources = (knowledgeSources): KnowledgeSource[] => {
     if (!knowledgeSources || !Array.isArray(knowledgeSources)) return [];
-    
+
     return knowledgeSources
-      .filter(ks => ks && ks.training_status !== 'Deleted') // Filter out deleted sources
-      .map(ks => ({
+      .filter((ks) => ks && ks.training_status !== "Deleted") // Filter out deleted sources
+      .map((ks) => ({
         id: ks.id,
-        name: ks.title || 'Untitled Source',
-        type: ks.type || 'unknown',
-        size: ks.metadata?.file_size || 'N/A',
-        lastUpdated: ks.metadata?.upload_date ? new Date(ks.metadata.upload_date).toLocaleDateString('en-GB') : 'N/A',
-        status: ks.status || 'Active', // Map status field from API
-        trainingStatus: ks.training_status || ks.status || 'Idle',
+        name: ks.title || "Untitled Source",
+        type: ks.type || "unknown",
+        size: ks.metadata?.file_size || "N/A",
+        lastUpdated: ks.metadata?.upload_date ? new Date(ks.metadata.upload_date).toLocaleDateString("en-GB") : "N/A",
+        status: ks.status || "Active", // Map status field from API
+        trainingStatus: ks.training_status || ks.status || "Idle",
         linkBroken: false,
         knowledge_sources: [],
         metadata: {
           ...ks.metadata,
           url: ks.file || ks.url,
           created_at: ks.metadata?.upload_date,
-          last_updated: ks.updated_at
+          last_updated: ks.updated_at,
         },
         url: ks.file || ks.url,
-        title: ks.title
+        title: ks.title,
       }));
   };
 
   // Fetch agent data when ID is present
   const loadAgentData = useCallback(async () => {
     if (!id) {
-      console.log('No agent ID provided, using default data');
+      console.log("No agent ID provided, using default data");
       return;
     }
 
-    console.log('Loading agent data for ID:', id);
-    setState(prev => ({ ...prev, isLoading: true }));
+    console.log("Loading agent data for ID:", id);
+    setState((prev) => ({ ...prev, isLoading: true }));
 
     try {
       const response = await agentApi.getById(id);
@@ -195,35 +191,39 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const result = await response.json();
       const agentData = result.data;
       const agentFeatures = result.features;
-      
-      console.log('Fetched agent data:', agentFeatures);
+
+      console.log("Fetched agent data:", agentFeatures);
 
       // Map API response to our form structure - Enhanced model configuration mapping
       const mappedData: AgentFormData = {
         id: agentData.id || id,
-        name: agentData.name || 'Untitled Agent',
-        description: agentData.description || 'A helpful AI assistant created with our builder.',
-        agentType: agentData.agentType || 'Customer Support',
-        agent_category: agentData.agent_category || 'assistant',
+        name: agentData.name || "Untitled Agent",
+        description: agentData.description || "A helpful AI assistant created with our builder.",
+        agentType: agentData.agentType || "Customer Support",
+        agent_category: agentData.agent_category || "assistant",
         // Updated model mapping to handle the new API structure
-        model: agentData.model?.response_model || agentData.model?.selectedModel || agentData.model?.name || 'gpt-3.5-turbo',
+        model:
+          agentData.model?.response_model || agentData.model?.selectedModel || agentData.model?.name || "gpt-3.5-turbo",
         temperature: agentData.model?.temperature || 0.7,
-        maxTokens: agentData.model?.token_length || agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
-        systemPrompt: agentData.systemPrompt || 'You are a helpful AI assistant. Be friendly, professional, and provide accurate information.',
-        primaryColor: agentData.appearance?.primaryColor || '#0e1215',
-        secondaryColor: agentData.appearance?.secondaryColor || '#ffffff',
-        fontFamily: agentData.appearance?.fontFamily || 'Inter',
-        chatbotName: agentData.appearance?.chatbotName || 'AI Assistant',
-        welcomeMessage: agentData.appearance?.welcomeMessage || '',
-        buttonText: agentData.appearance?.buttonText || '',
-        position: agentData.appearance?.position || 'bottom-right',
+        maxTokens:
+          agentData.model?.token_length || agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
+        systemPrompt:
+          agentData.systemPrompt ||
+          "You are a helpful AI assistant. Be friendly, professional, and provide accurate information.",
+        primaryColor: agentData.appearance?.primaryColor || "#0e1215",
+        secondaryColor: agentData.appearance?.secondaryColor || "#ffffff",
+        fontFamily: agentData.appearance?.fontFamily || "Inter",
+        chatbotName: agentData.appearance?.chatbotName || "AI Assistant",
+        welcomeMessage: agentData.appearance?.welcomeMessage || "",
+        buttonText: agentData.appearance?.buttonText || "",
+        position: agentData.appearance?.position || "bottom-right",
         suggestions: agentData.behavior?.suggestions || agentData.appearance?.suggestions || [],
         avatar: agentData.appearance?.avatar?.src,
         avatarUrl: agentData.appearance?.avatar?.src,
-        avatarType: agentData.appearance?.avatar?.type || 'default',
+        avatarType: agentData.appearance?.avatar?.type || "default",
         guidelines: {
           dos: agentData.behavior?.guidelines?.dos || [],
-          donts: agentData.behavior?.guidelines?.donts || []
+          donts: agentData.behavior?.guidelines?.donts || [],
         },
         behavior: {
           conversationMemory: agentData.behavior?.conversationMemory || false,
@@ -233,13 +233,18 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           multilingualSupport: agentData.behavior?.multilingualSupport || false,
           autoTicketReply: agentData.behavior?.autoTicketReply || false,
           email: agentData.behavior?.email || null,
-          ticketType: agentData.behavior?.ticketType || 'email',
+          ticketType: agentData.behavior?.ticketType || "email",
         },
         // Updated settings mapping to match the new API structure
         settings: {
           temperature: agentData.model?.temperature || 0.7,
-          token_length: agentData.model?.token_length || agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
-          response_model: agentData.model?.response_model || agentData.model?.selectedModel || agentData.model?.name || 'gpt-3.5-turbo'
+          token_length:
+            agentData.model?.token_length || agentData.model?.maxResponseLength || agentData.model?.maxTokens || 1000,
+          response_model:
+            agentData.model?.response_model ||
+            agentData.model?.selectedModel ||
+            agentData.model?.name ||
+            "gpt-3.5-turbo",
         },
         knowledgeSources: formatKnowledgeSources(agentData.knowledge_sources || []),
         // 🔥 CRITICAL: Preserve the agent status from server
@@ -252,35 +257,34 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         gdpr_settings: {
           data_retention_days: agentData.gdpr_settings?.data_retention_days || 0,
           data_retention_message: agentData.gdpr_settings?.data_retention_message || "",
-          gdpr_message_display: agentData.gdpr_settings?.gdpr_message_display || false
-        }
+          gdpr_message_display: agentData.gdpr_settings?.gdpr_message_display || false,
+        },
       };
 
-      console.log('Mapped agent data with status preserved:', {
+      console.log("Mapped agent data with status preserved:", {
         ...mappedData,
-        statusFromServer: agentData.status
+        statusFromServer: agentData.status,
       });
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         agentData: mappedData,
         isDirty: false,
-        isLoading: false
+        isLoading: false,
       }));
 
       setFeatures(agentFeatures);
 
       // Return the raw agentData for use in other effects (preserving original status)
       return agentData;
-
     } catch (error) {
-      console.error('Error loading agent:', error);
+      console.error("Error loading agent:", error);
       toast({
         title: "Error Loading Agent",
         description: error instanceof Error ? error.message : "Failed to load agent data.",
-        variant: "destructive"
+        variant: "destructive",
       });
-      setState(prev => ({ ...prev, isLoading: false }));
+      setState((prev) => ({ ...prev, isLoading: false }));
       return null;
     }
   }, [id, toast]);
@@ -295,51 +299,50 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!id || state.isLoading) return;
 
       const agentId = id.toString();
-      
-      console.log('🔍 Checking agent training status using mapped data:', {
+
+      console.log("🔍 Checking agent training status using mapped data:", {
         agentId,
         mappedStatus: state.agentData.status,
-        agentName: state.agentData.name
+        agentName: state.agentData.name,
       });
 
       // Check localStorage for existing training tasks
       const allTasks = AgentTrainingService.getAllTrainingTasks();
       const agentTask = allTasks[agentId];
-      
-      console.log('🔍 LocalStorage training task:', agentTask);
+
+      console.log("🔍 LocalStorage training task:", agentTask);
 
       // 🔥 FIXED: If agent status is "Training", ALWAYS resume polling regardless of localStorage
-      if (state.agentData.status === 'Training') {
-        console.log('🚀 Agent is in Training status, RESUMING polling...');
-        
+      if (state.agentData.status === "Training") {
+        console.log("🚀 Agent is in Training status, RESUMING polling...");
+
         // Ensure localStorage task exists
-        if (!agentTask || agentTask.status !== 'training') {
-          console.log('📝 Creating/updating localStorage task for training agent');
+        if (!agentTask || agentTask.status !== "training") {
+          console.log("📝 Creating/updating localStorage task for training agent");
           if (state.agentData.name) {
             const tasks = AgentTrainingService.getAllTrainingTasks();
             tasks[agentId] = {
               taskId: `resumed-${Date.now()}`,
               agentName: state.agentData.name,
               timestamp: Date.now(),
-              status: 'Training'
+              status: "Training",
             };
-            localStorage.setItem('agent_training_tasks', JSON.stringify(tasks));
-            console.log('💾 Saved resumed training task to localStorage');
+            localStorage.setItem("agent_training_tasks", JSON.stringify(tasks));
+            console.log("💾 Saved resumed training task to localStorage");
           }
         }
-        
+
         // 🔥 ALWAYS start polling when status is "Training"
-        console.log('🔄 Starting polling with refetch callback...');
-       
-        
-        console.log('✅ Polling resumed successfully');
+        console.log("🔄 Starting polling with refetch callback...");
+
+        console.log("✅ Polling resumed successfully");
       } else {
         // Agent is not in training status, clean up any stale localStorage entries
-        if (agentTask && agentTask.status === 'training') {
-          console.log('🧹 Cleaning up stale localStorage training task');
+        if (agentTask && agentTask.status === "training") {
+          console.log("🧹 Cleaning up stale localStorage training task");
           AgentTrainingService.removeTask(agentId);
         }
-        console.log('ℹ️ Agent is not in Training status, no polling needed');
+        console.log("ℹ️ Agent is not in Training status, no polling needed");
       }
     };
 
@@ -349,27 +352,25 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [id, state.isLoading, state.agentData.status, state.agentData.name, state.agentData.id, loadAgentData, toast]);
 
-
-
   const updateAgentData = useCallback((data: Partial<AgentFormData>) => {
-    console.log('Updating agent data:', data);
-    setState(prev => ({
+    console.log("Updating agent data:", data);
+    setState((prev) => ({
       ...prev,
       agentData: { ...prev.agentData, ...data },
-      isDirty: true
+      isDirty: true,
     }));
   }, []);
 
-  const setCanvasMode = useCallback((mode: 'embedded' | 'popup' | 'inline') => {
-    setState(prev => ({ ...prev, canvasMode: mode }));
+  const setCanvasMode = useCallback((mode: "embedded" | "popup" | "inline") => {
+    setState((prev) => ({ ...prev, canvasMode: mode }));
   }, []);
 
-  const setDeviceMode = useCallback((mode: 'desktop' | 'tablet' | 'mobile') => {
-    setState(prev => ({ ...prev, deviceMode: mode }));
+  const setDeviceMode = useCallback((mode: "desktop" | "tablet" | "mobile") => {
+    setState((prev) => ({ ...prev, deviceMode: mode }));
   }, []);
 
   const togglePreview = useCallback(() => {
-    setState(prev => ({ ...prev, isPreviewActive: !prev.isPreviewActive }));
+    setState((prev) => ({ ...prev, isPreviewActive: !prev.isPreviewActive }));
   }, []);
 
   const saveAgent = useCallback(async () => {
@@ -377,54 +378,51 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       toast({
         title: "Validation Error",
         description: "Please enter an agent name.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     // Validate email field when "send email" is selected
-    if (
-      state.agentData.behavior?.expertHandoff && 
-      state.agentData.behavior?.ticketType === "email"
-    ) {
+    if (state.agentData.behavior?.expertHandoff && state.agentData.behavior?.ticketType === "email") {
       const email = state.agentData.behavior?.email?.trim();
-      
+
       if (!email) {
         toast({
           title: "Validation Error",
           description: "Please enter an email address for escalation.",
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
-      
+
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         toast({
           title: "Validation Error",
           description: "Enter a valid email address for escalation",
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
     }
 
-    console.log('Saving agent with data:', state.agentData);
-    setState(prev => ({ ...prev, isLoading: true }));
+    console.log("Saving agent with data:", state.agentData);
+    setState((prev) => ({ ...prev, isLoading: true }));
 
     try {
       let response;
-      
+
       if (id) {
         // Update existing agent
         // Prepare avatar data
         let avatarData = {
-          type: state.agentData.avatarType || 'default',
-          src: ''
+          type: state.agentData.avatarType || "default",
+          src: "",
         };
 
-        if (state.agentData.avatarType === 'custom' && state.agentData.avatar) {
+        if (state.agentData.avatarType === "custom" && state.agentData.avatar) {
           avatarData.src = state.agentData.avatar;
         }
 
@@ -439,7 +437,7 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
             welcomeMessage: state.agentData.welcomeMessage,
             buttonText: state.agentData.buttonText,
             position: state.agentData.position,
-            avatar: avatarData
+            avatar: avatarData,
           },
           behavior: {
             showOnMobile: true,
@@ -454,22 +452,22 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
             multilingualSupport: state.agentData.behavior?.multilingualSupport,
             autoTicketReply: state.agentData.behavior?.autoTicketReply,
             email: state.agentData.behavior?.email,
-            ticketType: state.agentData.behavior?.ticketType
+            ticketType: state.agentData.behavior?.ticketType,
           },
           // Updated model payload to match the new API structure
           model: {
             response_model: state.agentData.model,
-            temperature: state.agentData.temperature
+            temperature: state.agentData.temperature,
           },
           agentType: state.agentData.agentType,
           agent_category: state.agentData.agent_category,
           systemPrompt: state.agentData.systemPrompt,
-          knowledgeSources: state.agentData.knowledgeSources.map(ks => ks.id),
+          knowledgeSources: state.agentData.knowledgeSources.map((ks) => ks.id),
           default_ticketing_provider: state.agentData.default_ticketing_provider,
-          is_slack_enabled: state.agentData.is_slack_enabled
+          is_slack_enabled: state.agentData.is_slack_enabled,
         };
 
-        console.log('Update payload:', updatePayload);
+        console.log("Update payload:", updatePayload);
 
         const updateResponse = await agentApi.update(id, updatePayload);
 
@@ -478,25 +476,25 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
 
         response = await updateResponse.json();
-        console.log('Update response:', response);
+        console.log("Update response:", response);
 
         // 🔥 NEW: Update cache immediately with the response data
         if (response.data) {
-          console.log('🏪 Updating agent cache after save...');
+          console.log("🏪 Updating agent cache after save...");
           updateAgentInCache(queryClient, response.data);
         }
       } else {
         // Create new agent
         response = await agentApi.create(state.agentData.name, state.agentData.description);
         const responseData = await response.json();
-        console.log('Create response:', responseData);
+        console.log("Create response:", responseData);
         response = responseData;
       }
-      
+
       toast({
-        title: "Agent Configuration Saved Successfully.",
+        title: "Agent configuration saved successfully.",
         description: `${state.agentData.name} has been saved and is ready to use.`,
-        variant: "default"
+        variant: "default",
       });
 
       // Update agent data with the response to refresh components
@@ -525,48 +523,50 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           settings: {
             temperature: response.data.model?.temperature || state.agentData.temperature,
             token_length: response.data.model?.token_length || state.agentData.maxTokens,
-            response_model: response.data.model?.response_model || state.agentData.model
+            response_model: response.data.model?.response_model || state.agentData.model,
           },
           agentType: response.data.agentType || state.agentData.agentType,
           agent_category: response.data.agent_category || state.agentData.agent_category,
           systemPrompt: response.data.systemPrompt || state.agentData.systemPrompt,
           knowledgeSources: formatKnowledgeSources(response.data.knowledge_sources || []),
           ticketing_providers: response.data.ticketing_providers || state.agentData.ticketing_providers,
-          default_ticketing_provider: response.data.default_ticketing_provider || state.agentData.default_ticketing_provider,
+          default_ticketing_provider:
+            response.data.default_ticketing_provider || state.agentData.default_ticketing_provider,
           is_slack_enabled: response.data.is_slack_enabled || state.agentData.is_slack_enabled,
-          is_white_label: response.data.is_white_label || state.agentData.is_white_label
+          is_white_label: response.data.is_white_label || state.agentData.is_white_label,
         };
-        
-        setState(prev => ({ 
-          ...prev, 
+
+        setState((prev) => ({
+          ...prev,
           agentData: updatedAgentData,
           isDirty: false,
           // Add a timestamp to force re-mount of components
-          lastSaveTimestamp: Date.now()
+          lastSaveTimestamp: Date.now(),
         }));
       } else {
         // Reset dirty state
-        setState(prev => ({ ...prev, isDirty: false }));
+        setState((prev) => ({ ...prev, isDirty: false }));
       }
 
       if (response.data?.id && !id) {
         navigate(`/agents/builder/${response.data.id}`);
       }
     } catch (error) {
-      console.error('Error Saving agent:', error);
+      console.error("Error Saving agent:", error);
       toast({
         title: "Saving Failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred while saving the configurations.",
-        variant: "destructive"
+        description:
+          error instanceof Error ? error.message : "An unexpected error occurred while saving the configurations.",
+        variant: "destructive",
       });
     } finally {
-      setState(prev => ({ ...prev, isLoading: false }));
+      setState((prev) => ({ ...prev, isLoading: false }));
     }
   }, [state.agentData, navigate, toast, id, queryClient]);
 
   const deleteAgent = useCallback(async () => {
     if (!id) {
-      navigate('/agents');
+      navigate("/agents");
       return;
     }
 
@@ -578,22 +578,22 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       // CACHE-FIRST: Remove agent from cache immediately
-      console.log('🗑️ BuilderContext: Removing agent from cache:', id);
+      console.log("🗑️ BuilderContext: Removing agent from cache:", id);
       removeAgentFromCache(queryClient, id);
 
       toast({
         title: "Agent Deleted",
         description: "The agent has been deleted successfully.",
-        variant: "default"
+        variant: "default",
       });
 
-      navigate('/agents');
+      navigate("/agents");
     } catch (error) {
-      console.error('Error deleting agent:', error);
+      console.error("Error deleting agent:", error);
       toast({
         title: "Delete Failed",
         description: error instanceof Error ? error.message : "Failed to delete the agent.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   }, [navigate, toast, id, queryClient]);
@@ -606,20 +606,16 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setDeviceMode,
     togglePreview,
     saveAgent,
-    deleteAgent
+    deleteAgent,
   };
 
-  return (
-    <BuilderContext.Provider value={value}>
-      {children}
-    </BuilderContext.Provider>
-  );
+  return <BuilderContext.Provider value={value}>{children}</BuilderContext.Provider>;
 };
 
 export const useBuilder = () => {
   const context = useContext(BuilderContext);
   if (context === undefined) {
-    throw new Error('useBuilder must be used within a BuilderProvider');
+    throw new Error("useBuilder must be used within a BuilderProvider");
   }
   return context;
 };
