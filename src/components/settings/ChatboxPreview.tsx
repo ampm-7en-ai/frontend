@@ -826,10 +826,12 @@ export const ChatboxPreview = ({
               variant: "destructive",
             });
           },
-          onSessionIdReceived: (newSessionId) => {
-            console.log('New Chat - Received session ID (ignoring):', newSessionId);
-            // Don't store session ID for new chat
-          },
+          ...(enableSessionStorage && onSessionIdReceived && {
+            onSessionIdReceived: (newSessionId) => {
+              console.log('New Chat - Received session ID:', newSessionId);
+              onSessionIdReceived(newSessionId);
+            }
+          }),
           onConnectionChange: (status) => {
             console.log("New Chat - Connection status changed:", status);
             setIsConnected(status);
