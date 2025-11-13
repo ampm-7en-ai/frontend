@@ -69,9 +69,13 @@ const ChatPreview = () => {
       return;
     }
     
+    // Don't store null or undefined session IDs
+    if (!newSessionId) {
+      console.log('⚠️ Received null/undefined session ID, keeping existing stored session ID');
+      return;
+    }
     
-    
-    // Always store the new session ID (this fixes the issue)
+    // Store the new session ID
     setStoredSessionId(agentId, newSessionId);
     setSessionId(newSessionId);
     console.log('✅ New session ID stored and state updated:', newSessionId);
