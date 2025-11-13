@@ -280,6 +280,11 @@ export const ChatboxPreview = ({
 
   // Effect to manage timeout based on messages
   useEffect(() => {
+    // Don't trigger timeout management during restart/new chat initialization
+    if (restartingRef.current) {
+      console.log('⏭️ Skipping timeout management during initialization');
+      return;
+    }
     manageTimeout();
   }, [messages]);
 
@@ -708,12 +713,13 @@ export const ChatboxPreview = ({
     setConnectionError(null);
     setIsInitializing(true);
     setIsConnected(false);
+    setShowFeedbackForm(false);
     
     // Clear processed message IDs and reset sequence
     processedMessageIds.current.clear();
     messageSequenceRef.current = 0;
     
-    // Clear timeout timers and reset flags
+    // Clear timeout timers and reset flags completely
     clearTimeouts();
     setTimeoutQuestionSent(false);
     
@@ -799,11 +805,8 @@ export const ChatboxPreview = ({
 
               const newMessages = [...prev, { ...messageForProcessing, messageId }];
               
-              if (messageForProcessing.type === 'bot_response' && messageForProcessing.source === 'websocket') {
-                setTimeout(() => {
-                  manageTimeout();
-                }, 0);
-              }
+              // Don't trigger timeout during new chat initialization
+              // Timeout will be triggered once after connection is established
               
               return newMessages;
             });
@@ -846,13 +849,14 @@ export const ChatboxPreview = ({
                   type: "session_init",
                   session_id: null
                 });
+                
+                // Start timeout management ONCE after connection is established
+                setTimeout(() => {
+                  console.log('⏰ New Chat - Connection established, starting timeout management');
+                  restartingRef.current = false; // Clear restarting flag
+                  manageTimeout();
+                }, 100);
               }
-              
-              // Start timeout management when connected
-              manageTimeout();
-              
-              // Clear restarting flag
-              restartingRef.current = false;
             } else {
               setConnectionError("Disconnected from chat service");
             }
@@ -881,6 +885,7 @@ export const ChatboxPreview = ({
     setConnectionError(null);
     setIsInitializing(true);
     setIsConnected(false);
+    setShowFeedbackForm(false);
     
     // Reset terms acceptance for restart - ask for consent again
     setTermsAccepted(false);
@@ -890,7 +895,7 @@ export const ChatboxPreview = ({
     processedMessageIds.current.clear();
     messageSequenceRef.current = 0;
     
-    // Clear timeout timers and reset flags
+    // Clear timeout timers and reset flags completely
     clearTimeouts();
     setTimeoutQuestionSent(false);
     
@@ -985,23 +990,21 @@ export const ChatboxPreview = ({
                 console.log('📨 Restart - Loading previous session messages:', sessionId);
                 setIsLoadingSessionMessages(true);
                 
-                // Clear restarting flag immediately so messages can be received
-                restartingRef.current = false;
-                
                 // Set a reasonable timeout for session loading
                 setTimeout(() => {
                   console.log('📚 Restart - Session message loading timeout reached');
                   setIsLoadingSessionMessages(false);
+                  restartingRef.current = false; // Clear restarting flag
                   // Start timeout management after session loading
                   manageTimeout();
                 }, 3000); // 3 seconds timeout for session loading
               } else {
-                // Start timeout management when connected after restart
-                console.log('Restart connection established, starting timeout management');
-                manageTimeout();
-                
-                // Clear restarting flag immediately
-                restartingRef.current = false;
+                // Start timeout management ONCE when connected after restart
+                setTimeout(() => {
+                  console.log('⏰ Restart connection established, starting timeout management');
+                  restartingRef.current = false; // Clear restarting flag
+                  manageTimeout();
+                }, 100);
               }
             }
           },
