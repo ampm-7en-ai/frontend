@@ -494,16 +494,24 @@ export const ChatboxPreview = ({
         if (status) {
           setConnectionError(null);
           
-          // Always send session_init right after connection
+          // Check both state and ref for private mode (ref is set synchronously during toggle)
+          const isInPrivateMode = isPrivateMode || pendingPrivateModeRef.current;
+          
           if (chatServiceRef.current) {
-            // Check both state and ref for private mode (ref is set synchronously during toggle)
-            const isInPrivateMode = isPrivateMode || pendingPrivateModeRef.current;
-            const sessionIdToSend = isInPrivateMode ? null : (sessionId || null);
-            console.log('📤 Sending session_init with sessionId:', sessionIdToSend, '(private mode:', isInPrivateMode, ')');
-            chatServiceRef.current.send({
-              type: "session_init",
-              session_id: sessionIdToSend
-            });
+            if (isInPrivateMode) {
+              // In private mode, only send type: "private"
+              console.log('🔒 Sending private mode message');
+              chatServiceRef.current.send({ type: "private" });
+              pendingPrivateModeRef.current = false;
+            } else {
+              // Normal mode, send session_init
+              const sessionIdToSend = sessionId || null;
+              console.log('📤 Sending session_init with sessionId:', sessionIdToSend);
+              chatServiceRef.current.send({
+                type: "session_init",
+                session_id: sessionIdToSend
+              });
+            }
             
             // Handle session initialization if session storage is enabled and we have a sessionId (and not in private mode)
             if (enableSessionStorage && sessionId && !isInPrivateMode) {
@@ -953,15 +961,22 @@ export const ChatboxPreview = ({
               
               // Handle session initialization - check private mode first
               const isInPrivateMode = isPrivateMode || pendingPrivateModeRef.current;
-              const sessionIdToSend = isInPrivateMode ? null : (sessionId || null);
               
-              // Always send session_init right after restart connection
               if (chatServiceRef.current) {
-                console.log('📤 Restart - Sending session_init with sessionId:', sessionIdToSend, '(private mode:', isInPrivateMode, ')');
-                chatServiceRef.current.send({
-                  type: "session_init",
-                  session_id: sessionIdToSend
-                });
+                if (isInPrivateMode) {
+                  // In private mode, only send type: "private"
+                  console.log('🔒 Restart - Sending private mode message');
+                  chatServiceRef.current.send({ type: "private" });
+                  pendingPrivateModeRef.current = false;
+                } else {
+                  // Normal mode, send session_init
+                  const sessionIdToSend = sessionId || null;
+                  console.log('📤 Restart - Sending session_init with sessionId:', sessionIdToSend);
+                  chatServiceRef.current.send({
+                    type: "session_init",
+                    session_id: sessionIdToSend
+                  });
+                }
               }
               
               if (enableSessionStorage && sessionId && !isInPrivateMode && chatServiceRef.current) {
@@ -985,13 +1000,6 @@ export const ChatboxPreview = ({
                 
                 // Clear restarting flag immediately
                 restartingRef.current = false;
-              }
-              
-              // Send private mode message if pending
-              if (pendingPrivateModeRef.current && chatServiceRef.current) {
-                console.log('🔒 Sending private mode message via WebSocket');
-                chatServiceRef.current.send({ type: "private" });
-                pendingPrivateModeRef.current = false;
               }
             }
           },
