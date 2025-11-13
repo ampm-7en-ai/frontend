@@ -2849,7 +2849,7 @@ export const ChatboxPreview = ({
                      >
                       <div
                         className={cn(
-                          `rounded-[20px] p-4 max-w-[92%] relative transition-all duration-300 ${(message.type === 'user' || message.type === 'message') ? "!py-2 rounded-br-sm" : !isConsecutive ? "rounded-bl-sm" : "rounded-tl-sm"}`,
+                          `rounded-[20px] p-4 max-w-[92%] relative transition-all duration-300 ${(message.type === 'user' || message.type === 'message') ? "!py-2 rounded-br-sm mt-4" : !isConsecutive ? "rounded-bl-sm" : "rounded-tl-sm"}`,
                           styling.containerClass,
                           styling.textClass
                         )}

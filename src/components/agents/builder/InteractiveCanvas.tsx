@@ -121,7 +121,7 @@ export const InteractiveCanvas: React.FC<InteractiveCanvasProps> = ({ isTraining
             style={{
               transformOrigin: isLeftPosition ? 'bottom left' : 'bottom right',
               width: '400px',
-              height: '80vh',
+              height: 'calc(80vh - 38px)',
               marginBottom: '20px',
               overflow: 'hidden',
               maxHeight: '800px'

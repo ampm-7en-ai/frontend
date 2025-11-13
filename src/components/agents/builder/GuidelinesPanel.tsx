@@ -817,7 +817,7 @@ export const GuidelinesPanel = () => {
 
                   <div>
                     <Label htmlFor="position" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                      Chat Button Position
+                      Button Position
                     </Label>
                     <div className="mt-1.5">
                       <ModernDropdown
@@ -833,7 +833,7 @@ export const GuidelinesPanel = () => {
 
                   <div>
                     <Label htmlFor="buttonText" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                      Chat Button Text
+                      Button Text
                     </Label>
                     <Input
                       id="buttonText"
