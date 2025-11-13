@@ -2741,7 +2741,7 @@ export const ChatboxPreview = ({
             {showRetentionMessage && displayRetentionMessage && retentionMessage && retentionMessage.trim() && (
               <div className="animate-fade-in">
                 <div 
-                  className="border rounded-lg p-3 text-left relative"
+                  className="border rounded-lg p-3 text-left relative mb-4"
                   style={{
                     backgroundColor: `${primaryColor}05`,
                     borderColor: `${primaryColor}20`
@@ -2773,7 +2773,7 @@ export const ChatboxPreview = ({
                   const isConsecutive = index > 0 && historyMessages[index - 1]?.type === message.type;
                   
                   return (
-                    <div key={message.messageId || `history-${index}`} className={isConsecutive ? 'mt-2' : 'mt-4'}>
+                    <div key={message.messageId || `history-${index}`} className={isConsecutive ? 'mt-2' : 'mt-4'} style={{marginTop: index == 0 && "0px"}}>
                       <div 
                         className={`flex gap-4 items-start ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-center'}`}
                       >
@@ -2836,7 +2836,7 @@ export const ChatboxPreview = ({
               const isConsecutive = index > 0 && messages[index - 1]?.type === message.type;
               
               return (
-                <div key={message.messageId || index} className={`${isConsecutive ? '!mt-2' : 'mt-4'}`}>
+                <div key={message.messageId || index} className={`${isConsecutive ? '!mt-2' : 'mt-4'}`} style={{marginTop: index == 0 && "0px"}}>
                    {message.type !== 'ui' && message.type !== 'feedback_form' && (
                      <div 
                        className={`flex gap-4 items-start ${message.type === 'user' ? 'justify-end' : message.type === 'bot_response' ? 'justify-start' : 'justify-end'}`}
