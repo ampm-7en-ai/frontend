@@ -1185,11 +1185,6 @@ export const ChatboxPreview = ({
       // Exiting private mode - close connection and reconnect with stored session
       console.log('🔓 Exiting private mode - reconnecting with stored session');
       
-      // Show feedback form if there are more than 2 messages
-      if (messages.length > 2) {
-        setShowFeedbackForm(true);
-      }
-      
       // Update private mode state and ref
       setIsPrivateMode(false);
       pendingPrivateModeRef.current = false;
