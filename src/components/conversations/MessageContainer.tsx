@@ -205,7 +205,7 @@ const MessageContainer = ({
                   </div>
                 ) : (
                   <div 
-                    className={`space-y-6 ${mode === 'private' ? 'blur-md pointer-events-none select-none' : ''}`} 
+                    className={`space-y-6`} 
                     ref={messageContainerRef}
                   >
                   {  

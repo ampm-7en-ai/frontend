@@ -280,7 +280,7 @@ const ConversationCard = ({
                 "text-xs truncate leading-relaxed flex-1",
                 conversation.isUnread ? "font-medium text-gray-700 dark:text-muted-foreground" : "text-muted-foreground dark:text-muted-foreground"
               )}>
-                {escapeHTML(conversation.lastMessage)}
+                {conversation.mode === "private" ? "Private conversation" : escapeHTML(conversation.lastMessage)}
               </p>
               {!isBulkSelectMode && onDelete && (isHovered || isSelected) && (
                   <Button
