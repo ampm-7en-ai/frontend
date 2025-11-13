@@ -2132,7 +2132,7 @@ export const ChatboxPreview = ({
                     })}
                     
                     {/* Suggestions - show until user sends a message */}
-                    {!messages.some(msg => msg.type === 'message') && suggestions && suggestions.length > 0 && !shouldDisableInput && (
+                    {!messages.some(msg => msg.type === 'user') && suggestions && suggestions.length > 0 && !shouldDisableInput && (
                       <div className="flex flex-col gap-3 mt-6 animate-fade-in">
                         <p className="text-xs text-gray-500 mb-2 font-medium">Suggested questions:</p>
                         {suggestions.filter(Boolean).map((suggestion, index) => (
@@ -3066,7 +3066,7 @@ export const ChatboxPreview = ({
             })}
             
             {/* Suggestions - show until user sends a message */}
-            {!messages.some(msg => msg.type === 'message') && suggestions && suggestions.length > 0 && !shouldDisableInput && (
+            {!messages.some(msg => msg.type === 'user') && suggestions && suggestions.length > 0 && !shouldDisableInput && (
               <div className="flex flex-col gap-3 mt-6 animate-fade-in">
                 <p className="text-xs text-gray-500 mb-2 font-medium">Suggested questions:</p>
                 {suggestions.filter(Boolean).map((suggestion, index) => (
