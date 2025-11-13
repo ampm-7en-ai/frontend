@@ -92,7 +92,7 @@ const ConversationSidebar = ({
     // Create a simple handoff record for the onHandoffClick handler
     const handoff = {
       id: `handoff-${Date.now()}`,
-      from: conversation.agent || 'Current Agent',
+      from: conversation?.agent || 'Current Agent',
       to: handoffDestination,
       timestamp: new Date().toISOString(),
       reason: handoffReason || `Transferred to ${handoffDestination}`
@@ -113,6 +113,11 @@ const ConversationSidebar = ({
     setHandoffDestination('');
     setHandoffReason('');
   };
+
+  // Don't render if conversation is null
+  if (!conversation) {
+    return null;
+  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
