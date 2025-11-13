@@ -298,7 +298,7 @@ export const BuilderSidebar = () => {
                 Cancel
               </ModernButton>
               <ModernButton 
-                variant="gradient" 
+                variant="primary" 
                 onClick={handleSourceDelete}
                 className="bg-red-600 hover:bg-red-700 text-white"
               >

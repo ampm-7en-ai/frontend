@@ -398,7 +398,8 @@
       if (hasText) {
         const sanitizedText = window.chatSanitize ? window.chatSanitize(this.config.buttonText) : this.config.buttonText;
         const text = createElement('span', null, {
-          innerHTML: sanitizedText
+          innerHTML: sanitizedText,
+          style: `font-family: ${this.config.fontFamily}, sans-serif`
         });
         contentContainer.appendChild(text);
       }
