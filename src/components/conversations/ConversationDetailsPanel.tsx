@@ -319,7 +319,7 @@ const ConversationDetailsPanel = ({
           )}
 
           {/* Customer Feedback */}
-          { feedback[0]?.text !== undefined && feedback[0]?.rating !== undefined && (
+          { feedback?.[0]?.text !== undefined && feedback?.[0]?.rating !== undefined && (
             <div className="border rounded-lg bg-white dark:bg-neutral-800 dark:border-0 px-4 py-4">
             <div className="flex items-center gap-3 mb-4">
               <div className="rounded-xl bg-transparent">
