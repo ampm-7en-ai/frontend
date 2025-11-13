@@ -30,13 +30,13 @@ This guide provides comprehensive procedures for testing the security of the 7en
 
 ### Testing Frequency
 
-| Test Type | Frequency | Owner |
-|-----------|-----------|-------|
-| Automated Unit Tests | Every commit | Developers |
-| Dependency Scanning | Weekly | DevOps |
-| Manual Security Tests | Before each release | QA Team |
-| Penetration Testing | Quarterly | Security Team |
-| Security Audit | Annually | External Auditor |
+| Test Type             | Frequency           | Owner            |
+| --------------------- | ------------------- | ---------------- |
+| Automated Unit Tests  | Every commit        | Developers       |
+| Dependency Scanning   | Weekly              | DevOps           |
+| Manual Security Tests | Before each release | QA Team          |
+| Penetration Testing   | Quarterly           | Security Team    |
+| Security Audit        | Annually            | External Auditor |
 
 ---
 
@@ -91,6 +91,7 @@ Unverified User:
 **Objective:** Verify password complexity requirements
 
 **Steps:**
+
 1. Navigate to signup page (`/signup`)
 2. Attempt to create account with weak passwords:
    - `test123` (too short)
@@ -100,7 +101,8 @@ Unverified User:
    - `Test!@#$` (no numbers)
    - `test123!` (no uppercase)
 
-**Expected Result:** 
+**Expected Result:**
+
 - All weak passwords should be rejected
 - Clear error messages displayed
 - Password field shows validation status
@@ -114,6 +116,7 @@ Unverified User:
 **Objective:** Verify OTP login flow security
 
 **Steps:**
+
 1. Navigate to login page
 2. Click "Login with Code"
 3. Enter valid email
@@ -127,6 +130,7 @@ Unverified User:
 7. Verify successful login
 
 **Expected Result:**
+
 - Invalid OTPs rejected with clear errors
 - Valid OTP allows login
 - OTP expires after time limit
@@ -141,6 +145,7 @@ Unverified User:
 **Objective:** Verify token expiration and refresh
 
 **Steps:**
+
 1. Login to application
 2. Open browser DevTools → Application → Local Storage
 3. Note the `accessToken` value
@@ -152,6 +157,7 @@ Unverified User:
 9. Verify automatic logout occurs
 
 **Expected Result:**
+
 - Token refreshes automatically before expiration
 - User remains logged in during active session
 - User is logged out after token expires
@@ -166,8 +172,9 @@ Unverified User:
 **Objective:** Verify Google/Apple SSO security
 
 **Steps:**
+
 1. Navigate to login page
-2. Click "Continue with Google"
+2. Click "Login with Google"
 3. Complete OAuth flow
 4. Intercept OAuth token (use browser DevTools)
 5. Verify token is validated server-side
@@ -175,6 +182,7 @@ Unverified User:
 7. Verify email verification status is set correctly
 
 **Expected Result:**
+
 - OAuth tokens validated server-side only
 - Expired tokens rejected
 - User profile created/updated correctly
@@ -191,6 +199,7 @@ Unverified User:
 **Objective:** Verify input sanitization in all forms
 
 **Test Payloads:**
+
 ```javascript
 <script>alert('XSS')</script>
 <img src=x onerror=alert('XSS')>
@@ -201,6 +210,7 @@ javascript:alert('XSS')
 ```
 
 **Test Locations:**
+
 - Login form (username, password)
 - Signup form (all fields)
 - Agent creation form (name, description)
@@ -209,12 +219,14 @@ javascript:alert('XSS')
 - Search fields
 
 **Steps:**
+
 1. Enter XSS payload in each field
 2. Submit form
 3. Observe rendered output
 4. Check browser console for errors
 
 **Expected Result:**
+
 - All payloads should be escaped/sanitized
 - No JavaScript execution
 - Payloads displayed as plain text
@@ -228,6 +240,7 @@ javascript:alert('XSS')
 **Objective:** Verify persistent data is sanitized
 
 **Steps:**
+
 1. Create agent with name: `<script>alert('XSS')</script>`
 2. Save agent
 3. Navigate to agents list
@@ -237,6 +250,7 @@ javascript:alert('XSS')
 7. Test Markdown content with malicious HTML
 
 **Expected Result:**
+
 - All stored data is sanitized on output
 - Markdown rendered safely (no script execution)
 - HTML entities properly escaped
@@ -250,6 +264,7 @@ javascript:alert('XSS')
 **Objective:** Verify client-side DOM manipulation is safe
 
 **Steps:**
+
 1. Open browser DevTools console
 2. Attempt to modify DOM directly:
    ```javascript
@@ -262,6 +277,7 @@ javascript:alert('XSS')
    ```
 
 **Expected Result:**
+
 - React's virtual DOM prevents direct manipulation
 - URL fragments sanitized
 - No script execution from DOM changes
@@ -277,6 +293,7 @@ javascript:alert('XSS')
 **Objective:** Verify CSRF protection on state-changing operations
 
 **Steps:**
+
 1. Login to application
 2. Copy access token from localStorage
 3. Open separate browser (different origin)
@@ -294,6 +311,7 @@ javascript:alert('XSS')
 5. Verify request fails
 
 **Expected Result:**
+
 - Request fails due to missing Authorization header
 - Tokens in localStorage not sent automatically
 - CORS policy blocks cross-origin requests
@@ -309,6 +327,7 @@ javascript:alert('XSS')
 **Objective:** Verify users cannot access admin functions
 
 **Steps:**
+
 1. Login as regular user
 2. Note user ID and access token
 3. Attempt to access admin endpoints:
@@ -327,6 +346,7 @@ javascript:alert('XSS')
 6. Refresh page and attempt admin actions
 
 **Expected Result:**
+
 - Admin endpoints reject regular user tokens (403)
 - Client-side role modification has no effect
 - Server validates role from database, not client
@@ -340,6 +360,7 @@ javascript:alert('XSS')
 **Objective:** Verify users cannot access other users' data
 
 **Steps:**
+
 1. Login as User A
 2. Note User A's business ID
 3. Create agent as User A
@@ -354,6 +375,7 @@ javascript:alert('XSS')
 7. Verify all requests fail (403/404)
 
 **Expected Result:**
+
 - User B cannot view/edit/delete User A's resources
 - API validates resource ownership before allowing access
 - Business ID isolation enforced
@@ -369,6 +391,7 @@ javascript:alert('XSS')
 **Objective:** Verify token security measures
 
 **Steps:**
+
 1. Login to application
 2. Open DevTools → Application → Local Storage
 3. Copy entire `user` object (including tokens)
@@ -381,12 +404,14 @@ javascript:alert('XSS')
 7. Verify if session works
 
 **Expected Result:**
+
 - Session works (tokens are bearer tokens)
 - However, tokens expire quickly (30 min)
 - Refresh token required for long sessions
 - Activity monitoring should detect anomalies
 
 **Pass Criteria:** ✅ Tokens functional but with mitigations:
+
 - Short expiration times
 - Token refresh mechanism
 - Monitoring for suspicious activity
@@ -398,6 +423,7 @@ javascript:alert('XSS')
 **Objective:** Verify multiple session handling
 
 **Steps:**
+
 1. Login on Chrome
 2. Login on Firefox with same account
 3. Perform actions in both browsers
@@ -406,6 +432,7 @@ javascript:alert('XSS')
 6. Check if logout clears cache in both
 
 **Expected Result:**
+
 - Multiple sessions allowed (JWT architecture)
 - Logout only affects current browser
 - Cache cleared per-browser on logout
@@ -421,6 +448,7 @@ javascript:alert('XSS')
 **Objective:** Verify all API endpoints require authentication
 
 **Steps:**
+
 1. Use Postman/curl to call endpoints without auth:
    ```bash
    curl https://api.7en.ai/api/agents/
@@ -436,6 +464,7 @@ javascript:alert('XSS')
 4. Verify 401 response
 
 **Expected Result:**
+
 - All protected endpoints return 401 without valid token
 - Invalid tokens rejected
 - Clear error messages
@@ -449,6 +478,7 @@ javascript:alert('XSS')
 **Objective:** Verify rate limiting on sensitive endpoints
 
 **Steps:**
+
 1. Write script to send 100 login requests:
    ```bash
    for i in {1..100}; do
@@ -460,6 +490,7 @@ javascript:alert('XSS')
 3. Check response codes (429 Too Many Requests)
 
 **Expected Result:**
+
 - Rate limiting enforced after threshold
 - 429 status code returned
 - Retry-After header present
@@ -475,6 +506,7 @@ javascript:alert('XSS')
 **Objective:** Verify integration failures don't logout users
 
 **Steps:**
+
 1. Login to application
 2. Navigate to integrations page
 3. Connect Google Drive (or any integration)
@@ -484,6 +516,7 @@ javascript:alert('XSS')
 7. Check that user remains logged in
 
 **Expected Result:**
+
 - Integration 401 doesn't trigger user logout
 - User can reconnect integration
 - Clear error message displayed
@@ -520,6 +553,7 @@ npm audit --audit-level=critical
 ```
 
 **Expected Output:**
+
 ```
 found 0 vulnerabilities
 ```
@@ -550,6 +584,7 @@ npm run sonar
 ```
 
 **Check for:**
+
 - Hardcoded secrets
 - SQL injection patterns
 - XSS vulnerabilities
@@ -591,23 +626,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run npm audit
         run: npm audit --audit-level=high
-      
+
       - name: Run Snyk test
         run: npx snyk test --severity-threshold=high
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      
+
       - name: Run security tests
         run: npm run test:security
 ```
@@ -619,6 +654,7 @@ jobs:
 ### Scope
 
 **In Scope:**
+
 - Web application (frontend)
 - REST API endpoints
 - Authentication mechanisms
@@ -627,6 +663,7 @@ jobs:
 - Integration endpoints
 
 **Out of Scope:**
+
 - Physical security
 - Social engineering
 - Third-party services (Google OAuth, Apple SSO)
@@ -672,6 +709,7 @@ Follow **OWASP Testing Guide v4** methodology:
 ### Penetration Testing Checklist
 
 #### Authentication & Session Management
+
 - [ ] Test password complexity enforcement
 - [ ] Test account lockout mechanism
 - [ ] Test OTP generation/validation
@@ -683,6 +721,7 @@ Follow **OWASP Testing Guide v4** methodology:
 - [ ] Test concurrent session handling
 
 #### Authorization & Access Control
+
 - [ ] Test vertical privilege escalation
 - [ ] Test horizontal privilege escalation
 - [ ] Test forced browsing
@@ -690,6 +729,7 @@ Follow **OWASP Testing Guide v4** methodology:
 - [ ] Test missing function level access control
 
 #### Input Validation
+
 - [ ] Test for reflected XSS
 - [ ] Test for stored XSS
 - [ ] Test for DOM-based XSS
@@ -700,12 +740,14 @@ Follow **OWASP Testing Guide v4** methodology:
 - [ ] Test file upload restrictions
 
 #### Business Logic
+
 - [ ] Test business logic flaws
 - [ ] Test race conditions
 - [ ] Test transaction integrity
 - [ ] Test workflow bypass
 
 #### API Security
+
 - [ ] Test API authentication
 - [ ] Test API authorization
 - [ ] Test API rate limiting
@@ -713,6 +755,7 @@ Follow **OWASP Testing Guide v4** methodology:
 - [ ] Test API error handling
 
 #### Client-Side Security
+
 - [ ] Test Content Security Policy
 - [ ] Test Subresource Integrity
 - [ ] Test secure cookie flags
@@ -728,6 +771,7 @@ Follow **OWASP Testing Guide v4** methodology:
 **Preferred Method:** Private vulnerability disclosure via GitHub
 
 **Steps:**
+
 1. Navigate to https://github.com/7en-ai/platform/security/advisories/new
 2. Provide detailed report including:
    - Vulnerability description
@@ -739,6 +783,7 @@ Follow **OWASP Testing Guide v4** methodology:
 **Alternative Method:** Email to security@7en.ai
 
 **What to Include:**
+
 - Detailed description of vulnerability
 - Affected components/endpoints
 - Steps to reproduce
@@ -747,18 +792,19 @@ Follow **OWASP Testing Guide v4** methodology:
 - Your contact information
 
 **What NOT to Include:**
+
 - Actual exploitation of production systems
 - Public disclosure before fix is available
 - Demands for payment (unless participating in bug bounty)
 
 ### Response Timeline
 
-| Severity | Initial Response | Fix Deployment | Public Disclosure |
-|----------|------------------|----------------|-------------------|
-| Critical | 24 hours | 7 days | 30 days after fix |
-| High | 48 hours | 14 days | 60 days after fix |
-| Medium | 7 days | 30 days | 90 days after fix |
-| Low | 14 days | 60 days | 120 days after fix |
+| Severity | Initial Response | Fix Deployment | Public Disclosure  |
+| -------- | ---------------- | -------------- | ------------------ |
+| Critical | 24 hours         | 7 days         | 30 days after fix  |
+| High     | 48 hours         | 14 days        | 60 days after fix  |
+| Medium   | 7 days           | 30 days        | 90 days after fix  |
+| Low      | 14 days          | 60 days        | 120 days after fix |
 
 ---
 
@@ -775,6 +821,7 @@ Follow **OWASP Testing Guide v4** methodology:
 **Scope:** [Components tested]
 
 ## Summary
+
 - Total tests executed: X
 - Passed: X
 - Failed: X
@@ -786,23 +833,27 @@ Follow **OWASP Testing Guide v4** methodology:
 ## Detailed Findings
 
 ### Finding #1: [Title]
+
 **Severity:** [Critical/High/Medium/Low]
 **CVSS Score:** X.X
 **Affected Component:** [Component name]
 **Description:** [Detailed description]
 **Steps to Reproduce:**
+
 1. Step 1
 2. Step 2
-**Impact:** [Potential impact]
-**Remediation:** [Fix recommendation]
-**Status:** [Open/Fixed/Accepted Risk]
+   **Impact:** [Potential impact]
+   **Remediation:** [Fix recommendation]
+   **Status:** [Open/Fixed/Accepted Risk]
 
 [Repeat for each finding]
 
 ## Recommendations
+
 [Overall security recommendations]
 
 ## Conclusion
+
 [Overall security posture assessment]
 ```
 
@@ -812,19 +863,20 @@ Follow **OWASP Testing Guide v4** methodology:
 
 ### Recommended Tools
 
-| Tool | Purpose | Cost |
-|------|---------|------|
-| OWASP ZAP | DAST scanning | Free |
-| Burp Suite | Manual testing | Free/Paid |
-| Postman | API testing | Free |
-| Snyk | Dependency scanning | Free/Paid |
-| SonarQube | SAST scanning | Free/Paid |
-| npm audit | Dependency scanning | Free |
-| retire.js | JS library scanning | Free |
+| Tool       | Purpose             | Cost      |
+| ---------- | ------------------- | --------- |
+| OWASP ZAP  | DAST scanning       | Free      |
+| Burp Suite | Manual testing      | Free/Paid |
+| Postman    | API testing         | Free      |
+| Snyk       | Dependency scanning | Free/Paid |
+| SonarQube  | SAST scanning       | Free/Paid |
+| npm audit  | Dependency scanning | Free      |
+| retire.js  | JS library scanning | Free      |
 
 ### Tool Setup Guides
 
 See individual tool documentation for setup instructions:
+
 - OWASP ZAP: https://www.zaproxy.org/getting-started/
 - Burp Suite: https://portswigger.net/burp/documentation
 - Snyk: https://docs.snyk.io/
