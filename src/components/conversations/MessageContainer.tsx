@@ -182,28 +182,28 @@ const MessageContainer = ({
         >
           <div className="p-4 md:p-6">
             <div className="max-w-4xl mx-auto">
-              {isLoading || validMessages.length === 0 ? (
-                <div className="space-y-6">
-                  {[1, 2, 3, 4].map((i) => (
-                    i % 2 == 0 ? (
-                      <div key={i} className="flex items-start gap-3">
-                        <Skeleton className="h-8 w-8 rounded-full bg-neutral-100 dark:bg-neutral-700" />
-                        <div className="space-y-2 w-2/3">
-                          <Skeleton className="h-16 w-full rounded-2xl bg-neutral-100 dark:bg-neutral-700" />
+              <div className="relative">
+                {isLoading || validMessages.length === 0 ? (
+                  <div className={`space-y-6 ${mode === 'private' ? 'blur-md pointer-events-none select-none' : ''}`}>
+                    {[1, 2, 3, 4].map((i) => (
+                      i % 2 == 0 ? (
+                        <div key={i} className="flex items-start gap-3">
+                          <Skeleton className="h-8 w-8 rounded-full bg-neutral-100 dark:bg-neutral-700" />
+                          <div className="space-y-2 w-2/3">
+                            <Skeleton className="h-16 w-full rounded-2xl bg-neutral-100 dark:bg-neutral-700" />
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div key={i} className="flex items-start gap-3 justify-end">
-                        <div className="space-y-2 w-2/3">
-                          <Skeleton className="h-16 w-full rounded-2xl bg-neutral-100 dark:bg-neutral-700" />
+                      ) : (
+                        <div key={i} className="flex items-start gap-3 justify-end">
+                          <div className="space-y-2 w-2/3">
+                            <Skeleton className="h-16 w-full rounded-2xl bg-neutral-100 dark:bg-neutral-700" />
+                          </div>
+                          <Skeleton className="h-8 w-8 rounded-full bg-neutral-100 dark:bg-neutral-700" />
                         </div>
-                        <Skeleton className="h-8 w-8 rounded-full bg-neutral-100 dark:bg-neutral-700" />
-                      </div>
-                    )
-                  ))}
-                </div>
-              ) : (
-                <div className="relative">
+                      )
+                    ))}
+                  </div>
+                ) : (
                   <div 
                     className={`space-y-6 ${mode === 'private' ? 'blur-md pointer-events-none select-none' : ''}`} 
                     ref={messageContainerRef}
@@ -225,16 +225,17 @@ const MessageContainer = ({
                   }
                     <div ref={messagesEndRef} className="h-4" />
                   </div>
-                  
-                  {mode === 'private' && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-white dark:bg-neutral-800/70 backdrop-blur-sm border border-border rounded-lg p-6 max-w-md mx-4 shadow-lg">
-                        <div className="flex items-center gap-3 mb-4">
-                          
-                          <div>
-                            <h3 className="text-lg font-semibold text-foreground">Private Mode Active</h3>
-                            <p className="text-sm text-muted-foreground">Conversation details are hidden</p>
-                          </div>
+                )}
+                
+                {mode === 'private' && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-white dark:bg-neutral-800/70 backdrop-blur-sm border border-border rounded-lg p-6 max-w-md mx-4 shadow-lg">
+                      <div className="flex items-center gap-3 mb-4">
+                        
+                        <div>
+                          <h3 className="text-lg font-semibold text-foreground">Private Mode Active</h3>
+                          <p className="text-sm text-muted-foreground">Conversation details are hidden</p>
+                        </div>
                         </div>
                         
                         <div className="space-y-3 text-sm text-muted-foreground">
@@ -252,13 +253,12 @@ const MessageContainer = ({
                     </div>
                   )}
                 </div>
-              )}
+              </div>
             </div>
-          </div>
-        </ScrollArea>
+          </ScrollArea>
+        </div>
       </div>
-    </div>
-  );
-};
-
-export default MessageContainer;
+    );
+  };
+  
+  export default MessageContainer;
