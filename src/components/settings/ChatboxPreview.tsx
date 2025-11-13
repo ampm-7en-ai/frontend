@@ -1321,11 +1321,126 @@ export const ChatboxPreview = ({
       }, 500);
       
     } else {
-      // Entering private mode - start new session
-      console.log('🔒 Entering private mode');
+      // Entering private mode - start new session without clearing stored session ID
+      console.log('🔒 Entering private mode - keeping stored session ID');
       setIsPrivateMode(true);
       pendingPrivateModeRef.current = true; // Set flag to send private message after reconnect
-      handleRestart();
+      
+      // Set restarting flag
+      restartingRef.current = true;
+      
+      // Reset the chat state but DON'T call onRestart() to preserve stored session ID
+      setMessages([]);
+      setHistoryMessages([]);
+      setHistoryTimestamp(null);
+      setShowTypingIndicator(false);
+      setSystemMessage('');
+      setConnectionError(null);
+      setIsInitializing(true);
+      setIsConnected(false);
+      
+      // Reset terms acceptance for restart - ask for consent again
+      setTermsAccepted(false);
+      setShowTermsAcceptance(true);
+      
+      // Clear processed message IDs and reset sequence
+      processedMessageIds.current.clear();
+      messageSequenceRef.current = 0;
+      
+      // Clear timeout timers and reset flags
+      clearTimeouts();
+      setTimeoutQuestionSent(false);
+      
+      // Properly disconnect and cleanup existing connection
+      if (chatServiceRef.current) {
+        chatServiceRef.current.disconnect();
+        chatServiceRef.current = null;
+      }
+      
+      // Create a completely new connection after a longer delay to ensure cleanup
+      setTimeout(() => {
+        if (agentId) {
+          console.log("🔒 Starting private mode connection with agent ID:", agentId);
+          
+          chatServiceRef.current = new ChatWebSocketService(agentId, "preview");
+          
+          chatServiceRef.current.on({
+            onMessage: (message) => {
+              console.log("Private mode - Received message:", message);
+              
+              // Skip if we're still in restarting state
+              if (restartingRef.current) {
+                console.log("Still restarting private mode, skipping message");
+                return;
+              }
+              
+              // Handle system messages for typing indicator
+              if (message.type === 'system_message') {
+                setSystemMessage(message.content);
+                setShowTypingIndicator(true);
+                return;
+              }
+              
+              const messageId = generateUniqueMessageId(message);
+              
+              if (processedMessageIds.current.has(messageId)) {
+                console.log("Duplicate message detected in private mode, skipping:", messageId);
+                return;
+              }
+              
+              processedMessageIds.current.add(messageId);
+              setShowTypingIndicator(false);
+              setSystemMessage('');
+              setMessages(prev => [...prev, { ...message, messageId }]); 
+            },
+            onTypingStart: () => {
+              console.log("Private mode - Typing indicator started");
+              if (!restartingRef.current) {
+                setShowTypingIndicator(true);
+              }
+            },
+            onTypingEnd: () => {
+              console.log("Private mode - Typing indicator ended");
+              setShowTypingIndicator(false);
+              setSystemMessage('');
+            },
+            onError: (error) => {
+              console.error('Private mode - Chat error:', error);
+              setConnectionError(error);
+              setIsConnected(false);
+              setIsInitializing(false);
+              restartingRef.current = false;
+            },
+            onConnectionChange: (status) => {
+              console.log("Private mode - Connection status changed:", status);
+              setIsConnected(status);
+              setIsInitializing(false);
+              if (status) {
+                setConnectionError(null);
+                
+                if (chatServiceRef.current) {
+                  // In private mode, only send type: "private"
+                  console.log('🔒 Private mode - Sending private mode message');
+                  chatServiceRef.current.send({ type: "private" });
+                  pendingPrivateModeRef.current = false;
+                }
+                
+                // Start timeout management when connected in private mode
+                console.log('Private mode connection established, starting timeout management');
+                manageTimeout();
+                
+                // Clear restarting flag immediately
+                restartingRef.current = false;
+              }
+            },
+            ...(enableSessionStorage && onSessionIdReceived && {
+              onSessionIdReceived: onSessionIdReceived
+            })
+          });
+          
+          chatServiceRef.current.connect();
+        }
+      }, 1000);
     }
   };
 
