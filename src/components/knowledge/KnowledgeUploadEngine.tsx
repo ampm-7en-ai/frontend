@@ -1302,7 +1302,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                     <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                       Selected Files ({files.length})
                     </Label>
-                    <ScrollArea className="max-h-[240px]">
+                    <div className="max-h-[240px] overflow-y-auto">
                       <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl divide-y divide-neutral-100 dark:divide-neutral-700">
                         {files.map((file, index) => (
                           
@@ -1330,7 +1330,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
 
                         ))}
                       </div>
-                    </ScrollArea>
+                    </div>
                   </div>
                 )}
 
@@ -1520,7 +1520,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                         <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                           Selected Files ({selectedFiles.length})
                         </Label>
-                        <ScrollArea className="max-h-[240px]">
+                        <div className="max-h-[240px] overflow-y-auto">
                           <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl divide-y divide-neutral-100 dark:divide-neutral-700">
                             {selectedFiles.map((fileName, index) => (
                               <div key={index} className="flex items-center justify-between p-4">
@@ -1541,7 +1541,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
                               </div>
                             ))}
                           </div>
-                        </ScrollArea>
+                        </div>
                       </div>
                     )}
 
