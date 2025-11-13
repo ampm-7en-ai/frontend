@@ -256,9 +256,7 @@ const ConversationCard = ({
                 )}>
                   {conversation.customer || "Visitor"}
                 </h3>
-                {conversation.mode === "private" && (
-                  <Lock className="h-3 w-3 text-muted-foreground" />
-                )}
+                
                 {conversation.isUnread && (
                   <span className="inline-block w-2 h-2 bg-orange-500 rounded-full shadow-sm"></span>
                 )}
@@ -280,7 +278,14 @@ const ConversationCard = ({
                 "text-xs truncate leading-relaxed flex-1",
                 conversation.isUnread ? "font-medium text-gray-700 dark:text-muted-foreground" : "text-muted-foreground dark:text-muted-foreground"
               )}>
-                {conversation.mode === "private" ? "Private conversation" : escapeHTML(conversation.lastMessage)}
+                {conversation.mode === "private" ? (
+                  <div className='flex items-center gap-1'>
+                  {conversation.mode === "private" && (
+                    <Lock className="h-3 w-3 text-muted-foreground" />
+                  )}
+                  Private
+                  </div>
+                ) : escapeHTML(conversation.lastMessage)}
               </p>
               {!isBulkSelectMode && onDelete && (isHovered || isSelected) && (
                   <Button

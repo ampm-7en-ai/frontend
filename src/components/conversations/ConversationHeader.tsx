@@ -181,7 +181,7 @@ const ConversationHeader = ({
               size="sm"
               onClick={() => setIsTicketModalOpen(true)}
             >
-              Create Ticket
+              Ticket
             </ModernButton>
           )}
           <ModernButton

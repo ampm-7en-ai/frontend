@@ -322,7 +322,7 @@ const FolderSources = () => {
         {/* Search and Filter */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -tranneutral-y-1/2 text-muted-foreground h-4 w-4 z-10" />
+            <Search className="absolute left-3 top-[calc(50%-8px)] transform -tranneutral-y-1/2 text-muted-foreground h-4 w-4 z-10" />
             <input
               type="text"
               placeholder="Search sources..."

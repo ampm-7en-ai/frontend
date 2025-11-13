@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { transformAgentList } from '@/utils/agentTransformUtils';
 import { updateCachesAfterAgentCreation } from '@/utils/agentCacheUtils';
 import AgentCreationWizard from '@/components/agents/wizard/AgentCreationWizard';
+import { Icon } from '@/components/icons';
 
 interface ApiResponse {
   agents: any[];
@@ -254,11 +255,11 @@ const AgentList = () => {
               </div>
             ) : filteredAgents.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20">
-                <div className="p-4 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 rounded-full mb-6">
-                  <Bot className="h-12 w-12 text-slate-400 dark:text-slate-500" />
+                <div className="p-4 mb-6">
+                  <Icon name={`Magic`} type='plain' color='hsl(var(--primary))' className='h-8 w-8' />
                 </div>
-                <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">No agents found</h3>
-                <p className="text-slate-500 dark:text-slate-400 mb-6 text-center max-w-md">
+                <h3 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100 mb-2">No agents found</h3>
+                <p className="text-neutral-500 dark:text-neutral-400 mb-6 text-center max-w-md">
                   {searchQuery || modelFilter !== 'all' 
                     ? "Try adjusting your search filters"
                     : "Create your first AI agent to get started"}
