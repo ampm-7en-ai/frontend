@@ -2138,8 +2138,9 @@ export const ChatboxPreview = ({
                         {suggestions.filter(Boolean).map((suggestion, index) => (
                           <button
                             key={index}
-                            onClick={() => handleSuggestionClick(suggestion)}
-                            className="text-sm text-left px-4 py-3 rounded-xl transition-all hover:scale-[1.02] border bg-white hover:bg-gray-50 hover:shadow-md"
+                            onClick={() => termsAccepted && handleSuggestionClick(suggestion)}
+                            disabled={!termsAccepted}
+                            className="text-sm text-left px-4 py-3 rounded-xl transition-all border bg-white disabled:opacity-50 disabled:cursor-not-allowed enabled:hover:scale-[1.02] enabled:hover:bg-gray-50 enabled:hover:shadow-md"
                             style={{ 
                               border: `1px solid ${primaryColor}20`,
                               backgroundColor: 'white',
@@ -3071,8 +3072,9 @@ export const ChatboxPreview = ({
                 {suggestions.filter(Boolean).map((suggestion, index) => (
                   <button
                     key={index}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className="inline-block w-fit text-xs text-left px-4 py-3 rounded-full transition-all border bg-white hover:!bg-gray-100"
+                    onClick={() => termsAccepted && handleSuggestionClick(suggestion)}
+                    disabled={!termsAccepted}
+                    className="inline-block w-fit text-xs text-left px-4 py-3 rounded-full transition-all border bg-white disabled:opacity-50 disabled:cursor-not-allowed enabled:hover:!bg-gray-100"
                     style={{ 
                       border: `1px solid ${primaryColor}20`,
                       backgroundColor: 'white',
