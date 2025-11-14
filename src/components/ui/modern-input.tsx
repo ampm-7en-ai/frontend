@@ -29,6 +29,7 @@ const ModernInput = React.forwardRef<HTMLInputElement, ModernInputProps>(
         const newValue = Math.min(currentValue + step, max)
         inputRef.current.value = String(newValue)
         inputRef.current.dispatchEvent(new Event('input', { bubbles: true }))
+        inputRef.current.dispatchEvent(new Event('change', { bubbles: true }))
       }
     }
 
@@ -40,6 +41,7 @@ const ModernInput = React.forwardRef<HTMLInputElement, ModernInputProps>(
         const newValue = Math.max(currentValue - step, min)
         inputRef.current.value = String(newValue)
         inputRef.current.dispatchEvent(new Event('input', { bubbles: true }))
+        inputRef.current.dispatchEvent(new Event('change', { bubbles: true }))
       }
     }
 
