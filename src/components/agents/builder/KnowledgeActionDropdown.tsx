@@ -18,47 +18,59 @@ export const KnowledgeActionDropdown = () => {
     console.log('🎉 Raw upload success response received:', response);
     setShowUploadModal(false);
     
-    // The response should have this structure:
-    // { message: "...", data: { id, title, etc... }, status: "success" }
-    let sourceData = null;
+    if (!agentData.id) {
+      console.warn('⚠️ No agent ID available');
+      return;
+    }
     
-    if (response && response.data) {
-      // Response has data property - use it
-      sourceData = response.data;
-      console.log('📦 Using response.data:', sourceData);
+    // Handle response.data as array (API returns array of sources)
+    let sourcesArray: any[] = [];
+    
+    if (response && Array.isArray(response.data)) {
+      // Response has data as array - use it
+      sourcesArray = response.data;
+      console.log('📦 Using response.data array:', sourcesArray);
+    } else if (response && response.data) {
+      // Response has single data object - wrap in array
+      sourcesArray = [response.data];
+      console.log('📦 Wrapped single response.data in array:', sourcesArray);
     } else if (response && response.id) {
-      // Response is the data itself (fallback)
-      sourceData = response;
-      console.log('📦 Using direct response as data:', sourceData);
+      // Response is the data itself - wrap in array
+      sourcesArray = [response];
+      console.log('📦 Wrapped direct response in array:', sourcesArray);
     } else {
       console.warn('⚠️ No valid response data received:', response);
       return;
     }
     
-    if (sourceData && agentData.id) {
-      console.log('🎯 Processing new knowledge source with data:', sourceData);
+    if (sourcesArray.length > 0) {
+      console.log(`🎯 Processing ${sourcesArray.length} new knowledge source(s)`);
       
-      // Update agent cache with new source
-      addKnowledgeSourceToAgentCache(queryClient, String(agentData.id), sourceData);
+      const transformedSources: KnowledgeSource[] = [];
       
-      // Transform the source data to UI format for local state
-      const transformedSource: KnowledgeSource = transformApiSourceToUI(sourceData);
-      console.log('🔄 Transformed source for UI:', transformedSource);
+      // Process each source
+      sourcesArray.forEach(sourceData => {
+        // Update agent cache with new source
+        addKnowledgeSourceToAgentCache(queryClient, String(agentData.id), sourceData);
+        
+        // Transform the source data to UI format for local state
+        const transformedSource: KnowledgeSource = transformApiSourceToUI(sourceData);
+        console.log('🔄 Transformed source for UI:', transformedSource);
+        
+        if (transformedSource) {
+          transformedSources.push(transformedSource);
+        }
+      });
       
-      if (transformedSource) {
+      if (transformedSources.length > 0) {
         const updatedKnowledgeSources: KnowledgeSource[] = [
           ...(agentData.knowledgeSources || []),
-          transformedSource
+          ...transformedSources
         ];
         
         updateAgentData({ knowledgeSources: updatedKnowledgeSources });
-        console.log('✅ Local agent data updated with new source');
+        console.log(`✅ Local agent data updated with ${transformedSources.length} new source(s)`);
       }
-    } else {
-      console.warn('⚠️ Missing agentData.id or sourceData:', { 
-        agentId: agentData.id, 
-        sourceData 
-      });
     }
   };
 
