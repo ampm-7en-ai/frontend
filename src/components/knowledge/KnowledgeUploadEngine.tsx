@@ -1076,8 +1076,8 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
         </div>
 
         {/* Source Type Navigation */}
-        <div className="space-y-6">
-          <div className="space-y-3 scale-90 origin-left">
+        <div className="space-y-4 !mt-4">
+          <div className="scale-90 origin-left">
             <ModernTabNavigation
               tabs={sourceNavItems.map(item => ({ id: item.id, label: item.label }))}
               activeTab={sourceType}
@@ -1556,7 +1556,7 @@ const KnowledgeUploadEngine: React.FC<KnowledgeUploadEngineProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="flex justify-center gap-4 pt-6">
+        <div className="flex justify-end gap-4 pt-0">
           {mode !== 'standalone' && (
             <ModernButton 
               variant="outline" 

@@ -13,6 +13,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useQueryClient } from '@tanstack/react-query';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { useAIModels } from '@/hooks/useAIModels';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface PlanConfig {
   limits: {
@@ -117,6 +118,7 @@ const SubscriptionPlanEditor = () => {
     }
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isFree, setFree] = useState(false);
 
   useEffect(() => {
     if (isEditMode) {
@@ -319,17 +321,7 @@ const SubscriptionPlanEditor = () => {
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="for_type">Plan Type</Label>
-                  <Input 
-                    id="for_type"
-                    name="for_type"
-                    value={plan.for_type}
-                    onChange={handleChange}
-                    placeholder="e.g., Individual, Team, Business"
-                    required
-                  />
-                </div>
+                
               </div>
 
               <div className="space-y-2">
@@ -361,7 +353,21 @@ const SubscriptionPlanEditor = () => {
 
             {/* Pricing */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Pricing & Duration</h3>
+              <div className='flex justify-between'>
+                <h3 className="text-lg font-semibold">Pricing & Duration</h3>
+                <div className='flex items-center gap-2'>
+                  <Checkbox
+                  id={`free`}
+                  checked={isFree}
+                  disabled={false}
+                  className="rounded-[4px]"
+                  onCheckedChange={(checked: any) =>
+                    setFree(checked)
+                  }
+                />
+                <label htmlFor='free'>Free</label>
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-4 p-4 border rounded-lg">
                   <h4 className="font-medium">Monthly</h4>
@@ -373,8 +379,9 @@ const SubscriptionPlanEditor = () => {
                       type="number"
                       step="0.01"
                       min="0"
-                      value={plan.price_monthly}
+                      value={isFree ? 0 : plan.price_monthly}
                       onChange={handleChange}
+                      disabled={isFree}
                       required
                     />
                   </div>
@@ -402,8 +409,9 @@ const SubscriptionPlanEditor = () => {
                       type="number"
                       step="0.01"
                       min="0"
-                      value={plan.price_annual}
+                      value={isFree ? 0 : plan.price_annual}
                       onChange={handleChange}
+                      disabled={isFree}
                       required
                     />
                   </div>
@@ -454,15 +462,7 @@ const SubscriptionPlanEditor = () => {
                     onChange={(e) => handleConfigChange('limits', 'training_per_agent_mb', parseInt(e.target.value) || 0)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Integrations</Label>
-                  <Input 
-                    type="number"
-                    min="0"
-                    value={plan.config.limits.integration}
-                    onChange={(e) => handleConfigChange('limits', 'integration', parseInt(e.target.value) || 0)}
-                  />
-                </div>
+                
               </div>
             </div>
 
@@ -475,7 +475,7 @@ const SubscriptionPlanEditor = () => {
                     type="checkbox"
                     checked={plan.config.handoffs.to_email}
                     onChange={(e) => handleConfigChange('handoffs', 'to_email', e.target.checked)}
-                    className="w-4 h-4"
+                    className="w-4 h-4 bg-none"
                   />
                   <span>To Email</span>
                 </label>

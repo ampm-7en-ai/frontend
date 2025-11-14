@@ -455,7 +455,7 @@ const AddonsSection = () => {
               Increase the number of additional agents in your subscription
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-0">
             <div className="space-y-2">
               <Label htmlFor="edit-quantity" className="text-sm font-medium">Number of Agents</Label>
               <ModernInput
@@ -512,7 +512,7 @@ const AddonsSection = () => {
               {updateQuantityMutation.isPending && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               )}
-              Update
+              Add
             </ModernButton>
           </DialogFooter>
         </DialogContent>

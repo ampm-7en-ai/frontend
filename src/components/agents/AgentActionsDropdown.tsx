@@ -241,6 +241,8 @@ const AgentActionsDropdown = ({ agentId, agentName, onDelete, agent }: AgentActi
               <br />
               - The associated knowledge folder and all its sources
               <br />
+              - If you are deleting addon agent, your extra subscription will be cancelled automatically.
+              <br />
               <br />
               All data will be permanently lost.
             </AlertDialogDescription>
