@@ -261,21 +261,20 @@ const AddonsSection = () => {
 
   const handleQuantityConfirm = () => {
     if (selectedAddon && quantityInput > 0) {
+      // Directly subscribe without confirmation dialog
+      subscribeMutation.mutate({
+        addonType: selectedAddon.addon_type,
+        quantity: quantityInput,
+      });
       setShowQuantityDialog(false);
-      // Add small delay to ensure proper modal cleanup
-      setTimeout(() => {
-        setPendingToggle({
-          addon: selectedAddon,
-          action: 'enable',
-          quantity: quantityInput,
-        });
-      }, 100);
+      setSelectedAddon(null);
     }
   };
 
   const handleEditQuantity = (currentAddon: CurrentAddon) => {
     setEditingAddon(currentAddon);
-    setQuantityInput(currentAddon.quantity);
+    // Set to current quantity + 1 as default for "Add more"
+    setQuantityInput(currentAddon.quantity + 1);
     setShowEditQuantityDialog(true);
   };
 
@@ -356,7 +355,7 @@ const AddonsSection = () => {
                           onClick={() => handleEditQuantity(currentAddon)}
                           className="ml-2"
                         >
-                          Edit
+                          Add more
                         </ModernButton>
                       </div>
                     )}
@@ -451,9 +450,9 @@ const AddonsSection = () => {
       <Dialog open={showEditQuantityDialog} onOpenChange={setShowEditQuantityDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Update Number of Agents</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">Add More Agents</DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Change the number of additional agents in your subscription
+              Increase the number of additional agents in your subscription
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -462,15 +461,16 @@ const AddonsSection = () => {
               <ModernInput
                 id="edit-quantity"
                 type="number"
-                min="1"
+                min={editingAddon?.quantity || 1}
                 value={quantityInput}
                 onChange={(e) => {
                   const val = e.target.value;
+                  const minQuantity = editingAddon?.quantity || 1;
                   if (val === '' || val === '0') {
-                    setQuantityInput(1);
+                    setQuantityInput(minQuantity);
                   } else {
                     const parsed = parseInt(val, 10);
-                    setQuantityInput(isNaN(parsed) ? 1 : Math.max(1, parsed));
+                    setQuantityInput(isNaN(parsed) ? minQuantity : Math.max(minQuantity, parsed));
                   }
                 }}
                 className="w-full"
@@ -518,55 +518,38 @@ const AddonsSection = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Confirmation Dialog */}
+      {/* Confirmation Dialog - Only for disable action */}
       <AlertDialog 
         open={!!pendingToggle} 
         onOpenChange={(open) => {
           if (!open) {
             setPendingToggle(null);
-            // Ensure all dialog states are clean
-            setShowQuantityDialog(false);
-            setShowEditQuantityDialog(false);
           }
         }}
       >
         <AlertDialogContent className="sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-semibold">
-              {pendingToggle?.action === 'enable' ? 'Enable' : 'Disable'} Add-on
+              Disable Add-on
             </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
-              Are you sure you want to {pendingToggle?.action} "{pendingToggle?.addon.name}"?
-              {pendingToggle?.action === 'enable' && pendingToggle.quantity && (
-                <span className="block mt-2 font-medium text-neutral-900 dark:text-neutral-100">
-                  This will add ${(parseFloat(pendingToggle.addon.price_monthly) * pendingToggle.quantity).toFixed(2)}/month ({pendingToggle.quantity} × ${parseFloat(pendingToggle.addon.price_monthly).toFixed(2)}) to your subscription.
-                </span>
-              )}
-              {pendingToggle?.action === 'enable' && !pendingToggle.quantity && (
-                <span className="block mt-2 font-medium text-neutral-900 dark:text-neutral-100">
-                  This will add ${parseFloat(pendingToggle.addon.price_monthly).toFixed(2)}/month to your subscription.
-                </span>
-              )}
+              Are you sure you want to disable "{pendingToggle?.addon.name}"?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">
             <ModernButton 
               variant="outline" 
-              onClick={() => {
-                setPendingToggle(null);
-                setShowQuantityDialog(false);
-                setShowEditQuantityDialog(false);
-              }}
-              disabled={subscribeMutation.isPending || cancelMutation.isPending}
+              onClick={() => setPendingToggle(null)}
+              disabled={cancelMutation.isPending}
             >
               Cancel
             </ModernButton>
             <ModernButton 
               variant="primary" 
               onClick={confirmToggle}
-              disabled={subscribeMutation.isPending || cancelMutation.isPending}
+              disabled={cancelMutation.isPending}
             >
-              {(subscribeMutation.isPending || cancelMutation.isPending) && (
+              {cancelMutation.isPending && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               )}
               Confirm
