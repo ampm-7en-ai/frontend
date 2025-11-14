@@ -22,7 +22,7 @@ const AgentTypeSelector = ({ selectedType, onTypeSelect }: AgentTypeSelectorProp
       icon: Bubbles,
       features: [
         'Handle customer support conversations',
-        'Can hand off to other AI agents',
+        'Can handoff to other AI agents',
         'Escalate to Freshdesk, Zoho etc.',
         'Auto replies to tickets'
       ],

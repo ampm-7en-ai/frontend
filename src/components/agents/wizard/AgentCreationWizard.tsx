@@ -240,7 +240,7 @@ const AgentCreationWizard = ({ open, onOpenChange }: AgentCreationWizardProps) =
               
               <div className="space-y-1">
                 <p className="text-xs text-foreground">
-                  AI Assistants cannot handle support ticket workflows. For customer support scenarios, please consider using a Chatbot.
+                  AI Assistants cannot handle handoffs to human and other AI agents. For customer support scenarios, please consider using a Chatbot.
                 </p>
               </div>
             </div>

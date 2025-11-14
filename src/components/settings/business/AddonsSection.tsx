@@ -396,7 +396,7 @@ const AddonsSection = () => {
                 type="number"
                 min="1"
                 value={quantityInput}
-                onChange={(e) => setQuantityInput(Math.max(1, parseInt(e.target.value) || 1))}
+                onChange={(e) => setQuantityInput(parseInt(e.target.value))}
                 className="w-full"
               />
             </div>
@@ -413,7 +413,7 @@ const AddonsSection = () => {
                 <div className="h-px bg-neutral-200 dark:bg-neutral-700 my-2" />
                 <div className="flex justify-between font-semibold text-base">
                   <span className="text-neutral-900 dark:text-neutral-100">Total:</span>
-                  <span className="text-primary">
+                  <span className="text-[#f06425]">
                     ${(parseFloat(selectedAddon.price_monthly) * quantityInput).toFixed(2)}/month
                   </span>
                 </div>
