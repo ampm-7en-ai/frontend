@@ -55,6 +55,8 @@ interface AgentFormData {
   gdpr_settings?: GdprConfig;
   privacy_url?: string;
   is_white_label?: boolean;
+  total_training_usage_bytes?: number;
+  max_training_usage_bytes?: number;
 }
 
 interface GdprConfig {

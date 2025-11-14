@@ -13,6 +13,7 @@ import { ModernModal } from '@/components/ui/modern-modal';
 import { KnowledgeActionDropdown } from './KnowledgeActionDropdown';
 import { removeKnowledgeSourceFromAgentCache } from '@/utils/knowledgeSourceCacheUtils';
 import { Icon } from '@/components/icons';
+import { Progress } from '@/components/ui/progress';
 
 const getIconForType = (source) => {
   if(source.type === 'custom') {
@@ -56,6 +57,18 @@ const getStatusBadge = (status) => {
 
     const config = statusConfig[status?.toLowerCase()] || { label: 'Unknown', className: 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800' };
     return <Badge className={`${config.className} text-[9px] font-medium`}>{config.label}</Badge>;
+};
+
+const formatBytes = (bytes?: number, decimals = 2) => {
+  if (!bytes || bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 };
 
 const getIconBackground = (type: string) => {
@@ -311,6 +324,26 @@ export const BuilderSidebar = () => {
             
           </div>
         </ModernModal>
+
+        {/* Training Size Footer */}
+        <div className="border-t border-border bg-background dark:bg-[hsla(0,0%,0%,0.95)] p-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground">Training Size</h3>
+              <span className="text-xs text-muted-foreground">
+                {formatBytes(state.agentData.total_training_usage_bytes)} / {formatBytes(state.agentData.max_training_usage_bytes)}
+              </span>
+            </div>
+            <Progress 
+              value={
+                state.agentData.max_training_usage_bytes && state.agentData.total_training_usage_bytes
+                  ? (state.agentData.total_training_usage_bytes / state.agentData.max_training_usage_bytes) * 100
+                  : 0
+              }
+              className="h-2"
+            />
+          </div>
+        </div>
       </div>
     </>
   );
