@@ -52,7 +52,7 @@ const BusinessList = () => {
 
   if (isError) {
     return (
-      <div className="min-h-screen bg-neutral-50 dark:bg-slate-900">
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
         <div className="container max-w-7xl mx-auto p-6 space-y-8">
           <Card className="my-6">
             <CardContent className="p-6">
@@ -90,7 +90,7 @@ const BusinessList = () => {
           <CardHeader className='p-0'>
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 h-4 w-4" />
                 <ModernInput
                   placeholder="Search businesses..."
                   value={searchQuery}
@@ -122,7 +122,7 @@ const BusinessList = () => {
         <Card className="bg-transparent dark:bg-transparent border-0 rounded-3xl !pl-0">
           <CardHeader className='px-0 pt-0'>
             <div className="flex justify-between items-center">
-              <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100 pl-0">
+              <CardTitle className="text-xl font-semibold text-neutral-900 dark:text-neutral-100 pl-0">
                 
               </CardTitle>
               <CardDescription>
@@ -134,7 +134,7 @@ const BusinessList = () => {
             {isLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3, 4, 5].map((n) => (
-                  <Card key={n} className="p-6 bg-slate-50 dark:bg-slate-800/30 border-0 rounded-2xl">
+                  <Card key={n} className="p-6 bg-neutral-50 dark:bg-neutral-800/30 border-0 rounded-2xl">
                     <div className="flex items-center space-x-4">
                       <Skeleton className="h-12 w-12 rounded-xl" />
                       <div className="flex-1 space-y-3">
@@ -159,7 +159,7 @@ const BusinessList = () => {
               <div className="space-y-4">
                 {filteredBusinesses.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
-                    <Building className="h-12 w-12 mx-auto mb-4 text-slate-400" />
+                    <Building className="h-12 w-12 mx-auto mb-4 text-neutral-400" />
                     <p className="text-lg font-medium mb-2">No businesses found</p>
                     <p className="text-sm">
                       {searchQuery || statusFilter !== 'all' || planFilter !== 'all' ? 
@@ -174,7 +174,7 @@ const BusinessList = () => {
                       to={`/businesses/${business.id}`}
                       className="block"
                     >
-                      <Card className="bg-white/70 dark:bg-neutral-800/70 rounded-xl p-4 dark:border-slate-600/50 cursor-pointer hover:bg-white dark:hover:bg-neutral-800 transition-colors duration-200 animate-fade-in">
+                      <Card className="bg-white/70 dark:bg-neutral-800/70 rounded-xl p-4 dark:border-neutral-600/50 cursor-pointer hover:bg-white dark:hover:bg-neutral-800 transition-colors duration-200 animate-fade-in">
                         <div className="flex items-center gap-4">
                           {/* Business Icon */}
                           <div className="w-7 h-7 rounded-lg flex items-center justify-center">
@@ -183,7 +183,7 @@ const BusinessList = () => {
 
                           {/* Business Info */}
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate text-md capitalize">
+                            <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 truncate text-md capitalize">
                               {business.name || 'Business Name'}
                             </h3>
                             
@@ -215,12 +215,12 @@ const BusinessList = () => {
                           </div>
 
                           {/* Created Date */}
-                          <div className="text-sm text-slate-500 dark:text-slate-400 min-w-fit">
+                          <div className="text-sm text-neutral-500 dark:text-neutral-400 min-w-fit">
                             {new Date(business.created).toLocaleDateString()}
                           </div>
 
                           {/* Action Icon */}
-                          <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
+                          <ChevronRight className="h-5 w-5 text-neutral-400 group-hover:text-neutral-600 dark:group-hover:text-neutral-300 transition-colors" />
                         </div>
                       </Card>
                     </Link>
