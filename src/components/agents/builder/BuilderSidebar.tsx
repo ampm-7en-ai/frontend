@@ -162,6 +162,21 @@ export const BuilderSidebar = () => {
       const token = getAccessToken();
       if (!token) throw new Error('No authentication token');
 
+      // Find the source to get its size before deleting
+      const sourceToRemove = knowledgeSources.find(source => source.id === sourceToDelete);
+      let fileSizeBytes = 0;
+      
+      if (sourceToRemove?.metadata?.file_size) {
+        const fileSizeValue = sourceToRemove.metadata.file_size;
+        if (typeof fileSizeValue === 'string') {
+          fileSizeBytes = parseInt(fileSizeValue.replace(/[^0-9]/g, ''), 10) || 0;
+        } else if (typeof fileSizeValue === 'number') {
+          fileSizeBytes = fileSizeValue;
+        }
+      } else if (sourceToRemove?.size && typeof sourceToRemove.size === 'number') {
+        fileSizeBytes = sourceToRemove.size;
+      }
+
       const response = await fetch(`${BASE_URL}knowledgesource/${sourceToDelete}/`, {
         method: 'DELETE',
         headers: getAuthHeaders(token)
@@ -176,7 +191,17 @@ export const BuilderSidebar = () => {
       
       // Update local state in BuilderContext
       const updatedKnowledgeSources = knowledgeSources.filter(source => source.id !== sourceToDelete);
-      updateAgentData({ knowledgeSources: updatedKnowledgeSources });
+      
+      // Update training size
+      const currentTrainingBytes = agentData.total_training_usage_bytes || 0;
+      const newTotalBytes = Math.max(0, currentTrainingBytes - fileSizeBytes);
+      
+      console.log(`📊 Training size update on delete: ${currentTrainingBytes} - ${fileSizeBytes} = ${newTotalBytes} bytes`);
+      
+      updateAgentData({ 
+        knowledgeSources: updatedKnowledgeSources,
+        total_training_usage_bytes: newTotalBytes
+      });
 
       toast({
         title: "Knowledge source removed",
