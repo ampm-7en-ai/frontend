@@ -261,6 +261,8 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
           data_retention_message: agentData.gdpr_settings?.data_retention_message || "",
           gdpr_message_display: agentData.gdpr_settings?.gdpr_message_display || false,
         },
+        total_training_usage_bytes: agentData.total_training_usage_bytes,
+        max_training_usage_bytes: agentData.max_training_usage_bytes
       };
 
       console.log("Mapped agent data with status preserved:", {

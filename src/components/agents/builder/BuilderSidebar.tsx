@@ -326,7 +326,7 @@ export const BuilderSidebar = () => {
         </ModernModal>
 
         {/* Training Size Footer */}
-        <div className="border-t border-border bg-background dark:bg-[hsla(0,0%,0%,0.95)] p-4">
+        <div className="border-t border-border bg-white dark:bg-[hsla(0,0%,0%,0.95)] p-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-foreground">Training Size</h3>
