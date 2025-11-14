@@ -10,7 +10,7 @@ export interface ModernInputProps
 }
 
 const ModernInput = React.forwardRef<HTMLInputElement, ModernInputProps>(
-  ({ className, type, variant = 'modern', showNumberControls = true, ...props }, ref) => {
+  ({ className, type, variant = 'modern', showNumberControls = true, onChange, ...props }, ref) => {
     const inputRef = React.useRef<HTMLInputElement>(null)
     
     React.useImperativeHandle(ref, () => inputRef.current!)
@@ -27,9 +27,18 @@ const ModernInput = React.forwardRef<HTMLInputElement, ModernInputProps>(
         const currentValue = Number(inputRef.current.value) || 0
         const max = inputRef.current.max ? Number(inputRef.current.max) : Infinity
         const newValue = Math.min(currentValue + step, max)
+        
+        // Update the input value
         inputRef.current.value = String(newValue)
-        inputRef.current.dispatchEvent(new Event('input', { bubbles: true }))
-        inputRef.current.dispatchEvent(new Event('change', { bubbles: true }))
+        
+        // Trigger onChange callback if it exists
+        if (onChange) {
+          const syntheticEvent = {
+            target: inputRef.current,
+            currentTarget: inputRef.current,
+          } as React.ChangeEvent<HTMLInputElement>
+          onChange(syntheticEvent)
+        }
       }
     }
 
@@ -39,9 +48,18 @@ const ModernInput = React.forwardRef<HTMLInputElement, ModernInputProps>(
         const currentValue = Number(inputRef.current.value) || 0
         const min = inputRef.current.min ? Number(inputRef.current.min) : -Infinity
         const newValue = Math.max(currentValue - step, min)
+        
+        // Update the input value
         inputRef.current.value = String(newValue)
-        inputRef.current.dispatchEvent(new Event('input', { bubbles: true }))
-        inputRef.current.dispatchEvent(new Event('change', { bubbles: true }))
+        
+        // Trigger onChange callback if it exists
+        if (onChange) {
+          const syntheticEvent = {
+            target: inputRef.current,
+            currentTarget: inputRef.current,
+          } as React.ChangeEvent<HTMLInputElement>
+          onChange(syntheticEvent)
+        }
       }
     }
 
@@ -61,6 +79,7 @@ const ModernInput = React.forwardRef<HTMLInputElement, ModernInputProps>(
               className
             )}
             ref={inputRef}
+            onChange={onChange}
             {...props}
           />
           <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5">
@@ -98,6 +117,7 @@ const ModernInput = React.forwardRef<HTMLInputElement, ModernInputProps>(
           className
         )}
         ref={inputRef}
+        onChange={onChange}
         {...props}
       />
     )
