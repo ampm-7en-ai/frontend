@@ -397,8 +397,13 @@ const AddonsSection = () => {
                 min="1"
                 value={quantityInput}
                 onChange={(e) => {
-                  const value = parseInt(e.target.value);
-                  setQuantityInput(isNaN(value) || value < 1 ? 1 : value);
+                  const val = e.target.value;
+                  if (val === '' || val === '0') {
+                    setQuantityInput(1);
+                  } else {
+                    const parsed = parseInt(val, 10);
+                    setQuantityInput(isNaN(parsed) ? 1 : Math.max(1, parsed));
+                  }
                 }}
                 className="w-full"
               />
@@ -459,7 +464,15 @@ const AddonsSection = () => {
                 type="number"
                 min="1"
                 value={quantityInput}
-                onChange={(e) => setQuantityInput(Math.max(1, parseInt(e.target.value) || 1))}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '' || val === '0') {
+                    setQuantityInput(1);
+                  } else {
+                    const parsed = parseInt(val, 10);
+                    setQuantityInput(isNaN(parsed) ? 1 : Math.max(1, parsed));
+                  }
+                }}
                 className="w-full"
               />
             </div>
