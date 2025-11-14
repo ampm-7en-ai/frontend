@@ -12,6 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import ModernButton from '@/components/dashboard/ModernButton';
 import { Icon } from '@/components/icons';
 import { getApiUrl, updateSettings } from '@/utils/api-config';
+import { apiRequest } from '@/utils/api-interceptor';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -185,10 +186,20 @@ const GdprSettingsSection = ({ initialSettings }: GdprSettingsSectionProps) => {
     setIsDeleting(true);
     setShowDeleteAccountDialog(false);
     try {
-      // TODO: Implement delete account API call
+      const response = await apiRequest(getApiUrl('users/delete-account/'), {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete account');
+      }
+
+      const data = await response.json();
+      
       toast({
-        title: "Account Deleted",
-        description: "Your account has been permanently deleted.",
+        title: "Success",
+        description: data.message || "Your account has been permanently deleted.",
+        variant: "success"
       });
     } catch (error) {
       toast({
