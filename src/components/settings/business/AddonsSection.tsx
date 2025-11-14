@@ -519,7 +519,17 @@ const AddonsSection = () => {
       </Dialog>
 
       {/* Confirmation Dialog */}
-      <AlertDialog open={!!pendingToggle} onOpenChange={() => setPendingToggle(null)}>
+      <AlertDialog 
+        open={!!pendingToggle} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingToggle(null);
+            // Ensure all dialog states are clean
+            setShowQuantityDialog(false);
+            setShowEditQuantityDialog(false);
+          }
+        }}
+      >
         <AlertDialogContent className="sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-semibold">
@@ -542,7 +552,11 @@ const AddonsSection = () => {
           <AlertDialogFooter className="gap-2 sm:gap-0">
             <ModernButton 
               variant="outline" 
-              onClick={() => setPendingToggle(null)}
+              onClick={() => {
+                setPendingToggle(null);
+                setShowQuantityDialog(false);
+                setShowEditQuantityDialog(false);
+              }}
               disabled={subscribeMutation.isPending || cancelMutation.isPending}
             >
               Cancel
