@@ -396,7 +396,10 @@ const AddonsSection = () => {
                 type="number"
                 min="1"
                 value={quantityInput}
-                onChange={(e) => setQuantityInput(parseInt(e.target.value))}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  setQuantityInput(isNaN(value) || value < 1 ? 1 : value);
+                }}
                 className="w-full"
               />
             </div>
