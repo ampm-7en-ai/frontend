@@ -357,15 +357,12 @@ const SubscriptionPlanEditor = () => {
                 <h3 className="text-lg font-semibold">Pricing & Duration</h3>
                 <div className='flex items-center gap-2'>
                   <Checkbox
-                  id={`free`}
-                  checked={isFree}
-                  disabled={false}
-                  className="rounded-[4px]"
-                  onCheckedChange={(checked: any) =>
-                    setFree(checked)
-                  }
-                />
-                <label htmlFor='free'>Free</label>
+                    id="free"
+                    checked={isFree}
+                    className="rounded-[4px]"
+                    onCheckedChange={(checked) => setFree(!!checked)}
+                  />
+                  <label htmlFor='free' className="cursor-pointer">Free</label>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-6">
@@ -470,30 +467,27 @@ const SubscriptionPlanEditor = () => {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Handoffs</h3>
               <div className="flex gap-6">
-                <label className="flex items-center gap-2">
-                  <input 
-                    type="checkbox"
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    id="handoff-email"
                     checked={plan.config.handoffs.to_email}
-                    onChange={(e) => handleConfigChange('handoffs', 'to_email', e.target.checked)}
-                    className="w-4 h-4 bg-none"
+                    onCheckedChange={(checked) => handleConfigChange('handoffs', 'to_email', !!checked)}
                   />
                   <span>To Email</span>
                 </label>
-                <label className="flex items-center gap-2">
-                  <input 
-                    type="checkbox"
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    id="handoff-agent"
                     checked={plan.config.handoffs.to_agent}
-                    onChange={(e) => handleConfigChange('handoffs', 'to_agent', e.target.checked)}
-                    className="w-4 h-4"
+                    onCheckedChange={(checked) => handleConfigChange('handoffs', 'to_agent', !!checked)}
                   />
                   <span>To Agent</span>
                 </label>
-                <label className="flex items-center gap-2">
-                  <input 
-                    type="checkbox"
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    id="handoff-integration"
                     checked={plan.config.handoffs.to_integration}
-                    onChange={(e) => handleConfigChange('handoffs', 'to_integration', e.target.checked)}
-                    className="w-4 h-4"
+                    onCheckedChange={(checked) => handleConfigChange('handoffs', 'to_integration', !!checked)}
                   />
                   <span>To Integration</span>
                 </label>
@@ -504,12 +498,11 @@ const SubscriptionPlanEditor = () => {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Feature Toggles</h3>
               <div className="grid grid-cols-2 gap-4">
-                <label className="flex items-center gap-2">
-                  <input 
-                    type="checkbox"
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    id="embed-unlimited"
                     checked={plan.config.toggles.embed_unlimited_websites}
-                    onChange={(e) => handleConfigChange('toggles', 'embed_unlimited_websites', e.target.checked)}
-                    className="w-4 h-4"
+                    onCheckedChange={(checked) => handleConfigChange('toggles', 'embed_unlimited_websites', !!checked)}
                   />
                   <span>Embed Unlimited Websites</span>
                 </label>
@@ -522,12 +515,11 @@ const SubscriptionPlanEditor = () => {
                     onChange={(e) => handleConfigChange('toggles', 'weblink_training', parseInt(e.target.value) || 0)}
                   />
                 </div>
-                <label className="flex items-center gap-2">
-                  <input 
-                    type="checkbox"
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    id="analytics"
                     checked={plan.config.toggles.analytics}
-                    onChange={(e) => handleConfigChange('toggles', 'analytics', e.target.checked)}
-                    className="w-4 h-4"
+                    onCheckedChange={(checked) => handleConfigChange('toggles', 'analytics', !!checked)}
                   />
                   <span>Analytics</span>
                 </label>
@@ -538,12 +530,12 @@ const SubscriptionPlanEditor = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Integrations</h3>
-                <label className="flex items-center gap-2 text-sm">
-                  <input 
-                    type="checkbox"
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <Checkbox
+                    id="select-all-integrations"
                     checked={Object.values(plan.config.integrations).every(v => v)}
-                    onChange={(e) => {
-                      const allChecked = e.target.checked;
+                    onCheckedChange={(checked) => {
+                      const allChecked = !!checked;
                       const updatedIntegrations = Object.keys(plan.config.integrations).reduce((acc, key) => ({
                         ...acc,
                         [key]: allChecked
@@ -556,19 +548,17 @@ const SubscriptionPlanEditor = () => {
                         }
                       }));
                     }}
-                    className="w-4 h-4"
                   />
                   <span>Select All</span>
                 </label>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 {Object.keys(plan.config.integrations).map((key) => (
-                  <label key={key} className="flex items-center gap-2">
-                    <input 
-                      type="checkbox"
+                  <label key={key} className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      id={`integration-${key}`}
                       checked={plan.config.integrations[key as keyof typeof plan.config.integrations]}
-                      onChange={(e) => handleConfigChange('integrations', key, e.target.checked)}
-                      className="w-4 h-4"
+                      onCheckedChange={(checked) => handleConfigChange('integrations', key, !!checked)}
                     />
                     <span className="capitalize">{key}</span>
                   </label>
@@ -581,12 +571,12 @@ const SubscriptionPlanEditor = () => {
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">AI Models</h3>
                 {!modelsLoading && (
-                  <label className="flex items-center gap-2 text-sm">
-                    <input 
-                      type="checkbox"
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <Checkbox
+                      id="select-all-models"
                       checked={Object.values(plan.config.models).every(v => v)}
-                      onChange={(e) => {
-                        const allChecked = e.target.checked;
+                      onCheckedChange={(checked) => {
+                        const allChecked = !!checked;
                         const updatedModels = Object.keys(plan.config.models).reduce((acc, key) => ({
                           ...acc,
                           [key]: allChecked
@@ -599,7 +589,6 @@ const SubscriptionPlanEditor = () => {
                           }
                         }));
                       }}
-                      className="w-4 h-4"
                     />
                     <span>Select All</span>
                   </label>
@@ -610,12 +599,11 @@ const SubscriptionPlanEditor = () => {
               ) : (
                 <div className="grid grid-cols-3 gap-4">
                   {allModelOptions.map((model) => (
-                    <label key={model.value} className="flex items-center gap-2">
-                      <input 
-                        type="checkbox"
+                    <label key={model.value} className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        id={`model-${model.value}`}
                         checked={plan.config.models[model.value] || false}
-                        onChange={(e) => handleConfigChange('models', model.value, e.target.checked)}
-                        className="w-4 h-4"
+                        onCheckedChange={(checked) => handleConfigChange('models', model.value, !!checked)}
                       />
                       <span className="text-sm">{model.label}</span>
                     </label>
