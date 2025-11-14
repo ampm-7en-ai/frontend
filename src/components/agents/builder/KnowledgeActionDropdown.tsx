@@ -47,6 +47,7 @@ export const KnowledgeActionDropdown = () => {
       console.log(`🎯 Processing ${sourcesArray.length} new knowledge source(s)`);
       
       const transformedSources: KnowledgeSource[] = [];
+      let totalNewBytes = 0;
       
       // Process each source
       sourcesArray.forEach(sourceData => {
@@ -60,6 +61,16 @@ export const KnowledgeActionDropdown = () => {
         if (transformedSource) {
           transformedSources.push(transformedSource);
         }
+        
+        // Calculate file size in bytes
+        if (sourceData.metadata?.file_size) {
+          const fileSizeStr = sourceData.metadata.file_size;
+          // Parse "144417B" -> 144417
+          const bytes = parseInt(fileSizeStr.replace(/[^0-9]/g, ''), 10);
+          if (!isNaN(bytes)) {
+            totalNewBytes += bytes;
+          }
+        }
       });
       
       if (transformedSources.length > 0) {
@@ -68,7 +79,16 @@ export const KnowledgeActionDropdown = () => {
           ...transformedSources
         ];
         
-        updateAgentData({ knowledgeSources: updatedKnowledgeSources });
+        // Update training size
+        const currentTrainingBytes = agentData.total_training_usage_bytes || 0;
+        const newTotalBytes = currentTrainingBytes + totalNewBytes;
+        
+        console.log(`📊 Training size update: ${currentTrainingBytes} + ${totalNewBytes} = ${newTotalBytes} bytes`);
+        
+        updateAgentData({ 
+          knowledgeSources: updatedKnowledgeSources,
+          total_training_usage_bytes: newTotalBytes
+        });
         console.log(`✅ Local agent data updated with ${transformedSources.length} new source(s)`);
       }
     }
