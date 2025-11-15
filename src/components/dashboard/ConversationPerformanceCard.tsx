@@ -113,11 +113,11 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
                         <span className="font-medium">{agent.total}</span>
                       </div>
                       <div className="flex justify-between gap-4">
-                        <span>Closed (Resolved):</span>
+                        <span>Resolved:</span>
                         <span className="font-medium text-amber-600">{agent.closed}</span>
                       </div>
                       <div className="flex justify-between gap-4">
-                        <span>Open (Unresolved):</span>
+                        <span>Open:</span>
                         <span className="font-medium text-green-600">{agent.open}</span>
                       </div>
                       <div className="flex justify-between gap-4 border-t pt-1">
@@ -125,7 +125,6 @@ const ConversationPerformanceCard: React.FC<ConversationPerformanceCardProps> = 
                         <span className="font-medium">{agent.total > 0 ? Math.round((agent.closed / agent.total) * 100) : 0}%</span>
                       </div>
                     </div>,
-                    ''
                   ];
                 }
                 return [value, name];
