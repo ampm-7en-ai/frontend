@@ -195,6 +195,7 @@ export const PricingModal = () => {
     return (
       <Dialog open={isOpen} onOpenChange={closePricingModal}>
         <DialogContent className="max-w-[95vw] min-h-[90vh] flex items-center justify-center">
+          <DialogTitle className="sr-only">Loading Subscription Plans</DialogTitle>
           <LoadingSpinner />
         </DialogContent>
       </Dialog>
@@ -205,7 +206,7 @@ export const PricingModal = () => {
     <Dialog open={isOpen} onOpenChange={closePricingModal}>
       <DialogContent className="max-w-[95vw] min-h-[90vh] bg-white/95 dark:bg-neutral-800/95 backdrop-blur-xl border border-white/20 dark:border-neutral-700 shadow-2xl rounded-2xl p-0 overflow-hidden">
         <DialogHeader className="">
-         
+          <DialogTitle className="sr-only">Choose Your Subscription Plan</DialogTitle>
         </DialogHeader>
 
         <div className="overflow-y-auto flex-1 px-8 pb-8 max-h-[80vh]">
