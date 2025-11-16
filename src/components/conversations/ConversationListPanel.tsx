@@ -449,11 +449,6 @@ const ConversationListPanel = ({
             <div className="flex-1">
               <Skeleton className="h-4 w-24 mb-2 bg-neutral-100 dark:bg-neutral-700" />
               <Skeleton className="h-3 w-32 mb-3 bg-neutral-100 dark:bg-neutral-700" />
-              <Skeleton className="h-3 w-40 bg-neutral-100 dark:bg-neutral-700" />
-              <div className="flex gap-2 mt-2">
-                <Skeleton className="h-4 w-12 bg-neutral-100 dark:bg-neutral-700" />
-                <Skeleton className="h-4 w-12 bg-neutral-100 dark:bg-neutral-700" />
-              </div>
             </div>
           </div>
         </div>

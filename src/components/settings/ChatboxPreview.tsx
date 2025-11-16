@@ -2711,12 +2711,12 @@ export const ChatboxPreview = ({
           className="flex-1 min-h-0"
         >
           <div className="p-6 space-y-4 bg-gradient-to-b from-gray-50/50 to-white min-h-full mb-5">
-            {connectionError && (
+            {/* {connectionError && (
               <div className="flex items-center gap-3 p-4 bg-red-50/80 border border-red-200/60 rounded-xl backdrop-blur-sm">
                 <AlertCircle size={18} className="text-red-600 flex-shrink-0" />
                 <span className="text-sm text-red-800">Connection failed. Please check your agent configuration.</span>
               </div>
-            )}
+            )} */}
             
             {/* Welcome Message - Only show if welcomeMessage has content */}
             {showWelcomeMessage && welcomeMessage && welcomeMessage.trim() && (
